@@ -135,7 +135,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
     total_yellow = sum(int(p.get("yellow_card", 0)) for p in players if p.get("yellow_card", "").isdigit())
     total_red = sum(int(p.get("red_card", 0)) for p in players if p.get("red_card", "").isdigit())
     starting_players = [p for p in players if str(p.get("squad_role", "")).lower() == "starting xi"]
-    starting_xi_impact_score = round(sum(float(p.get("impact_score", 0) or 0) for p in starting_players), 2)
+    starting_xi_impact_score = round(sum(float(p.get("impact_score", 0) or 0) for p in starting_players[:11]), 2)
     total_value = round(sum(_parse_mv(p.get("market_value", 0)) for p in players) / 1_000_000.0, 1)
     mv_starting_xi = round(sum(_parse_mv(p.get("market_value", 0)) for p in starting_players) / 1_000_000.0, 1)
     av_age_starting_xi = round(sum(float(p.get("age", 0) or 0) for p in starting_players) / len(starting_players), 1) if starting_players else 0.0
