@@ -66,6 +66,23 @@ def get_flag_html(country_name):
     
     return f'<img src="https://flagcdn.com/w40/{code}.png" alt="{country_name.strip()}" style="width:30px;height:30px;vertical-align:middle;border-radius:3px;">'
 
+def _parse_mv(value):
+    s = str(value or "").strip()
+    if not s or s in {"-", "—"}:
+        return 0.0
+    s = s.replace("€", "").replace(",", ".").strip().lower()
+    mult = 1.0
+    if s.endswith("m"):
+        mult = 1_000_000.0
+        s = s[:-1]
+    elif s.endswith("k"):
+        mult = 1_000.0
+        s = s[:-1]
+    try:
+        return float(s) * mult
+    except Exception:
+        return 0.0
+
 def render_team_view(team_id: str) -> HTMLResponse:
     """Render team squad page"""
     DATA_DIR = "/home/openclaw/.openclaw/workspace"
@@ -117,6 +134,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
     total_assists = sum(int(p.get("assist", 0)) for p in players if p.get("assist", "").isdigit())
     total_yellow = sum(int(p.get("yellow_card", 0)) for p in players if p.get("yellow_card", "").isdigit())
     total_red = sum(int(p.get("red_card", 0)) for p in players if p.get("red_card", "").isdigit())
+    starting_players = [p for p in players if str(p.get("squad_role", "")).lower() == "starting xi"]
+    starting_xi_impact_score = round(sum(float(p.get("impact_score", 0) or 0) for p in starting_players), 2)
+    mv_starting_xi = round(sum(_parse_mv(p.get("market_value", 0)) for p in starting_players) / 1_000_000.0, 1)
+    av_age_starting_xi = round(sum(float(p.get("age", 0) or 0) for p in starting_players) / len(starting_players), 1) if starting_players else 0.0
     
     # Sort players by minutes played (descending)
     sorted_players = sorted(players, key=lambda x: int(x.get('min', '0')) if x.get('min', '0') and str(x['min']).isdigit() else 0, reverse=True)
@@ -362,12 +383,12 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <div class="stat-label">Total Goals</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{total_assists}</div>
-                <div class="stat-label">Total Assists</div>
+                <div class="stat-value">{starting_xi_impact_score:.2f}</div>
+                <div class="stat-label">Starting XI Impact Score</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{total_yellow}</div>
-                <div class="stat-label">Yellow Cards</div>
+                <div class="stat-value">{av_age_starting_xi:.1f}</div>
+                <div class="stat-label">Av.Age Starting XI</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">{total_red}</div>
