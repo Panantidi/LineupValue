@@ -384,15 +384,15 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <div class="stat-label">Total Goals</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{starting_xi_impact_score:.2f}</div>
+                <div class="stat-value" id="starting-xi-impact-score-value">{starting_xi_impact_score:.2f}</div>
                 <div class="stat-label">Starting XI Impact Score</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{mv_starting_xi:.1f}m</div>
+                <div class="stat-value" id="mv-starting-xi-value">{mv_starting_xi:.1f}m</div>
                 <div class="stat-label">MV Starting XI</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{av_age_starting_xi:.1f}</div>
+                <div class="stat-value" id="av-age-starting-xi-value">{av_age_starting_xi:.1f}</div>
                 <div class="stat-label">Av.Age Starting XI</div>
             </div>
             <div class="stat-card">
@@ -538,9 +538,51 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }});
         }});
         
+        function recalcSelectedStartingStats() {{
+            let impact = 0;
+            let mv = 0;
+            let ageSum = 0;
+            let count = 0;
+
+            document.querySelectorAll('tbody tr').forEach(row => {{
+                const cb = row.querySelector('.starting-checkbox');
+                if (!cb || !cb.checked) return;
+                const cells = row.querySelectorAll('td');
+                if (!cells || cells.length < 16) return;
+                const age = parseFloat((cells[4].textContent || '').replace(/[^0-9.]/g, '')) || 0;
+                const rawMarket = (cells[5].textContent || '').trim().toLowerCase().replace(/€/g, '');
+                const impactScore = parseFloat((cells[8].textContent || '').replace(/[^0-9.]/g, '')) || 0;
+                impact += impactScore;
+                ageSum += age;
+                count += 1;
+                if (rawMarket.endsWith('m')) {{
+                    mv += parseFloat(rawMarket) || 0;
+                }} else if (rawMarket.endsWith('k')) {{
+                    mv += (parseFloat(rawMarket) || 0) / 1000;
+                }} else {{
+                    mv += parseFloat(rawMarket) || 0;
+                }}
+            }});
+
+            const impactEl = document.getElementById('starting-xi-impact-score-value');
+            const mvEl = document.getElementById('mv-starting-xi-value');
+            const ageEl = document.getElementById('av-age-starting-xi-value');
+            if (impactEl) impactEl.textContent = impact.toFixed(2);
+            if (mvEl) mvEl.textContent = mv.toFixed(1) + 'm';
+            if (ageEl) ageEl.textContent = (count ? (ageSum / count) : 0).toFixed(1);
+        }}
+
+        document.querySelectorAll('.starting-checkbox').forEach(checkbox => {{
+            checkbox.addEventListener('change', function() {{
+                updateStartingCounter(this);
+                recalcSelectedStartingStats();
+            }});
+        }});
+
         // Initialize counters
         updateXICounter(null);
         updateStartingCounter(null);
+        recalcSelectedStartingStats();
         
 
     </script>
