@@ -1,0 +1,78 @@
+{
+  "France": {
+    "Ligue 1": [
+      {
+        "id": "FL1013",
+        "name": "Angers"
+      },
+      {
+        "id": "FL1012",
+        "name": "Auxerre"
+      },
+      {
+        "id": "FL1017",
+        "name": "Brest"
+      },
+      {
+        "id": "FL1014",
+        "name": "Le Havre"
+      },
+      {
+        "id": "FL1008",
+        "name": "Lens"
+      },
+      {
+        "id": "FL1004",
+        "name": "Lille"
+      },
+      {
+        "id": "FL1007",
+        "name": "Lorient"
+      },
+      {
+        "id": "FL1005",
+        "name": "Lyon"
+      },
+      {
+        "id": "FL1003",
+        "name": "Marseille"
+      },
+      {
+        "id": "FL1018",
+        "name": "Metz"
+      },
+      {
+        "id": "FL1002",
+        "name": "Monaco"
+      },
+      {
+        "id": "FL1011",
+        "name": "Nantes"
+      },
+      {
+        "id": "FL1006",
+        "name": "Nice"
+      },
+      {
+        "id": "FL1001",
+        "name": "PSG"
+      },
+      {
+        "id": "FL1015",
+        "name": "Paris FC"
+      },
+      {
+        "id": "FL1009",
+        "name": "Rennes"
+      },
+      {
+        "id": "FL1010",
+        "name": "Strasbourg"
+      },
+      {
+        "id": "FL1016",
+        "name": "Toulouse"
+      }
+    ]
+  }
+}

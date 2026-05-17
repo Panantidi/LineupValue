@@ -1,0 +1,838 @@
+{
+  "England": {
+    "Premier League": [
+      {
+        "id": "EPL001",
+        "name": "Arsenal"
+      },
+      {
+        "id": "EPL002",
+        "name": "Aston Villa"
+      },
+      {
+        "id": "EPL003",
+        "name": "AFC Bournemouth"
+      },
+      {
+        "id": "EPL004",
+        "name": "Brentford FC"
+      },
+      {
+        "id": "EPL005",
+        "name": "Brighton & Hove Albion"
+      },
+      {
+        "id": "EPL006",
+        "name": "Chelsea FC"
+      },
+      {
+        "id": "EPL007",
+        "name": "Crystal Palace"
+      },
+      {
+        "id": "EPL008",
+        "name": "Everton FC"
+      },
+      {
+        "id": "EPL009",
+        "name": "Fulham FC"
+      },
+      {
+        "id": "EPL010",
+        "name": "Ipswich Town"
+      },
+      {
+        "id": "EPL011",
+        "name": "Leicester City"
+      },
+      {
+        "id": "EPL012",
+        "name": "Liverpool FC"
+      },
+      {
+        "id": "EPL013",
+        "name": "Manchester City"
+      },
+      {
+        "id": "EPL014",
+        "name": "Manchester United"
+      },
+      {
+        "id": "EPL015",
+        "name": "Newcastle United"
+      },
+      {
+        "id": "EPL016",
+        "name": "Nottingham Forest"
+      },
+      {
+        "id": "EPL017",
+        "name": "Southampton FC"
+      },
+      {
+        "id": "EPL018",
+        "name": "Tottenham Hotspur"
+      },
+      {
+        "id": "EPL019",
+        "name": "West Ham United"
+      },
+      {
+        "id": "EPL020",
+        "name": "Wolverhampton Wanderers"
+      }
+    ],
+    "Championship": [
+      {
+        "id": "ECH001",
+        "name": "Leicester City"
+      },
+      {
+        "id": "ECH002",
+        "name": "Ipswich Town"
+      },
+      {
+        "id": "ECH003",
+        "name": "Leeds United"
+      },
+      {
+        "id": "ECH004",
+        "name": "Southampton FC"
+      },
+      {
+        "id": "ECH005",
+        "name": "West Bromwich Albion"
+      },
+      {
+        "id": "ECH006",
+        "name": "Norwich City"
+      },
+      {
+        "id": "ECH007",
+        "name": "Hull City"
+      },
+      {
+        "id": "ECH008",
+        "name": "Middlesbrough FC"
+      },
+      {
+        "id": "ECH009",
+        "name": "Coventry City"
+      },
+      {
+        "id": "ECH010",
+        "name": "Preston North End"
+      },
+      {
+        "id": "ECH011",
+        "name": "Sunderland AFC"
+      },
+      {
+        "id": "ECH012",
+        "name": "Bristol City"
+      },
+      {
+        "id": "ECH013",
+        "name": "Watford FC"
+      },
+      {
+        "id": "ECH014",
+        "name": "Cardiff City"
+      },
+      {
+        "id": "ECH015",
+        "name": "Millwall FC"
+      },
+      {
+        "id": "ECH016",
+        "name": "Blackburn Rovers"
+      },
+      {
+        "id": "ECH017",
+        "name": "Queens Park Rangers"
+      },
+      {
+        "id": "ECH018",
+        "name": "Swansea City"
+      },
+      {
+        "id": "ECH019",
+        "name": "Stoke City"
+      },
+      {
+        "id": "ECH020",
+        "name": "Sheffield Wednesday"
+      },
+      {
+        "id": "ECH021",
+        "name": "Plymouth Argyle"
+      },
+      {
+        "id": "ECH022",
+        "name": "Huddersfield Town"
+      },
+      {
+        "id": "ECH023",
+        "name": "Birmingham City"
+      },
+      {
+        "id": "ECH024",
+        "name": "Sheffield United"
+      }
+    ],
+    "League One": [
+      {
+        "id": "ELO001",
+        "name": "Bolton Wanderers"
+      },
+      {
+        "id": "ELO002",
+        "name": "Charlton Athletic"
+      },
+      {
+        "id": "ELO003",
+        "name": "Wrexham AFC"
+      },
+      {
+        "id": "ELO004",
+        "name": "Port Vale"
+      },
+      {
+        "id": "ELO005",
+        "name": "Peterborough United"
+      },
+      {
+        "id": "ELO006",
+        "name": "Bristol Rovers"
+      },
+      {
+        "id": "ELO007",
+        "name": "Luton Town"
+      },
+      {
+        "id": "ELO008",
+        "name": "Reading FC"
+      },
+      {
+        "id": "ELO009",
+        "name": "Lincoln City"
+      },
+      {
+        "id": "ELO010",
+        "name": "Barnsley FC"
+      },
+      {
+        "id": "ELO011",
+        "name": "Portsmouth FC"
+      },
+      {
+        "id": "ELO012",
+        "name": "Oxford United"
+      },
+      {
+        "id": "ELO013",
+        "name": "Derby County"
+      },
+      {
+        "id": "ELO014",
+        "name": "Blackpool FC"
+      },
+      {
+        "id": "ELO015",
+        "name": "Shrewsbury Town"
+      },
+      {
+        "id": "ELO016",
+        "name": "Exeter City"
+      },
+      {
+        "id": "ELO017",
+        "name": "Wigan Athletic"
+      },
+      {
+        "id": "ELO018",
+        "name": "Barrow AFC"
+      },
+      {
+        "id": "ELO019",
+        "name": "Accrington Stanley"
+      },
+      {
+        "id": "ELO020",
+        "name": "Carlisle United"
+      }
+    ],
+    "League Two": [
+      {
+        "id": "ELT001",
+        "name": "Stevenage FC"
+      },
+      {
+        "id": "ELT002",
+        "name": "Tranmere Rovers"
+      },
+      {
+        "id": "ELT003",
+        "name": "Crewe Alexandra"
+      },
+      {
+        "id": "ELT004",
+        "name": "Mansfield Town"
+      },
+      {
+        "id": "ELT005",
+        "name": "Notts County"
+      },
+      {
+        "id": "ELT006",
+        "name": "Barrow AFC"
+      },
+      {
+        "id": "ELT007",
+        "name": "Newport County"
+      },
+      {
+        "id": "ELT008",
+        "name": "Fleetwood Town"
+      },
+      {
+        "id": "ELT009",
+        "name": "Morecambe FC"
+      },
+      {
+        "id": "ELT010",
+        "name": "Doncaster Rovers"
+      },
+      {
+        "id": "ELT011",
+        "name": "Salford City"
+      },
+      {
+        "id": "ELT012",
+        "name": "Forest Green Rovers"
+      },
+      {
+        "id": "ELT013",
+        "name": "Colchester United"
+      },
+      {
+        "id": "ELT014",
+        "name": "Harrogate Town"
+      },
+      {
+        "id": "ELT015",
+        "name": "Bradford City"
+      },
+      {
+        "id": "ELT016",
+        "name": "Cheltenham Town"
+      },
+      {
+        "id": "ELT017",
+        "name": "Gillingham FC"
+      },
+      {
+        "id": "ELT018",
+        "name": "Swindon Town"
+      },
+      {
+        "id": "ELT019",
+        "name": "Grimsby Town"
+      },
+      {
+        "id": "ELT020",
+        "name": "Walsall FC"
+      }
+    ]
+  },
+  "France": {
+    "Ligue 1": [
+      {
+        "id": "FL1001",
+        "name": "Paris Saint-Germain"
+      },
+      {
+        "id": "FL1002",
+        "name": "AS Monaco"
+      },
+      {
+        "id": "FL1003",
+        "name": "Olympique Marseille"
+      },
+      {
+        "id": "FL1004",
+        "name": "LOSC Lille"
+      },
+      {
+        "id": "FL1005",
+        "name": "Olympique Lyonnais"
+      },
+      {
+        "id": "FL1006",
+        "name": "OGC Nice"
+      },
+      {
+        "id": "FL1007",
+        "name": "Stade de Reims"
+      },
+      {
+        "id": "FL1008",
+        "name": "RC Lens"
+      },
+      {
+        "id": "FL1009",
+        "name": "Stade Rennais FC"
+      },
+      {
+        "id": "FL1010",
+        "name": "RC Strasbourg Alsace"
+      },
+      {
+        "id": "FL1011",
+        "name": "FC Nantes"
+      },
+      {
+        "id": "FL1012",
+        "name": "AJ Auxerre"
+      },
+      {
+        "id": "FL1013",
+        "name": "Angers SCO"
+      },
+      {
+        "id": "FL1014",
+        "name": "Le Havre AC"
+      },
+      {
+        "id": "FL1015",
+        "name": "Montpellier HSC"
+      },
+      {
+        "id": "FL1016",
+        "name": "Toulouse FC"
+      },
+      {
+        "id": "FL1017",
+        "name": "Stade Brestois 29"
+      },
+      {
+        "id": "FL1018",
+        "name": "AS Saint-Étienne"
+      }
+    ],
+    "Ligue 2": [
+      {
+        "id": "FL2001",
+        "name": "FC Metz"
+      },
+      {
+        "id": "FL2002",
+        "name": "FC Lorient"
+      },
+      {
+        "id": "FL2003",
+        "name": "Red Star"
+      },
+      {
+        "id": "FL2004",
+        "name": "Grenoble Foot 38"
+      },
+      {
+        "id": "FL2005",
+        "name": "FC Sochaux-Montbéliard"
+      },
+      {
+        "id": "FL2006",
+        "name": "Amiens SC"
+      },
+      {
+        "id": "FL2007",
+        "name": "EA Guingamp"
+      },
+      {
+        "id": "FL2008",
+        "name": "USL Dunkerque"
+      },
+      {
+        "id": "FL2009",
+        "name": "Angers SCO"
+      },
+      {
+        "id": "FL2010",
+        "name": "FC Annecy"
+      },
+      {
+        "id": "FL2011",
+        "name": "ESTAC Troyes"
+      },
+      {
+        "id": "FL2012",
+        "name": "Stade Brestois 29"
+      },
+      {
+        "id": "FL2013",
+        "name": "Chamois Niortais FC"
+      },
+      {
+        "id": "FL2014",
+        "name": "Paris FC"
+      },
+      {
+        "id": "FL2015",
+        "name": "AC Ajaccio"
+      },
+      {
+        "id": "FL2016",
+        "name": "AS Saint-Étienne"
+      },
+      {
+        "id": "FL2017",
+        "name": "Clermont Foot 63"
+      },
+      {
+        "id": "FL2018",
+        "name": "Valenciennes FC"
+      },
+      {
+        "id": "FL2019",
+        "name": "FC Pau"
+      },
+      {
+        "id": "FL2020",
+        "name": "Boulogne-sur-Mer"
+      }
+    ]
+  },
+  "Italy": {
+    "Serie A": [
+      {
+        "id": "ISA001",
+        "name": "FC Internazionale Milano"
+      },
+      {
+        "id": "ISA002",
+        "name": "AC Milan"
+      },
+      {
+        "id": "ISA003",
+        "name": "Juventus FC"
+      },
+      {
+        "id": "ISA004",
+        "name": "Atalanta BC"
+      },
+      {
+        "id": "ISA005",
+        "name": "AS Roma"
+      },
+      {
+        "id": "ISA006",
+        "name": "SS Lazio"
+      },
+      {
+        "id": "ISA007",
+        "name": "SSC Napoli"
+      },
+      {
+        "id": "ISA008",
+        "name": "ACF Fiorentina"
+      },
+      {
+        "id": "ISA009",
+        "name": "Bologna FC 1909"
+      },
+      {
+        "id": "ISA010",
+        "name": "Torino FC"
+      },
+      {
+        "id": "ISA011",
+        "name": "AC Monza"
+      },
+      {
+        "id": "ISA012",
+        "name": "Hellas Verona FC"
+      },
+      {
+        "id": "ISA013",
+        "name": "Udinese Calcio"
+      },
+      {
+        "id": "ISA014",
+        "name": "UC Sampdoria"
+      },
+      {
+        "id": "ISA015",
+        "name": "US Lecce"
+      },
+      {
+        "id": "ISA016",
+        "name": "US Cagliari"
+      },
+      {
+        "id": "ISA017",
+        "name": "Empoli FC"
+      },
+      {
+        "id": "ISA018",
+        "name": "Parma Calcio 1913"
+      },
+      {
+        "id": "ISA019",
+        "name": "Como 1907"
+      },
+      {
+        "id": "ISA020",
+        "name": "US Città di Padova"
+      }
+    ],
+    "Serie B": [
+      {
+        "id": "ISB001",
+        "name": "Palermo FC"
+      },
+      {
+        "id": "ISB002",
+        "name": "Parma Calcio 1913"
+      },
+      {
+        "id": "ISB003",
+        "name": "Como 1907"
+      },
+      {
+        "id": "ISB004",
+        "name": "US Cremonese"
+      },
+      {
+        "id": "ISB005",
+        "name": "Bari 1908"
+      },
+      {
+        "id": "ISB006",
+        "name": "Ascoli Calcio 1898"
+      },
+      {
+        "id": "ISB007",
+        "name": "Venezia FC"
+      },
+      {
+        "id": "ISB008",
+        "name": "AC Monza"
+      },
+      {
+        "id": "ISB009",
+        "name": "Frosinone Calcio"
+      },
+      {
+        "id": "ISB010",
+        "name": "US Pescara"
+      },
+      {
+        "id": "ISB011",
+        "name": "SPAL 1907"
+      },
+      {
+        "id": "ISB012",
+        "name": "Reggina 1914"
+      },
+      {
+        "id": "ISB013",
+        "name": "US Sassuolo Calcio"
+      },
+      {
+        "id": "ISB014",
+        "name": "US Salernitana 1919"
+      },
+      {
+        "id": "ISB015",
+        "name": "Città di Varese"
+      },
+      {
+        "id": "ISB016",
+        "name": "Brescia Calcio"
+      },
+      {
+        "id": "ISB017",
+        "name": "Perugia Calcio"
+      },
+      {
+        "id": "ISB018",
+        "name": "AS Livorno Calcio"
+      },
+      {
+        "id": "ISB019",
+        "name": "Modena FC 2018"
+      },
+      {
+        "id": "ISB020",
+        "name": "Ternana Calcio"
+      }
+    ]
+  },
+  "Spain": {
+    "LaLiga": [
+      {
+        "id": "SLL001",
+        "name": "Real Madrid CF"
+      },
+      {
+        "id": "SLL002",
+        "name": "FC Barcelona"
+      },
+      {
+        "id": "SLL003",
+        "name": "Club Atlético de Madrid"
+      },
+      {
+        "id": "SLL004",
+        "name": "Athletic Club"
+      },
+      {
+        "id": "SLL005",
+        "name": "Real Sociedad de Fútbol"
+      },
+      {
+        "id": "SLL006",
+        "name": "Villarreal CF"
+      },
+      {
+        "id": "SLL007",
+        "name": "Real Betis Balompié"
+      },
+      {
+        "id": "SLL008",
+        "name": "Sevilla FC"
+      },
+      {
+        "id": "SLL009",
+        "name": "Valencia CF"
+      },
+      {
+        "id": "SLL010",
+        "name": "Girona FC"
+      },
+      {
+        "id": "SLL011",
+        "name": "RCD Mallorca"
+      },
+      {
+        "id": "SLL012",
+        "name": "CA Osasuna"
+      },
+      {
+        "id": "SLL013",
+        "name": "RC Celta de Vigo"
+      },
+      {
+        "id": "SLL014",
+        "name": "Getafe CF"
+      },
+      {
+        "id": "SLL015",
+        "name": "Rayo Vallecano"
+      },
+      {
+        "id": "SLL016",
+        "name": "UD Las Palmas"
+      },
+      {
+        "id": "SLL017",
+        "name": "CD Leganés"
+      },
+      {
+        "id": "SLL018",
+        "name": "RCD Espanyol"
+      },
+      {
+        "id": "SLL019",
+        "name": "Deportivo Alavés"
+      },
+      {
+        "id": "SLL020",
+        "name": "Real Valladolid CF"
+      }
+    ],
+    "LaLiga 2": [
+      {
+        "id": "SL2001",
+        "name": "Real Racing Club de Santander"
+      },
+      {
+        "id": "SL2002",
+        "name": "SD Eibar"
+      },
+      {
+        "id": "SL2003",
+        "name": "Sporting de Gijón"
+      },
+      {
+        "id": "SL2004",
+        "name": "Elche CF"
+      },
+      {
+        "id": "SL2005",
+        "name": "Real Zaragoza"
+      },
+      {
+        "id": "SL2006",
+        "name": "Levante UD"
+      },
+      {
+        "id": "SL2007",
+        "name": "CD Albacete"
+      },
+      {
+        "id": "SL2008",
+        "name": "CD Burgos"
+      },
+      {
+        "id": "SL2009",
+        "name": "CD Mirandés"
+      },
+      {
+        "id": "SL2010",
+        "name": "Real Oviedo"
+      },
+      {
+        "id": "SL2011",
+        "name": "Villarreal CF B"
+      },
+      {
+        "id": "SL2012",
+        "name": "CD Tenerife"
+      },
+      {
+        "id": "SL2013",
+        "name": "Elche CF"
+      },
+      {
+        "id": "SL2014",
+        "name": "FC Cartagena"
+      },
+      {
+        "id": "SL2015",
+        "name": "Girona FC B"
+      },
+      {
+        "id": "SL2016",
+        "name": "CD Castellón"
+      },
+      {
+        "id": "SL2017",
+        "name": "UD Alcorcón"
+      },
+      {
+        "id": "SL2018",
+        "name": "CD Lugo"
+      },
+      {
+        "id": "SL2019",
+        "name": "SD Amorebieta"
+      },
+      {
+        "id": "SL2020",
+        "name": "CD Eldense"
+      }
+    ]
+  }
+}

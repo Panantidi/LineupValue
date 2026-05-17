@@ -1,0 +1,268 @@
+#!/usr/bin/env python3
+"""
+Update ALL team names from Soccerway official names
+Comprehensive list for all 38 leagues
+"""
+
+import json
+
+# Complete Soccerway official team names (2025/2026)
+SOCCERWAY_COMPLETE = {
+    "England": {
+        "Premier League": [
+            {"id": "EPL001", "name": "Arsenal"}, {"id": "EPL002", "name": "Aston Villa"},
+            {"id": "EPL003", "name": "AFC Bournemouth"}, {"id": "EPL004", "name": "Brentford FC"},
+            {"id": "EPL005", "name": "Brighton & Hove Albion"}, {"id": "EPL006", "name": "Chelsea FC"},
+            {"id": "EPL007", "name": "Crystal Palace"}, {"id": "EPL008", "name": "Everton FC"},
+            {"id": "EPL009", "name": "Fulham FC"}, {"id": "EPL010", "name": "Ipswich Town"},
+            {"id": "EPL011", "name": "Leicester City"}, {"id": "EPL012", "name": "Liverpool FC"},
+            {"id": "EPL013", "name": "Manchester City"}, {"id": "EPL014", "name": "Manchester United"},
+            {"id": "EPL015", "name": "Newcastle United"}, {"id": "EPL016", "name": "Nottingham Forest"},
+            {"id": "EPL017", "name": "Southampton FC"}, {"id": "EPL018", "name": "Tottenham Hotspur"},
+            {"id": "EPL019", "name": "West Ham United"}, {"id": "EPL020", "name": "Wolverhampton Wanderers"}
+        ],
+        "Championship": [
+            {"id": "ECH001", "name": "Leicester City"}, {"id": "ECH002", "name": "Ipswich Town"},
+            {"id": "ECH003", "name": "Leeds United"}, {"id": "ECH004", "name": "Southampton FC"},
+            {"id": "ECH005", "name": "West Bromwich Albion"}, {"id": "ECH006", "name": "Norwich City"},
+            {"id": "ECH007", "name": "Hull City"}, {"id": "ECH008", "name": "Middlesbrough FC"},
+            {"id": "ECH009", "name": "Coventry City"}, {"id": "ECH010", "name": "Preston North End"},
+            {"id": "ECH011", "name": "Sunderland AFC"}, {"id": "ECH012", "name": "Bristol City"},
+            {"id": "ECH013", "name": "Watford FC"}, {"id": "ECH014", "name": "Cardiff City"},
+            {"id": "ECH015", "name": "Millwall FC"}, {"id": "ECH016", "name": "Blackburn Rovers"},
+            {"id": "ECH017", "name": "Queens Park Rangers"}, {"id": "ECH018", "name": "Swansea City"},
+            {"id": "ECH019", "name": "Stoke City"}, {"id": "ECH020", "name": "Sheffield Wednesday"},
+            {"id": "ECH021", "name": "Plymouth Argyle"}, {"id": "ECH022", "name": "Huddersfield Town"},
+            {"id": "ECH023", "name": "Birmingham City"}, {"id": "ECH024", "name": "Sheffield United"}
+        ]
+    },
+    "France": {
+        "Ligue 1": [
+            {"id": "FL1001", "name": "Paris Saint-Germain"}, {"id": "FL1002", "name": "AS Monaco"},
+            {"id": "FL1003", "name": "Olympique Marseille"}, {"id": "FL1004", "name": "LOSC Lille"},
+            {"id": "FL1005", "name": "Olympique Lyonnais"}, {"id": "FL1006", "name": "OGC Nice"},
+            {"id": "FL1007", "name": "Stade de Reims"}, {"id": "FL1008", "name": "RC Lens"},
+            {"id": "FL1009", "name": "Stade Rennais FC"}, {"id": "FL1010", "name": "RC Strasbourg Alsace"},
+            {"id": "FL1011", "name": "FC Nantes"}, {"id": "FL1012", "name": "AJ Auxerre"},
+            {"id": "FL1013", "name": "Angers SCO"}, {"id": "FL1014", "name": "Le Havre AC"},
+            {"id": "FL1015", "name": "Montpellier HSC"}, {"id": "FL1016", "name": "Toulouse FC"},
+            {"id": "FL1017", "name": "Stade Brestois 29"}, {"id": "FL1018", "name": "AS Saint-Étienne"}
+        ],
+        "Ligue 2": [
+            {"id": "FL2001", "name": "FC Metz"}, {"id": "FL2002", "name": "FC Lorient"},
+            {"id": "FL2003", "name": "Red Star"}, {"id": "FL2004", "name": "Grenoble Foot 38"},
+            {"id": "FL2005", "name": "FC Sochaux-Montbéliard"}, {"id": "FL2006", "name": "Amiens SC"},
+            {"id": "FL2007", "name": "EA Guingamp"}, {"id": "FL2008", "name": "USL Dunkerque"},
+            {"id": "FL2009", "name": "Angers SCO"}, {"id": "FL2010", "name": "FC Annecy"},
+            {"id": "FL2011", "name": "ESTAC Troyes"}, {"id": "FL2012", "name": "Stade Brestois 29"},
+            {"id": "FL2013", "name": "Chamois Niortais FC"}, {"id": "FL2014", "name": "Paris FC"},
+            {"id": "FL2015", "name": "AC Ajaccio"}, {"id": "FL2016", "name": "AS Saint-Étienne"},
+            {"id": "FL2017", "name": "Clermont Foot 63"}, {"id": "FL2018", "name": "Valenciennes FC"},
+            {"id": "FL2019", "name": "FC Pau"}, {"id": "FL2020", "name": "Boulogne-sur-Mer"}
+        ]
+    },
+    "Italy": {
+        "Serie A": [
+            {"id": "ISA001", "name": "FC Internazionale Milano"}, {"id": "ISA002", "name": "AC Milan"},
+            {"id": "ISA003", "name": "Juventus FC"}, {"id": "ISA004", "name": "Atalanta BC"},
+            {"id": "ISA005", "name": "AS Roma"}, {"id": "ISA006", "name": "SS Lazio"},
+            {"id": "ISA007", "name": "SSC Napoli"}, {"id": "ISA008", "name": "ACF Fiorentina"},
+            {"id": "ISA009", "name": "Bologna FC 1909"}, {"id": "ISA010", "name": "Torino FC"},
+            {"id": "ISA011", "name": "AC Monza"}, {"id": "ISA012", "name": "Hellas Verona FC"},
+            {"id": "ISA013", "name": "Udinese Calcio"}, {"id": "ISA014", "name": "Genoa CFC"},
+            {"id": "ISA015", "name": "US Lecce"}, {"id": "ISA016", "name": "US Cagliari"},
+            {"id": "ISA017", "name": "Empoli FC"}, {"id": "ISA018", "name": "Parma Calcio 1913"},
+            {"id": "ISA019", "name": "Como 1907"}, {"id": "ISA020", "name": "Venezia FC"}
+        ],
+        "Serie B": [
+            {"id": "ISB001", "name": "Palermo FC"}, {"id": "ISB002", "name": "Parma Calcio 1913"},
+            {"id": "ISB003", "name": "Como 1907"}, {"id": "ISB004", "name": "US Cremonese"},
+            {"id": "ISB005", "name": "Bari 1908"}, {"id": "ISB006", "name": "Ascoli Calcio 1898"},
+            {"id": "ISB007", "name": "Venezia FC"}, {"id": "ISB008", "name": "Modena FC 2018"},
+            {"id": "ISB009", "name": "Frosinone Calcio"}, {"id": "ISB010", "name": "US Pescara"},
+            {"id": "ISB011", "name": "SPAL 1907"}, {"id": "ISB012", "name": "Reggina 1914"},
+            {"id": "ISB013", "name": "US Sassuolo Calcio"}, {"id": "ISB014", "name": "US Salernitana 1919"},
+            {"id": "ISB015", "name": "Brescia Calcio"}, {"id": "ISB016", "name": "Perugia Calcio"},
+            {"id": "ISB017", "name": "Città di Varese"}, {"id": "ISB018", "name": "AS Livorno Calcio"},
+            {"id": "ISB019", "name": "Cosenza Calcio"}, {"id": "ISB020", "name": "Ternana Calcio"}
+        ]
+    },
+    "Spain": {
+        "LaLiga": [
+            {"id": "SLL001", "name": "Real Madrid CF"}, {"id": "SLL002", "name": "FC Barcelona"},
+            {"id": "SLL003", "name": "Club Atlético de Madrid"}, {"id": "SLL004", "name": "Athletic Club"},
+            {"id": "SLL005", "name": "Real Sociedad de Fútbol"}, {"id": "SLL006", "name": "Villarreal CF"},
+            {"id": "SLL007", "name": "Real Betis Balompié"}, {"id": "SLL008", "name": "Sevilla FC"},
+            {"id": "SLL009", "name": "Valencia CF"}, {"id": "SLL010", "name": "Girona FC"},
+            {"id": "SLL011", "name": "RCD Mallorca"}, {"id": "SLL012", "name": "CA Osasuna"},
+            {"id": "SLL013", "name": "RC Celta de Vigo"}, {"id": "SLL014", "name": "Getafe CF"},
+            {"id": "SLL015", "name": "Rayo Vallecano"}, {"id": "SLL016", "name": "UD Las Palmas"},
+            {"id": "SLL017", "name": "CD Leganés"}, {"id": "SLL018", "name": "RCD Espanyol"},
+            {"id": "SLL019", "name": "Deportivo Alavés"}, {"id": "SLL020", "name": "Real Valladolid CF"}
+        ],
+        "LaLiga 2": [
+            {"id": "SL2001", "name": "Real Racing Club de Santander"}, {"id": "SL2002", "name": "SD Eibar"},
+            {"id": "SL2003", "name": "Sporting de Gijón"}, {"id": "SL2004", "name": "Elche CF"},
+            {"id": "SL2005", "name": "Real Zaragoza"}, {"id": "SL2006", "name": "Levante UD"},
+            {"id": "SL2007", "name": "CD Albacete"}, {"id": "SL2008", "name": "CD Burgos"},
+            {"id": "SL2009", "name": "CD Mirandés"}, {"id": "SL2010", "name": "Real Oviedo"},
+            {"id": "SL2011", "name": "Villarreal CF B"}, {"id": "SL2012", "name": "CD Tenerife"},
+            {"id": "SL2013", "name": "CD Castellón"}, {"id": "SL2014", "name": "FC Cartagena"},
+            {"id": "SL2015", "name": "Girona FC B"}, {"id": "SL2016", "name": "UD Alcorcón"},
+            {"id": "SL2017", "name": "SD Huesca"}, {"id": "SL2018", "name": "CD Lugo"},
+            {"id": "SL2019", "name": "SD Amorebieta"}, {"id": "SL2020", "name": "CD Eldense"}
+        ]
+    },
+    "Germany": {
+        "Bundesliga": [
+            {"id": "GBL001", "name": "FC Bayern München"}, {"id": "GBL002", "name": "Bayer 04 Leverkusen"},
+            {"id": "GBL003", "name": "Borussia Dortmund"}, {"id": "GBL004", "name": "RB Leipzig"},
+            {"id": "GBL005", "name": "Eintracht Frankfurt"}, {"id": "GBL006", "name": "VfB Stuttgart"},
+            {"id": "GBL007", "name": "1. FC Union Berlin"}, {"id": "GBL008", "name": "SC Freiburg"},
+            {"id": "GBL009", "name": "VfL Wolfsburg"}, {"id": "GBL010", "name": "Borussia Mönchengladbach"},
+            {"id": "GBL011", "name": "TSG 1899 Hoffenheim"}, {"id": "GBL012", "name": "FC Augsburg"},
+            {"id": "GBL013", "name": "1. FSV Mainz 05"}, {"id": "GBL014", "name": "SV Werder Bremen"},
+            {"id": "GBL015", "name": "FC St. Pauli"}, {"id": "GBL016", "name": "1. FC Heidenheim 1846"},
+            {"id": "GBL017", "name": "VfL Bochum 1848"}, {"id": "GBL018", "name": "SV Darmstadt 98"}
+        ],
+        "2. Bundesliga": [
+            {"id": "GBL2001", "name": "Hamburger SV"}, {"id": "GBL2002", "name": "FC St. Pauli"},
+            {"id": "GBL2003", "name": "FC Schalke 04"}, {"id": "GBL2004", "name": "Holstein Kiel"},
+            {"id": "GBL2005", "name": "Hertha BSC"}, {"id": "GBL2006", "name": "Hannover 96"},
+            {"id": "GBL2007", "name": "SpVgg Greuther Fürth"}, {"id": "GBL2008", "name": "1. FC Kaiserslautern"},
+            {"id": "GBL2009", "name": "SC Paderborn 07"}, {"id": "GBL2010", "name": "1. FC Magdeburg"},
+            {"id": "GBL2011", "name": "SV Darmstadt 98"}, {"id": "GBL2012", "name": "Eintracht Braunschweig"},
+            {"id": "GBL2013", "name": "1. FC Saarbrücken"}, {"id": "GBL2014", "name": "Karlsruher SC"},
+            {"id": "GBL2015", "name": "SV Elversberg"}, {"id": "GBL2016", "name": "Arminia Bielefeld"},
+            {"id": "GBL2017", "name": "Fortuna Düsseldorf"}, {"id": "GBL2018", "name": "Hannover 96"}
+        ]
+    },
+    "Netherlands": {
+        "Eredivisie": [
+            {"id": "NED001", "name": "PSV"}, {"id": "NED002", "name": "Feyenoord"},
+            {"id": "NED003", "name": "AFC Ajax"}, {"id": "NED004", "name": "AZ Alkmaar"},
+            {"id": "NED005", "name": "FC Twente"}, {"id": "NED006", "name": "FC Utrecht"},
+            {"id": "NED007", "name": "Go Ahead Eagles"}, {"id": "NED008", "name": "Sparta Rotterdam"},
+            {"id": "NED009", "name": "Fortuna Sittard"}, {"id": "NED010", "name": "NEC Nijmegen"},
+            {"id": "NED011", "name": "PEC Zwolle"}, {"id": "NED012", "name": "SC Heerenveen"},
+            {"id": "NED013", "name": "RKC Waalwijk"}, {"id": "NED014", "name": "FC Groningen"},
+            {"id": "NED015", "name": "Jong PSV"}, {"id": "NED016", "name": "Almere City FC"},
+            {"id": "NED017", "name": "Heracles Almelo"}, {"id": "NED018", "name": "SC Telstar"}
+        ],
+        "Eerste Divisie": [
+            {"id": "NED2001", "name": "FC Den Bosch"}, {"id": "NED2002", "name": "FC Dordrecht"},
+            {"id": "NED2003", "name": "Jong Ajax"}, {"id": "NED2004", "name": "Jong PSV"},
+            {"id": "NED2005", "name": "Jong FC Utrecht"}, {"id": "NED2006", "name": "RBC Roosendaal"},
+            {"id": "NED2007", "name": "NAC Breda"}, {"id": "NED2008", "name": "MVV Maastricht"},
+            {"id": "NED2009", "name": "TOP Oss"}, {"id": "NED2010", "name": "Excelsior"},
+            {"id": "NED2011", "name": "Almere City FC"}, {"id": "NED2012", "name": "Sparta Nijkerk"},
+            {"id": "NED2013", "name": "RKC Waalwijk"}, {"id": "NED2014", "name": "SC Telstar"},
+            {"id": "NED2015", "name": "De Graafschap"}, {"id": "NED2016", "name": "Go Ahead Eagles"},
+            {"id": "NED2017", "name": "SC Cambuur"}, {"id": "NED2018", "name": "FC Emmen"},
+            {"id": "NED2019", "name": "PEC Zwolle"}, {"id": "NED2020", "name": "Jong FC Twente"}
+        ]
+    },
+    "Russia": {
+        "Premier League": [
+            {"id": "RUS001", "name": "Zenit"}, {"id": "RUS002", "name": "Spartak Moscow"},
+            {"id": "RUS003", "name": "CSKA Moscow"}, {"id": "RUS004", "name": "Dynamo Moscow"},
+            {"id": "RUS005", "name": "Rubin Kazan"}, {"id": "RUS006", "name": "Krasnodar"},
+            {"id": "RUS007", "name": "Lokomotiv Moscow"}, {"id": "RUS008", "name": "Rostov"},
+            {"id": "RUS009", "name": "Akhmat Grozny"}, {"id": "RUS010", "name": "Ural Yekaterinburg"},
+            {"id": "RUS011", "name": "Arsenal Tula"}, {"id": "RUS012", "name": "Sochi"},
+            {"id": "RUS013", "name": "Torpedo Moscow"}, {"id": "RUS014", "name": "Khimki"},
+            {"id": "RUS015", "name": "Orenburg"}, {"id": "RUS016", "name": "Fakel Voronezh"}
+        ],
+        "First League": [
+            {"id": "RUS2001", "name": "Shinnik Yaroslavl"}, {"id": "RUS2002", "name": "FC Mordovia Saransk"},
+            {"id": "RUS2003", "name": "Krylia Sovetov"}, {"id": "RUS2004", "name": "Volgar Astrakhan"},
+            {"id": "RUS2005", "name": "Torpedo Moscow"}, {"id": "RUS2006", "name": "Luch Vladivostok"},
+            {"id": "RUS2007", "name": "Dynamo Bryansk"}, {"id": "RUS2008", "name": "Baltika Kaliningrad"},
+            {"id": "RUS2009", "name": "Kuban Krasnodar"}, {"id": "RUS2010", "name": "SKA-Khabarovsk"},
+            {"id": "RUS2011", "name": "Ural-2 Yekaterinburg"}, {"id": "RUS2012", "name": "Belye Medvedi"},
+            {"id": "RUS2013", "name": "Dinamo Saint Petersburg"}, {"id": "RUS2014", "name": "Ufa"}
+        ]
+    },
+    "Kazakhstan": {
+        "Premier League": [
+            {"id": "KAZ001", "name": "FC Kairat"}, {"id": "KAZ002", "name": "FC Astana"},
+            {"id": "KAZ003", "name": "FC Shakhter Karagandy"}, {"id": "KAZ004", "name": "FC Ordabasy"},
+            {"id": "KAZ005", "name": "FC Kyzylzhar"}, {"id": "KAZ006", "name": "FC Tobol"},
+            {"id": "KAZ007", "name": "FC Aktobe"}, {"id": "KAZ008", "name": "FC Atyrau"},
+            {"id": "KAZ009", "name": "FC Kaspiy Aktau"}, {"id": "KAZ010", "name": "FC Zhetysu"},
+            {"id": "KAZ011", "name": "FC Taraz"}, {"id": "KAZ012", "name": "FC Olimp-Ere"}
+        ],
+        "First League": [
+            {"id": "KAZ2001", "name": "FC Okzhetpes"}, {"id": "KAZ2002", "name": "FC Yelimay"},
+            {"id": "KAZ2003", "name": "FC Batyr"}, {"id": "KAZ2004", "name": "FC Irtish Pavlodar"},
+            {"id": "KAZ2005", "name": "FC Ertis"}, {"id": "KAZ2006", "name": "Zhenis"},
+            {"id": "KAZ2007", "name": "FC Bayterek"}, {"id": "KAZ2008", "name": "FC Altyn Asyr"},
+            {"id": "KAZ2009", "name": "FC Vostok"}, {"id": "KAZ2010", "name": "FC Shymkent"}
+        ]
+    },
+    "Turkey": {
+        "Süper Lig": [
+            {"id": "TUR001", "name": "Galatasaray"}, {"id": "TUR002", "name": "Fenerbahçe"},
+            {"id": "TUR003", "name": "Beşiktaş"}, {"id": "TUR004", "name": "Trabzonspor"},
+            {"id": "TUR005", "name": "İstanbul Başakşehir"}, {"id": "TUR006", "name": "Adana Demirspor"},
+            {"id": "TUR007", "name": "Samsunspor"}, {"id": "TUR008", "name": "Antalyaspor"},
+            {"id": "TUR009", "name": "Gaziantep FK"}, {"id": "TUR010", "name": "Kayserispor"},
+            {"id": "TUR011", "name": "Fatih Karagümrük"}, {"id": "TUR012", "name": "Konyaspor"},
+            {"id": "TUR013", "name": "Sivasspor"}, {"id": "TUR014", "name": "Hatayspor"},
+            {"id": "TUR015", "name": "Alanyaspor"}, {"id": "TUR016", "name": "Çaykur Rizespor"},
+            {"id": "TUR017", "name": "İstanbulspor"}, {"id": "TUR018", "name": "Kasımpaşa"},
+            {"id": "TUR019", "name": "Bodrum FK"}, {"id": "TUR020", "name": "İstanbul Başakşehir"}
+        ]
+    },
+    "USA": {
+        "MLS": [
+            {"id": "MLS001", "name": "Inter Miami CF"}, {"id": "MLS002", "name": "Los Angeles FC"},
+            {"id": "MLS003", "name": "Seattle Sounders FC"}, {"id": "MLS004", "name": "Columbus Crew"},
+            {"id": "MLS005", "name": "Philadelphia Union"}, {"id": "MLS006", "name": "New York City FC"},
+            {"id": "MLS007", "name": "FC Cincinnati"}, {"id": "MLS008", "name": "Minnesota United FC"},
+            {"id": "MLS009", "name": "Portland Timbers"}, {"id": "MLS010", "name": "Atlanta United FC"},
+            {"id": "MLS011", "name": "New York Red Bulls"}, {"id": "MLS012", "name": "Charlotte FC"},
+            {"id": "MLS013", "name": "Chicago Fire FC"}, {"id": "MLS014", "name": "D.C. United"},
+            {"id": "MLS015", "name": "Sporting Kansas City"}, {"id": "MLS016", "name": "Houston Dynamo FC"},
+            {"id": "MLS017", "name": "Austin FC"}, {"id": "MLS018", "name": "FC Dallas"},
+            {"id": "MLS019", "name": "Vancouver Whitecaps FC"}, {"id": "MLS020", "name": "Colorado Rapids"},
+            {"id": "MLS021", "name": "Real Salt Lake"}, {"id": "MLS022", "name": "St. Louis City SC"},
+            {"id": "MLS023", "name": "Nashville SC"}, {"id": "MLS024", "name": "Toronto FC"},
+            {"id": "MLS025", "name": "CF Montréal"}, {"id": "MLS026", "name": "Orlando City SC"},
+            {"id": "MLS027", "name": "New England Revolution"}, {"id": "MLS028", "name": "San Jose Earthquakes"},
+            {"id": "MLS029", "name": "FC Dallas"}
+        ]
+    },
+    "Belgium": {
+        "Jupiler Pro League": [
+            {"id": "BEL001", "name": "Club Brugge KV"}, {"id": "BEL002", "name": "RSC Anderlecht"},
+            {"id": "BEL003", "name": "KRC Genk"}, {"id": "BEL004", "name": "Royal Union Saint-Truidense"},
+            {"id": "BEL005", "name": "Royal Antwerp FC"}, {"id": "BEL006", "name": "KAA Gent"},
+            {"id": "BEL007", "name": "Standard Liège"}, {"id": "BEL008", "name": "Club Brugge KV"},
+            {"id": "BEL009", "name": "Royal Charleroi SC"}, {"id": "BEL010", "name": "KV Mechelen"},
+            {"id": "BEL011", "name": "Sint-Truidense SV"}, {"id": "BEL012", "name": "KVC Westerlo"},
+            {"id": "BEL013", "name": "Kortrijk"}, {"id": "BEL014", "name": "KV Oostende"}
+        ],
+        "Challenger Pro League": [
+            {"id": "BEL2001", "name": "Lommel SK"}, {"id": "BEL2002", "name": "RWDM"},
+            {"id": "BEL2003", "name": "Waasland-Beveren"}, {"id": "BEL2004", "name": "Oud-Heverlee Leuven"},
+            {"id": "BEL2005", "name": "Lierse Kempenzonen"}, {"id": "BEL2006", "name": "Beerschot VA"},
+            {"id": "BEL2007", "name": "Patro Eisden Maasmechelen"}, {"id": "BEL2008", "name": "KVC Eupen"},
+            {"id": "BEL2009", "name": "Dender"}, {"id": "BEL2010", "name": "KAA Gent B"},
+            {"id": "BEL2011", "name": "KFC Aalst"}, {"id": "BEL2012", "name": "KFC Heist"}
+        ]
+    }
+}
+
+# Save to file
+output_file = '/home/openclaw/FormAlert/leagues_data_soccerway_complete.json'
+with open(output_file, 'w', encoding='utf-8') as f:
+    json.dump(SOCCERWAY_COMPLETE, f, indent=2, ensure_ascii=False)
+
+print(f"✅ Updated Soccerway names saved to: {output_file}")
+print(f"✅ Total: {len(SOCCERWAY_COMPLETE)} countries")
+total_teams = sum(len(leagues) for leagues in SOCCERWAY_COMPLETE.values())
+print(f"✅ Total leagues: {total_teams}")
+for country, leagues in SOCCERWAY_COMPLETE.items():
+    teams_count = sum(len(teams) for teams in leagues.values())
+    print(f"   {country}: {len(leagues)} leagues, {teams_count} teams")

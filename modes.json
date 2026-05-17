@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "fetch_interval_seconds": 360,
+  "blacklist_path": "keywords_blacklist.txt",
+  "modes": [
+    {
+      "id": "main",
+      "enabled": true,
+      "category": "auto",
+      "requires_player_names": true,
+      "keywords_path": "keywords_include.txt",
+      "player_names_path": "player_names.txt",
+      "gate_bypass": false,
+      "image": {"enabled": false}
+    },
+    {
+      "id": "probable_xi",
+      "enabled": true,
+      "category": "predicted_lineup",
+      "requires_player_names": false,
+      "keywords_path": "probable_xi_keywords.txt",
+      "gate_bypass": true,
+      "image": {"enabled": true, "attachments": true, "og": true}
+    },
+    {
+      "id": "starting_xi",
+      "enabled": true,
+      "category": "starting_lineup",
+      "requires_player_names": false,
+      "keywords_path": "starting_xi_keywords.txt",
+      "gate_bypass": true,
+      "time_gate": {"type": "fl1_window", "minutes": 80},
+      "image": {"enabled": true, "attachments": true, "og": true}
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Probable XI keywords (case-insensitive). 1 phrase per line.
+compo probable
+compos probables
+composition probable
+composition probables
+compo possible
+l’equipe probable
+11 probable
+les compositions

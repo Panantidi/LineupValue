@@ -1,0 +1,17 @@
+# Starting XI keywords (case-insensitive). 1 phrase per line.
+# NOTE: Probable_XI has priority (if probable keywords hit, Starting_XI is disabled).
+le xi
+notre compo
+le 11 de départ
+la composition du
+les compositions officielles
+composition officielle
+compo officielle
+la compo de
+la composition de
+la composition
+la compo
+la compo’
+la compo’ de
+de départ
+𝐗𝐈 𝐝𝐞 𝐝𝐞́𝐩𝐚𝐫𝐭

@@ -1,0 +1,208 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LineUp AI - Select Team</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        select:hover {
+            border-color: #667eea;
+        }
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        select:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+            color: #999;
+        }
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 LineUp AI</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 32px;">
+            Select a team to view squad
+        </p>
+        
+        <div class="form-group">
+            <label for="country">Country</label>
+            <select id="country" onchange="onCountryChange()">
+                <option value="">-- Select Country --</option>
+            </select>
+            <div class="hint">Choose your country</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="championship">Championship</label>
+            <select id="championship" onchange="onChampionshipChange()" disabled>
+                <option value="">-- Select Championship --</option>
+            </select>
+            <div class="hint">Choose your championship/league</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="team">Team</label>
+            <select id="team" onchange="onTeamChange()" disabled>
+                <option value="">-- Select Team --</option>
+            </select>
+            <div class="hint">Choose your team</div>
+        </div>
+    </div>
+
+    <script>
+        let lineupData = null;
+        
+        async function loadLineupData() {
+            try {
+                const response = await fetch('/lineup_ai/data.json');
+                lineupData = await response.json();
+                populateCountries();
+            } catch (error) {
+                console.error('Error loading lineup data:', error);
+                showError('Failed to load team data');
+            }
+        }
+        
+        function populateCountries() {
+            const countrySelect = document.getElementById('country');
+            const championships = Object.keys(lineupData).sort();
+            
+            championships.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                countrySelect.appendChild(option);
+            });
+        }
+        
+        function onCountryChange() {
+            const country = document.getElementById('country').value;
+            const championshipSelect = document.getElementById('championship');
+            const teamSelect = document.getElementById('team');
+            
+            // Reset championships and teams
+            championshipSelect.innerHTML = '<option value="">-- Select Championship --</option>';
+            teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
+            teamSelect.disabled = true;
+            
+            if (!country || !lineupData[country]) {
+                championshipSelect.disabled = true;
+                return;
+            }
+            
+            const championships = Object.keys(lineupData[country]).sort();
+            championships.forEach(championship => {
+                const option = document.createElement('option');
+                option.value = championship;
+                option.textContent = championship;
+                championshipSelect.appendChild(option);
+            });
+            
+            championshipSelect.disabled = false;
+        }
+        
+        function onChampionshipChange() {
+            const country = document.getElementById('country').value;
+            const championship = document.getElementById('championship').value;
+            const teamSelect = document.getElementById('team');
+            
+            // Reset teams
+            teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
+            
+            if (!country || !championship || !lineupData[country][championship]) {
+                teamSelect.disabled = true;
+                return;
+            }
+            
+            const teams = lineupData[country][championship];
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.id;
+                option.textContent = team.name;
+                teamSelect.appendChild(option);
+            });
+            
+            teamSelect.disabled = false;
+        }
+        
+        function onTeamChange() {
+            const teamId = document.getElementById('team').value;
+            if (teamId) {
+                window.location.href = '/lineup_ai/' + teamId;
+            }
+        }
+        
+        function showError(message) {
+            const container = document.querySelector('.container');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            container.appendChild(errorDiv);
+        }
+        
+        // Initialize
+        loadLineupData();
+    </script>
+</body>
+</html>
