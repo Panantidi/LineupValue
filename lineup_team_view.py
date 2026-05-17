@@ -388,6 +388,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <div class="stat-label">Starting XI Impact Score</div>
             </div>
             <div class="stat-card">
+                <div class="stat-value">{mv_starting_xi:.1f}m</div>
+                <div class="stat-label">MV Starting XI</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-value">{av_age_starting_xi:.1f}</div>
                 <div class="stat-label">Av.Age Starting XI</div>
             </div>
