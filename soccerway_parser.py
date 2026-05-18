@@ -219,59 +219,47 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             stadium = re.sub(r'\([^)]*\)', '', stadium).strip()
 
     # ---- Парсинг состава через div.lineupTable ----
-    # Soccerway показывает 2 набора таблиц: текущий сезон + Total
-    # Первые таблицы по позициям (GK, DEF, MID, FW) — текущий сезон
-    players = []
+    # Soccerway показывает таблицы по турнирам (league, cup, etc.)
+    # Берём ВСЕ таблицы по позициям (GK, DEF, MID, FW), пропускаем Coach
+    # Собираем уникальных игроков (один игрок может играть в нескольких турнирах)
+    players_by_name = {}  # name -> Player
 
-    # Ищем все lineupTable--soccer
     all_tables = soup.select('div.lineupTable--soccer')
 
-    # Определяем текущий сезон: первые 4 таблицы (GK, DEF, MID, FW)
-    # после них идёт разделитель или "Total"
-    current_season_tables = []
-    seen_positions = set()
     for table in all_tables:
         title_elem = table.select_one('div.lineupTable__title')
+        pos_group = ""
         if title_elem:
-            pos_name = title_elem.text.strip()
-            # Пропускаем Coach — это не позиция игрока
-            if pos_name.lower() in ('coach', 'manager', 'trainer'):
+            pos_group = title_elem.text.strip()
+            if pos_group.lower() in ('coach', 'manager', 'trainer'):
                 continue
-            if pos_name in seen_positions:
-                # Второй раз видим ту же позицию — это Total
-                break
-            seen_positions.add(pos_name)
-        current_season_tables.append(table)
 
-    print(f"    Current season tables: {len(current_season_tables)} (positions: {seen_positions})")
+        for row in table.select('div.lineupTable__row'):
+            # Имя
+            player_cell = row.select_one('div.lineupTable__cell--player')
+            if not player_cell:
+                continue
+            link = player_cell.select_one('a[href*="/player/"]')
+            name = link.text.strip() if link else player_cell.text.strip()
+            if not name:
+                continue
 
-    for table in current_season_tables:
-        rows = table.select('div.lineupTable__row')
-        for row in rows:
+            # Если игрок уже есть — пропускаем (берём первые встреченные статы)
+            if name in players_by_name:
+                continue
+
             # Номер
             number = ""
             jersey = row.select_one('div.lineupTable__cell--jersey')
             if jersey:
                 number = jersey.text.strip()
 
-            # Имя и ссылка на профиль
-            name = ""
-            player_url = ""
-            player_cell = row.select_one('div.lineupTable__cell--player')
-            if player_cell:
-                link = player_cell.select_one('a[href*="/player/"]')
-                if link:
-                    name = link.text.strip()
-                    player_url = link.get('href', '')
-                else:
-                    name = player_cell.text.strip()
+            # Ссылка на профиль
+            player_url = link.get('href', '') if link else ""
 
-            if not name:
-                continue
-
-            # Национальность (флаг в ячейке игрока)
+            # Национальность
             national = ""
-            flag = player_cell.select_one('img') if player_cell else None
+            flag = player_cell.select_one('img')
             if flag:
                 national = flag.get('alt', '') or flag.get('title', '') or ''
 
@@ -293,7 +281,7 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             yellow = _cell_text('yellowCard')
             red = _cell_text('redCard')
 
-            players.append(Player(
+            players_by_name[name] = Player(
                 number=number,
                 name=name,
                 age=age,
@@ -305,7 +293,10 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
                 red_cards=red,
                 player_url=player_url,
                 national=national,
-            ))
+            )
+
+    players = list(players_by_name.values())
+    print(f"    Unique players from all tournaments: {len(players)}")
 
     # Fallback: если новый формат не найден, пробуем старый (table)
     if not players:
@@ -348,61 +339,48 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
 # Step 2: Get Pos and MV from player page (parallel)
 # ============================================================
 
-def get_player_details(player: Player) -> Player:
-    """Fetch position and market value from player's page"""
+async def get_player_details_async(player: Player) -> Player:
+    """Fetch position and market value from player's page using Playwright"""
     if not player.player_url:
         return player
 
     url = f'https://us.soccerway.com{player.player_url}'
 
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code != 200:
-            return player
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True, args=[
+                '--no-sandbox', '--disable-setuid-sandbox',
+                '--disable-blink-features=AutomationControlled'
+            ])
+            context = await browser.new_context(
+                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
+                viewport={'width': 1920, 'height': 1080},
+                locale='en-US'
+            )
+            await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            page = await context.new_page()
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+            await page.goto(url, wait_until='domcontentloaded', timeout=20000)
+            await page.wait_for_timeout(2000)
 
-        # Position
-        position_text = ""
-        pos_elem = soup.find('span', class_='position')
-        if not pos_elem:
-            pos_elem = soup.find('dt', string=re.compile(r'Position', re.I))
-            if pos_elem:
-                dd = pos_elem.find_next('dd')
-                if dd:
-                    position_text = dd.text.strip()
-        else:
-            position_text = pos_elem.text.strip()
+            html = await page.content()
+            await browser.close()
 
-        # Normalize position to short code
+        soup = BeautifulSoup(html, 'html.parser')
+
+        # Position: <span class="playerTeam">Goalkeeper</span>
         pos_map = {
-            'Goalkeeper': 'GK', 'goalkeeper': 'GK', 'GK': 'GK',
-            'Defender': 'DF', 'defender': 'DF', 'DF': 'DF',
-            'Midfielder': 'MF', 'midfielder': 'MF', 'MF': 'MF',
-            'Forward': 'FW', 'forward': 'FW', 'Attacker': 'FW', 'FW': 'FW',
+            'Goalkeeper': 'GK', 'Defender': 'DF', 'Midfielder': 'MF', 'Forward': 'FW',
         }
-        for key, val in pos_map.items():
-            if key.lower() in position_text.lower():
-                position_text = val
-                break
+        pos_span = soup.select_one('span.playerTeam')
+        if pos_span:
+            raw_pos = pos_span.text.strip()
+            player.position = pos_map.get(raw_pos, raw_pos)
 
-        player.position = position_text
-
-        # Market value
-        market_value = ""
-        mv_elem = soup.find('span', class_='market-value')
-        if not mv_elem:
-            # Try to find € pattern
-            mv_match = re.search(r'€[\d,.]+[mk]?', response.text[:5000])
-            if mv_match:
-                market_value = mv_match.group(0)
-        else:
-            market_value = mv_elem.text.strip()
-
-        player.market_value = market_value
+        # Market Value: span с €
+        mv_span = soup.find('span', string=re.compile(r'€[\d,.]+[mMkK]'))
+        if mv_span:
+            player.market_value = mv_span.text.strip()
 
     except Exception as e:
         print(f"    Error fetching {player.name}: {e}")
@@ -410,16 +388,22 @@ def get_player_details(player: Player) -> Player:
     return player
 
 
-def enrich_players_parallel(players: List[Player], max_workers: int = 5) -> List[Player]:
-    """Enrich players with position and market value using parallel requests"""
-    print(f"  Enriching {len(players)} players (parallel, {max_workers} workers)...")
+async def enrich_players_async(players: List[Player], concurrency: int = 3) -> List[Player]:
+    """Enrich players with position and market value using async Playwright"""
+    print(f"  Enriching {len(players)} players (async, concurrency={concurrency})...")
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(get_player_details, p): p for p in players if p.player_url}
-        for future in as_completed(futures):
-            enriched = future.result()
-            if enriched.position or enriched.market_value:
-                print(f"    + {enriched.name} -> {enriched.position} / {enriched.market_value}")
+    semaphore = asyncio.Semaphore(concurrency)
+
+    async def _enrich_one(player):
+        async with semaphore:
+            return await get_player_details_async(player)
+
+    tasks = [_enrich_one(p) for p in players if p.player_url]
+    results = await asyncio.gather(*tasks)
+
+    for enriched in results:
+        if enriched.position or enriched.market_value:
+            print(f"    + {enriched.name} -> {enriched.position} / {enriched.market_value}")
 
     return players
 
@@ -473,7 +457,8 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         "league-cup": "LC",
     }
 
-    # Find all game links
+    # Soccerway results: each game in a div with parent containing
+    # "May 17 09:00 PMStrasbourgMonaco54W"
     game_links = soup.select('a[href*="/game/"]')
     seen = set()
 
@@ -489,16 +474,20 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
             continue
         seen.add(mid)
 
-        # Date — look in parent row
-        row = link.find_parent('tr')
+        # Date from parent div text: "May 17 09:00 PMStrasbourgMonaco54W"
+        parent = link.find_parent('div')
+        parent_text = parent.text.strip() if parent else ""
+
         date = ""
-        if row:
-            date_cell = row.find('td')
-            if date_cell:
-                date_text = date_cell.text.strip()
-                date_match = re.search(r'(\d{2})\.(\d{2})', date_text)
-                if date_match:
-                    date = f"{date_match.group(1)}.{date_match.group(2)}"
+        date_match = re.search(r'(\w{3})\s+(\d{1,2})', parent_text)
+        if date_match:
+            month = date_match.group(1)
+            day = date_match.group(2).zfill(2)
+            months = {'Jan':'01','Feb':'02','Mar':'03','Apr':'04','May':'05','Jun':'06',
+                      'Jul':'07','Aug':'08','Sep':'09','Oct':'10','Nov':'11','Dec':'12'}
+            mm = months.get(month, '')
+            if mm:
+                date = f"{day}.{mm}"
 
         # Tournament from URL
         tournament = ""
@@ -750,9 +739,9 @@ async def fetch_team_data(team_id: str, team_name: str = "", force_refresh: bool
     players, coach, stadium = parse_squad_html(squad_html, team_id)
     print(f"    Found {len(players)} players, Coach: {coach}")
 
-    # Step 2: Enrich with Pos and MV (parallel)
+    # Step 2: Enrich with Pos and MV (async Playwright)
     print("  Step 2/4: Enriching player details (Pos, MV)...")
-    players = enrich_players_parallel(players, max_workers=5)
+    players = await enrich_players_async(players, concurrency=3)
 
     # Step 3: Get last 3 matches
     print("  Step 3/4: Fetching last 3 matches...")
