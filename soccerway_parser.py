@@ -124,11 +124,16 @@ async def get_squad_page(team_id: str, team_name: str = "") -> str:
     """Fetch squad page HTML using Playwright headless"""
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=[
-            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'
+            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled'
         ])
         context = await browser.new_context(
-            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
+            user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
+            viewport={'width': 1920, 'height': 1080},
+            locale='en-US'
         )
+        # Анти-детекция headless
+        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         page = await context.new_page()
 
         # Soccerway URL: /team/{slug}/{id}/squad/
@@ -340,18 +345,26 @@ def enrich_players_parallel(players: List[Player], max_workers: int = 5) -> List
 # Step 3: Get last 3 matches from results page
 # ============================================================
 
-async def get_last3_matches(team_id: str) -> List[Match]:
+async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
     """Fetch last 3 completed matches from results page"""
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=[
-            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'
+            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled'
         ])
         context = await browser.new_context(
-            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
+            viewport={'width': 1920, 'height': 1080},
+            locale='en-US'
         )
+        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         page = await context.new_page()
 
-        url = f'https://us.soccerway.com/team/{team_id}/results/'
+        if team_name:
+            slug = team_name.lower().replace(" ", "-").replace("'", "").replace(".", "")
+            url = f'https://us.soccerway.com/team/{slug}/{team_id}/results/'
+        else:
+            url = f'https://us.soccerway.com/team/{team_id}/results/'
         print(f"  [Playwright] Loading {url}")
 
         await page.goto(url, wait_until='networkidle', timeout=30000)
@@ -440,11 +453,15 @@ async def get_lineups_for_match(match: Match, team_name: str) -> Tuple[List[str]
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=[
-            '--no-sandbox', '--disable-setuid-sandbox'
+            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled'
         ])
         context = await browser.new_context(
-            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
+            viewport={'width': 1920, 'height': 1080},
+            locale='en-US'
         )
+        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         page = await context.new_page()
 
         try:
@@ -659,7 +676,7 @@ async def fetch_team_data(team_id: str, team_name: str = "", force_refresh: bool
 
     # Step 3: Get last 3 matches
     print("  Step 3/4: Fetching last 3 matches...")
-    last3_matches = await get_last3_matches(team_id)
+    last3_matches = await get_last3_matches(team_id, team_name)
     print(f"    Matches: {[(m.date, m.tournament) for m in last3_matches]}")
 
     # Step 4: Get lineups for each match (parallel async)
