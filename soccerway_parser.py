@@ -200,70 +200,90 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             stadium = stadium_elem.text.strip()
 
     # ---- Парсинг состава через div.lineupTable ----
+    # Soccerway показывает 2 набора таблиц: текущий сезон + Total
+    # Первые таблицы по позициям (GK, DEF, MID, FW) — текущий сезон
     players = []
 
-    rows = soup.select('div.lineupTable__row')
-    print(f"    lineupTable rows: {len(rows)}")
+    # Ищем все lineupTable--soccer
+    all_tables = soup.select('div.lineupTable--soccer')
 
-    for row in rows:
-        # Номер
-        number = ""
-        jersey = row.select_one('div.lineupTable__cell--jersey')
-        if jersey:
-            number = jersey.text.strip()
+    # Определяем текущий сезон: первые 4 таблицы (GK, DEF, MID, FW)
+    # после них идёт разделитель или "Total"
+    current_season_tables = []
+    seen_positions = set()
+    for table in all_tables:
+        title_elem = table.select_one('div.lineupTable__title')
+        if title_elem:
+            pos_name = title_elem.text.strip()
+            if pos_name in seen_positions:
+                # Второй раз видим ту же позицию — это Total
+                break
+            seen_positions.add(pos_name)
+        current_season_tables.append(table)
 
-        # Имя и ссылка на профиль
-        name = ""
-        player_url = ""
-        player_cell = row.select_one('div.lineupTable__cell--player')
-        if player_cell:
-            link = player_cell.select_one('a[href*="/player/"]')
-            if link:
-                name = link.text.strip()
-                player_url = link.get('href', '')
-            else:
-                name = player_cell.text.strip()
+    print(f"    Current season tables: {len(current_season_tables)} (positions: {seen_positions})")
 
-        if not name:
-            continue
+    for table in current_season_tables:
+        rows = table.select('div.lineupTable__row')
+        for row in rows:
+            # Номер
+            number = ""
+            jersey = row.select_one('div.lineupTable__cell--jersey')
+            if jersey:
+                number = jersey.text.strip()
 
-        # Национальность (флаг в ячейке игрока)
-        national = ""
-        flag = player_cell.select_one('img') if player_cell else None
-        if flag:
-            national = flag.get('alt', '') or flag.get('title', '') or ''
+            # Имя и ссылка на профиль
+            name = ""
+            player_url = ""
+            player_cell = row.select_one('div.lineupTable__cell--player')
+            if player_cell:
+                link = player_cell.select_one('a[href*="/player/"]')
+                if link:
+                    name = link.text.strip()
+                    player_url = link.get('href', '')
+                else:
+                    name = player_cell.text.strip()
 
-        # Возраст
-        age = ""
-        age_cell = row.select_one('div.lineupTable__cell--age')
-        if age_cell:
-            age = age_cell.text.strip()
+            if not name:
+                continue
 
-        # Статистика
-        def _cell_text(cls):
-            cell = row.select_one(f'div.lineupTable__cell--{cls}')
-            return cell.text.strip() if cell else ""
+            # Национальность (флаг в ячейке игрока)
+            national = ""
+            flag = player_cell.select_one('img') if player_cell else None
+            if flag:
+                national = flag.get('alt', '') or flag.get('title', '') or ''
 
-        apps = _cell_text('matchesPlayed')
-        minutes = _cell_text('minutesPlayed')
-        goals = _cell_text('goal')
-        assists = _cell_text('assist')
-        yellow = _cell_text('yellowCard')
-        red = _cell_text('redCard')
+            # Возраст
+            age = ""
+            age_cell = row.select_one('div.lineupTable__cell--age')
+            if age_cell:
+                age = age_cell.text.strip()
 
-        players.append(Player(
-            number=number,
-            name=name,
-            age=age,
-            apps=apps,
-            minutes=minutes,
-            goals=goals,
-            assists=assists,
-            yellow_cards=yellow,
-            red_cards=red,
-            player_url=player_url,
-            national=national,
-        ))
+            # Статистика
+            def _cell_text(cls):
+                cell = row.select_one(f'div.lineupTable__cell--{cls}')
+                return cell.text.strip() if cell else ""
+
+            apps = _cell_text('matchesPlayed')
+            minutes = _cell_text('minutesPlayed')
+            goals = _cell_text('goal')
+            assists = _cell_text('assist')
+            yellow = _cell_text('yellowCard')
+            red = _cell_text('redCard')
+
+            players.append(Player(
+                number=number,
+                name=name,
+                age=age,
+                apps=apps,
+                minutes=minutes,
+                goals=goals,
+                assists=assists,
+                yellow_cards=yellow,
+                red_cards=red,
+                player_url=player_url,
+                national=national,
+            ))
 
     # Fallback: если новый формат не найден, пробуем старый (table)
     if not players:
