@@ -1,0 +1,695 @@
+#!/usr/bin/env python3
+"""
+Soccerway Team Parser for x11radar.ru
+Usage: python soccerway_parser.py --team "strasbourg" --team_id "nP6UzIU1"
+"""
+
+import os
+import json
+import asyncio
+import re
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, asdict
+
+import requests
+from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright
+import hashlib
+
+
+# ============================================================
+# Data models
+# ============================================================
+
+@dataclass
+class Player:
+    number: str
+    name: str
+    age: str
+    apps: str
+    minutes: str
+    goals: str
+    assists: str
+    yellow_cards: str
+    red_cards: str
+    position: str = ""
+    market_value: str = ""
+    player_url: str = ""
+    last3: List[str] = None  # ["START", "SUB", "—"] for 3 matches
+    national: str = ""
+
+    def __post_init__(self):
+        if self.last3 is None:
+            self.last3 = []
+
+
+@dataclass
+class Match:
+    date: str  # "11.05"
+    tournament: str  # "PL"
+    mid: str  # match id for lineups URL
+    url: str = ""
+    opponent: str = ""
+
+
+@dataclass
+class TeamData:
+    team_name: str
+    team_id: str
+    coach: str
+    stadium: str
+    players: List[Player]
+    last3_matches: List[Match]
+    updated_at: str
+
+
+# ============================================================
+# Cache
+# ============================================================
+
+CACHE_DIR = "/home/openclaw/.openclaw/workspace/cache"
+CACHE_TTL_HOURS = 6
+
+def get_cache_path(team_id: str) -> str:
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    return os.path.join(CACHE_DIR, f"{team_id}.json")
+
+def load_from_cache(team_id: str) -> Optional[TeamData]:
+    cache_path = get_cache_path(team_id)
+    if not os.path.exists(cache_path):
+        return None
+
+    with open(cache_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    updated_at = datetime.fromisoformat(data['updated_at'])
+    if datetime.now() - updated_at > timedelta(hours=CACHE_TTL_HOURS):
+        return None
+
+    players = [Player(**p) for p in data['players']]
+    matches = [Match(**m) for m in data['last3_matches']]
+
+    return TeamData(
+        team_name=data['team_name'],
+        team_id=data['team_id'],
+        coach=data['coach'],
+        stadium=data['stadium'],
+        players=players,
+        last3_matches=matches,
+        updated_at=data['updated_at']
+    )
+
+def save_to_cache(team_data: TeamData):
+    cache_path = get_cache_path(team_data.team_id)
+    data = {
+        'team_name': team_data.team_name,
+        'team_id': team_data.team_id,
+        'coach': team_data.coach,
+        'stadium': team_data.stadium,
+        'players': [asdict(p) for p in team_data.players],
+        'last3_matches': [asdict(m) for m in team_data.last3_matches],
+        'updated_at': datetime.now().isoformat()
+    }
+    with open(cache_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+# ============================================================
+# Step 1: Parse squad page (using Playwright)
+# ============================================================
+
+async def get_squad_page(team_id: str) -> str:
+    """Fetch squad page HTML using Playwright headless"""
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=[
+            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'
+        ])
+        context = await browser.new_context(
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
+        )
+        page = await context.new_page()
+
+        url = f'https://us.soccerway.com/team/{team_id}/squad/'
+        print(f"  [Playwright] Loading {url}")
+
+        await page.goto(url, wait_until='networkidle', timeout=30000)
+        await page.wait_for_selector('table', timeout=10000)
+
+        html = await page.content()
+        await browser.close()
+        return html
+
+
+def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
+    """Parse players, coach, stadium from squad page HTML"""
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # Extract coach
+    coach = ""
+    coach_label = soup.find('dt', string=re.compile(r'Coach', re.I))
+    if coach_label:
+        dd = coach_label.find_next('dd')
+        if dd:
+            coach = dd.text.strip()
+
+    # Stadium
+    stadium = ""
+    stadium_elem = soup.find('div', class_='stadium')
+    if not stadium_elem:
+        stadium_dt = soup.find('dt', string=re.compile(r'Stadium|Venue', re.I))
+        if stadium_dt:
+            dd = stadium_dt.find_next('dd')
+            if dd:
+                stadium = dd.text.strip()
+    else:
+        stadium = stadium_elem.text.strip()
+
+    # Find all rows with player links
+    players = []
+    player_links = soup.select('table tbody tr td a[href*="/player/"]')
+
+    for link in player_links:
+        player_name = link.text.strip()
+        if not player_name:
+            continue
+
+        player_url = link.get('href', '')
+
+        row = link.find_parent('tr')
+        if not row:
+            continue
+
+        cells = row.find_all('td')
+        if len(cells) < 6:
+            continue
+
+        # Number
+        number = cells[0].text.strip() if cells else ""
+
+        # Nationality — flag image alt/title
+        national = ""
+        flag_img = row.select_one('img[class*="flag"], img[alt]')
+        if flag_img:
+            national = flag_img.get('alt', '') or flag_img.get('title', '') or ""
+
+        # Age
+        age = ""
+        for cell in cells:
+            txt = cell.text.strip()
+            if txt.isdigit() and 14 < int(txt) < 50:
+                age = txt
+                break
+
+        # Stats: Apps, Min, G, A, YC, RC
+        numeric_cells = []
+        for cell in cells:
+            txt = cell.text.strip().replace('\xa0', '').replace(',', '').replace('−', '-').replace('–', '-')
+            if txt.isdigit() or txt == '-' or txt == '0':
+                numeric_cells.append(txt)
+
+        apps = numeric_cells[0] if len(numeric_cells) > 0 else ""
+        minutes = numeric_cells[1] if len(numeric_cells) > 1 else ""
+        goals = numeric_cells[2] if len(numeric_cells) > 2 else ""
+        assists = numeric_cells[3] if len(numeric_cells) > 3 else ""
+        yellow = numeric_cells[4] if len(numeric_cells) > 4 else ""
+        red = numeric_cells[5] if len(numeric_cells) > 5 else ""
+
+        players.append(Player(
+            number=number,
+            name=player_name,
+            age=age,
+            apps=apps,
+            minutes=minutes,
+            goals=goals,
+            assists=assists,
+            yellow_cards=yellow,
+            red_cards=red,
+            player_url=player_url,
+            national=national
+        ))
+
+    return players, coach, stadium
+
+
+# ============================================================
+# Step 2: Get Pos and MV from player page (parallel)
+# ============================================================
+
+def get_player_details(player: Player) -> Player:
+    """Fetch position and market value from player's page"""
+    if not player.player_url:
+        return player
+
+    url = f'https://us.soccerway.com{player.player_url}'
+
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code != 200:
+            return player
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Position
+        position_text = ""
+        pos_elem = soup.find('span', class_='position')
+        if not pos_elem:
+            pos_elem = soup.find('dt', string=re.compile(r'Position', re.I))
+            if pos_elem:
+                dd = pos_elem.find_next('dd')
+                if dd:
+                    position_text = dd.text.strip()
+        else:
+            position_text = pos_elem.text.strip()
+
+        # Normalize position to short code
+        pos_map = {
+            'Goalkeeper': 'GK', 'goalkeeper': 'GK', 'GK': 'GK',
+            'Defender': 'DF', 'defender': 'DF', 'DF': 'DF',
+            'Midfielder': 'MF', 'midfielder': 'MF', 'MF': 'MF',
+            'Forward': 'FW', 'forward': 'FW', 'Attacker': 'FW', 'FW': 'FW',
+        }
+        for key, val in pos_map.items():
+            if key.lower() in position_text.lower():
+                position_text = val
+                break
+
+        player.position = position_text
+
+        # Market value
+        market_value = ""
+        mv_elem = soup.find('span', class_='market-value')
+        if not mv_elem:
+            # Try to find € pattern
+            mv_match = re.search(r'€[\d,.]+[mk]?', response.text[:5000])
+            if mv_match:
+                market_value = mv_match.group(0)
+        else:
+            market_value = mv_elem.text.strip()
+
+        player.market_value = market_value
+
+    except Exception as e:
+        print(f"    Error fetching {player.name}: {e}")
+
+    return player
+
+
+def enrich_players_parallel(players: List[Player], max_workers: int = 5) -> List[Player]:
+    """Enrich players with position and market value using parallel requests"""
+    print(f"  Enriching {len(players)} players (parallel, {max_workers} workers)...")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(get_player_details, p): p for p in players if p.player_url}
+        for future in as_completed(futures):
+            enriched = future.result()
+            if enriched.position or enriched.market_value:
+                print(f"    + {enriched.name} -> {enriched.position} / {enriched.market_value}")
+
+    return players
+
+
+# ============================================================
+# Step 3: Get last 3 matches from results page
+# ============================================================
+
+async def get_last3_matches(team_id: str) -> List[Match]:
+    """Fetch last 3 completed matches from results page"""
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=[
+            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'
+        ])
+        context = await browser.new_context(
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        )
+        page = await context.new_page()
+
+        url = f'https://us.soccerway.com/team/{team_id}/results/'
+        print(f"  [Playwright] Loading {url}")
+
+        await page.goto(url, wait_until='networkidle', timeout=30000)
+
+        try:
+            await page.wait_for_selector('table', timeout=10000)
+        except:
+            pass
+
+        html = await page.content()
+        await browser.close()
+
+    soup = BeautifulSoup(html, 'html.parser')
+    matches = []
+
+    # Comp abbreviation map
+    comp_map = {
+        "ligue-1": "L1", "ligue-2": "L2", "premier-league": "PL",
+        "championship": "CH", "la-liga": "LL", "laliga": "LL",
+        "serie-a": "SA", "bundesliga": "BL", "bundesliga-2": "B2",
+        "eredivisie": "ER", "liga-portugal": "LP", "jupiler-pro-league": "JPL",
+        "super-lig": "SL", "super-league": "SUL", "superliga": "SUP",
+        "allsvenskan": "ALL", "eliteserien": "ELI",
+        "fa-cup": "FA", "coupe-de-france": "CDF",
+        "champions-league": "CL", "europa-league": "EL", "conference-league": "ECL",
+        "dfb-pokal": "DFB", "copa-del-rey": "CDR", "coppa-italia": "CI",
+        "league-cup": "LC",
+    }
+
+    # Find all game links
+    game_links = soup.select('a[href*="/game/"]')
+    seen = set()
+
+    for link in game_links:
+        href = link.get('href', '')
+        if not href:
+            continue
+
+        # Extract mid
+        mid_match = re.search(r'[?&]mid=([a-zA-Z0-9]+)', href)
+        mid = mid_match.group(1) if mid_match else ""
+        if mid in seen:
+            continue
+        seen.add(mid)
+
+        # Date — look in parent row
+        row = link.find_parent('tr')
+        date = ""
+        if row:
+            date_cell = row.find('td')
+            if date_cell:
+                date_text = date_cell.text.strip()
+                date_match = re.search(r'(\d{2})\.(\d{2})', date_text)
+                if date_match:
+                    date = f"{date_match.group(1)}.{date_match.group(2)}"
+
+        # Tournament from URL
+        tournament = ""
+        for key, val in comp_map.items():
+            if key in href.lower():
+                tournament = val
+                break
+        if not tournament:
+            tournament = "CUP"
+
+        match_url = f"https://us.soccerway.com{href}" if href.startswith('/') else href
+
+        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url))
+
+        if len(matches) >= 3:
+            break
+
+    return matches
+
+
+# ============================================================
+# Step 4: Get lineups for a match
+# ============================================================
+
+async def get_lineups_for_match(match: Match, team_name: str) -> Tuple[List[str], List[str]]:
+    """Fetch starting XI and substitutes for the team from lineups page"""
+    if not match.mid and not match.url:
+        return [], []
+
+    url = match.url if match.url else f'https://us.soccerway.com/match/summary/lineups/?mid={match.mid}'
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=[
+            '--no-sandbox', '--disable-setuid-sandbox'
+        ])
+        context = await browser.new_context(
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        )
+        page = await context.new_page()
+
+        try:
+            await page.goto(url, wait_until='networkidle', timeout=20000)
+            html = await page.content()
+        except Exception as e:
+            print(f"    Error loading lineups for {match.date}: {e}")
+            await browser.close()
+            return [], []
+
+        await browser.close()
+
+    soup = BeautifulSoup(html, 'html.parser')
+
+    starters = []
+    substitutes = []
+
+    # Find all player links — they contain /player/ in href
+    # Split by team sections if possible
+    all_player_links = soup.select('a[href*="/player/"]')
+
+    # Try to find structured lineup sections
+    lineup_container = soup.select_one('.lineups, .match-lineups, #match-lineups')
+
+    if lineup_container:
+        # Find team headers
+        team_headers = lineup_container.select('.team-title, .team-name, h3, h4')
+        target_section = None
+
+        for i, header in enumerate(team_headers):
+            if team_name.lower() in header.text.lower():
+                # Get next sibling section
+                target_section = header.find_next_sibling('div')
+                break
+
+        if target_section:
+            # Starting XI
+            start_section = target_section.select_one('.starting, .starters, .starting-eleven')
+            if start_section:
+                for pl in start_section.select('a[href*="/player/"]'):
+                    name = pl.text.strip()
+                    if name:
+                        starters.append(name)
+
+            # Substitutes
+            sub_section = target_section.select_one('.substitutes, .subs, .bench')
+            if sub_section:
+                for pl in sub_section.select('a[href*="/player/"]'):
+                    name = pl.text.strip()
+                    if name:
+                        substitutes.append(name)
+
+    # Fallback: if structured parsing failed, try regex on raw HTML
+    if not starters and not substitutes:
+        # Look for "Starting lineups" / "Substitutes" headers
+        html_lower = html.lower()
+
+        # Try to split by "Starting" and "Substitutes" sections
+        start_match = re.search(
+            r'(?:starting\s*lineups?|STARTING\s*LINEUPS?)(.*?)(?:substitutes|SUBSTITUTES)',
+            html, re.DOTALL | re.IGNORECASE
+        )
+        if start_match:
+            section = start_match.group(1)
+            for plink in re.findall(r'<a[^>]*href="[^"]*/player/[^"]*"[^>]*>([^<]+)</a>', section):
+                starters.append(plink.strip())
+
+        sub_match = re.search(
+            r'(?:substitutes|SUBSTITUTES)(.*?)(?:</div>|<h\d|coach)',
+            html, re.DOTALL | re.IGNORECASE
+        )
+        if sub_match:
+            section = sub_match.group(1)
+            for plink in re.findall(r'<a[^>]*href="[^"]*/player/[^"]*"[^>]*>([^<]+)</a>', section):
+                substitutes.append(plink.strip())
+
+    return starters, substitutes
+
+
+async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
+    """Fetch lineups for all matches in parallel"""
+    print(f"  Fetching lineups for {len(matches)} matches...")
+
+    async def fetch_one(match):
+        starters, subs = await get_lineups_for_match(match, team_name)
+        return {
+            'date': match.date,
+            'tournament': match.tournament,
+            'starters': starters,
+            'substitutes': subs
+        }
+
+    tasks = [fetch_one(match) for match in matches]
+    results = await asyncio.gather(*tasks)
+    return results
+
+
+# ============================================================
+# Step 5: Merge everything - build Last 3 per player
+# ============================================================
+
+def apply_last3_to_players(players: List[Player], lineups_data: List[Dict]) -> List[Player]:
+    """For each player, determine start/sub status for each of 3 matches"""
+
+    def normalize(name: str) -> str:
+        name = name.lower().strip()
+        name = re.sub(r'\b(jr|sr|ii|iii|iv)\b', '', name)
+        name = re.sub(r'\s+', ' ', name).strip()
+        return name
+
+    for match_idx, match_data in enumerate(lineups_data):
+        starters_norm = {normalize(p) for p in match_data['starters']}
+        subs_norm = {normalize(p) for p in match_data['substitutes']}
+
+        for player in players:
+            player_norm = normalize(player.name)
+
+            # Also try last name only (Soccerway may have different name format)
+            player_last = player_norm.split()[-1] if player_norm else ""
+
+            found = False
+            if player_norm in starters_norm or any(player_norm in s for s in starters_norm):
+                player.last3.append("START")
+                found = True
+            elif player_last and any(player_last in s for s in starters_norm):
+                player.last3.append("START")
+                found = True
+            elif player_norm in subs_norm or any(player_norm in s for s in subs_norm):
+                player.last3.append("SUB")
+                found = True
+            elif player_last and any(player_last in s for s in subs_norm):
+                player.last3.append("SUB")
+                found = True
+
+            if not found:
+                player.last3.append("—")
+
+    return players
+
+
+# ============================================================
+# Convert to Player_Info.json format (compatible with lineup_team_view.py)
+# ============================================================
+
+def to_lineup_format(team_data: TeamData) -> dict:
+    """Convert TeamData to the format expected by lineup_team_view.py"""
+    players_out = []
+    for p in team_data.players:
+        players_out.append({
+            "number": p.number,
+            "name": p.name,
+            "national": p.national,
+            "position": p.position,
+            "age": p.age,
+            "apps": p.apps,
+            "min": p.minutes,
+            "goal": p.goals,
+            "assist": p.assists,
+            "yellow_card": p.yellow_cards,
+            "red_card": p.red_cards,
+            "profile_path": p.player_url,
+            "market_value": p.market_value,
+            "last3": p.last3[:3] if p.last3 else ["—", "—", "—"],
+        })
+
+    matches_out = []
+    for m in team_data.last3_matches:
+        matches_out.append({
+            "date": m.date,
+            "comp": m.tournament,
+            "url": m.url,
+        })
+
+    return {
+        "team": {
+            "id": team_data.team_id,
+            "name": team_data.team_name,
+            "slug": team_data.team_name.lower().replace(" ", "-"),
+        },
+        "coach": {"name": team_data.coach, "nationality": ""},
+        "stadium": team_data.stadium,
+        "matches": matches_out,
+        "players": players_out,
+        "last_updated": team_data.updated_at,
+    }
+
+
+# ============================================================
+# Main orchestration
+# ============================================================
+
+async def fetch_team_data(team_id: str, team_name: str = "", force_refresh: bool = False) -> TeamData:
+    """Main function: fetch complete team data with caching"""
+    # Check cache
+    if not force_refresh:
+        cached = load_from_cache(team_id)
+        if cached:
+            print(f"  Using cached data for {team_name or team_id}")
+            return cached
+
+    print(f"  Fetching fresh data for {team_name or team_id}...")
+
+    # Step 1: Get squad page
+    print("  Step 1/4: Parsing squad page...")
+    squad_html = await get_squad_page(team_id)
+    players, coach, stadium = parse_squad_html(squad_html, team_id)
+    print(f"    Found {len(players)} players, Coach: {coach}")
+
+    # Step 2: Enrich with Pos and MV (parallel)
+    print("  Step 2/4: Enriching player details (Pos, MV)...")
+    players = enrich_players_parallel(players, max_workers=5)
+
+    # Step 3: Get last 3 matches
+    print("  Step 3/4: Fetching last 3 matches...")
+    last3_matches = await get_last3_matches(team_id)
+    print(f"    Matches: {[(m.date, m.tournament) for m in last3_matches]}")
+
+    # Step 4: Get lineups for each match (parallel async)
+    print("  Step 4/4: Fetching lineups...")
+    lineups_data = await fetch_all_lineups(last3_matches, team_name)
+
+    # Step 5: Apply Last 3 to players
+    players = apply_last3_to_players(players, lineups_data)
+
+    # Create result
+    result = TeamData(
+        team_name=team_name,
+        team_id=team_id,
+        coach=coach,
+        stadium=stadium,
+        players=players,
+        last3_matches=last3_matches,
+        updated_at=datetime.now().isoformat()
+    )
+
+    # Save to cache
+    save_to_cache(result)
+    print(f"  Data saved to cache (TTL: {CACHE_TTL_HOURS}h)")
+
+    return result
+
+
+# ============================================================
+# CLI entry point
+# ============================================================
+
+async def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Soccerway Team Parser')
+    parser.add_argument('--team', required=True, help='Team name (e.g., strasbourg)')
+    parser.add_argument('--team_id', required=True, help='Soccerway team ID (e.g., nP6UzIU1)')
+    parser.add_argument('--force', action='store_true', help='Force refresh')
+
+    args = parser.parse_args()
+
+    data = await fetch_team_data(args.team_id, args.team, force_refresh=args.force)
+
+    # Save in Player_Info.json format
+    output = to_lineup_format(data)
+    output_file = f"{args.team_id}_data.json"
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+
+    print(f"\n  JSON saved to {output_file}")
+    print(f"  Players: {len(output['players'])}")
+    print(f"  Matches: {len(output['matches'])}")
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
