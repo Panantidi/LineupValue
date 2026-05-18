@@ -598,6 +598,19 @@ async def lineup_select_html():
 async def lineup_index():
     return RedirectResponse(url="/lineup_ai/select", status_code=307)
 
+@app.get("/lineup_ai/api/fetch/{team_id}")
+async def lineup_api_fetch(team_id: str):
+    """Live-fetch данных команды с Soccerway. Возвращает JSON."""
+    import sys
+    sys.path.insert(0, "/home/openclaw/FormAlert")
+    from soccerway_live import fetch_team_live
+    try:
+        data = await fetch_team_live(team_id)
+        return JSONResponse(content=data)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=502)
+
+
 @app.get("/lineup_ai/{team_id}")
 async def lineup_team(team_id: str):
     return render_team_view(team_id)

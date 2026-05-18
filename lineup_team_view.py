@@ -87,11 +87,27 @@ def render_team_view(team_id: str) -> HTMLResponse:
     """Render team squad page"""
     DATA_DIR = "/home/openclaw/.openclaw/workspace"
     
+    # --- Попробовать live-кеш (свежие данные от Soccerway) ---
+    import time as _time
+    live_cache_path = os.path.join(DATA_DIR, f"_live_cache_{team_id}.json")
     team_file = None
-    for f in sorted(glob.glob(DATA_DIR + "/lineup_ai_*.json")):
-        if team_id in f and '_api' not in f:
-            team_file = f
-            break
+    
+    # Сначала проверяем live-кеш (свежие данные)
+    if os.path.exists(live_cache_path):
+        try:
+            with open(live_cache_path, 'r', encoding='utf-8') as f:
+                cached = json.load(f)
+            if (_time.time() - cached.get("_cached_at", 0)) < 6 * 3600:
+                team_file = live_cache_path
+        except Exception:
+            pass
+    
+    # Fallback к статическому JSON
+    if not team_file:
+        for f in sorted(glob.glob(DATA_DIR + "/lineup_ai_*.json")):
+            if team_id in f and '_api' not in f:
+                team_file = f
+                break
     
     # Fallback to _api file if needed
     if not team_file:
@@ -162,10 +178,31 @@ def render_team_view(team_id: str) -> HTMLResponse:
         p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
         p['is_assist_leader'] = bool(unique_assist_leader and player_display_name == unique_assist_leader)
     
+    # --- Last 3: данные о матчах (из JSON) ---
+    matches_data = data.get("matches", [])
+    # Берём до 3 матчей (от свежего к старому)
+    last3_matches = matches_data[:3]
+    # Добиваем до 3 если меньше
+    while len(last3_matches) < 3:
+        last3_matches.append({"date": "", "comp": "", "url": ""})
+
+    # Строим HTML-ячейки для last3 каждого игрока
+    def _last3_cells(p):
+        last3 = p.get("last3", [])
+        while len(last3) < 3:
+            last3.append("—")
+        cells = ""
+        for val in last3[:3]:
+            if val == "START":
+                cells += '<td style="text-align:center;"><span style="color:#17843f;font-size:16px;">●</span></td>'
+            elif val == "SUB":
+                cells += '<td style="text-align:center;"><span style="color:#e3a035;font-size:16px;">●</span></td>'
+            else:
+                cells += '<td style="text-align:center;"></td>'
+        return cells
+
     players_rows = ""
     for p in sorted_players:
-        last3_html = ""
-        
         player_row = f"""
             <tr>
                 <td>{p.get("number", "–")}</td>
@@ -180,7 +217,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <td style="text-align:center;"><input type="checkbox" name="player" value="{p.get("name", "–")}" class="squad-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #333;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;" onchange="if(this.checked){{this.style.background='#000';this.style.border='none';}}else{{this.style.background='#e0e0e0';this.style.border='2px solid #333';}}"></td>
                 <td style="text-align:center;"><input type="checkbox" name="possible_xi" value="{p.get("name", "–")}" class="xi-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #667eea;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;" onchange="updateXICounter(this)"></td>
                 <td style="text-align:center;"><input type="checkbox" name="starting_xi" value="{p.get("name", "–")}" class="starting-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #dc3545;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;" onchange="updateStartingCounter(this)"></td>
-                <td class="last-5">{last3_html}</td>
+                {_last3_cells(p)}
                 <td style="text-align:center;">{p.get("apps", "–")}</td>
                 <td style="text-align:center;">{p.get("min", "–")}</td>
                 <td>{p.get("goal", "–")}</td>
@@ -190,6 +227,16 @@ def render_team_view(team_id: str) -> HTMLResponse:
             </tr>
         """
         players_rows += player_row
+
+    # --- Last 3: заголовок (две строки) ---
+    # Строка 1: "Last 3" (colspan=3)
+    # Строка 2: дата + турнир для каждого матча
+    last3_header_row1 = '<th colspan="3" style="text-align:center;font-size:11px;padding:6px 4px;border-bottom:none;">Last 3</th>'
+    last3_header_cells = ""
+    for m in last3_matches:
+        date_str = m.get("date", "")
+        comp_str = m.get("comp", "")
+        last3_header_cells += f'<th style="text-align:center;font-size:10px;padding:2px 4px;line-height:1.2;white-space:nowrap;border-top:none;">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
     html = f"""<!doctype html>
 <html>
@@ -436,13 +483,18 @@ def render_team_view(team_id: str) -> HTMLResponse:
                         <th style="text-align:center;">Squad<br>List</th>
                         <th style="text-align:center;">Possible XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
                         <th style="text-align:center;">Starting XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
-                        <th>Last 3</th>
+                        {last3_header_row1}
                         <th style="text-align:center;">Apps</th>
                         <th style="text-align:center;">Min</th>
                         <th>G</th>
                         <th>A</th>
                         <th>YC</th>
                         <th>RC</th>
+                    </tr>
+                    <tr>
+                        <th colspan="12"></th>
+                        {last3_header_cells}
+                        <th colspan="6"></th>
                     </tr>
                 </thead>
                 <tbody>
