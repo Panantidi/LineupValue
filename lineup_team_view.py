@@ -171,7 +171,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <td>{p.get("number", "–")}</td>
                 <td>{get_flag_html(p.get("national", "–"))}</td>
                 <td><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
-                <td class="status-cell"><img class="status-icon-img" src="" width="20" height="20" style="vertical-align:middle;margin-right:4px;"><select class="status-select" style="vertical-align:middle;padding:2px;font-size:12px;border:1px solid #ddd;border-radius:4px;max-width:170px;" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option></select></td>
+                <td class="status-cell"><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option></select></td>
                 <td>{p.get("age", "–")}</td>
                 <td>{p.get("market_value", "–")}</td>
                 <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;">{p.get("position", "–")}</td>
@@ -355,6 +355,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .last-5 .start {{ background: #28a745; color: white; }}
         .last-5 .sub {{ background: #ffc107; color: #333; }}
         .last-5 .none {{ background: #e9ecef; color: #6c757d; }}
+        .status-select {{ appearance: none; -webkit-appearance: none; -moz-appearance: none; background: transparent; border: none; font-size: 16px; cursor: pointer; padding: 2px; width: 32px; text-align: center; }}
+        .status-cell {{ position: relative; }}
     </style>
 
 
