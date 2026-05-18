@@ -544,7 +544,8 @@ async def get_lineups_for_match(match: Match, team_name: str) -> Tuple[List[str]
         page = await context.new_page()
 
         try:
-            await page.goto(url, wait_until='networkidle', timeout=20000)
+            await page.goto(url, wait_until='domcontentloaded', timeout=20000)
+            await page.wait_for_timeout(3000)
             html = await page.content()
         except Exception as e:
             print(f"    Error loading lineups for {match.date}: {e}")
