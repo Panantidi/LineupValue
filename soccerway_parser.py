@@ -234,6 +234,9 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
         title_elem = table.select_one('div.lineupTable__title')
         if title_elem:
             pos_name = title_elem.text.strip()
+            # Пропускаем Coach — это не позиция игрока
+            if pos_name.lower() in ('coach', 'manager', 'trainer'):
+                continue
             if pos_name in seen_positions:
                 # Второй раз видим ту же позицию — это Total
                 break
@@ -447,12 +450,8 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
             url = f'https://us.soccerway.com/team/{team_id}/results/'
         print(f"  [Playwright] Loading {url}")
 
-        await page.goto(url, wait_until='networkidle', timeout=30000)
-
-        try:
-            await page.wait_for_selector('table', timeout=10000)
-        except:
-            pass
+        await page.goto(url, wait_until='domcontentloaded', timeout=30000)
+        await page.wait_for_timeout(5000)
 
         html = await page.content()
         await browser.close()
