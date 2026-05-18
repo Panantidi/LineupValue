@@ -120,7 +120,7 @@ def save_to_cache(team_data: TeamData):
 # Step 1: Parse squad page (using Playwright)
 # ============================================================
 
-async def get_squad_page(team_id: str) -> str:
+async def get_squad_page(team_id: str, team_name: str = "") -> str:
     """Fetch squad page HTML using Playwright headless"""
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=[
@@ -131,11 +131,34 @@ async def get_squad_page(team_id: str) -> str:
         )
         page = await context.new_page()
 
-        url = f'https://us.soccerway.com/team/{team_id}/squad/'
+        # Soccerway URL: /team/{slug}/{id}/squad/
+        # Если есть имя команды — формируем slug, иначе используем только ID
+        if team_name:
+            slug = team_name.lower().replace(" ", "-").replace("'", "").replace(".", "")
+            url = f'https://us.soccerway.com/team/{slug}/{team_id}/squad/'
+        else:
+            # Пробуем без slug — Soccerway может редиректнуть
+            url = f'https://us.soccerway.com/team/{team_id}/squad/'
+
         print(f"  [Playwright] Loading {url}")
 
-        await page.goto(url, wait_until='networkidle', timeout=30000)
-        await page.wait_for_selector('table', timeout=10000)
+        try:
+            await page.goto(url, wait_until='networkidle', timeout=30000)
+        except Exception as e:
+            # Если не загрузилось, попробуем альтернативный формат
+            if team_name:
+                alt_url = f'https://us.soccerway.com/team/{team_id}/squad/'
+                print(f"  [Playwright] Retrying {alt_url}")
+                await page.goto(alt_url, wait_until='networkidle', timeout=30000)
+            else:
+                raise
+
+        # Ждём таблицу (увеличенный таймаут)
+        try:
+            await page.wait_for_selector('table', timeout=15000)
+        except:
+            # Возможно, таблица подгружается динамически — ждём ещё
+            await page.wait_for_timeout(5000)
 
         html = await page.content()
         await browser.close()
@@ -626,7 +649,7 @@ async def fetch_team_data(team_id: str, team_name: str = "", force_refresh: bool
 
     # Step 1: Get squad page
     print("  Step 1/4: Parsing squad page...")
-    squad_html = await get_squad_page(team_id)
+    squad_html = await get_squad_page(team_id, team_name)
     players, coach, stadium = parse_squad_html(squad_html, team_id)
     print(f"    Found {len(players)} players, Coach: {coach}")
 
