@@ -176,28 +176,47 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
 
     # Extract coach
     coach = ""
-    coach_dt = soup.find('dt', string=re.compile(r'Coach', re.I))
-    if coach_dt:
-        dd = coach_dt.find_next('dd')
-        if dd:
-            coach = dd.text.strip()
-    # Альтернативный поиск coach
-    if not coach:
-        coach_elem = soup.select_one('.team-summary__coach, .coach-name')
-        if coach_elem:
-            coach = coach_elem.text.strip()
+    # Coach: //*[@id="overall-all-table"]/div[5]/div[3]/div[1]/div[2]/a
+    coach_link = soup.select_one('#overall-all-table a[href*="/coach/"], #overall-all-table a[href*="/manager/"]')
+    if not coach_link:
+        # Альтернативный поиск: последний блок в overall-all-table, div[3] → первый div → второй div → a
+        overall = soup.select_one('#overall-all-table')
+        if overall:
+            coach_link = overall.select_one('div:nth-of-type(5) > div:nth-child(3) > div:first-child > div:nth-child(2) > a')
+    if not coach_link:
+        # Поиск по контексту — <div>Coach</div>
+        coach_label = soup.find(string=re.compile(r'^Coach$', re.I))
+        if coach_label:
+            parent = coach_label.find_parent()
+            if parent:
+                a = parent.find_next('a')
+                if a:
+                    coach_link = a
+    if coach_link:
+        coach = coach_link.text.strip()
 
     # Stadium
     stadium = ""
-    stadium_dt = soup.find('dt', string=re.compile(r'Stadium|Venue', re.I))
-    if stadium_dt:
-        dd = stadium_dt.find_next('dd')
-        if dd:
-            stadium = dd.text.strip()
-    if not stadium:
-        stadium_elem = soup.select_one('.team-summary__stadium, .stadium-name')
-        if stadium_elem:
-            stadium = stadium_elem.text.strip()
+    # Ищем span с текстом "Stadium:" и берём tail текст родителя
+    stadium_span = soup.find('span', string=re.compile(r'Stadium', re.I))
+    if not stadium_span:
+        stadium_span = soup.find('span', class_=re.compile(r'heading__info--key|.*key.*', re.I), string=re.compile(r'Stadium', re.I))
+    if stadium_span:
+        # Tail текст после span (само название стадиона)
+        tail = stadium_span.next_sibling
+        if tail and isinstance(tail, str) and tail.strip():
+            stadium = tail.strip()
+        else:
+            # Попробуем следующий span
+            nxt = stadium_span.find_next_sibling('span')
+            if nxt:
+                # Это может быть "(City)" — пропустим
+                pass
+            # Или текст внутри родителя после span
+            parent_text = stadium_span.parent.get_text()
+            stadium = parent_text.replace(stadium_span.text, '').strip()
+            # Убираем (City) если есть
+            stadium = re.sub(r'\([^)]*\)', '', stadium).strip()
 
     # ---- Парсинг состава через div.lineupTable ----
     # Soccerway показывает 2 набора таблиц: текущий сезон + Total
