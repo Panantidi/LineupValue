@@ -176,77 +176,84 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
 
     # Extract coach
     coach = ""
-    coach_label = soup.find('dt', string=re.compile(r'Coach', re.I))
-    if coach_label:
-        dd = coach_label.find_next('dd')
+    coach_dt = soup.find('dt', string=re.compile(r'Coach', re.I))
+    if coach_dt:
+        dd = coach_dt.find_next('dd')
         if dd:
             coach = dd.text.strip()
+    # Альтернативный поиск coach
+    if not coach:
+        coach_elem = soup.select_one('.team-summary__coach, .coach-name')
+        if coach_elem:
+            coach = coach_elem.text.strip()
 
     # Stadium
     stadium = ""
-    stadium_elem = soup.find('div', class_='stadium')
-    if not stadium_elem:
-        stadium_dt = soup.find('dt', string=re.compile(r'Stadium|Venue', re.I))
-        if stadium_dt:
-            dd = stadium_dt.find_next('dd')
-            if dd:
-                stadium = dd.text.strip()
-    else:
-        stadium = stadium_elem.text.strip()
+    stadium_dt = soup.find('dt', string=re.compile(r'Stadium|Venue', re.I))
+    if stadium_dt:
+        dd = stadium_dt.find_next('dd')
+        if dd:
+            stadium = dd.text.strip()
+    if not stadium:
+        stadium_elem = soup.select_one('.team-summary__stadium, .stadium-name')
+        if stadium_elem:
+            stadium = stadium_elem.text.strip()
 
-    # Find all rows with player links
+    # ---- Парсинг состава через div.lineupTable ----
     players = []
-    player_links = soup.select('table tbody tr td a[href*="/player/"]')
 
-    for link in player_links:
-        player_name = link.text.strip()
-        if not player_name:
+    rows = soup.select('div.lineupTable__row')
+    print(f"    lineupTable rows: {len(rows)}")
+
+    for row in rows:
+        # Номер
+        number = ""
+        jersey = row.select_one('div.lineupTable__cell--jersey')
+        if jersey:
+            number = jersey.text.strip()
+
+        # Имя и ссылка на профиль
+        name = ""
+        player_url = ""
+        player_cell = row.select_one('div.lineupTable__cell--player')
+        if player_cell:
+            link = player_cell.select_one('a[href*="/player/"]')
+            if link:
+                name = link.text.strip()
+                player_url = link.get('href', '')
+            else:
+                name = player_cell.text.strip()
+
+        if not name:
             continue
 
-        player_url = link.get('href', '')
-
-        row = link.find_parent('tr')
-        if not row:
-            continue
-
-        cells = row.find_all('td')
-        if len(cells) < 6:
-            continue
-
-        # Number
-        number = cells[0].text.strip() if cells else ""
-
-        # Nationality — flag image alt/title
+        # Национальность (флаг в ячейке игрока)
         national = ""
-        flag_img = row.select_one('img[class*="flag"], img[alt]')
-        if flag_img:
-            national = flag_img.get('alt', '') or flag_img.get('title', '') or ""
+        flag = player_cell.select_one('img') if player_cell else None
+        if flag:
+            national = flag.get('alt', '') or flag.get('title', '') or ''
 
-        # Age
+        # Возраст
         age = ""
-        for cell in cells:
-            txt = cell.text.strip()
-            if txt.isdigit() and 14 < int(txt) < 50:
-                age = txt
-                break
+        age_cell = row.select_one('div.lineupTable__cell--age')
+        if age_cell:
+            age = age_cell.text.strip()
 
-        # Stats: Apps, Min, G, A, YC, RC
-        numeric_cells = []
-        for cell in cells:
-            txt = cell.text.strip().replace('\xa0', '').replace(',', '').replace('−', '-').replace('–', '-')
-            if txt.isdigit() or txt == '-' or txt == '0':
-                numeric_cells.append(txt)
+        # Статистика
+        def _cell_text(cls):
+            cell = row.select_one(f'div.lineupTable__cell--{cls}')
+            return cell.text.strip() if cell else ""
 
-        apps = numeric_cells[0] if len(numeric_cells) > 0 else ""
-        minutes = numeric_cells[1] if len(numeric_cells) > 1 else ""
-        goals = numeric_cells[2] if len(numeric_cells) > 2 else ""
-        assists = numeric_cells[3] if len(numeric_cells) > 3 else ""
-        yellow = numeric_cells[4] if len(numeric_cells) > 4 else ""
-        red = numeric_cells[5] if len(numeric_cells) > 5 else ""
+        apps = _cell_text('matchesPlayed')
+        minutes = _cell_text('minutesPlayed')
+        goals = _cell_text('goal')
+        assists = _cell_text('assist')
+        yellow = _cell_text('yellowCard')
+        red = _cell_text('redCard')
 
         players.append(Player(
             number=number,
-            name=player_name,
+            name=name,
             age=age,
             apps=apps,
             minutes=minutes,
@@ -255,8 +262,42 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             yellow_cards=yellow,
             red_cards=red,
             player_url=player_url,
-            national=national
+            national=national,
         ))
+
+    # Fallback: если новый формат не найден, пробуем старый (table)
+    if not players:
+        player_links = soup.select('table tbody tr td a[href*="/player/"]')
+        for link in player_links:
+            name = link.text.strip()
+            if not name:
+                continue
+            player_url = link.get('href', '')
+            row = link.find_parent('tr')
+            if not row:
+                continue
+            cells = row.find_all('td')
+            if len(cells) < 6:
+                continue
+            number = cells[0].text.strip() if cells else ""
+            age = ""
+            for cell in cells:
+                txt = cell.text.strip()
+                if txt.isdigit() and 14 < int(txt) < 50:
+                    age = txt
+                    break
+            numeric_cells = [c for c in cells if c.text.strip().replace('-', '').isdigit()]
+            apps = numeric_cells[0].text.strip() if len(numeric_cells) > 0 else ""
+            minutes = numeric_cells[1].text.strip() if len(numeric_cells) > 1 else ""
+            goals = numeric_cells[2].text.strip() if len(numeric_cells) > 2 else ""
+            assists = numeric_cells[3].text.strip() if len(numeric_cells) > 3 else ""
+            yellow = numeric_cells[4].text.strip() if len(numeric_cells) > 4 else ""
+            red = numeric_cells[5].text.strip() if len(numeric_cells) > 5 else ""
+            players.append(Player(
+                number=number, name=name, age=age, apps=apps,
+                minutes=minutes, goals=goals, assists=assists,
+                yellow_cards=yellow, red_cards=red, player_url=player_url,
+            ))
 
     return players, coach, stadium
 
