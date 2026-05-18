@@ -13,14 +13,14 @@ var STATUS_EMOJI = {
   "Return (Other)": "\uD83D\uDD19"
 };
 
-function handleStatusChange(s) {
+function updateStatusIcon(s) {
   var val = s.value;
-  var wrapper = s.closest(".status-wrapper");
+  var wrapper = s.parentElement;
   var display = wrapper.querySelector(".status-emoji-display");
   if (display && STATUS_EMOJI[val]) {
     display.textContent = STATUS_EMOJI[val];
   }
-  var row = s.closest("tr");
+  var row = wrapper.closest("tr");
   if (!row) return;
   var player = row.querySelector("td.player-name");
   if (!player) return;
@@ -33,12 +33,10 @@ function handleStatusChange(s) {
   else if (o.indexOf(val) !== -1) player.classList.add("status-orange");
 }
 
-function updateStatusIcon(s) { handleStatusChange(s); }
-
 document.addEventListener("DOMContentLoaded", function() {
   document.querySelectorAll(".status-select").forEach(function(s) {
     var val = s.value;
-    var wrapper = s.closest(".status-wrapper");
+    var wrapper = s.parentElement;
     var display = wrapper.querySelector(".status-emoji-display");
     if (display && STATUS_EMOJI[val]) {
       display.textContent = STATUS_EMOJI[val];

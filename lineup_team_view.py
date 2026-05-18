@@ -363,7 +363,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
     </style>
 
 
-\n<script src="/icons/status-icons.js"></script>
+\n<script src="/icons/status-icons.js?v=2"></script>
 </head>
 <body>
     <div class="header">
