@@ -139,6 +139,14 @@ def render_team_view(team_id: str) -> HTMLResponse:
     total_value = round(sum(_parse_mv(p.get("market_value", 0)) for p in players) / 1_000_000.0, 1)
     mv_starting_xi = round(sum(_parse_mv(p.get("market_value", 0)) for p in starting_players) / 1_000_000.0, 1)
     av_age_starting_xi = round(sum(float(p.get("age", 0) or 0) for p in starting_players) / len(starting_players), 1) if starting_players else 0.0
+
+    max_goals = max((int(p.get("goal", 0)) for p in players if str(p.get("goal", 0)).isdigit()), default=0)
+    goal_leaders = [swap_name_order(p.get("name", "–")) for p in players if str(p.get("goal", 0)).isdigit() and int(p.get("goal", 0)) == max_goals and max_goals > 0]
+    unique_goal_leader = goal_leaders[0] if len(goal_leaders) == 1 else None
+
+    max_assists = max((int(p.get("assist", 0)) for p in players if str(p.get("assist", 0)).isdigit()), default=0)
+    assist_leaders = [swap_name_order(p.get("name", "–")) for p in players if str(p.get("assist", 0)).isdigit() and int(p.get("assist", 0)) == max_assists and max_assists > 0]
+    unique_assist_leader = assist_leaders[0] if len(assist_leaders) == 1 else None
     
     # Sort players by minutes played (descending)
     sorted_players = sorted(players, key=lambda x: int(x.get('min', '0')) if x.get('min', '0') and str(x['min']).isdigit() else 0, reverse=True)
@@ -150,6 +158,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
             p['squad_role'] = 'Bench'
         if 'impact_score' not in p:
             p['impact_score'] = 0
+        player_display_name = swap_name_order(p.get("name", "–"))
+        p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
+        p['is_assist_leader'] = bool(unique_assist_leader and player_display_name == unique_assist_leader)
     
     players_rows = ""
     for p in sorted_players:
@@ -159,11 +170,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <tr>
                 <td>{p.get("number", "–")}</td>
                 <td>{get_flag_html(p.get("national", "–"))}</td>
-                <td><strong>{swap_name_order(p.get("name", "–"))}</strong></td>
+                <td><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
                 <td class="status-cell"><img class="status-icon-img" src="" width="20" height="20" style="vertical-align:middle;margin-right:4px;"><select class="status-select" style="vertical-align:middle;padding:2px;font-size:12px;border:1px solid #ddd;border-radius:4px;max-width:170px;" onchange="updateStatusIcon(this)"><option value="Available">Available</option><option value="Doubt">Doubt</option><option value="Injury">Injury</option><option value="Red card">Red card</option><option value="Yellow red card">Yellow red card</option><option value="Last Yellow card">Last Yellow card</option><option value="Not playing (Called up)">Not playing (Called up)</option><option value="Not playing (Other)">Not playing (Other)</option><option value="Return (Injury)">Return (Injury)</option><option value="Return (Susp)">Return (Susp)</option><option value="Return (Called up)">Return (Called up)</option><option value="Return (Other)">Return (Other)</option></select></td>
                 <td>{p.get("age", "–")}</td>
                 <td>{p.get("market_value", "–")}</td>
-                <td class="pos-{p.get("position", "").lower()}">{p.get("position", "–")}</td>
+                <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;">{p.get("position", "–")}</td>
                 <td><span class="squad-role {p.get('squad_role', '').lower()}">{p.get("squad_role", "–") if p.get("squad_role") else "–"}</span></td>
                 <td>{p.get("impact_score", "–") if p.get("impact_score") is not None else "–"}</td>
                 <td style="text-align:center;"><input type="checkbox" name="player" value="{p.get("name", "–")}" class="squad-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #333;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;" onchange="if(this.checked){{this.style.background='#000';this.style.border='none';}}else{{this.style.background='#e0e0e0';this.style.border='2px solid #333';}}"></td>
@@ -322,8 +333,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .squad-role.key {{ background: #d4edda; color: #155724; border: 2px solid #28a745; }}
         .squad-role.important {{ background: #d1ecf1; color: #0c5460; border: 2px solid #17a2b8; }}
         .squad-role.starter {{ background: #fff3cd; color: #856404; }}
-        .squad-role.rotation {{ background: #f8d7da; color: #721c24; }}
-        .squad-role.bench {{ background: #e2e3e4; color: #383d41; }}
+                .squad-role.rotation {{ background: #e2e3e4; color: #383d41; }}
+                .squad-role.bench {{ background: #f8d7da; color: #721c24; }}
         .last-5 {{
             display: flex;
             gap: 4px;
@@ -405,7 +416,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>№</th>
                         <th>Nat</th>
                         <th>Player</th>
                         <th>Status</th>
