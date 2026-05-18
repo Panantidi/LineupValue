@@ -170,7 +170,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <tr>
                 <td>{p.get("number", "–")}</td>
                 <td>{get_flag_html(p.get("national", "–"))}</td>
-                <td><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
+                <td class="player-name"><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
                 <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option></select></div></td>
                 <td>{p.get("age", "–")}</td>
                 <td>{p.get("market_value", "–")}</td>
@@ -360,6 +360,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .status-emoji-display {{ font-size: 16px; line-height: 1; }}
         .status-chevron {{ font-size: 10px; color: #666; margin-left: 3px; line-height: 1; }}
         .status-select {{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }}
+        .status-red {{ color: red !important; font-weight: bold !important; text-decoration: line-through !important; }}
+        .status-green {{ color: green !important; font-weight: bold !important; text-decoration: underline !important; }}
+        .status-orange {{ color: orange !important; font-weight: bold !important; text-decoration: underline !important; }}
     </style>
 
 
