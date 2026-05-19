@@ -219,14 +219,28 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             stadium = re.sub(r'\([^)]*\)', '', stadium).strip()
 
     # ---- Парсинг состава через div.lineupTable ----
-    # Soccerway показывает таблицы по турнирам (league, cup, etc.)
-    # Берём ВСЕ таблицы по позициям (GK, DEF, MID, FW), пропускаем Coach
-    # Суммируем статы (apps, min, G, A, YC, RC) по всем турнирам для каждого игрока
+    # Soccerway показывает таблицы по турнирам текущего сезона:
+    #   league-xxx-table, national-cup-xxx-table и т.д.
+    # Берём ВСЕ турниры текущего сезона (первые уникальные parent_id),
+    # суммируем статы (apps, min, G, A, YC, RC) для каждого игрока.
     players_by_name = {}  # name -> Player
+    seen_parent_ids = set()
 
     all_tables = soup.select('div.lineupTable--soccer')
 
     for table in all_tables:
+        # Определяем родительский контейнер (турнир)
+        parent_id = table.parent.get('id', '') if table.parent else ''
+        
+        # Пропускаем если parent_id пустой или это не squad таблица
+        if not parent_id or '-table' not in parent_id:
+            continue
+        
+        # Ограничиваем: берём до 4 уникальных parent_id (сезон = лига + 2-3 кубка)
+        if len(seen_parent_ids) >= 4 and parent_id not in seen_parent_ids:
+            break
+        seen_parent_ids.add(parent_id)
+
         title_elem = table.select_one('div.lineupTable__title')
         pos_group = ""
         if title_elem:
