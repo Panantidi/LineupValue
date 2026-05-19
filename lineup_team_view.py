@@ -220,11 +220,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
         p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
         p['is_assist_leader'] = bool(unique_assist_leader and player_display_name == unique_assist_leader)
 
-    # Calculate Starting XI stats from top 11 by impact_score
-    starting_players = sorted(sorted_players, key=lambda x: float(x.get('impact_score', 0) or 0), reverse=True)[:11]
-    starting_xi_impact_score = round(sum(float(p.get("impact_score", 0) or 0) for p in starting_players), 2)
-    mv_starting_xi = round(sum(_parse_mv(p.get("market_value", 0)) for p in starting_players) / 1_000_000.0, 1)
-    av_age_starting_xi = round(sum(float(p.get("age", 0) or 0) for p in starting_players) / len(starting_players), 1) if starting_players else 0.0
+    # Starting XI stats — 0 by default (user selects players via checkboxes)
+    starting_xi_impact_score = 0.0
+    mv_starting_xi = 0.0
+    av_age_starting_xi = 0.0
     
     # --- Last 3: данные о матчах (из JSON) ---
     matches_data = data.get("matches", [])
