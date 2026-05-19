@@ -573,8 +573,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">€{total_value:.1f}m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
         </div>
 
-        <!-- Comparison Table: full width -->
-        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:16px;overflow:hidden;">
+        <!-- Comparison Table: centered, half width -->
+        <div style="display:flex;justify-content:center;margin-bottom:16px;">
+            <div style="width:50%;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
                 <thead>
                     <tr style="background:#f8f9fa;">
@@ -605,6 +606,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- Hidden -->
