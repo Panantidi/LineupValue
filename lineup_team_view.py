@@ -332,61 +332,90 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .header {{
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 24px 40px;
+            padding: 16px 40px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
         }}
         .header h1 {{
             margin: 0;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 600;
+            white-space: nowrap;
+        }}
+        .header-tabs {{
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }}
+        .header-tabs .tab {{
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 4px;
         }}
         .header a {{
             color: white;
             text-decoration: none;
-            padding: 8px 16px;
+            padding: 6px 12px;
             background: rgba(255,255,255,0.2);
             border-radius: 6px;
             transition: background 0.2s;
+            font-size: 13px;
+            white-space: nowrap;
         }}
         .header a:hover {{
             background: rgba(255,255,255,0.3);
         }}
         .container {{
-            padding: 32px;
-            max-width: 1600px;
+            padding: 24px 32px;
+            max-width: 100%;
             margin: 0 auto;
         }}
-        .tabs {{
+        .main-layout {{
             display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
         }}
+        .main-table {{
+            flex: 1;
+            min-width: 0;
+            overflow-x: auto;
+        }}
+        .stats-sidebar {{
+            width: 180px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }}
+        .stats-sidebar .stat-card {{
+            padding: 12px 10px;
+        }}
+        .stats-sidebar .stat-value {{
+            font-size: 20px;
+        }}
+        .stats-sidebar .stat-label {{
+            font-size: 10px;
+        }}
+        .tabs {{ display: none; }}
         .tab {{
             padding: 10px 20px;
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
             border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
+            font-size: 13px;
+            color: white;
             transition: all 0.2s;
         }}
         .tab:hover {{
-            background: #f8f9fa;
-            border-color: #667eea;
+            background: rgba(255,255,255,0.25);
         }}
         .tab.active {{
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }}
-        .stats-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
+            background: rgba(255,255,255,0.35);
+            border-color: rgba(255,255,255,0.5);
         }}
         .stat-card {{
             background: white;
@@ -501,53 +530,26 @@ def render_team_view(team_id: str) -> HTMLResponse:
             {team_name}
             {coach_html}
         </h1>
+        <div class="header-tabs">
+            <div class="tab active">Squad</div>
+            <div class="tab">Missing Players</div>
+            <div class="tab">Doubtful Players</div>
+            <div class="tab">Returning Players</div>
+        </div>
         <a href="/lineup_ai/select">← Back to teams</a>
     </div>
 
     <div class="container">
-        <div class="tabs">
+        <div class="tabs" style="display:none;">
             <div class="tab active">Squad</div>
             <div class="tab">Missing Players</div>
             <div class="tab">Doubtful Players</div>
             <div class="tab">Returning Players</div>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value">{squad_size}</div>
-                <div class="stat-label">Players</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">{avg_age}</div>
-                <div class="stat-label">Average Age</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">{total_value:.1f}m</div>
-                <div class="stat-label">Total Value</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="impact-diff-value">{impact_diff:.2f}</div>
-                <div class="stat-label">Impact Diff</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="starting-xi-impact-score-value">{starting_xi_impact_score:.2f}</div>
-                <div class="stat-label">Starting XI Impact Score</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="mv-starting-xi-value">{mv_starting_xi:.1f}m</div>
-                <div class="stat-label">MV Starting XI</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="av-age-starting-xi-value">{av_age_starting_xi:.1f}</div>
-                <div class="stat-label">Av.Age Starting XI</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">{last_match_impact:.2f}</div>
-                <div class="stat-label">Impact Score (Last Match)</div>
-            </div>
-        </div>
-
-        <div class="table-container">
+        <div class="main-layout">
+            <div class="main-table">
+                <div class="table-container">
             <table>
                 <thead>
                     <tr>
@@ -579,6 +581,42 @@ def render_team_view(team_id: str) -> HTMLResponse:
                     {players_rows}
                 </tbody>
             </table>
+                </div>
+            </div>
+            <div class="stats-sidebar">
+                <div class="stat-card">
+                    <div class="stat-value">{squad_size}</div>
+                    <div class="stat-label">Players</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{avg_age}</div>
+                    <div class="stat-label">Average Age</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{total_value:.1f}m</div>
+                    <div class="stat-label">Total Value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="impact-diff-value">{impact_diff:.2f}</div>
+                    <div class="stat-label">Impact Diff</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="starting-xi-impact-score-value">{starting_xi_impact_score:.2f}</div>
+                    <div class="stat-label">Starting XI Impact</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="mv-starting-xi-value">{mv_starting_xi:.1f}m</div>
+                    <div class="stat-label">MV Starting XI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="av-age-starting-xi-value">{av_age_starting_xi:.1f}</div>
+                    <div class="stat-label">Av.Age S-XI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{last_match_impact:.2f}</div>
+                    <div class="stat-label">Last Match Impact</div>
+                </div>
+            </div>
         </div>
     </div>
 
