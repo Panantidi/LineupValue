@@ -577,60 +577,36 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             starters = []
             substitutes = []
 
-            # Parse lineups page:
-            # Starting Lineups and Substitutes sections with lf__side (home/reversed=away)
-            # Players in a[href*="/player/"] inside div.lf__participantNew parents
-            # lf__isReversed class = away team
-
-            # Determine if our team is home or away from the URL slug
-            # URL: /game/{away_slug}/{home_slug}/... — but actually order varies
-            # Better: check team_name against page content
-            is_reversed = None  # True=away, False=home
-
-            # Find team names in the page
-            team_links = soup.select('a[href*="/team/"]')
-            for tl in team_links:
-                if team_name.lower() in tl.text.lower():
-                    # Check if this team is in a reversed container
-                    for parent in [tl] + list(tl.parents)[:8]:
-                        cls = ' '.join(parent.get('class', []))
-                        if 'lf__isReversed' in cls:
-                            is_reversed = True
-                            break
-                        if 'lf__side' in cls and 'lf__isReversed' not in cls:
-                            is_reversed = False
-                            break
-                    break
-
-            if is_reversed is None:
-                # Fallback: try URL slug comparison
-                if slug:
-                    parts = slug.split('/')
-                    if len(parts) >= 2:
-                        # If team_name matches first part -> away (reversed=True)
-                        if team_name.lower() in parts[0].lower():
-                            is_reversed = True
-                        else:
-                            is_reversed = False
+            # Parse lineups page using data-testid:
+            # wcl-lineupsParticipantGeneral-left = home team
+            # wcl-lineupsParticipantGeneral-right = away team
+            # Determine if our team is home or away from URL slug
+            # URL: /game/{opponent-slug}/{our-team-slug}/... -> we are home (left)
+            # URL: /game/{our-team-slug}/{opponent-slug}/... -> we are away (right)
+            is_home = True  # default
+            if slug:
+                parts = slug.split('/')
+                if len(parts) >= 2:
+                    # Strasbourg slug appears in parts[1] -> home
+                    # If our team slug is in parts[0] -> away
+                    team_slug = team_name.lower().replace(' ', '-')
+                    if team_slug in parts[0].lower():
+                        is_home = False
+            testid_side = "wcl-lineupsParticipantGeneral-left" if is_home else "wcl-lineupsParticipantGeneral-right"
 
             # Parse Starting Lineups section
             start_span = soup.find('span', string=re.compile(r'Starting Lineups', re.I))
             if start_span:
                 start_sec = start_span.find_parent('div', class_='section')
                 if start_sec:
-                    # Players are in span[class*=wcl-name_] (not <a> links)
-                    name_spans = start_sec.select('span[class*="wcl-name_"]')
-                    for ns in name_spans:
-                        name = ns.text.strip()
-                        if not name:
+                    participants = start_sec.select(f'[data-testid="{testid_side}"]')
+                    for part in participants:
+                        # Get name from bold span
+                        name_el = part.select_one('span[class*="wcl-bold"]')
+                        if not name_el:
                             continue
-                        player_reversed = False
-                        for parent in [ns] + list(ns.parents)[:10]:
-                            cls = ' '.join(parent.get('class', []))
-                            if 'lf__isReversed' in cls:
-                                player_reversed = True
-                                break
-                        if player_reversed == is_reversed:
+                        name = name_el.text.strip()
+                        if name and not name.isdigit() and len(name) > 1:
                             starters.append(name)
 
             # Parse Substitutes section
@@ -638,18 +614,13 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             if sub_span:
                 sub_sec = sub_span.find_parent('div', class_='section')
                 if sub_sec:
-                    name_spans = sub_sec.select('span[class*="wcl-name_"]')
-                    for ns in name_spans:
-                        name = ns.text.strip()
-                        if not name:
+                    participants = sub_sec.select(f'[data-testid="{testid_side}"]')
+                    for part in participants:
+                        name_el = part.select_one('span[class*="wcl-bold"]')
+                        if not name_el:
                             continue
-                        player_reversed = False
-                        for parent in [ns] + list(ns.parents)[:10]:
-                            cls = ' '.join(parent.get('class', []))
-                            if 'lf__isReversed' in cls:
-                                player_reversed = True
-                                break
-                        if player_reversed == is_reversed:
+                        name = name_el.text.strip()
+                        if name and not name.isdigit() and len(name) > 1:
                             substitutes.append(name)
 
             print(f"    {match.date}: starters={len(starters)}, subs={len(substitutes)}")
