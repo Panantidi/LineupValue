@@ -564,58 +564,50 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Returning Players</div>
         </div>
 
-        <!-- Info Bar + Comparison -->
-        <div style="display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;">
-            <!-- Left: Coach, Stadium, Stats -->
-            <div style="display:flex;flex-direction:column;gap:8px;">
-                <div style="display:flex;gap:8px;">
-                    <div style="background:white;padding:6px 12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:13px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
-                    <div style="background:white;padding:6px 12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:13px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
-                </div>
-                <div style="display:flex;gap:8px;">
-                    <div style="background:white;padding:6px 12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);text-align:center;font-size:13px;"><span style="font-weight:bold;color:#667eea;">{squad_size}</span> <span style="color:#888;">Players</span></div>
-                    <div style="background:white;padding:6px 12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);text-align:center;font-size:13px;"><span style="font-weight:bold;color:#667eea;">{avg_age}</span> <span style="color:#888;">Avg Age</span></div>
-                    <div style="background:white;padding:6px 12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);text-align:center;font-size:13px;"><span style="font-weight:bold;color:#667eea;">€{total_value:.1f}m</span> <span style="color:#888;">Value</span></div>
-                </div>
-            </div>
-            <!-- Right: Comparison Table -->
-            <div style="margin-left:auto;">
-                <div style="background:white;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-                    <table style="border-collapse:collapse;font-size:12px;">
-                        <thead>
-                            <tr style="background:#f8f9fa;">
-                                <th style="padding:5px 8px;text-align:right;color:#888;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                                <th style="padding:5px 8px;text-align:left;color:#555;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
-                                <th style="padding:5px 8px;text-align:left;color:#555;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
-                                <th style="padding:5px 8px;text-align:left;color:#555;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="border-top:1px solid #eee;">
-                                <td style="padding:4px 8px;font-weight:600;text-align:right;white-space:nowrap;">Impact Score</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-sxi-impact">0.00</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-pct-impact">–</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-last-impact">{last_match_impact:.2f}</td>
-                            </tr>
-                            <tr style="border-top:1px solid #eee;">
-                                <td style="padding:4px 8px;font-weight:600;text-align:right;white-space:nowrap;">Market Value</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-sxi-mv">0.0m</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-pct-mv">–</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
-                            </tr>
-                            <tr style="border-top:1px solid #eee;">
-                                <td style="padding:4px 8px;font-weight:600;text-align:right;white-space:nowrap;">Av.Age</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-sxi-age">0.0</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-pct-age">–</td>
-                                <td style="padding:4px 8px;text-align:left;" id="cmp-last-age">{last_match_age:.1f}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <!-- Info Bar: Coach, Stadium, Stats — full width -->
+        <div style="display:flex;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span><br><span style="color:#888;font-size:11px;">Avg Age</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">€{total_value:.1f}m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
         </div>
 
-        <!-- Hidden old comparison -->
+        <!-- Comparison Table: full width -->
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:16px;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                <thead>
+                    <tr style="background:#f8f9fa;">
+                        <th style="padding:8px 16px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
+                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
+                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
+                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Impact Score</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-sxi-impact">0.00</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pct-impact">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-last-impact">{last_match_impact:.2f}</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Market Value</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-sxi-mv">0.0m</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pct-mv">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Av.Age</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-sxi-age">0.0</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pct-age">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-last-age">{last_match_age:.1f}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Hidden -->
         <div style="display:none;">
         {last_match_impact:.2f}
         </div>
