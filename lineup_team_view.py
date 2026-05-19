@@ -259,15 +259,22 @@ def render_team_view(team_id: str) -> HTMLResponse:
     def _last3_cells(p):
         last3 = p.get("last3", [])
         missing = p.get("last3_missing", [None, None, None])
+        captains = p.get("last3_captain", [False, False, False])
         while len(last3) < 3:
             last3.append("—")
         while len(missing) < 3:
             missing.append(None)
+        while len(captains) < 3:
+            captains.append(False)
         cells = ""
         for i, val in enumerate(last3[:3]):
             miss = missing[i] if i < len(missing) else None
+            is_capt = captains[i] if i < len(captains) else False
             if val == "START":
-                cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
+                if is_capt:
+                    cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;position:relative;"><span style="color:white;font-size:11px;font-weight:bold;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">c</span></div></td>'
+                else:
+                    cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
             elif val == "SUB":
                 cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#e3a035;display:inline-block;vertical-align:middle;"></div></td>'
             elif miss:
