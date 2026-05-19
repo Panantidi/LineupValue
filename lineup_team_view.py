@@ -133,13 +133,13 @@ def render_team_view(team_id: str) -> HTMLResponse:
     coach = data.get("coach", {})
     coach_name = coach.get("name", "–")
     coach_nationality = coach.get("nationality", "")
+    coach_name_display = swap_name_order(coach_name) if coach_name != "–" else "–"
+    if coach_nationality:
+        coach_flag_html = get_flag_html(coach_nationality).replace('width:30px;height:30px;', 'width:16px;height:16px;').replace('vertical-align:middle;', 'vertical-align:middle;margin-right:4px;')
+        coach_name_display = f'{coach_flag_html} {coach_name_display}'
     
-    # Format coach HTML
-    coach_html = ""
-    if coach_name != "–" and coach_nationality:
-        formatted_coach_name = swap_name_order(coach_name)
-        coach_flag_html = get_flag_html(coach_nationality).replace('width:30px;height:30px;', 'width:20px;height:20px;').replace('vertical-align:middle;', 'vertical-align:middle;margin-right:6px;')
-        coach_html = f' <span style="color:rgba(255,255,255,0.9);font-size:18px;margin-left:12px;vertical-align:middle;">{coach_flag_html} Coach: {formatted_coach_name}</span>'
+    stadium_name = data.get("stadium", "") or data.get("team", {}).get("stadium", "")
+    stadium_display = stadium_name if stadium_name else "–"
     
     # Calculate stats
     squad_size = len(players)
@@ -230,6 +230,19 @@ def render_team_view(team_id: str) -> HTMLResponse:
         for p in sorted_players
         if p.get("last3") and len(p["last3"]) > 0 and p["last3"][0] == "START"
     ), 2)
+    # MV (Last match) = sum of MV for START players in last match
+    last_match_mv = round(sum(
+        _parse_mv(p.get("market_value", 0))
+        for p in sorted_players
+        if p.get("last3") and len(p["last3"]) > 0 and p["last3"][0] == "START"
+    ) / 1_000_000.0, 1)
+    # Av.Age (Last match) = average age for START players in last match
+    last_match_ages = [
+        float(p.get("age", 0) or 0)
+        for p in sorted_players
+        if p.get("last3") and len(p["last3"]) > 0 and p["last3"][0] == "START" and p.get("age")
+    ]
+    last_match_age = round(sum(last_match_ages) / len(last_match_ages), 1) if last_match_ages else 0.0
     # Impact Diff will be calculated in JS: Starting XI Impact Score - Last Match Impact
     impact_diff = 0.0
     
@@ -533,10 +546,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
 </head>
 <body>
     <div class="header">
-        <h1>
-            {team_name}
-            {coach_html}
-        </h1>
+        <h1>{team_name}</h1>
         <div class="header-tabs">
             <div class="tab active">Squad</div>
             <div class="tab">Missing Players</div>
@@ -552,6 +562,70 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Missing Players</div>
             <div class="tab">Doubtful Players</div>
             <div class="tab">Returning Players</div>
+        </div>
+
+        <!-- Coach & Stadium -->
+        <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="background:white;padding:10px 18px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:14px;color:#333;display:flex;align-items:center;gap:8px;">
+                <span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}
+            </div>
+            <div style="background:white;padding:10px 18px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:14px;color:#333;display:flex;align-items:center;gap:8px;">
+                <span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}
+            </div>
+        </div>
+
+        <!-- Top Stats Row -->
+        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="background:white;padding:14px 20px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;min-width:120px;">
+                <div style="font-size:24px;font-weight:bold;color:#667eea;">{squad_size}</div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Players</div>
+            </div>
+            <div style="background:white;padding:14px 20px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;min-width:120px;">
+                <div style="font-size:24px;font-weight:bold;color:#667eea;">{avg_age}</div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Average Age</div>
+            </div>
+            <div style="background:white;padding:14px 20px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;min-width:120px;">
+                <div style="font-size:24px;font-weight:bold;color:#667eea;">€{total_value:.1f}m</div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Total Value</div>
+            </div>
+        </div>
+
+        <!-- Comparison Table: Last Match vs Starting XI -->
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:20px;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="background:#f8f9fa;">
+                        <th style="padding:10px 16px;text-align:left;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Key Metric</th>
+                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
+                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
+                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (abs)</th>
+                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:10px 16px;font-weight:600;">Impact Score</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-last-impact">{last_match_impact:.2f}</td>
+                        <td style="padding:10px 16px;text-align:center;font-weight:600;" id="cmp-sxi-impact">0.00</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-diff-impact">–</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-pct-impact">–</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:10px 16px;font-weight:600;">MV Starting XI</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
+                        <td style="padding:10px 16px;text-align:center;font-weight:600;" id="cmp-sxi-mv">0.0m</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-diff-mv">–</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-pct-mv">–</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:10px 16px;font-weight:600;">Av.Age Starting XI</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-last-age">{last_match_age:.1f}</td>
+                        <td style="padding:10px 16px;text-align:center;font-weight:600;" id="cmp-sxi-age">0.0</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-diff-age">–</td>
+                        <td style="padding:10px 16px;text-align:center;" id="cmp-pct-age">–</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="main-layout">
@@ -588,40 +662,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
                     {players_rows}
                 </tbody>
             </table>
-                </div>
-            </div>
-            <div class="stats-sidebar">
-                <div class="stat-card">
-                    <div class="stat-value">{squad_size}</div>
-                    <div class="stat-label">Players</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{avg_age}</div>
-                    <div class="stat-label">Average Age</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{total_value:.1f}m</div>
-                    <div class="stat-label">Total Value</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="impact-diff-value">{impact_diff:.2f}</div>
-                    <div class="stat-label">Impact Diff</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="starting-xi-impact-score-value">{starting_xi_impact_score:.2f}</div>
-                    <div class="stat-label">Starting XI Impact</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="mv-starting-xi-value">{mv_starting_xi:.1f}m</div>
-                    <div class="stat-label">MV Starting XI</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="av-age-starting-xi-value">{av_age_starting_xi:.1f}</div>
-                    <div class="stat-label">Av.Age S-XI</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{last_match_impact:.2f}</div>
-                    <div class="stat-label">Last Match Impact</div>
                 </div>
             </div>
         </div>
@@ -749,6 +789,19 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }});
         }});
         
+        function fmtDelta(val, suffix) {{
+            if (val === 0) return '0';
+            const sign = val > 0 ? '▲ +' : '▼ ';
+            const color = val > 0 ? '#17843f' : '#dc3545';
+            return '<span style="color:' + color + ';font-weight:600;">' + sign + val.toFixed(2) + (suffix || '') + '</span>';
+        }}
+        function fmtPct(val) {{
+            if (val === 0) return '0%';
+            const sign = val > 0 ? '▲ +' : '▼ ';
+            const color = val > 0 ? '#17843f' : '#dc3545';
+            return '<span style="color:' + color + ';">' + sign + val.toFixed(1) + '%</span>';
+        }}
+        
         function recalcSelectedStartingStats() {{
             let impact = 0;
             let mv = 0;
@@ -782,13 +835,40 @@ def render_team_view(team_id: str) -> HTMLResponse:
             if (mvEl) mvEl.textContent = mv.toFixed(1) + 'm';
             if (ageEl) ageEl.textContent = (count ? (ageSum / count) : 0).toFixed(1);
             
-            // Update Impact Diff = Starting XI Impact - Last Match Impact
-            const diffEl = document.getElementById('impact-diff-value');
-            if (diffEl) {{
-                const lastMatchImpact = {last_match_impact:.2f};
-                const diff = impact - lastMatchImpact;
-                diffEl.textContent = diff.toFixed(2);
-            }}
+            // Update Comparison Table
+            const lastImpact = {last_match_impact:.2f};
+            const lastMv = {last_match_mv:.1f};
+            const lastAge = {last_match_age:.1f};
+            const sxiImpact = impact;
+            const sxiMv = mv;
+            const sxiAge = count ? (ageSum / count) : 0;
+            
+            // Impact
+            const sxiImpactEl = document.getElementById('cmp-sxi-impact');
+            if (sxiImpactEl) sxiImpactEl.textContent = sxiImpact.toFixed(2);
+            const diffImpact = sxiImpact - lastImpact;
+            const diffImpactEl = document.getElementById('cmp-diff-impact');
+            const pctImpactEl = document.getElementById('cmp-pct-impact');
+            if (diffImpactEl) diffImpactEl.innerHTML = fmtDelta(diffImpact);
+            if (pctImpactEl) pctImpactEl.innerHTML = lastImpact > 0 ? fmtPct(diffImpact / lastImpact * 100) : '–';
+            
+            // MV
+            const sxiMvEl = document.getElementById('cmp-sxi-mv');
+            if (sxiMvEl) sxiMvEl.textContent = sxiMv.toFixed(1) + 'm';
+            const diffMv = sxiMv - lastMv;
+            const diffMvEl = document.getElementById('cmp-diff-mv');
+            const pctMvEl = document.getElementById('cmp-pct-mv');
+            if (diffMvEl) diffMvEl.innerHTML = fmtDelta(diffMv, 'm');
+            if (pctMvEl) pctMvEl.innerHTML = lastMv > 0 ? fmtPct(diffMv / lastMv * 100) : '–';
+            
+            // Age
+            const sxiAgeEl = document.getElementById('cmp-sxi-age');
+            if (sxiAgeEl) sxiAgeEl.textContent = sxiAge.toFixed(1);
+            const diffAge = sxiAge - lastAge;
+            const diffAgeEl = document.getElementById('cmp-diff-age');
+            const pctAgeEl = document.getElementById('cmp-pct-age');
+            if (diffAgeEl) diffAgeEl.innerHTML = fmtDelta(diffAge);
+            if (pctAgeEl) pctAgeEl.innerHTML = lastAge > 0 ? fmtPct(diffAge / lastAge * 100) : '–';
         }}
 
         document.querySelectorAll('.starting-checkbox').forEach(checkbox => {{
