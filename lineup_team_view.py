@@ -292,9 +292,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;">{p.get("position", "–")}</td>
                 <td><span class="squad-role {p.get('squad_role', '').lower()}">{p.get("squad_role", "–") if p.get("squad_role") else "–"}</span></td>
                 <td>{p.get("impact_score", "–") if p.get("impact_score") is not None else "–"}</td>
-                <td style="text-align:center;"><input type="checkbox" name="player" value="{p.get("name", "–")}" class="squad-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #333;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;" onchange="if(this.checked){{this.style.background='#000';this.style.border='none';}}else{{this.style.background='#e0e0e0';this.style.border='2px solid #333';}}"></td>
-                <td style="text-align:center;"><input type="checkbox" name="possible_xi" value="{p.get("name", "–")}" class="xi-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #667eea;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;" onchange="updateXICounter(this)"></td>
-                <td style="text-align:center;"><input type="checkbox" name="starting_xi" value="{p.get("name", "–")}" class="starting-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #dc3545;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;" onchange="updateStartingCounter(this)"></td>
+                <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="player" value="{p.get("name", "–")}" class="squad-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #333;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;vertical-align:middle;" onchange="if(this.checked){{this.style.background='#000';this.style.border='none';}}else{{this.style.background='#e0e0e0';this.style.border='2px solid #333';}}"></td>
+                <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="possible_xi" value="{p.get("name", "–")}" class="xi-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #667eea;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateXICounter(this)"></td>
+                <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="starting_xi" value="{p.get("name", "–")}" class="starting-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #dc3545;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateStartingCounter(this)"></td>
                 {_last3_cells(p)}
                 <td style="text-align:center;">{p.get("apps", "–")}</td>
                 <td style="text-align:center;">{p.get("min", "–")}</td>
@@ -561,8 +561,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;">Squad<br>Role</th>
                         <th rowspan="2" style="text-align:center;">Impact<br>Score</th>
                         <th rowspan="2" style="text-align:center;">Squad<br>List</th>
-                        <th rowspan="2" style="text-align:center;">Possible XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
-                        <th rowspan="2" style="text-align:center;">Starting XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
                         {last3_header_row1}
                         <th rowspan="2" style="text-align:center;">Apps</th>
                         <th rowspan="2" style="text-align:center;">Min</th>
