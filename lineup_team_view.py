@@ -150,11 +150,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
     total_assists = sum(int(p.get("assist", 0)) for p in players if p.get("assist", "").isdigit())
     total_yellow = sum(int(p.get("yellow_card", 0)) for p in players if p.get("yellow_card", "").isdigit())
     total_red = sum(int(p.get("red_card", 0)) for p in players if p.get("red_card", "").isdigit())
-    starting_players = [p for p in players if str(p.get("squad_role", "")).lower() == "starting xi"]
-    starting_xi_impact_score = round(sum(float(p.get("impact_score", 0) or 0) for p in starting_players[:11]), 2)
+    # starting_players calculated below after auto-calculation of impact_score
     total_value = round(sum(_parse_mv(p.get("market_value", 0)) for p in players) / 1_000_000.0, 1)
-    mv_starting_xi = round(sum(_parse_mv(p.get("market_value", 0)) for p in starting_players) / 1_000_000.0, 1)
-    av_age_starting_xi = round(sum(float(p.get("age", 0) or 0) for p in starting_players) / len(starting_players), 1) if starting_players else 0.0
 
     max_goals = max((int(p.get("goal", 0)) for p in players if str(p.get("goal", 0)).isdigit()), default=0)
     goal_leaders = [swap_name_order(p.get("name", "–")) for p in players if str(p.get("goal", 0)).isdigit() and int(p.get("goal", 0)) == max_goals and max_goals > 0]
@@ -197,6 +194,12 @@ def render_team_view(team_id: str) -> HTMLResponse:
         player_display_name = swap_name_order(p.get("name", "–"))
         p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
         p['is_assist_leader'] = bool(unique_assist_leader and player_display_name == unique_assist_leader)
+
+    # Calculate Starting XI stats from top 11 by impact_score
+    starting_players = sorted(sorted_players, key=lambda x: float(x.get('impact_score', 0) or 0), reverse=True)[:11]
+    starting_xi_impact_score = round(sum(float(p.get("impact_score", 0) or 0) for p in starting_players), 2)
+    mv_starting_xi = round(sum(_parse_mv(p.get("market_value", 0)) for p in starting_players) / 1_000_000.0, 1)
+    av_age_starting_xi = round(sum(float(p.get("age", 0) or 0) for p in starting_players) / len(starting_players), 1) if starting_players else 0.0
     
     # --- Last 3: данные о матчах (из JSON) ---
     matches_data = data.get("matches", [])
