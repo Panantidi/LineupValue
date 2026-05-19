@@ -253,9 +253,9 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             player_url = link.get('href', '') if link else ""
 
             national = ""
-            flag = player_cell.select_one('img')
+            flag = player_cell.select_one('div.lineupTable__cell--flag')
             if flag:
-                national = flag.get('alt', '') or flag.get('title', '') or ''
+                national = flag.get('title', '') or ''
 
             age = ""
             age_cell = row.select_one('div.lineupTable__cell--age')
