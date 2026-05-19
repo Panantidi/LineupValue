@@ -283,25 +283,25 @@ def render_team_view(team_id: str) -> HTMLResponse:
         last_start = "START" if (last3 and len(last3) > 0 and last3[0] == "START") else ""
         player_row = f"""
             <tr data-last="{last_start}">
-                <td>{p.get("number", "–")}</td>
-                <td>{get_flag_html(p.get("national", "–"))}</td>
+                <td style="text-align:center;">{p.get("number", "–")}</td>
+                <td style="text-align:center;">{get_flag_html(p.get("national", "–"))}</td>
                 <td class="player-name"><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
                 <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option></select></div></td>
-                <td>{p.get("age", "–")}</td>
-                <td>{p.get("market_value", "–")}</td>
-                <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;">{p.get("position", "–")}</td>
-                <td><span class="squad-role {p.get('squad_role', '').lower()}">{p.get("squad_role", "–") if p.get("squad_role") else "–"}</span></td>
-                <td>{p.get("impact_score", "–") if p.get("impact_score") is not None else "–"}</td>
+                <td style="text-align:center;">{p.get("age", "–")}</td>
+                <td style="text-align:center;">{p.get("market_value", "–")}</td>
+                <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;text-align:center;">{p.get("position", "–")}</td>
+                <td style="text-align:center;"><span class="squad-role {p.get('squad_role', '').lower()}">{p.get("squad_role", "–") if p.get("squad_role") else "–"}</span></td>
+                <td style="text-align:center;">{p.get("impact_score", "–") if p.get("impact_score") is not None else "–"}</td>
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="player" value="{p.get("name", "–")}" class="squad-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #333;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;vertical-align:middle;" onchange="if(this.checked){{this.style.background='#000';this.style.border='none';}}else{{this.style.background='#e0e0e0';this.style.border='2px solid #333';}}"></td>
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="possible_xi" value="{p.get("name", "–")}" class="xi-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #667eea;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateXICounter(this)"></td>
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="starting_xi" value="{p.get("name", "–")}" class="starting-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #dc3545;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateStartingCounter(this)"></td>
                 {_last3_cells(p)}
                 <td style="text-align:center;">{p.get("apps", "–")}</td>
                 <td style="text-align:center;">{p.get("min", "–")}</td>
-                <td>{p.get("goal", "–")}</td>
-                <td>{p.get("assist", "–")}</td>
-                <td>{p.get("yellow_card", "–")}</td>
-                <td>{p.get("red_card", "–")}</td>
+                <td style="text-align:center;">{p.get("goal", "–")}</td>
+                <td style="text-align:center;">{p.get("assist", "–")}</td>
+                <td style="text-align:center;">{p.get("yellow_card", "–")}</td>
+                <td style="text-align:center;">{p.get("red_card", "–")}</td>
             </tr>
         """
         players_rows += player_row
