@@ -554,7 +554,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;">№</th>
                         <th rowspan="2" style="text-align:center;">Nat</th>
                         <th rowspan="2">Player</th>
-                        <th rowspan="2" style="text-align:center;">Status</th>
+                        <th rowspan="2" style="text-align:left;">Status</th>
                         <th rowspan="2" style="text-align:center;">Age</th>
                         <th rowspan="2" style="text-align:center;">MV</th>
                         <th rowspan="2" style="text-align:center;">Pos</th>
