@@ -556,7 +556,7 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             
             # Extract game slug from URL
             game_path = re.search(r'/game/([^?]+)', match.url)
-            slug = game_path.group(1) if game_path else ""
+            slug = game_path.group(1).rstrip('/') if game_path else ""
             
             if slug and mid:
                 url = f'https://us.soccerway.com/game/{slug}/summary/lineups/?mid={mid}'
@@ -565,8 +565,8 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
 
             try:
                 print(f"    Loading lineups: {match.date} {match.tournament}")
-                await page.goto(url, wait_until='domcontentloaded', timeout=20000)
-                await page.wait_for_timeout(4000)
+                await page.goto(url, wait_until='load', timeout=30000)
+                await page.wait_for_timeout(6000)
                 html = await page.content()
             except Exception as e:
                 print(f"    Error loading lineups for {match.date}: {e}")
