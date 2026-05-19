@@ -271,8 +271,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
     players_rows = ""
     for p in sorted_players:
+        last3 = p.get("last3", [])
+        last_start = "START" if (last3 and len(last3) > 0 and last3[0] == "START") else ""
         player_row = f"""
-            <tr>
+            <tr data-last="{last_start}">
                 <td>{p.get("number", "–")}</td>
                 <td>{get_flag_html(p.get("national", "–"))}</td>
                 <td class="player-name"><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
@@ -479,6 +481,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .status-red {{ color: red !important; font-weight: bold !important; text-decoration: line-through !important; }}
         .status-green {{ color: green !important; font-weight: bold !important; text-decoration: underline !important; }}
         .status-orange {{ color: orange !important; font-weight: bold !important; text-decoration: underline !important; }}
+        tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
     </style>
 
 
@@ -660,6 +663,23 @@ def render_team_view(team_id: str) -> HTMLResponse:
             const counter = document.getElementById('starting-counter');
             if (counter) {{
                 counter.textContent = selectedCount;
+            }}
+            
+            // Highlight players who STARTED last match but NOT in current Starting XI
+            const allRows = document.querySelectorAll('tbody tr[data-last]');
+            allRows.forEach(row => {{
+                row.classList.remove('missing-from-last');
+            }});
+            
+            if (selectedCount === 11) {{
+                allRows.forEach(row => {{
+                    if (row.getAttribute('data-last') === 'START') {{
+                        const cb = row.querySelector('.starting-checkbox');
+                        if (cb && !cb.checked) {{
+                            row.classList.add('missing-from-last');
+                        }}
+                    }}
+                }});
             }}
         }}
         
