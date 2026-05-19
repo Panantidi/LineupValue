@@ -236,14 +236,20 @@ def render_team_view(team_id: str) -> HTMLResponse:
     # Строим HTML-ячейки для last3 каждого игрока
     def _last3_cells(p):
         last3 = p.get("last3", [])
+        injuries = p.get("last3_injury", [None, None, None])
         while len(last3) < 3:
             last3.append("—")
+        while len(injuries) < 3:
+            injuries.append(None)
         cells = ""
-        for val in last3[:3]:
+        for i, val in enumerate(last3[:3]):
+            injury = injuries[i] if i < len(injuries) else None
             if val == "START":
                 cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
             elif val == "SUB":
                 cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#e3a035;display:inline-block;vertical-align:middle;"></div></td>'
+            elif injury:
+                cells += f'<td style="text-align:center;vertical-align:middle;" title="{injury}"><span style="font-size:14px;cursor:help;">➕</span></td>'
             else:
                 cells += '<td style="text-align:center;vertical-align:middle;"></td>'
         return cells
