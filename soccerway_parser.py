@@ -330,81 +330,61 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
 # Step 2: Get Pos and MV from player page (parallel)
 # ============================================================
 
-async def get_player_details_async(player: Player) -> Player:
-    """Fetch position and market value from player's page using Playwright"""
-    if not player.player_url:
-        return player
+async def enrich_players_async(players: List[Player], concurrency: int = 1) -> List[Player]:
+    """Enrich players with position and market value using ONE Playwright browser"""
+    print(f"  Enriching {len(players)} players (sequential, 1 browser)...")
 
-    url = f'https://us.soccerway.com{player.player_url}'
+    pos_map = {
+        'Goalkeeper': 'GK', 'Defender': 'DF', 'Midfielder': 'MF', 'Forward': 'FW',
+    }
 
-    try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True, args=[
-                '--no-sandbox', '--disable-setuid-sandbox',
-                '--disable-blink-features=AutomationControlled'
-            ])
-            context = await browser.new_context(
-                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
-                viewport={'width': 1920, 'height': 1080},
-                locale='en-US'
-            )
-            await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            page = await context.new_page()
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=[
+            '--no-sandbox', '--disable-setuid-sandbox',
+            '--disable-blink-features=AutomationControlled'
+        ])
+        context = await browser.new_context(
+            user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
+            viewport={'width': 1920, 'height': 1080},
+            locale='en-US'
+        )
+        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        page = await context.new_page()
 
-            await page.goto(url, wait_until='domcontentloaded', timeout=20000)
-            await page.wait_for_timeout(2000)
+        for player in players:
+            if not player.player_url:
+                continue
+            url = f'https://us.soccerway.com{player.player_url}'
+            try:
+                await page.goto(url, wait_until='domcontentloaded', timeout=15000)
+                await page.wait_for_timeout(1000)
+                html = await page.content()
+                soup = BeautifulSoup(html, 'html.parser')
 
-            html = await page.content()
-            await browser.close()
-
-        soup = BeautifulSoup(html, 'html.parser')
-
-        # Position: <div class="playerTeam">Goalkeeper (Strasbourg)</div>
-        # Или <span class="wcl-bold...">Goalkeeper</span>
-        pos_map = {
-            'Goalkeeper': 'GK', 'Defender': 'DF', 'Midfielder': 'MF', 'Forward': 'FW',
-        }
-        # Способ 1: div.playerTeam
-        pos_div = soup.select_one('div.playerTeam')
-        if pos_div:
-            raw_pos = pos_div.text.strip().split()[0]  # "Goalkeeper" from "Goalkeeper (Strasbourg)"
-            player.position = pos_map.get(raw_pos, raw_pos)
-        else:
-            # Способ 2: span с wcl-bold внутри playerHeader
-            header = soup.select_one('[class*=playerHeader]')
-            if header:
-                bold = header.select_one('span[class*=wcl-bold]')
-                if bold:
-                    raw_pos = bold.text.strip()
+                # Position
+                pos_div = soup.select_one('div.playerTeam')
+                if pos_div:
+                    raw_pos = pos_div.text.strip().split()[0]
                     player.position = pos_map.get(raw_pos, raw_pos)
+                else:
+                    header = soup.select_one('[class*=playerHeader]')
+                    if header:
+                        bold = header.select_one('span[class*=wcl-bold]')
+                        if bold:
+                            raw_pos = bold.text.strip()
+                            player.position = pos_map.get(raw_pos, raw_pos)
 
-        # Market Value: span с €
-        mv_span = soup.find('span', string=re.compile(r'€[\d,.]+[mMkK]'))
-        if mv_span:
-            player.market_value = mv_span.text.strip()
+                # Market Value
+                mv_span = soup.find('span', string=re.compile(r'€[\d,.]+[mMkK]'))
+                if mv_span:
+                    player.market_value = mv_span.text.strip()
 
-    except Exception as e:
-        print(f"    Error fetching {player.name}: {e}")
+                if player.position or player.market_value:
+                    print(f"    + {player.name} -> {player.position} / {player.market_value}")
+            except Exception as e:
+                print(f"    err {player.name}: {e}")
 
-    return player
-
-
-async def enrich_players_async(players: List[Player], concurrency: int = 3) -> List[Player]:
-    """Enrich players with position and market value using async Playwright"""
-    print(f"  Enriching {len(players)} players (async, concurrency={concurrency})...")
-
-    semaphore = asyncio.Semaphore(concurrency)
-
-    async def _enrich_one(player):
-        async with semaphore:
-            return await get_player_details_async(player)
-
-    tasks = [_enrich_one(p) for p in players if p.player_url]
-    results = await asyncio.gather(*tasks)
-
-    for enriched in results:
-        if enriched.position or enriched.market_value:
-            print(f"    + {enriched.name} -> {enriched.position} / {enriched.market_value}")
+        await browser.close()
 
     return players
 
