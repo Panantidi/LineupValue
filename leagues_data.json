@@ -1,78 +1,24 @@
 {
   "France": {
     "Ligue 1": [
-      {
-        "id": "FL1013",
-        "name": "Angers"
-      },
-      {
-        "id": "FL1012",
-        "name": "Auxerre"
-      },
-      {
-        "id": "FL1017",
-        "name": "Brest"
-      },
-      {
-        "id": "FL1014",
-        "name": "Le Havre"
-      },
-      {
-        "id": "FL1008",
-        "name": "Lens"
-      },
-      {
-        "id": "FL1004",
-        "name": "Lille"
-      },
-      {
-        "id": "FL1007",
-        "name": "Lorient"
-      },
-      {
-        "id": "FL1005",
-        "name": "Lyon"
-      },
-      {
-        "id": "FL1003",
-        "name": "Marseille"
-      },
-      {
-        "id": "FL1018",
-        "name": "Metz"
-      },
-      {
-        "id": "FL1002",
-        "name": "Monaco"
-      },
-      {
-        "id": "FL1011",
-        "name": "Nantes"
-      },
-      {
-        "id": "FL1006",
-        "name": "Nice"
-      },
-      {
-        "id": "FL1001",
-        "name": "PSG"
-      },
-      {
-        "id": "FL1015",
-        "name": "Paris FC"
-      },
-      {
-        "id": "FL1009",
-        "name": "Rennes"
-      },
-      {
-        "id": "FL1010",
-        "name": "Strasbourg"
-      },
-      {
-        "id": "FL1016",
-        "name": "Toulouse"
-      }
+      {"id": "SAlF91iL", "name": "Angers"},
+      {"id": "MTLr36WA", "name": "Auxerre"},
+      {"id": "Cr4VGaUl", "name": "Brest"},
+      {"id": "CIEe04GT", "name": "Le Havre"},
+      {"id": "IBmris38", "name": "Lens"},
+      {"id": "pfDZL71o", "name": "Lille"},
+      {"id": "jgNAYRGi", "name": "Lorient"},
+      {"id": "2akflumR", "name": "Lyon"},
+      {"id": "SblU3Hee", "name": "Marseille"},
+      {"id": "4v0yqlWc", "name": "Metz"},
+      {"id": "2PIvr8o4", "name": "Monaco"},
+      {"id": "veuetnGG", "name": "Nantes"},
+      {"id": "YagoQJpq", "name": "Nice"},
+      {"id": "CjhkPw0k", "name": "PSG"},
+      {"id": "0OEHEprs", "name": "Paris FC"},
+      {"id": "d2nnj1IE", "name": "Rennes"},
+      {"id": "nP6UzIU1", "name": "Strasbourg"},
+      {"id": "MLmY2yB1", "name": "Toulouse"}
     ]
   }
 }
