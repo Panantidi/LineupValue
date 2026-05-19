@@ -241,11 +241,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
         cells = ""
         for val in last3[:3]:
             if val == "START":
-                cells += '<td style="text-align:center;"><span style="color:#17843f;font-size:16px;">●</span></td>'
+                cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
             elif val == "SUB":
-                cells += '<td style="text-align:center;"><span style="color:#e3a035;font-size:16px;">●</span></td>'
+                cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#e3a035;display:inline-block;vertical-align:middle;"></div></td>'
             else:
-                cells += '<td style="text-align:center;"></td>'
+                cells += '<td style="text-align:center;vertical-align:middle;"></td>'
         return cells
 
     players_rows = ""

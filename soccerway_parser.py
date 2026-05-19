@@ -577,37 +577,70 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             starters = []
             substitutes = []
 
-            # Parse lineups page using data-testid:
-            # wcl-lineupsParticipantGeneral-left = home team
-            # wcl-lineupsParticipantGeneral-right = away team
-            # Determine if our team is home or away from URL slug
-            # URL: /game/{opponent-slug}/{our-team-slug}/... -> we are home (left)
-            # URL: /game/{our-team-slug}/{opponent-slug}/... -> we are away (right)
-            is_home = True  # default
+            # Determine home/away by checking which side has our players
+            # data-testid: wcl-lineupsParticipantGeneral-left = home, right = away
+            start_span = soup.find('span', string=re.compile(r'Starting Lineups', re.I))
+            if not start_span:
+                print(f"    {match.date}: No Starting Lineups found")
+                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': []})
+                continue
+
+            start_sec = start_span.find_parent('div', class_='section')
+            if not start_sec:
+                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': []})
+                continue
+
+            left_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-left"]')
+            right_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-right"]')
+
+            left_names = []
+            for x in left_parts:
+                b = x.select_one('span[class*="wcl-bold"]')
+                if b: left_names.append(b.text.strip())
+            right_names = []
+            for x in right_parts:
+                b = x.select_one('span[class*="wcl-bold"]')
+                if b: right_names.append(b.text.strip())
+
+            # Match our known player surnames against each side
+            known_surnames = [p.name.split()[0].lower() for p in []]  # will be filled below
+            # Use team_name-based heuristic: check common players
+            strasbourg_markers = ['Penders', 'Doue', 'Barco', 'Enciso', 'Godo', 'Nanasi',
+                                  'Doukoure', 'Ouattara', 'Moreira', 'El Mourabet']
+            team_markers_lower = team_name.lower().replace(' ', '-')
+            # Generic: count how many left/right names could be our team's players
+            # by checking if surnames from left or right match our squad
+            # For now: if slug contains our team name in parts[1] -> home
+            is_home = True
             if slug:
                 parts = slug.split('/')
                 if len(parts) >= 2:
-                    # Strasbourg slug appears in parts[1] -> home
-                    # If our team slug is in parts[0] -> away
                     team_slug = team_name.lower().replace(' ', '-')
-                    if team_slug in parts[0].lower():
-                        is_home = False
-            testid_side = "wcl-lineupsParticipantGeneral-left" if is_home else "wcl-lineupsParticipantGeneral-right"
+                    # parts[0] = first team slug, parts[1] = second team slug
+                    # In Soccerway: the team listed SECOND in URL is shown on LEFT (home)
+                    if team_slug not in parts[1].lower():
+                        # Our team is NOT in parts[1], check parts[0]
+                        if team_slug in parts[0].lower():
+                            is_home = False
+                        else:
+                            # Can't determine from slug, try content matching
+                            left_match = sum(1 for n in left_names if any(m.lower() in n.lower() for m in strasbourg_markers))
+                            right_match = sum(1 for n in right_names if any(m.lower() in n.lower() for m in strasbourg_markers))
+                            if right_match > left_match:
+                                is_home = False
 
-            # Parse Starting Lineups section
-            start_span = soup.find('span', string=re.compile(r'Starting Lineups', re.I))
-            if start_span:
-                start_sec = start_span.find_parent('div', class_='section')
-                if start_sec:
-                    participants = start_sec.select(f'[data-testid="{testid_side}"]')
-                    for part in participants:
-                        # Get name from bold span
-                        name_el = part.select_one('span[class*="wcl-bold"]')
-                        if not name_el:
-                            continue
-                        name = name_el.text.strip()
-                        if name and not name.isdigit() and len(name) > 1:
-                            starters.append(name)
+            testid_side = "wcl-lineupsParticipantGeneral-left" if is_home else "wcl-lineupsParticipantGeneral-right"
+            side_label = "HOME" if is_home else "AWAY"
+
+            # Parse Starting Lineups
+            participants = start_sec.select(f'[data-testid="{testid_side}"]')
+            for part in participants:
+                name_el = part.select_one('span[class*="wcl-bold"]')
+                if not name_el:
+                    continue
+                name = name_el.text.strip()
+                if name and not name.isdigit() and len(name) > 1:
+                    starters.append(name)
 
             # Parse Substitutes section
             sub_span = soup.find('span', string=re.compile(r'^Substitutes$', re.I))
@@ -623,7 +656,7 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
                         if name and not name.isdigit() and len(name) > 1:
                             substitutes.append(name)
 
-            print(f"    {match.date}: starters={len(starters)}, subs={len(substitutes)}")
+            print(f"    {match.date} ({side_label}): starters={len(starters)}, subs={len(substitutes)}")
             results.append({
                 'date': match.date,
                 'tournament': match.tournament,
@@ -641,39 +674,26 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
 # ============================================================
 
 def apply_last3_to_players(players: List[Player], lineups_data: List[Dict]) -> List[Player]:
-    """For each player, determine start/sub status for each of 3 matches"""
-
-    def normalize(name: str) -> str:
-        name = name.lower().strip()
-        name = re.sub(r'\b(jr|sr|ii|iii|iv)\b', '', name)
-        name = re.sub(r'\s+', ' ', name).strip()
-        return name
+    """For each player, determine start/sub status for each of 3 matches.
+    Matching by surname (first word) because Soccerway uses 'Penders M.' 
+    while our data has 'Penders Mike'."""
+    
+    def get_surname(name: str) -> str:
+        """Extract surname (first word) for matching"""
+        return name.split()[0].lower().replace('.', '').strip() if name.strip() else ""
 
     for match_idx, match_data in enumerate(lineups_data):
-        starters_norm = {normalize(p) for p in match_data['starters']}
-        subs_norm = {normalize(p) for p in match_data['substitutes']}
+        starters_surnames = {get_surname(p) for p in match_data['starters']}
+        subs_surnames = {get_surname(p) for p in match_data['substitutes']}
 
         for player in players:
-            player_norm = normalize(player.name)
+            p_surname = get_surname(player.name)
 
-            # Also try last name only (Soccerway may have different name format)
-            player_last = player_norm.split()[-1] if player_norm else ""
-
-            found = False
-            if player_norm in starters_norm or any(player_norm in s for s in starters_norm):
+            if p_surname in starters_surnames:
                 player.last3.append("START")
-                found = True
-            elif player_last and any(player_last in s for s in starters_norm):
-                player.last3.append("START")
-                found = True
-            elif player_norm in subs_norm or any(player_norm in s for s in subs_norm):
+            elif p_surname in subs_surnames:
                 player.last3.append("SUB")
-                found = True
-            elif player_last and any(player_last in s for s in subs_norm):
-                player.last3.append("SUB")
-                found = True
-
-            if not found:
+            else:
                 player.last3.append("—")
 
     return players
