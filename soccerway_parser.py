@@ -289,6 +289,17 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
 
     print(f"    Players from Total (overall-all-table): {len(players)}")
 
+    # Deduplicate by name (Soccerway sometimes shows duplicates)
+    seen_names = set()
+    unique_players = []
+    for p in players:
+        if p.name not in seen_names:
+            seen_names.add(p.name)
+            unique_players.append(p)
+    if len(unique_players) < len(players):
+        print(f"    Deduplicated: {len(players)} -> {len(unique_players)}")
+        players = unique_players
+
     # Fallback: если новый формат не найден, пробуем старый (table)
     if not players:
         player_links = soup.select('table tbody tr td a[href*="/player/"]')
