@@ -595,45 +595,46 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 </div>
 
             </div>
-            <div style="width:50%;"></div>
+            <div style="width:50%;">
+                <!-- Comparison Table -->
+                <div style="background:white;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">
+                    <table style="border-collapse:collapse;font-size:13px;width:auto;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="padding:8px 10px;text-align:right;color:#888;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;"></th>
+                                <th style="padding:8px 10px;text-align:left;color:#555;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
+                                <th style="padding:8px 10px;text-align:left;color:#555;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
+                                <th style="padding:8px 10px;text-align:left;color:#555;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-top:1px solid #eee;">
+                                <td style="padding:6px 10px;font-weight:600;text-align:right;white-space:nowrap;">Impact Score</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-sxi-impact">0.00</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-pct-impact">–</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-last-impact">{last_match_impact:.2f}</td>
+                            </tr>
+                            <tr style="border-top:1px solid #eee;">
+                                <td style="padding:6px 10px;font-weight:600;text-align:right;white-space:nowrap;">Market Value</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-sxi-mv">0.0m</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-pct-mv">–</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
+                            </tr>
+                            <tr style="border-top:1px solid #eee;">
+                                <td style="padding:6px 10px;font-weight:600;text-align:right;white-space:nowrap;">Av.Age</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-sxi-age">0.0</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-pct-age">–</td>
+                                <td style="padding:6px 10px;text-align:left;" id="cmp-last-age">{last_match_age:.1f}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Comparison Table: Last Match vs Starting XI -->
-        <div style="background:white;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:20px;overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead>
-                    <tr style="background:#f8f9fa;">
-                        <th style="padding:10px 16px;text-align:left;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Key Metric</th>
-                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
-                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
-                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (abs)</th>
-                        <th style="padding:10px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="border-top:1px solid #eee;">
-                        <td style="padding:10px 16px;font-weight:600;">Impact Score</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-last-impact">{last_match_impact:.2f}</td>
-                        <td style="padding:10px 16px;text-align:center;font-weight:600;" id="cmp-sxi-impact">0.00</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-diff-impact">–</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-pct-impact">–</td>
-                    </tr>
-                    <tr style="border-top:1px solid #eee;">
-                        <td style="padding:10px 16px;font-weight:600;">MV Starting XI</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
-                        <td style="padding:10px 16px;text-align:center;font-weight:600;" id="cmp-sxi-mv">0.0m</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-diff-mv">–</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-pct-mv">–</td>
-                    </tr>
-                    <tr style="border-top:1px solid #eee;">
-                        <td style="padding:10px 16px;font-weight:600;">Av.Age Starting XI</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-last-age">{last_match_age:.1f}</td>
-                        <td style="padding:10px 16px;text-align:center;font-weight:600;" id="cmp-sxi-age">0.0</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-diff-age">–</td>
-                        <td style="padding:10px 16px;text-align:center;" id="cmp-pct-age">–</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div style="display:none;">
+        {last_match_impact:.2f}
         </div>
 
         <div class="main-layout">
@@ -854,29 +855,29 @@ def render_team_view(team_id: str) -> HTMLResponse:
             // Impact
             const sxiImpactEl = document.getElementById('cmp-sxi-impact');
             if (sxiImpactEl) sxiImpactEl.textContent = sxiImpact.toFixed(2);
-            const diffImpact = sxiImpact - lastImpact;
-            const diffImpactEl = document.getElementById('cmp-diff-impact');
             const pctImpactEl = document.getElementById('cmp-pct-impact');
-            if (diffImpactEl) diffImpactEl.innerHTML = fmtDelta(diffImpact);
-            if (pctImpactEl) pctImpactEl.innerHTML = lastImpact > 0 ? fmtPct(diffImpact / lastImpact * 100) : '–';
+            if (pctImpactEl) {{
+                const d = sxiImpact - lastImpact;
+                pctImpactEl.innerHTML = lastImpact > 0 ? fmtPct(d / lastImpact * 100) : '–';
+            }}
             
             // MV
             const sxiMvEl = document.getElementById('cmp-sxi-mv');
             if (sxiMvEl) sxiMvEl.textContent = sxiMv.toFixed(1) + 'm';
-            const diffMv = sxiMv - lastMv;
-            const diffMvEl = document.getElementById('cmp-diff-mv');
             const pctMvEl = document.getElementById('cmp-pct-mv');
-            if (diffMvEl) diffMvEl.innerHTML = fmtDelta(diffMv, 'm');
-            if (pctMvEl) pctMvEl.innerHTML = lastMv > 0 ? fmtPct(diffMv / lastMv * 100) : '–';
+            if (pctMvEl) {{
+                const d = sxiMv - lastMv;
+                pctMvEl.innerHTML = lastMv > 0 ? fmtPct(d / lastMv * 100) : '–';
+            }}
             
             // Age
             const sxiAgeEl = document.getElementById('cmp-sxi-age');
             if (sxiAgeEl) sxiAgeEl.textContent = sxiAge.toFixed(1);
-            const diffAge = sxiAge - lastAge;
-            const diffAgeEl = document.getElementById('cmp-diff-age');
             const pctAgeEl = document.getElementById('cmp-pct-age');
-            if (diffAgeEl) diffAgeEl.innerHTML = fmtDelta(diffAge);
-            if (pctAgeEl) pctAgeEl.innerHTML = lastAge > 0 ? fmtPct(diffAge / lastAge * 100) : '–';
+            if (pctAgeEl) {{
+                const d = sxiAge - lastAge;
+                pctAgeEl.innerHTML = lastAge > 0 ? fmtPct(d / lastAge * 100) : '–';
+            }}
         }}
 
         document.querySelectorAll('.starting-checkbox').forEach(checkbox => {{
