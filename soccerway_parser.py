@@ -368,14 +368,24 @@ async def get_player_details_async(player: Player) -> Player:
 
         soup = BeautifulSoup(html, 'html.parser')
 
-        # Position: <span class="playerTeam">Goalkeeper</span>
+        # Position: <div class="playerTeam">Goalkeeper (Strasbourg)</div>
+        # Или <span class="wcl-bold...">Goalkeeper</span>
         pos_map = {
             'Goalkeeper': 'GK', 'Defender': 'DF', 'Midfielder': 'MF', 'Forward': 'FW',
         }
-        pos_span = soup.select_one('span.playerTeam')
-        if pos_span:
-            raw_pos = pos_span.text.strip()
+        # Способ 1: div.playerTeam
+        pos_div = soup.select_one('div.playerTeam')
+        if pos_div:
+            raw_pos = pos_div.text.strip().split()[0]  # "Goalkeeper" from "Goalkeeper (Strasbourg)"
             player.position = pos_map.get(raw_pos, raw_pos)
+        else:
+            # Способ 2: span с wcl-bold внутри playerHeader
+            header = soup.select_one('[class*=playerHeader]')
+            if header:
+                bold = header.select_one('span[class*=wcl-bold]')
+                if bold:
+                    raw_pos = bold.text.strip()
+                    player.position = pos_map.get(raw_pos, raw_pos)
 
         # Market Value: span с €
         mv_span = soup.find('span', string=re.compile(r'€[\d,.]+[mMkK]'))
