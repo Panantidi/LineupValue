@@ -97,7 +97,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         try:
             with open(live_cache_path, 'r', encoding='utf-8') as f:
                 cached = json.load(f)
-            if (_time.time() - cached.get("_cached_at", 0)) < 6 * 3600:
+            if True:  # always use live cache if exists
                 team_file = live_cache_path
         except Exception:
             pass
