@@ -221,7 +221,7 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
     # ---- Парсинг состава через div.lineupTable ----
     # Soccerway показывает таблицы по турнирам (league, cup, etc.)
     # Берём ВСЕ таблицы по позициям (GK, DEF, MID, FW), пропускаем Coach
-    # Собираем уникальных игроков (один игрок может играть в нескольких турнирах)
+    # Суммируем статы (apps, min, G, A, YC, RC) по всем турнирам для каждого игрока
     players_by_name = {}  # name -> Player
 
     all_tables = soup.select('div.lineupTable--soccer')
@@ -244,56 +244,62 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             if not name:
                 continue
 
-            # Если игрок уже есть — пропускаем (берём первые встреченные статы)
-            if name in players_by_name:
-                continue
-
-            # Номер
-            number = ""
-            jersey = row.select_one('div.lineupTable__cell--jersey')
-            if jersey:
-                number = jersey.text.strip()
-
-            # Ссылка на профиль
-            player_url = link.get('href', '') if link else ""
-
-            # Национальность
-            national = ""
-            flag = player_cell.select_one('img')
-            if flag:
-                national = flag.get('alt', '') or flag.get('title', '') or ''
-
-            # Возраст
-            age = ""
-            age_cell = row.select_one('div.lineupTable__cell--age')
-            if age_cell:
-                age = age_cell.text.strip()
-
-            # Статистика
+            # Статистика из этой строки
             def _cell_text(cls):
                 cell = row.select_one(f'div.lineupTable__cell--{cls}')
                 return cell.text.strip() if cell else ""
 
-            apps = _cell_text('matchesPlayed')
-            minutes = _cell_text('minutesPlayed')
-            goals = _cell_text('goal')
-            assists = _cell_text('assist')
-            yellow = _cell_text('yellowCard')
-            red = _cell_text('redCard')
+            row_apps = _cell_text('matchesPlayed')
+            row_min = _cell_text('minutesPlayed')
+            row_goals = _cell_text('goal')
+            row_assists = _cell_text('assist')
+            row_yellow = _cell_text('yellowCard')
+            row_red = _cell_text('redCard')
 
-            players_by_name[name] = Player(
-                number=number,
-                name=name,
-                age=age,
-                apps=apps,
-                minutes=minutes,
-                goals=goals,
-                assists=assists,
-                yellow_cards=yellow,
-                red_cards=red,
-                player_url=player_url,
-                national=national,
-            )
+            def _to_int(val):
+                try:
+                    return int(val)
+                except (ValueError, TypeError):
+                    return 0
+
+            if name not in players_by_name:
+                # Первый раз видим — берём все данные
+                number = ""
+                jersey = row.select_one('div.lineupTable__cell--jersey')
+                if jersey:
+                    number = jersey.text.strip()
+                player_url = link.get('href', '') if link else ""
+                national = ""
+                flag = player_cell.select_one('img')
+                if flag:
+                    national = flag.get('alt', '') or flag.get('title', '') or ''
+                age = ""
+                age_cell = row.select_one('div.lineupTable__cell--age')
+                if age_cell:
+                    age = age_cell.text.strip()
+
+                players_by_name[name] = Player(
+                    number=number,
+                    name=name,
+                    age=age,
+                    apps=row_apps,
+                    minutes=row_min,
+                    goals=row_goals,
+                    assists=row_assists,
+                    yellow_cards=row_yellow,
+                    red_cards=row_red,
+                    player_url=player_url,
+                    national=national,
+                )
+            else:
+                # Уже есть — суммируем статы
+                p = players_by_name[name]
+                p.apps = str(_to_int(p.apps) + _to_int(row_apps))
+                p.minutes = str(_to_int(p.minutes) + _to_int(row_min))
+                p.goals = str(_to_int(p.goals) + _to_int(row_goals))
+                p.assists = str(_to_int(p.assists) + _to_int(row_assists))
+                p.yellow_cards = str(_to_int(p.yellow_cards) + _to_int(row_yellow))
+                p.red_cards = str(_to_int(p.red_cards) + _to_int(row_red))
 
     players = list(players_by_name.values())
     print(f"    Unique players from all tournaments: {len(players)}")
