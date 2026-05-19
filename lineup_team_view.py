@@ -499,9 +499,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
     <div class="container">
         <div class="tabs">
             <div class="tab active">Squad</div>
-            <div class="tab">Fixtures</div>
-            <div class="tab">Results</div>
-            <div class="tab">Statistics</div>
+            <div class="tab">Missing Players</div>
+            <div class="tab">Doubtful Players</div>
+            <div class="tab">Returning Players</div>
         </div>
 
         <div class="stats-grid">
