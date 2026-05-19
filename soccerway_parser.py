@@ -522,16 +522,15 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
 # Step 4: Get lineups for a match
 # ============================================================
 
-async def get_lineups_for_match(match: Match, team_name: str) -> Tuple[List[str], List[str]]:
-    """Fetch starting XI and substitutes for the team from lineups page"""
-    if not match.mid and not match.url:
-        return [], []
+async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
+    """Fetch lineups for all 3 matches using ONE browser"""
+    print(f"  Fetching lineups for {len(matches)} matches...")
 
-    url = match.url if match.url else f'https://us.soccerway.com/match/summary/lineups/?mid={match.mid}'
-
+    results = []
+    
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=[
-            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage',
+            '--no-sandbox', '--disable-setuid-sandbox',
             '--disable-blink-features=AutomationControlled'
         ])
         context = await browser.new_context(
@@ -542,99 +541,127 @@ async def get_lineups_for_match(match: Match, team_name: str) -> Tuple[List[str]
         await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         page = await context.new_page()
 
-        try:
-            await page.goto(url, wait_until='domcontentloaded', timeout=20000)
-            await page.wait_for_timeout(3000)
-            html = await page.content()
-        except Exception as e:
-            print(f"    Error loading lineups for {match.date}: {e}")
-            await browser.close()
-            return [], []
+        for match in matches:
+            if not match.url:
+                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': []})
+                continue
+
+            # Build lineups URL from match URL
+            # match.url = https://us.soccerway.com/game/monaco-2PIvr8o4/strasbourg-nP6UzIU1/?mid=44Vsqc0E
+            # lineups URL = .../summary/lineups/?mid=...
+            mid = match.mid or ""
+            if not mid:
+                mid_match = re.search(r'mid=([a-zA-Z0-9]+)', match.url)
+                mid = mid_match.group(1) if mid_match else ""
+            
+            # Extract game slug from URL
+            game_path = re.search(r'/game/([^?]+)', match.url)
+            slug = game_path.group(1) if game_path else ""
+            
+            if slug and mid:
+                url = f'https://us.soccerway.com/game/{slug}/summary/lineups/?mid={mid}'
+            else:
+                url = match.url
+
+            try:
+                print(f"    Loading lineups: {match.date} {match.tournament}")
+                await page.goto(url, wait_until='domcontentloaded', timeout=20000)
+                await page.wait_for_timeout(4000)
+                html = await page.content()
+            except Exception as e:
+                print(f"    Error loading lineups for {match.date}: {e}")
+                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': []})
+                continue
+
+            soup = BeautifulSoup(html, 'html.parser')
+            starters = []
+            substitutes = []
+
+            # Parse lineups page:
+            # Starting Lineups and Substitutes sections with lf__side (home/reversed=away)
+            # Players in a[href*="/player/"] inside div.lf__participantNew parents
+            # lf__isReversed class = away team
+
+            # Determine if our team is home or away from the URL slug
+            # URL: /game/{away_slug}/{home_slug}/... — but actually order varies
+            # Better: check team_name against page content
+            is_reversed = None  # True=away, False=home
+
+            # Find team names in the page
+            team_links = soup.select('a[href*="/team/"]')
+            for tl in team_links:
+                if team_name.lower() in tl.text.lower():
+                    # Check if this team is in a reversed container
+                    for parent in [tl] + list(tl.parents)[:8]:
+                        cls = ' '.join(parent.get('class', []))
+                        if 'lf__isReversed' in cls:
+                            is_reversed = True
+                            break
+                        if 'lf__side' in cls and 'lf__isReversed' not in cls:
+                            is_reversed = False
+                            break
+                    break
+
+            if is_reversed is None:
+                # Fallback: try URL slug comparison
+                if slug:
+                    parts = slug.split('/')
+                    if len(parts) >= 2:
+                        # If team_name matches first part -> away (reversed=True)
+                        if team_name.lower() in parts[0].lower():
+                            is_reversed = True
+                        else:
+                            is_reversed = False
+
+            # Parse Starting Lineups section
+            start_span = soup.find('span', string=re.compile(r'Starting Lineups', re.I))
+            if start_span:
+                start_sec = start_span.find_parent('div', class_='section')
+                if start_sec:
+                    all_players = start_sec.select('a[href*="/player/"]')
+                    for pl in all_players:
+                        name = pl.text.strip()
+                        if not name:
+                            continue
+                        # Check if this player is in our team's side
+                        player_reversed = False
+                        for parent in [pl] + list(pl.parents)[:8]:
+                            cls = ' '.join(parent.get('class', []))
+                            if 'lf__isReversed' in cls:
+                                player_reversed = True
+                                break
+                        if player_reversed == is_reversed:
+                            starters.append(name)
+
+            # Parse Substitutes section
+            sub_span = soup.find('span', string=re.compile(r'^Substitutes$', re.I))
+            if sub_span:
+                sub_sec = sub_span.find_parent('div', class_='section')
+                if sub_sec:
+                    all_players = sub_sec.select('a[href*="/player/"]')
+                    for pl in all_players:
+                        name = pl.text.strip()
+                        if not name:
+                            continue
+                        player_reversed = False
+                        for parent in [pl] + list(pl.parents)[:8]:
+                            cls = ' '.join(parent.get('class', []))
+                            if 'lf__isReversed' in cls:
+                                player_reversed = True
+                                break
+                        if player_reversed == is_reversed:
+                            substitutes.append(name)
+
+            print(f"    {match.date}: starters={len(starters)}, subs={len(substitutes)}")
+            results.append({
+                'date': match.date,
+                'tournament': match.tournament,
+                'starters': starters,
+                'substitutes': substitutes
+            })
 
         await browser.close()
 
-    soup = BeautifulSoup(html, 'html.parser')
-
-    starters = []
-    substitutes = []
-
-    # Find all player links — they contain /player/ in href
-    # Split by team sections if possible
-    all_player_links = soup.select('a[href*="/player/"]')
-
-    # Try to find structured lineup sections
-    lineup_container = soup.select_one('.lineups, .match-lineups, #match-lineups')
-
-    if lineup_container:
-        # Find team headers
-        team_headers = lineup_container.select('.team-title, .team-name, h3, h4')
-        target_section = None
-
-        for i, header in enumerate(team_headers):
-            if team_name.lower() in header.text.lower():
-                # Get next sibling section
-                target_section = header.find_next_sibling('div')
-                break
-
-        if target_section:
-            # Starting XI
-            start_section = target_section.select_one('.starting, .starters, .starting-eleven')
-            if start_section:
-                for pl in start_section.select('a[href*="/player/"]'):
-                    name = pl.text.strip()
-                    if name:
-                        starters.append(name)
-
-            # Substitutes
-            sub_section = target_section.select_one('.substitutes, .subs, .bench')
-            if sub_section:
-                for pl in sub_section.select('a[href*="/player/"]'):
-                    name = pl.text.strip()
-                    if name:
-                        substitutes.append(name)
-
-    # Fallback: if structured parsing failed, try regex on raw HTML
-    if not starters and not substitutes:
-        # Look for "Starting lineups" / "Substitutes" headers
-        html_lower = html.lower()
-
-        # Try to split by "Starting" and "Substitutes" sections
-        start_match = re.search(
-            r'(?:starting\s*lineups?|STARTING\s*LINEUPS?)(.*?)(?:substitutes|SUBSTITUTES)',
-            html, re.DOTALL | re.IGNORECASE
-        )
-        if start_match:
-            section = start_match.group(1)
-            for plink in re.findall(r'<a[^>]*href="[^"]*/player/[^"]*"[^>]*>([^<]+)</a>', section):
-                starters.append(plink.strip())
-
-        sub_match = re.search(
-            r'(?:substitutes|SUBSTITUTES)(.*?)(?:</div>|<h\d|coach)',
-            html, re.DOTALL | re.IGNORECASE
-        )
-        if sub_match:
-            section = sub_match.group(1)
-            for plink in re.findall(r'<a[^>]*href="[^"]*/player/[^"]*"[^>]*>([^<]+)</a>', section):
-                substitutes.append(plink.strip())
-
-    return starters, substitutes
-
-
-async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
-    """Fetch lineups for all matches in parallel"""
-    print(f"  Fetching lineups for {len(matches)} matches...")
-
-    async def fetch_one(match):
-        starters, subs = await get_lineups_for_match(match, team_name)
-        return {
-            'date': match.date,
-            'tournament': match.tournament,
-            'starters': starters,
-            'substitutes': subs
-        }
-
-    tasks = [fetch_one(match) for match in matches]
-    results = await asyncio.gather(*tasks)
     return results
 
 
