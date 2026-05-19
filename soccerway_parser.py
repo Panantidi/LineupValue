@@ -618,14 +618,14 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             if start_span:
                 start_sec = start_span.find_parent('div', class_='section')
                 if start_sec:
-                    all_players = start_sec.select('a[href*="/player/"]')
-                    for pl in all_players:
-                        name = pl.text.strip()
+                    # Players are in span[class*=wcl-name_] (not <a> links)
+                    name_spans = start_sec.select('span[class*="wcl-name_"]')
+                    for ns in name_spans:
+                        name = ns.text.strip()
                         if not name:
                             continue
-                        # Check if this player is in our team's side
                         player_reversed = False
-                        for parent in [pl] + list(pl.parents)[:8]:
+                        for parent in [ns] + list(ns.parents)[:10]:
                             cls = ' '.join(parent.get('class', []))
                             if 'lf__isReversed' in cls:
                                 player_reversed = True
@@ -638,13 +638,13 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             if sub_span:
                 sub_sec = sub_span.find_parent('div', class_='section')
                 if sub_sec:
-                    all_players = sub_sec.select('a[href*="/player/"]')
-                    for pl in all_players:
-                        name = pl.text.strip()
+                    name_spans = sub_sec.select('span[class*="wcl-name_"]')
+                    for ns in name_spans:
+                        name = ns.text.strip()
                         if not name:
                             continue
                         player_reversed = False
-                        for parent in [pl] + list(pl.parents)[:8]:
+                        for parent in [ns] + list(ns.parents)[:10]:
                             cls = ' '.join(parent.get('class', []))
                             if 'lf__isReversed' in cls:
                                 player_reversed = True
