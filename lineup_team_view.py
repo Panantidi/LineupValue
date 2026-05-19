@@ -540,25 +540,25 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <table>
                 <thead>
                     <tr>
-                        <th rowspan="2">№</th>
-                        <th rowspan="2">Nat</th>
+                        <th rowspan="2" style="text-align:center;">№</th>
+                        <th rowspan="2" style="text-align:center;">Nat</th>
                         <th rowspan="2">Player</th>
-                        <th rowspan="2">Status</th>
-                        <th rowspan="2">Age</th>
-                        <th rowspan="2">MV</th>
-                        <th rowspan="2">Pos</th>
-                        <th rowspan="2">Squad<br>Role</th>
-                        <th rowspan="2">Impact<br>Score</th>
+                        <th rowspan="2" style="text-align:center;">Status</th>
+                        <th rowspan="2" style="text-align:center;">Age</th>
+                        <th rowspan="2" style="text-align:center;">MV</th>
+                        <th rowspan="2" style="text-align:center;">Pos</th>
+                        <th rowspan="2" style="text-align:center;">Squad<br>Role</th>
+                        <th rowspan="2" style="text-align:center;">Impact<br>Score</th>
                         <th rowspan="2" style="text-align:center;">Squad<br>List</th>
                         <th rowspan="2" style="text-align:center;">Possible XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
                         <th rowspan="2" style="text-align:center;">Starting XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
                         {last3_header_row1}
                         <th rowspan="2" style="text-align:center;">Apps</th>
                         <th rowspan="2" style="text-align:center;">Min</th>
-                        <th rowspan="2">G</th>
-                        <th rowspan="2">A</th>
-                        <th rowspan="2">YC</th>
-                        <th rowspan="2">RC</th>
+                        <th rowspan="2" style="text-align:center;">G</th>
+                        <th rowspan="2" style="text-align:center;">A</th>
+                        <th rowspan="2" style="text-align:center;">YC</th>
+                        <th rowspan="2" style="text-align:center;">RC</th>
                     </tr>
                     <tr>
                         {last3_header_cells}
