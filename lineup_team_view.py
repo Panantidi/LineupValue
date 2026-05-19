@@ -177,13 +177,13 @@ def render_team_view(team_id: str) -> HTMLResponse:
         a = int(p.get('assist', '0') or 0) if str(p.get('assist', '0')).isdigit() else 0
 
         if 'squad_role' not in p or not p['squad_role'] or p['squad_role'] == 'Bench':
-            if mn >= 4000:
+            if mn >= 3500:
                 p['squad_role'] = 'Key'
-            elif mn >= 2800:
+            elif mn >= 2500:
                 p['squad_role'] = 'Important'
-            elif mn >= 2200:
+            elif mn >= 1700:
                 p['squad_role'] = 'Starter'
-            elif mn >= 1200:
+            elif mn >= 700:
                 p['squad_role'] = 'Rotation'
             else:
                 p['squad_role'] = 'Bench'
