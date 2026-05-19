@@ -219,11 +219,19 @@ def render_team_view(team_id: str) -> HTMLResponse:
         player_display_name = swap_name_order(p.get("name", "–"))
         p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
         p['is_assist_leader'] = bool(unique_assist_leader and player_display_name == unique_assist_leader)
-
     # Starting XI stats — 0 by default (user selects players via checkboxes)
     starting_xi_impact_score = 0.0
     mv_starting_xi = 0.0
     av_age_starting_xi = 0.0
+    
+    # Impact Score (Last match) = sum of impact_score for START players in last match
+    last_match_impact = round(sum(
+        float(p.get("impact_score", 0) or 0)
+        for p in sorted_players
+        if p.get("last3") and len(p["last3"]) > 0 and p["last3"][0] == "START"
+    ), 2)
+    # Impact Diff will be calculated in JS: Starting XI Impact Score - Last Match Impact
+    impact_diff = 0.0
     
     # --- Last 3: данные о матчах (из JSON) ---
     matches_data = data.get("matches", [])
@@ -518,8 +526,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <div class="stat-label">Total Value</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{total_goals}</div>
-                <div class="stat-label">Total Goals</div>
+                <div class="stat-value" id="impact-diff-value">{impact_diff:.2f}</div>
+                <div class="stat-label">Impact Diff</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="starting-xi-impact-score-value">{starting_xi_impact_score:.2f}</div>
@@ -534,8 +542,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <div class="stat-label">Av.Age Starting XI</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{total_red}</div>
-                <div class="stat-label">Red Cards</div>
+                <div class="stat-value">{last_match_impact:.2f}</div>
+                <div class="stat-label">Impact Score (Last Match)</div>
             </div>
         </div>
 
@@ -728,6 +736,14 @@ def render_team_view(team_id: str) -> HTMLResponse:
             if (impactEl) impactEl.textContent = impact.toFixed(2);
             if (mvEl) mvEl.textContent = mv.toFixed(1) + 'm';
             if (ageEl) ageEl.textContent = (count ? (ageSum / count) : 0).toFixed(1);
+            
+            // Update Impact Diff = Starting XI Impact - Last Match Impact
+            const diffEl = document.getElementById('impact-diff-value');
+            if (diffEl) {{
+                const lastMatchImpact = {last_match_impact:.2f};
+                const diff = impact - lastMatchImpact;
+                diffEl.textContent = diff.toFixed(2);
+            }}
         }}
 
         document.querySelectorAll('.starting-checkbox').forEach(checkbox => {{
