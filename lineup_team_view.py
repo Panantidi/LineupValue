@@ -564,30 +564,38 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Returning Players</div>
         </div>
 
-        <!-- Coach & Stadium -->
-        <div style="display:flex;gap:12px;margin-bottom:12px;">
-            <div style="flex:1;background:white;padding:10px 18px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:14px;color:#333;display:flex;align-items:center;gap:8px;">
-                <span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}
-            </div>
-            <div style="flex:1;background:white;padding:10px 18px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:14px;color:#333;display:flex;align-items:center;gap:8px;">
-                <span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}
-            </div>
-        </div>
+        <!-- Left Column: Coach, Stadium, Stats -->
+        <div style="display:flex;gap:20px;margin-bottom:16px;">
+            <div style="width:50%;">
 
-        <!-- Top Stats Row -->
-        <div style="display:flex;gap:12px;margin-bottom:16px;">
-            <div style="flex:1;background:white;padding:14px 20px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;">
-                <div style="font-size:24px;font-weight:bold;color:#667eea;">{squad_size}</div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Players</div>
+                <!-- Coach & Stadium -->
+                <div style="display:flex;gap:12px;margin-bottom:12px;">
+                    <div style="flex:1;background:white;padding:8px 14px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:13px;color:#333;display:flex;align-items:center;gap:6px;">
+                        <span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}
+                    </div>
+                    <div style="flex:1;background:white;padding:8px 14px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:13px;color:#333;display:flex;align-items:center;gap:6px;">
+                        <span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}
+                    </div>
+                </div>
+
+                <!-- Top Stats Row -->
+                <div style="display:flex;gap:12px;">
+                    <div style="flex:1;background:white;padding:10px 14px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;">
+                        <div style="font-size:20px;font-weight:bold;color:#667eea;">{squad_size}</div>
+                        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Players</div>
+                    </div>
+                    <div style="flex:1;background:white;padding:10px 14px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;">
+                        <div style="font-size:20px;font-weight:bold;color:#667eea;">{avg_age}</div>
+                        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Average Age</div>
+                    </div>
+                    <div style="flex:1;background:white;padding:10px 14px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;">
+                        <div style="font-size:20px;font-weight:bold;color:#667eea;">€{total_value:.1f}m</div>
+                        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Total Value</div>
+                    </div>
+                </div>
+
             </div>
-            <div style="flex:1;background:white;padding:14px 20px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;">
-                <div style="font-size:24px;font-weight:bold;color:#667eea;">{avg_age}</div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Average Age</div>
-            </div>
-            <div style="flex:1;background:white;padding:14px 20px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center;">
-                <div style="font-size:24px;font-weight:bold;color:#667eea;">€{total_value:.1f}m</div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Total Value</div>
-            </div>
+            <div style="width:50%;"></div>
         </div>
 
         <!-- Comparison Table: Last Match vs Starting XI -->
