@@ -276,6 +276,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         players_rows += player_row
 
     # --- Last 3: заголовок (две строки) ---
+    # --- Last 3: заголовок (две строки) ---
     # Строка 1: "Last 3" (colspan=3)
     # Строка 2: дата + турнир для каждого матча
     last3_header_row1 = '<th colspan="3" style="text-align:center;font-size:11px;padding:6px 4px;border-bottom:none;">Last 3</th>'
@@ -518,30 +519,28 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <table>
                 <thead>
                     <tr>
-                        <th>№</th>
-                        <th>Nat</th>
-                        <th>Player</th>
-                        <th>Status</th>
-                        <th>Age</th>
-                        <th>MV</th>
-                        <th>Pos</th>
-                        <th>Squad<br>Role</th>
-                        <th>Impact<br>Score</th>
-                        <th style="text-align:center;">Squad<br>List</th>
-                        <th style="text-align:center;">Possible XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
-                        <th style="text-align:center;">Starting XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
+                        <th rowspan="2">№</th>
+                        <th rowspan="2">Nat</th>
+                        <th rowspan="2">Player</th>
+                        <th rowspan="2">Status</th>
+                        <th rowspan="2">Age</th>
+                        <th rowspan="2">MV</th>
+                        <th rowspan="2">Pos</th>
+                        <th rowspan="2">Squad<br>Role</th>
+                        <th rowspan="2">Impact<br>Score</th>
+                        <th rowspan="2" style="text-align:center;">Squad<br>List</th>
+                        <th rowspan="2" style="text-align:center;">Possible XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;">Starting XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
                         {last3_header_row1}
-                        <th style="text-align:center;">Apps</th>
-                        <th style="text-align:center;">Min</th>
-                        <th>G</th>
-                        <th>A</th>
-                        <th>YC</th>
-                        <th>RC</th>
+                        <th rowspan="2" style="text-align:center;">Apps</th>
+                        <th rowspan="2" style="text-align:center;">Min</th>
+                        <th rowspan="2">G</th>
+                        <th rowspan="2">A</th>
+                        <th rowspan="2">YC</th>
+                        <th rowspan="2">RC</th>
                     </tr>
                     <tr>
-                        <th colspan="12"></th>
                         {last3_header_cells}
-                        <th colspan="6"></th>
                     </tr>
                 </thead>
                 <tbody>
