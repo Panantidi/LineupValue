@@ -168,12 +168,32 @@ def render_team_view(team_id: str) -> HTMLResponse:
     sorted_players = sorted(players, key=lambda x: int(x.get('min', '0')) if x.get('min', '0') and str(x['min']).isdigit() else 0, reverse=True)
     
     # Verify all fields are present before rendering
+    # Auto-calculate squad_role and impact_score if missing
+    max_min = max((int(p.get('min', '0') or 0) for p in sorted_players if str(p.get('min', '0')).isdigit()), default=0)
     for p in sorted_players:
-        # Ensure all required fields exist
-        if 'squad_role' not in p:
-            p['squad_role'] = 'Bench'
-        if 'impact_score' not in p:
-            p['impact_score'] = 0
+        mn = int(p.get('min', '0') or 0) if str(p.get('min', '0')).isdigit() else 0
+        apps = int(p.get('apps', '0') or 0) if str(p.get('apps', '0')).isdigit() else 0
+        g = int(p.get('goal', '0') or 0) if str(p.get('goal', '0')).isdigit() else 0
+        a = int(p.get('assist', '0') or 0) if str(p.get('assist', '0')).isdigit() else 0
+
+        if 'squad_role' not in p or not p['squad_role'] or p['squad_role'] == 'Bench':
+            if mn >= 4000:
+                p['squad_role'] = 'Key'
+            elif mn >= 2800:
+                p['squad_role'] = 'Important'
+            elif mn >= 2200:
+                p['squad_role'] = 'Starter'
+            elif mn >= 1200:
+                p['squad_role'] = 'Rotation'
+            else:
+                p['squad_role'] = 'Bench'
+
+        if 'impact_score' not in p or not p['impact_score']:
+            # Impact = weighted score: goals*0.4 + assists*0.3 + (min/max_min)*3
+            base = (mn / max_min * 3) if max_min > 0 else 0
+            attack = g * 0.4 + a * 0.3
+            p['impact_score'] = round(base + attack, 2)
+
         player_display_name = swap_name_order(p.get("name", "–"))
         p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
         p['is_assist_leader'] = bool(unique_assist_leader and player_display_name == unique_assist_leader)
