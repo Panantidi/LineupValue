@@ -389,7 +389,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         }}
         .container {{
             padding: 24px 32px;
-            max-width: 100%;
+            max-width: 1400px;
             margin: 0 auto;
         }}
         .main-layout {{
