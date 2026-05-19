@@ -757,28 +757,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
         updateXICounter(null);
         updateStartingCounter(null);
         recalcSelectedStartingStats();
-        
-        // Status dropdown: Doubt styling for Player name
-        function updateStatusIcon(select) {{
-            const row = select.closest('tr');
-            const playerCell = row.querySelector('.player-name strong');
-            if (!playerCell) return;
-            if (select.value === 'Doubt') {{
-                playerCell.style.color = '#5F5D58';
-                playerCell.style.fontWeight = 'bold';
-                playerCell.style.textDecoration = 'underline';
-            }} else {{
-                playerCell.style.color = '';
-                playerCell.style.fontWeight = '';
-                playerCell.style.textDecoration = '';
-            }}
-            // Update emoji display
-            const emojiSpan = row.querySelector('.status-emoji-display');
-            if (emojiSpan) {{
-                const opt = select.options[select.selectedIndex];
-                emojiSpan.textContent = opt.textContent.split(' ')[0];
-            }}
-        }}
 
     </script>
 </body>
