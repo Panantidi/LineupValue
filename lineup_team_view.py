@@ -233,23 +233,38 @@ def render_team_view(team_id: str) -> HTMLResponse:
     while len(last3_matches) < 3:
         last3_matches.append({"date": "", "comp": "", "url": ""})
 
+    # Missing player emoji by reason
+    def _missing_emoji(reason):
+        r = (reason or "").lower()
+        if any(kw in r for kw in ['red card']):
+            return '🟥', '#dc3545'
+        elif any(kw in r for kw in ['yellow card']):
+            return '🟨', '#ffc107'
+        elif any(kw in r for kw in ['loan']):
+            return '📄', '#6c757d'
+        elif any(kw in r for kw in ['international', 'duty']):
+            return '🛫', '#0d6efd'
+        else:  # injury, illness, broken, etc
+            return '❌', '#dc3545'
+
     # Строим HTML-ячейки для last3 каждого игрока
     def _last3_cells(p):
         last3 = p.get("last3", [])
-        injuries = p.get("last3_injury", [None, None, None])
+        missing = p.get("last3_missing", [None, None, None])
         while len(last3) < 3:
             last3.append("—")
-        while len(injuries) < 3:
-            injuries.append(None)
+        while len(missing) < 3:
+            missing.append(None)
         cells = ""
         for i, val in enumerate(last3[:3]):
-            injury = injuries[i] if i < len(injuries) else None
+            miss = missing[i] if i < len(missing) else None
             if val == "START":
                 cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
             elif val == "SUB":
                 cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#e3a035;display:inline-block;vertical-align:middle;"></div></td>'
-            elif injury:
-                cells += f'<td style="text-align:center;vertical-align:middle;" title="{injury}"><span style="font-size:14px;cursor:help;">➕</span></td>'
+            elif miss:
+                emoji, color = _missing_emoji(miss)
+                cells += f'<td style="text-align:center;vertical-align:middle;" title="{miss}"><span style="font-size:14px;cursor:help;">{emoji}</span></td>'
             else:
                 cells += '<td style="text-align:center;vertical-align:middle;"></td>'
         return cells
