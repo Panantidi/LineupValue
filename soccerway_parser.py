@@ -467,10 +467,24 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         "league-cup": "LC",
     }
 
-    # Soccerway results: each game in a div with parent containing
-    # "May 17 09:00 PMStrasbourgMonaco54W"
+    # Soccerway results: each game in a div.event__match, parent div.leagues--static has league name
     game_links = soup.select('a[href*="/game/"]')
     seen = set()
+    current_league = ""
+
+    # League abbreviation map
+    league_map = {
+        'ligue 1': 'L1', 'ligue 2': 'L2', 'premier league': 'PL',
+        'championship': 'CH', 'la liga': 'LL', 'laliga': 'LL',
+        'serie a': 'SA', 'bundesliga': 'BL', '2. bundesliga': 'B2',
+        'eredivisie': 'ER', 'liga portugal': 'LP', 'jupiler pro league': 'JPL',
+        'super lig': 'SL', 'super league': 'SUL', 'superliga': 'SUP',
+        'allsvenskan': 'ALL', 'eliteserien': 'ELI',
+        'fa cup': 'FA', 'coupe de france': 'CDF',
+        'champions league': 'CL', 'europa league': 'EL', 'conference league': 'ECL',
+        'dfb pokal': 'DFB', 'copa del rey': 'CDR', 'coppa italia': 'CI',
+        'league cup': 'LC', 'national cup': 'CUP',
+    }
 
     for link in game_links:
         href = link.get('href', '')
@@ -485,7 +499,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         seen.add(mid)
 
         # Date from parent div text: "May 17 09:00 PMStrasbourgMonaco54W"
-        parent = link.find_parent('div')
+        parent = link.find_parent('div', class_=re.compile(r'event__match'))
         parent_text = parent.text.strip() if parent else ""
 
         date = ""
@@ -499,12 +513,16 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
             if mm:
                 date = f"{day}.{mm}"
 
-        # Tournament from URL
+        # Tournament from parent league container
         tournament = ""
-        for key, val in comp_map.items():
-            if key in href.lower():
-                tournament = val
-                break
+        league_div = link.find_parent('div', class_=re.compile(r'leagues'))
+        if league_div:
+            league_text = league_div.text.strip().split('\n')[0].strip()
+            # "Ligue 1" or "National Cup" etc
+            for key, val in league_map.items():
+                if key in league_text.lower():
+                    tournament = val
+                    break
         if not tournament:
             tournament = "CUP"
 
