@@ -590,24 +590,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }});
         }});
         
-        function updateStatusIcon(select) {{
-            const row = select.closest('tr');
-            const playerCell = row.querySelector('.player-name');
-            if (!playerCell) return;
-            
-            const val = select.value;
-            // Reset styles
-            playerCell.style.color = '';
-            playerCell.style.fontWeight = '';
-            playerCell.style.textDecoration = '';
-            
-            if (val === 'Doubt') {{
-                playerCell.style.color = '#5F5D58';
-                playerCell.style.fontWeight = 'bold';
-                playerCell.style.textDecoration = 'underline';
-            }}
-        }}
-        
         // Possible XI counter - blue fill, max 11
         function updateXICounter(checkbox) {{
             if (!checkbox) {{
