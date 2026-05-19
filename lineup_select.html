@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>LineUp AI - Select Team</title>
+    <title>LineupValue - Select Team</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -106,7 +106,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 LineUp AI</h1>
+        <h1>📊 LineupValue</h1>
         <p style="text-align: center; color: #666; margin-bottom: 32px;">
             Select a team to view squad
         </p>
@@ -116,7 +116,6 @@
             <select id="country" onchange="onCountryChange()">
                 <option value="">-- Select Country --</option>
             </select>
-            <div class="hint">Choose your country</div>
         </div>
         
         <div class="form-group">
@@ -124,7 +123,6 @@
             <select id="championship" onchange="onChampionshipChange()" disabled>
                 <option value="">-- Select Championship --</option>
             </select>
-            <div class="hint">Choose your championship/league</div>
         </div>
         
         <div class="form-group">
@@ -132,12 +130,11 @@
             <select id="team" onchange="onTeamChange()" disabled>
                 <option value="">-- Select Team --</option>
             </select>
-            <div class="hint">Choose your team</div>
         </div>
 
         <div id="spinner" class="spinner">
             <div class="spinner-circle"></div>
-            <div class="spinner-text">Loading squad data from Soccerway...</div>
+            <div class="spinner-text">Loading squad...</div>
         </div>
     </div>
 
@@ -224,9 +221,13 @@
             // Показать спиннер
             document.getElementById('spinner').classList.add('active');
             
-            // Перейти на страницу команды (рендер через сервер)
-            // Сервер сам подгрузит данные из кеша или Soccerway
+            // Перейти на страницу команды — спиннер остановится при unload
             window.location.href = '/lineup_ai/' + teamId;
+            
+            // Остановить спиннер через 3с если переход задерживается
+            setTimeout(() => {
+                document.getElementById('spinner').classList.remove('active');
+            }, 3000);
         }
         
         function showError(message) {
