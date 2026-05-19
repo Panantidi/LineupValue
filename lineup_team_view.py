@@ -165,31 +165,56 @@ def render_team_view(team_id: str) -> HTMLResponse:
     sorted_players = sorted(players, key=lambda x: int(x.get('min', '0')) if x.get('min', '0') and str(x['min']).isdigit() else 0, reverse=True)
     
     # Verify all fields are present before rendering
-    # Auto-calculate squad_role and impact_score if missing
-    max_min = max((int(p.get('min', '0') or 0) for p in sorted_players if str(p.get('min', '0')).isdigit()), default=0)
+    # Auto-calculate impact_score and squad_role using exact formulas
+    # Y = max(Apps) * 90 (Average minute team)
+    max_apps = max((int(p.get('apps', '0') or 0) for p in sorted_players if str(p.get('apps', '0')).isdigit()), default=0)
+    Y = max_apps * 90  # e.g. 51 * 90 = 4590
+
     for p in sorted_players:
-        mn = int(p.get('min', '0') or 0) if str(p.get('min', '0')).isdigit() else 0
+        R = int(p.get('min', '0') or 0) if str(p.get('min', '0')).isdigit() else 0  # Minutes
         apps = int(p.get('apps', '0') or 0) if str(p.get('apps', '0')).isdigit() else 0
-        g = int(p.get('goal', '0') or 0) if str(p.get('goal', '0')).isdigit() else 0
-        a = int(p.get('assist', '0') or 0) if str(p.get('assist', '0')).isdigit() else 0
+        S = int(p.get('goal', '0') or 0) if str(p.get('goal', '0')).isdigit() else 0  # Goals
+        T = int(p.get('assist', '0') or 0) if str(p.get('assist', '0')).isdigit() else 0  # Assists
+        G = str(p.get('position', '')).strip().upper()  # GK/DF/MF/FW
 
-        if 'squad_role' not in p or not p['squad_role'] or p['squad_role'] == 'Bench':
-            if mn >= 3500:
-                p['squad_role'] = 'Key'
-            elif mn >= 2500:
-                p['squad_role'] = 'Important'
-            elif mn >= 1700:
-                p['squad_role'] = 'Starter'
-            elif mn >= 700:
-                p['squad_role'] = 'Rotation'
+        # --- Impact Score ---
+        if R == 0:
+            impact = 0
+        elif G == 'GK':
+            impact = (R / Y) * 10 * 0.75
+        else:
+            # Position coefficient
+            if G == 'FW':
+                coeff_attack = 0.75; coeff_min = 0.25
+            elif G == 'MF':
+                coeff_attack = 0.55; coeff_min = 0.45
+            elif G == 'DF':
+                coeff_attack = 0.45; coeff_min = 0.55
             else:
-                p['squad_role'] = 'Bench'
+                coeff_attack = 0.35; coeff_min = 0.65
+            attack_part = ((S + 0.9 * T) / R) * 1000 * coeff_attack
+            min_part = (R / Y) * 10 * coeff_min
+            impact = attack_part + min_part
 
-        if 'impact_score' not in p or not p['impact_score']:
-            # Impact = weighted score: goals*0.4 + assists*0.3 + (min/max_min)*3
-            base = (mn / max_min * 3) if max_min > 0 else 0
-            attack = g * 0.4 + a * 0.3
-            p['impact_score'] = round(base + attack, 2)
+        p['impact_score'] = round(impact, 2)
+
+        # --- Squad Role ---
+        # =IF(R/Y>=0,85;"Key";IF(AND(I>=7;R>=900);"Important";IF(R/Y<0,25;"Bench";IF(R/Y<0,55;"Rotation";IF(R/Y<0,7;"Starter";"Important")))))
+        ratio = R / Y if Y > 0 else 0
+        if ratio >= 0.85:
+            role = 'Key'
+        elif impact >= 7 and R >= 900:
+            role = 'Important'
+        elif ratio < 0.25:
+            role = 'Bench'
+        elif ratio < 0.55:
+            role = 'Rotation'
+        elif ratio < 0.70:
+            role = 'Starter'
+        else:
+            role = 'Important'
+
+        p['squad_role'] = role
 
         player_display_name = swap_name_order(p.get("name", "–"))
         p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
