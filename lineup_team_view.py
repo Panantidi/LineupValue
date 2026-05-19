@@ -507,7 +507,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value">{squad_size}</div>
-                <div class="stat-label">Squad Size</div>
+                <div class="stat-label">Players</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">{avg_age}</div>
