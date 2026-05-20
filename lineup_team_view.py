@@ -329,10 +329,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 {_last3_cells(p)}
                 <td style="text-align:center;">{p.get("apps", "–")}</td>
                 <td style="text-align:center;">{p.get("min", "–")}</td>
-                <td style="text-align:center;">{p.get("goal", "–")}</td>
-                <td style="text-align:center;">{p.get("assist", "–")}</td>
-                <td style="text-align:center;">{p.get("yellow_card", "–")}</td>
-                <td style="text-align:center;">{p.get("red_card", "–")}</td>
+                <td style="text-align:center;padding:4px 2px;">{p.get("goal", "–")}</td>
+                <td style="text-align:center;padding:4px 2px;">{p.get("assist", "–")}</td>
+                <td style="text-align:center;padding:4px 2px;">{p.get("yellow_card", "–")}</td>
+                <td style="text-align:center;padding:4px 2px;">{p.get("red_card", "–")}</td>
             </tr>
         """
         players_rows += player_row
@@ -649,10 +649,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
                         {last3_header_row1}
                         <th rowspan="2" style="text-align:center;">Apps</th>
                         <th rowspan="2" style="text-align:center;">Min</th>
-                        <th rowspan="2" style="text-align:center;">G</th>
-                        <th rowspan="2" style="text-align:center;">A</th>
-                        <th rowspan="2" style="text-align:center;">YC</th>
-                        <th rowspan="2" style="text-align:center;">RC</th>
+                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">G</th>
+                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">A</th>
+                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">YC</th>
+                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">RC</th>
                     </tr>
                     <tr>
                         {last3_header_cells}
