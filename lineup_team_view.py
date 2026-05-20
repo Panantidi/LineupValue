@@ -647,14 +647,48 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
 
-        <!-- Comparison Table: centered, half width (Squad mode) -->
-        <div id="comparison-table" style="display:flex;justify-content:center;margin-bottom:16px;">
-            <div style="width:50%;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
+        <!-- Comparison Tables: P-XI left, S-XI right — full width (Squad mode) -->
+        <div id="comparison-table" style="display:flex;gap:12px;margin-bottom:16px;">
+            <!-- Possible XI -->
+            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:8px 16px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
+                        <th style="padding:8px 16px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Possible XI</th>
+                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
+                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Impact Score</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-impact">0.00</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-pct-impact">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-last-impact">{last_match_impact:.2f}</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Market Value</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-mv">0.0m</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-pct-mv">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-last-mv">{last_match_mv:.1f}m</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Av.Age</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-age">0.0</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-pct-age">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-pxi-last-age">{last_match_age:.1f}</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <!-- Starting XI -->
+            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                <thead>
+                    <tr style="background:#f8f9fa;">
+                        <th style="padding:8px 16px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
+                        <th style="padding:8px 16px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
                         <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
                         <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
@@ -980,7 +1014,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             if (mvEl) mvEl.textContent = mv.toFixed(1) + 'm';
             if (ageEl) ageEl.textContent = (count ? (ageSum / count) : 0).toFixed(1);
             
-            // Update Comparison Table
+            // Update S-XI Comparison Table
             const lastImpact = {last_match_impact:.2f};
             const lastMv = {last_match_mv:.1f};
             const lastAge = {last_match_age:.1f};
@@ -988,7 +1022,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
             const sxiMv = mv;
             const sxiAge = count ? (ageSum / count) : 0;
             
-            // Impact
             const sxiImpactEl = document.getElementById('cmp-sxi-impact');
             if (sxiImpactEl) sxiImpactEl.textContent = sxiImpact.toFixed(2);
             const pctImpactEl = document.getElementById('cmp-pct-impact');
@@ -997,7 +1030,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 pctImpactEl.innerHTML = lastImpact > 0 ? fmtPct(d / lastImpact * 100) : '–';
             }}
             
-            // MV
             const sxiMvEl = document.getElementById('cmp-sxi-mv');
             if (sxiMvEl) sxiMvEl.textContent = sxiMv.toFixed(1) + 'm';
             const pctMvEl = document.getElementById('cmp-pct-mv');
@@ -1006,7 +1038,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 pctMvEl.innerHTML = lastMv > 0 ? fmtPct(d / lastMv * 100) : '–';
             }}
             
-            // Age
             const sxiAgeEl = document.getElementById('cmp-sxi-age');
             if (sxiAgeEl) sxiAgeEl.textContent = sxiAge.toFixed(1);
             const pctAgeEl = document.getElementById('cmp-pct-age');
@@ -1015,6 +1046,62 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 pctAgeEl.innerHTML = lastAge > 0 ? fmtPct(d / lastAge * 100) : '–';
             }}
         }}
+
+        function recalcPossibleXIStats() {{
+            let impact = 0, mv = 0, ageSum = 0, count = 0;
+            document.querySelectorAll('tbody tr').forEach(row => {{
+                const cb = row.querySelector('.xi-checkbox');
+                if (!cb || !cb.checked) return;
+                const cells = row.querySelectorAll('td');
+                if (!cells || cells.length < 9) return;
+                const age = parseFloat((cells[4].textContent || '').replace(/[^0-9.]/g, '')) || 0;
+                const rawMarket = (cells[5].textContent || '').trim().toLowerCase().replace(/€/g, '');
+                const impactScore = parseFloat((cells[8].textContent || '').replace(/[^0-9.]/g, '')) || 0;
+                impact += impactScore;
+                ageSum += age;
+                count += 1;
+                if (rawMarket.endsWith('m')) {{
+                    mv += parseFloat(rawMarket) || 0;
+                }} else if (rawMarket.endsWith('k')) {{
+                    mv += (parseFloat(rawMarket) || 0) / 1000;
+                }} else {{
+                    mv += parseFloat(rawMarket) || 0;
+                }}
+            }});
+            const lastImpact = {last_match_impact:.2f};
+            const lastMv = {last_match_mv:.1f};
+            const lastAge = {last_match_age:.1f};
+            const pxiAge = count ? (ageSum / count) : 0;
+
+            const el1 = document.getElementById('cmp-pxi-impact');
+            if (el1) el1.textContent = impact.toFixed(2);
+            const el2 = document.getElementById('cmp-pxi-pct-impact');
+            if (el2) {{
+                const d = impact - lastImpact;
+                el2.innerHTML = lastImpact > 0 ? fmtPct(d / lastImpact * 100) : '–';
+            }}
+            const el3 = document.getElementById('cmp-pxi-mv');
+            if (el3) el3.textContent = mv.toFixed(1) + 'm';
+            const el4 = document.getElementById('cmp-pxi-pct-mv');
+            if (el4) {{
+                const d = mv - lastMv;
+                el4.innerHTML = lastMv > 0 ? fmtPct(d / lastMv * 100) : '–';
+            }}
+            const el5 = document.getElementById('cmp-pxi-age');
+            if (el5) el5.textContent = pxiAge.toFixed(1);
+            const el6 = document.getElementById('cmp-pxi-pct-age');
+            if (el6) {{
+                const d = pxiAge - lastAge;
+                el6.innerHTML = lastAge > 0 ? fmtPct(d / lastAge * 100) : '–';
+            }}
+        }}
+
+        document.querySelectorAll('.xi-checkbox').forEach(checkbox => {{
+            checkbox.addEventListener('change', function() {{
+                updateXICounter(this);
+                recalcPossibleXIStats();
+            }});
+        }});
 
         document.querySelectorAll('.starting-checkbox').forEach(checkbox => {{
             checkbox.addEventListener('change', function() {{
@@ -1027,6 +1114,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         updateXICounter(null);
         updateStartingCounter(null);
         recalcSelectedStartingStats();
+        recalcPossibleXIStats();
 
     </script>
 </body>
