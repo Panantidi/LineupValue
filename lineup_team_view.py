@@ -194,6 +194,15 @@ def render_team_view(team_id: str) -> HTMLResponse:
     total_red = sum(int(p.get("red_card", 0)) for p in players if p.get("red_card", "").isdigit())
     # starting_players calculated below after auto-calculation of impact_score
     total_value = round(sum(_parse_mv(p.get("market_value", 0)) for p in players) / 1_000_000.0, 1)
+    
+    def fmt_mv(val):
+        """Format market value: <1000 → € Xm, >=1000 → € X.XXbn"""
+        if val >= 1000:
+            bn = val / 1000.0
+            return f"€{bn:.2f}bn" if bn < 10 else f"€{bn:.1f}bn"
+        return f"€{val:.1f}m"
+    
+    total_value_display = fmt_mv(total_value)
 
     max_goals = max((int(p.get("goal", 0)) for p in players if str(p.get("goal", 0)).isdigit()), default=0)
     goal_leaders = [swap_name_order(p.get("name", "–")) for p in players if str(p.get("goal", 0)).isdigit() and int(p.get("goal", 0)) == max_goals and max_goals > 0]
@@ -628,7 +637,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span><br><span style="color:#888;font-size:11px;">Avg Age</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">€{total_value:.1f}m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{total_value_display}</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
         </div>
 
         <!-- Missing Players Stats (hidden by default) -->
@@ -851,7 +860,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 totalAssists += parseInt(aText) || 0;
             }});
             document.getElementById(prefix + '-count').textContent = count;
-            document.getElementById(prefix + '-value').textContent = '\\u20ac' + totalMV.toFixed(1) + 'm';
+            document.getElementById(prefix + '-value').textContent = totalMV >= 1000 ? '\\u20ac' + (totalMV / 1000).toFixed(2) + 'bn' : '\\u20ac' + totalMV.toFixed(1) + 'm';
             document.getElementById(prefix + '-impact').textContent = totalImpact.toFixed(2);
             document.getElementById(prefix + '-goals').textContent = totalGoals;
             document.getElementById(prefix + '-assists').textContent = totalAssists;
@@ -1022,7 +1031,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             const mvEl = document.getElementById('mv-starting-xi-value');
             const ageEl = document.getElementById('av-age-starting-xi-value');
             if (impactEl) impactEl.textContent = impact.toFixed(2);
-            if (mvEl) mvEl.textContent = mv.toFixed(1) + 'm';
+            if (mvEl) mvEl.textContent = mv >= 1000 ? (mv / 1000).toFixed(2) + 'bn' : mv.toFixed(1) + 'm';
             if (ageEl) ageEl.textContent = (count ? (ageSum / count) : 0).toFixed(1);
             
             // Update S-XI Comparison Table
@@ -1042,7 +1051,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }}
             
             const sxiMvEl = document.getElementById('cmp-sxi-mv');
-            if (sxiMvEl) sxiMvEl.textContent = sxiMv.toFixed(1) + 'm';
+            if (sxiMvEl) sxiMvEl.textContent = sxiMv >= 1000 ? (sxiMv / 1000).toFixed(2) + 'bn' : sxiMv.toFixed(1) + 'm';
             const pctMvEl = document.getElementById('cmp-pct-mv');
             if (pctMvEl) {{
                 const d = sxiMv - lastMv;
@@ -1092,7 +1101,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 el2.innerHTML = lastImpact > 0 ? fmtPct(d / lastImpact * 100) : '–';
             }}
             const el3 = document.getElementById('cmp-pxi-mv');
-            if (el3) el3.textContent = mv.toFixed(1) + 'm';
+            if (el3) el3.textContent = mv >= 1000 ? (mv / 1000).toFixed(2) + 'bn' : mv.toFixed(1) + 'm';
             const el4 = document.getElementById('cmp-pxi-pct-mv');
             if (el4) {{
                 const d = mv - lastMv;
