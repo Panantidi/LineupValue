@@ -50,7 +50,18 @@ def get_flag_html(country_name):
         'Uruguay': 'uy', 'Chile': 'cl', 'Peru': 'pe', 'Costa Rica': 'cr',
         'Cameroon': 'cm', 'Ghana': 'gh', 'Saudi Arabia': 'sa', 'Iran': 'ir',
         'Qatar': 'qa', 'China': 'cn', 'Kazakhstan': 'kz', 'Guinea': 'gn',
-        'Scotland': 'gb-sct', 'Wales': 'gb-wls', 'Northern Ireland': 'gb-nir'
+        'Scotland': 'gb-sct', 'Wales': 'gb-wls', 'Northern Ireland': 'gb-nir',
+        'Angola': 'ao', 'Slovakia': 'sk', 'Mali': 'ml', 'DR Congo': 'cd',
+        'Ivory Coast': 'ci', 'Israel': 'il', 'Venezuela': 've', 'Ecuador': 'ec',
+        'Bosnia': 'ba', 'Bosnia and Herzegovina': 'ba', 'Moldova': 'md',
+        'Lithuania': 'lt', 'Hungary': 'hu', 'Bulgaria': 'bg', 'Finland': 'fi',
+        'Iceland': 'is', 'Slovenia': 'si', 'Slovakia': 'sk', 'Georgia': 'ge',
+        'Armenia': 'am', 'Azerbaijan': 'az', 'Kosovo': 'xk', 'Albania': 'al',
+        'North Macedonia': 'mk', 'Montenegro': 'me', 'Jamaica': 'jm',
+        'Trinidad and Tobago': 'tt', 'Honduras': 'hn', 'El Salvador': 'sv',
+        'Costa Rica': 'cr', 'Panama': 'pa', 'Paraguay': 'py', 'Bolivia': 'bo',
+        'Estonia': 'ee', 'Latvia': 'lv', 'Cyprus': 'cy', 'Luxembourg': 'lu',
+        'Malta': 'mt', 'Wales': 'gb-wls'
     }
     
     code = country_codes.get(country_name.strip())
