@@ -49,7 +49,7 @@ def get_flag_html(country_name):
         'Australia': 'au', 'USA': 'us', 'Mexico': 'mx', 'Colombia': 'co',
         'Uruguay': 'uy', 'Chile': 'cl', 'Peru': 'pe', 'Costa Rica': 'cr',
         'Cameroon': 'cm', 'Ghana': 'gh', 'Saudi Arabia': 'sa', 'Iran': 'ir',
-        'Qatar': 'qa', 'China': 'cn', 'Kazakhstan': 'kz', 'Guinea': 'gn',
+        'Qatar': 'qa', 'China': 'cn', 'Kazakhstan': 'kz',        'Guinea': 'gn', 'Guinea-Bissau': 'gw',
         'Scotland': 'gb-sct', 'Wales': 'gb-wls', 'Northern Ireland': 'gb-nir',
         'Angola': 'ao', 'Slovakia': 'sk', 'Mali': 'ml', 'DR Congo': 'cd',
         'Ivory Coast': 'ci', 'Israel': 'il', 'Venezuela': 've', 'Ecuador': 'ec',
@@ -314,7 +314,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         last_start = "START" if (last3 and len(last3) > 0 and last3[0] == "START") else ""
         player_row = f"""
             <tr data-last="{last_start}">
-                <td style="text-align:center;">{p.get("number", "–")}</td>
+                <td style="text-align:center;padding:4px 2px;">{p.get("number", "–")}</td>
                 <td style="text-align:center;">{get_flag_html(p.get("national", "–"))}</td>
                 <td class="player-name" style="white-space:nowrap;"><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
                 <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option></select></div></td>
@@ -346,7 +346,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
     for m in last3_matches:
         date_str = m.get("date", "")
         comp_str = m.get("comp", "") or m.get("tournament", "")
-        last3_header_cells += f'<th style="text-align:center;font-size:10px;padding:2px 4px;line-height:1.2;white-space:nowrap;border-top:none;">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
+        score_str = m.get("score", "")
+        tooltip = f"Ligue 1: {score_str}" if score_str else ""
+        last3_header_cells += f'<th style="text-align:center;font-size:10px;padding:2px 4px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;" title="{tooltip}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
     html = f"""<!doctype html>
 <html>
@@ -634,7 +636,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <table>
                 <thead>
                     <tr>
-                        <th rowspan="2" style="text-align:center;">№</th>
+                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">№</th>
                         <th rowspan="2" style="text-align:center;">Nat</th>
                         <th rowspan="2">Player</th>
                         <th rowspan="2" style="text-align:left;">Status</th>
