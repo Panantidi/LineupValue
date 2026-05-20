@@ -52,6 +52,11 @@ class Match:
     mid: str  # match id for lineups URL
     url: str = ""
     opponent: str = ""
+    score: str = ""
+    home_team: str = ""
+    away_team: str = ""
+    home_score: int = 0
+    away_score: int = 0
 
 
 @dataclass
@@ -450,7 +455,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
     }
 
     # Soccerway results: each game in a div.event__match, parent div.leagues--static has league name
-    game_links = soup.select('a[href*="/game/"]')
+    game_links = soup.select('a[href*="/game/"], a[href*="/match/"]')
     seen = set()
     current_league = ""
 
@@ -509,11 +514,103 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
             tournament = "CUP"
 
         match_url = f"https://us.soccerway.com{href}" if href.startswith('/') else href
+        # Convert /match/ URLs to /game/ for lineup page compatibility
+        if "/match/" in match_url:
+            match_url = match_url.replace("/match/", "/game/")
 
-        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url))
+        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0))
 
         if len(matches) >= 3:
             break
+
+    # Fallback: parse from div.event__match if not enough matches found
+    # (new Soccerway layout may not have a[href*="/game/"] links)
+    if len(matches) < 3:
+        if matches:
+            print(f"  Only {len(matches)} from links, trying div.event__match fallback...")
+        else:
+            print("  No game links found, trying div.event__match fallback...")
+        event_divs = soup.select("div.event__match--twoLine")
+        if not event_divs:
+            event_divs = soup.select("div.event__match")
+        for ev in event_divs:
+            # Get match link
+            match_a = ev.find("a", href=re.compile(r"/match/"))
+            if not match_a:
+                match_a = ev.find("a", href=re.compile(r"/game/"))
+            if not match_a:
+                continue
+            href = match_a.get("href", "")
+            if not href:
+                continue
+            mid_match = re.search(r'[?&]mid=([a-zA-Z0-9]+)', href)
+            mid = mid_match.group(1) if mid_match else ""
+            if mid in seen:
+                continue
+            seen.add(mid)
+
+            # Build URL
+            match_url = f"https://us.soccerway.com{href}" if href.startswith('/') else href
+            if "/match/" in match_url:
+                match_url = match_url.replace("/match/", "/game/")
+
+            # Get team names from participant divs
+            home_div = ev.find("div", class_=re.compile(r"event__homeParticipant"))
+            away_div = ev.find("div", class_=re.compile(r"event__awayParticipant"))
+            time_div = ev.find("div", class_=re.compile(r"event__time"))
+            home_name = home_div.text.strip().split("Advancing")[0].strip() if home_div else ""
+            away_name = away_div.text.strip().split("Advancing")[0].strip() if away_div else ""
+            time_text = time_div.text.strip() if time_div else ""
+
+            # Date
+            date = ""
+            date_match = re.search(r"(\d{1,2})\.(\d{2})", time_text)
+            if date_match:
+                date = f"{date_match.group(1).zfill(2)}.{date_match.group(2)}"
+
+            # Score from event text
+            ev_text = ev.text.strip()
+            our_score, opp_score = 0, 0
+            after_time = ev_text.split(":")[-1] if ":" in ev_text else ev_text
+            score_pat = re.search(r"(\d)(\d)([WDLT])", after_time)
+            result = ""
+            if score_pat:
+                s1, s2 = int(score_pat.group(1)), int(score_pat.group(2))
+                result = score_pat.group(3)
+                if result == "W":
+                    our_score, opp_score = max(s1, s2), min(s1, s2)
+                elif result == "L":
+                    our_score, opp_score = min(s1, s2), max(s1, s2)
+                else:
+                    our_score, opp_score = s1, s2
+
+            # Tournament
+            tournament = "L1"
+            league_div = ev.find_parent("div", class_=re.compile(r"leagues"))
+            if league_div:
+                lt = league_div.text.strip().lower()
+                for key, val in league_map.items():
+                    if key in lt:
+                        tournament = val
+                        break
+
+            # Home/away
+            home_s, away_s = 0, 0
+            tn = team_name.lower().replace(" ", "")
+            hn = home_name.lower().replace(" ", "")
+            if tn in hn or hn in tn:
+                home_s, away_s = our_score, opp_score
+            else:
+                home_s, away_s = opp_score, our_score
+
+            score_str = f"{home_name} {home_s}-{away_s} {away_name}" if home_name and away_name else ""
+
+            matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url,
+                                score=score_str, home_team=home_name, away_team=away_name,
+                                home_score=home_s, away_score=away_s))
+            print(f"    {date} {tournament}: {score_str}")
+            if len(matches) >= 3:
+                break
 
     return matches
 

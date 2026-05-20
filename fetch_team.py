@@ -49,17 +49,26 @@ async def fetch_and_parse_lineups(matches, known_surnames):
                 mid = m.group(1) if m else ''
 
             game_path = re.search(r'/game/([^?]+)', match.url)
-            slug = game_path.group(1).rstrip('/') if game_path else ''
+            match_path = re.search(r'/match/([^?]+)', match.url)
+            slug = game_path.group(1).rstrip('/') if game_path else (match_path.group(1).rstrip('/') if match_path else '')
 
             if slug and mid:
                 url = f'{BASE}/game/{slug}/summary/lineups/?mid={mid}'
+            elif slug:
+                url = f'{BASE}/game/{slug}/summary/lineups/'
             else:
                 url = match.url
 
             print(f'    Loading: {match.date} {match.tournament}')
             try:
                 await page.goto(url, wait_until='load', timeout=30000)
-                await page.wait_for_timeout(8000)
+                await page.wait_for_timeout(4000)
+                # Scroll to load lazy content (Missing Players section)
+                for _ in range(5):
+                    await page.evaluate("window.scrollBy(0, 500)")
+                    await page.wait_for_timeout(500)
+                await page.evaluate("window.scrollTo(0, 0)")
+                await page.wait_for_timeout(2000)
                 html = await page.content()
             except Exception as e:
                 print(f'    ERROR: {e}')
