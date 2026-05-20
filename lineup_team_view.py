@@ -478,6 +478,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
             border-collapse: collapse;
             font-size: 14px;
         }}
+        .player-name {{
+            white-space: nowrap !important;
+        }}
         th {{
             background: #f8f9fa;
             padding: 14px 16px;
