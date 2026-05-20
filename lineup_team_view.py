@@ -106,7 +106,7 @@ def get_flag_html(country_name):
     if not code:
         return "–"
     
-    return f'<img src="https://flagcdn.com/w40/{code}.png" alt="{country_name.strip()}" style="width:30px;height:30px;vertical-align:middle;border-radius:3px;">'
+    return f'<img src="https://flagcdn.com/w20/{code}.png" alt="{country_name.strip()}" style="height:14px;width:auto;vertical-align:middle;border-radius:1px;margin:0 1px;">'
 
 def _parse_mv(value):
     s = str(value or "").strip()
