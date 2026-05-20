@@ -446,6 +446,17 @@ def render_team_view(team_id: str) -> HTMLResponse:
             min-width: 0;
             overflow-x: auto;
         }}
+        .main-table tbody tr {{
+            height: 20px;
+        }}
+        .main-table tbody td {{
+            padding: 0 2px !important;
+            line-height: 20px;
+            font-size: 13px;
+        }}
+        .main-table tbody td.player-name {{
+            padding: 0 6px !important;
+        }}
         .stats-sidebar {{
             width: 180px;
             flex-shrink: 0;
