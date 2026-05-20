@@ -447,11 +447,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
             overflow-x: auto;
         }}
         .main-table tbody tr {{
-            height: 20px;
+            height: 22px;
         }}
         .main-table tbody td {{
             padding: 0 2px !important;
-            line-height: 20px;
+            line-height: 22px;
             font-size: 13px;
         }}
         .main-table tbody td.player-name {{
