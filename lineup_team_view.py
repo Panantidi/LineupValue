@@ -563,11 +563,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
             font-weight: 600;
             text-transform: capitalize;
         }}
-        .squad-role.key {{ background: #d4edda; color: #155724; border: 2px solid #28a745; }}
-        .squad-role.important {{ background: #d1ecf1; color: #0c5460; border: 2px solid #17a2b8; }}
-        .squad-role.starter {{ background: #fff3cd; color: #856404; }}
-                .squad-role.rotation {{ background: #e2e3e4; color: #383d41; }}
-                .squad-role.bench {{ background: #f8d7da; color: #721c24; }}
+        .squad-role.key {{ background: #d4edda; color: #1cf38d; border: 2px solid #28a745; }}
+        .squad-role.important {{ background: #d1ecf1; color: #20c2f9; border: 2px solid #17a2b8; }}
+        .squad-role.starter {{ background: #fff3cd; color: #f8e23d; border: 2px solid #856404; }}
+        .squad-role.rotation {{ background: #e2e3e4; color: #383d41; border: 2px solid #6c757d; }}
+        .squad-role.bench {{ background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }}
         .last-5 {{
             display: flex;
             gap: 4px;
