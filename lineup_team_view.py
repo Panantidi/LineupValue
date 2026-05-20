@@ -334,7 +334,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
     last3_header_cells = ""
     for m in last3_matches:
         date_str = m.get("date", "")
-        comp_str = m.get("comp", "")
+        comp_str = m.get("comp", "") or m.get("tournament", "")
         last3_header_cells += f'<th style="text-align:center;font-size:10px;padding:2px 4px;line-height:1.2;white-space:nowrap;border-top:none;">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
     html = f"""<!doctype html>
