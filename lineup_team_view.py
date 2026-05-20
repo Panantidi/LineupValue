@@ -470,7 +470,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .table-container {{
             background: white;
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }}
         table {{
