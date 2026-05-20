@@ -580,8 +580,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Returning Players</div>
         </div>
 
-        <!-- Info Bar: Coach, Stadium, Stats — full width -->
-        <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <!-- Info Bar: Coach, Stadium, Stats — full width (Squad mode) -->
+        <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
@@ -589,8 +589,17 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">€{total_value:.1f}m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
         </div>
 
-        <!-- Comparison Table: centered, half width -->
-        <div style="display:flex;justify-content:center;margin-bottom:16px;">
+        <!-- Missing Players Stats (hidden by default) -->
+        <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
+        </div>
+
+        <!-- Comparison Table: centered, half width (Squad mode) -->
+        <div id="comparison-table" style="display:flex;justify-content:center;margin-bottom:16px;">
             <div style="width:50%;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
                 <thead>
@@ -670,10 +679,91 @@ def render_team_view(team_id: str) -> HTMLResponse:
     </div>
 
     <script>
+        const MISSING_STATUSES = ['Injury', 'Red card', 'Yellow red card', 'Not playing (Called up)', 'Not playing (Other)'];
+        const DOUBTFUL_STATUSES = ['Doubt'];
+        const RETURNING_STATUSES = ['Return (Injury)', 'Return (Susp)', 'Return (Called up)', 'Return (Other)'];
+
+        function switchTab(tabName) {{
+            // Toggle info bars
+            const squadBar = document.getElementById('info-bar-squad');
+            const missingBar = document.getElementById('info-bar-missing');
+            const compTable = document.getElementById('comparison-table');
+
+            if (tabName === 'Squad') {{
+                squadBar.style.display = 'flex';
+                missingBar.style.display = 'none';
+                compTable.style.display = 'flex';
+            }} else if (tabName === 'Missing Players') {{
+                squadBar.style.display = 'none';
+                missingBar.style.display = 'flex';
+                compTable.style.display = 'none';
+                calcMissingStats(MISSING_STATUSES);
+            }} else if (tabName === 'Doubtful Players') {{
+                squadBar.style.display = 'none';
+                missingBar.style.display = 'none';
+                compTable.style.display = 'none';
+            }} else if (tabName === 'Returning Players') {{
+                squadBar.style.display = 'none';
+                missingBar.style.display = 'none';
+                compTable.style.display = 'none';
+            }}
+
+            // Filter table rows
+            const rows = document.querySelectorAll('.main-table tbody tr[data-last]');
+            rows.forEach(row => {{
+                const select = row.querySelector('.status-select');
+                const status = select ? select.value : 'Available';
+                let show = false;
+                if (tabName === 'Squad') {{
+                    show = true;
+                }} else if (tabName === 'Missing Players') {{
+                    show = MISSING_STATUSES.includes(status);
+                }} else if (tabName === 'Doubtful Players') {{
+                    show = DOUBTFUL_STATUSES.includes(status);
+                }} else if (tabName === 'Returning Players') {{
+                    show = RETURNING_STATUSES.includes(status);
+                }}
+                row.style.display = show ? '' : 'none';
+            }});
+        }}
+
+        function calcMissingStats(statuses) {{
+            let count = 0, totalMV = 0, totalImpact = 0, totalGoals = 0, totalAssists = 0;
+            const rows = document.querySelectorAll('.main-table tbody tr[data-last]');
+            rows.forEach(row => {{
+                const select = row.querySelector('.status-select');
+                const status = select ? select.value : '';
+                if (!statuses.includes(status)) return;
+                count++;
+                // MV - parse from cell text
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 8) {{
+                    const mvText = cells[6].textContent.trim();
+                    const mvMatch = mvText.match(/([\d.]+)/);
+                    if (mvMatch) totalMV += parseFloat(mvMatch[1]);
+                    const impactText = cells[8].textContent.trim();
+                    const impMatch = impactText.match(/([\d.]+)/);
+                    if (impMatch) totalImpact += parseFloat(impMatch[1]);
+                    const goalsText = cells[15] ? cells[15].textContent.trim() : '0';
+                    const g = parseInt(goalsText) || 0;
+                    totalGoals += g;
+                    const assistsText = cells[16] ? cells[16].textContent.trim() : '0';
+                    const a = parseInt(assistsText) || 0;
+                    totalAssists += a;
+                }}
+            }});
+            document.getElementById('missing-count').textContent = count;
+            document.getElementById('missing-value').textContent = '\u20ac' + totalMV.toFixed(1) + 'm';
+            document.getElementById('missing-impact').textContent = totalImpact.toFixed(2);
+            document.getElementById('missing-goals').textContent = totalGoals;
+            document.getElementById('missing-assists').textContent = totalAssists;
+        }}
+
         document.querySelectorAll('.tab').forEach(tab => {{
             tab.addEventListener('click', () => {{
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
+                switchTab(tab.textContent.trim());
             }});
         }});
         
