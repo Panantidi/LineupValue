@@ -739,25 +739,25 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <table>
                 <thead>
                     <tr>
-                        <th rowspan="2" style="text-align:center;width:28px;padding:0;">№</th>
-                        <th rowspan="2" style="text-align:center;width:22px;padding:0;">Nat</th>
-                        <th rowspan="2" style="padding:0 4px;">Player</th>
-                        <th rowspan="2" style="text-align:left;width:90px;padding:0 2px;">Status</th>
-                        <th rowspan="2" style="text-align:center;width:28px;padding:0;">Age</th>
-                        <th rowspan="2" style="text-align:center;width:50px;padding:0;">MV</th>
-                        <th rowspan="2" style="text-align:center;width:32px;padding:0;">Pos</th>
-                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;">Squad<br>Role</th>
-                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;">Impact<br>Score</th>
-                        <th rowspan="2" style="text-align:center;width:28px;padding:0;">Squad<br>List</th>
-                        <th rowspan="2" style="text-align:center;width:24px;padding:0;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
-                        <th rowspan="2" style="text-align:center;width:24px;padding:0;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">№</th>
+                        <th rowspan="2" style="text-align:center;width:18px;padding:0;">Nat</th>
+                        <th rowspan="2" style="padding:0 2px;white-space:nowrap;">Player</th>
+                        <th rowspan="2" style="text-align:left;width:70px;padding:0;font-size:11px;">Status</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">Age</th>
+                        <th rowspan="2" style="text-align:center;width:42px;padding:0;font-size:11px;">MV</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">Pos</th>
+                        <th rowspan="2" style="text-align:center;width:34px;padding:0;font-size:10px;">Squad<br>Role</th>
+                        <th rowspan="2" style="text-align:center;width:34px;padding:0;font-size:10px;">Impact<br>Score</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:10px;">Squad<br>List</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:10px;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:10px;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></th>
                         {last3_header_row1}
-                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">Apps</th>
-                        <th rowspan="2" style="text-align:center;">Min</th>
-                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">G</th>
-                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">A</th>
-                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">YC</th>
-                        <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">RC</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">Apps</th>
+                        <th rowspan="2" style="text-align:center;width:28px;padding:0;font-size:11px;">Min</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">G</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">A</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">YC</th>
+                        <th rowspan="2" style="text-align:center;width:22px;padding:0;font-size:11px;">RC</th>
                     </tr>
                     <tr>
                         {last3_header_cells}
