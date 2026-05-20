@@ -749,8 +749,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;">Squad<br>Role</th>
                         <th rowspan="2" style="text-align:center;">Impact<br>Score</th>
                         <th rowspan="2" style="text-align:center;">Squad<br>List</th>
-                        <th rowspan="2" style="text-align:center;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
-                        <th rowspan="2" style="text-align:center;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;width:24px;padding:0;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:10px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;width:24px;padding:0;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:10px;">0/11</span></th>
                         {last3_header_row1}
                         <th rowspan="2" style="text-align:center;width:32px;padding:6px 2px;">Apps</th>
                         <th rowspan="2" style="text-align:center;">Min</th>
