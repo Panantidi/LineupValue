@@ -598,6 +598,24 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
 
+        <!-- Doubtful Players Stats (hidden by default) -->
+        <div id="info-bar-doubtful" style="display:none;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
+        </div>
+
+        <!-- Returning Players Stats (hidden by default) -->
+        <div id="info-bar-returning" style="display:none;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
+        </div>
+
         <!-- Comparison Table: centered, half width (Squad mode) -->
         <div id="comparison-table" style="display:flex;justify-content:center;margin-bottom:16px;">
             <div style="width:50%;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
@@ -684,28 +702,32 @@ def render_team_view(team_id: str) -> HTMLResponse:
         const RETURNING_STATUSES = ['Return (Injury)', 'Return (Susp)', 'Return (Called up)', 'Return (Other)'];
 
         function switchTab(tabName) {{
-            // Toggle info bars
             const squadBar = document.getElementById('info-bar-squad');
             const missingBar = document.getElementById('info-bar-missing');
+            const doubtfulBar = document.getElementById('info-bar-doubtful');
+            const returningBar = document.getElementById('info-bar-returning');
             const compTable = document.getElementById('comparison-table');
 
+            // Hide all bars
+            squadBar.style.display = 'none';
+            missingBar.style.display = 'none';
+            doubtfulBar.style.display = 'none';
+            returningBar.style.display = 'none';
+            compTable.style.display = 'none';
+
+            // Show relevant bar
             if (tabName === 'Squad') {{
                 squadBar.style.display = 'flex';
-                missingBar.style.display = 'none';
                 compTable.style.display = 'flex';
             }} else if (tabName === 'Missing Players') {{
-                squadBar.style.display = 'none';
                 missingBar.style.display = 'flex';
-                compTable.style.display = 'none';
-                calcMissingStats(MISSING_STATUSES);
+                calcGroupStats('missing', MISSING_STATUSES);
             }} else if (tabName === 'Doubtful Players') {{
-                squadBar.style.display = 'none';
-                missingBar.style.display = 'none';
-                compTable.style.display = 'none';
+                doubtfulBar.style.display = 'flex';
+                calcGroupStats('doubtful', DOUBTFUL_STATUSES);
             }} else if (tabName === 'Returning Players') {{
-                squadBar.style.display = 'none';
-                missingBar.style.display = 'none';
-                compTable.style.display = 'none';
+                returningBar.style.display = 'flex';
+                calcGroupStats('returning', RETURNING_STATUSES);
             }}
 
             // Filter table rows
@@ -727,7 +749,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }});
         }}
 
-        function calcMissingStats(statuses) {{
+        function calcGroupStats(prefix, statuses) {{
+            // Cell indices: MV=5, Impact=8, G=17, A=18
             let count = 0, totalMV = 0, totalImpact = 0, totalGoals = 0, totalAssists = 0;
             const rows = document.querySelectorAll('.main-table tbody tr[data-last]');
             rows.forEach(row => {{
@@ -735,28 +758,27 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 const status = select ? select.value : '';
                 if (!statuses.includes(status)) return;
                 count++;
-                // MV - parse from cell text
                 const cells = row.querySelectorAll('td');
-                if (cells.length >= 8) {{
-                    const mvText = cells[6].textContent.trim();
-                    const mvMatch = mvText.match(/([\d.]+)/);
-                    if (mvMatch) totalMV += parseFloat(mvMatch[1]);
-                    const impactText = cells[8].textContent.trim();
-                    const impMatch = impactText.match(/([\d.]+)/);
-                    if (impMatch) totalImpact += parseFloat(impMatch[1]);
-                    const goalsText = cells[15] ? cells[15].textContent.trim() : '0';
-                    const g = parseInt(goalsText) || 0;
-                    totalGoals += g;
-                    const assistsText = cells[16] ? cells[16].textContent.trim() : '0';
-                    const a = parseInt(assistsText) || 0;
-                    totalAssists += a;
-                }}
+                // MV cell[5]: text like "€5.7m" or "–"
+                const mvText = cells[5] ? cells[5].textContent.trim() : '';
+                const mvMatch = mvText.match(/([\\d.]+)/);
+                if (mvMatch) totalMV += parseFloat(mvMatch[1]);
+                // Impact cell[8]
+                const impactText = cells[8] ? cells[8].textContent.trim() : '';
+                const impMatch = impactText.match(/([\\d.]+)/);
+                if (impMatch) totalImpact += parseFloat(impMatch[1]);
+                // Goals cell[17]
+                const gText = cells[17] ? cells[17].textContent.trim() : '0';
+                totalGoals += parseInt(gText) || 0;
+                // Assists cell[18]
+                const aText = cells[18] ? cells[18].textContent.trim() : '0';
+                totalAssists += parseInt(aText) || 0;
             }});
-            document.getElementById('missing-count').textContent = count;
-            document.getElementById('missing-value').textContent = '\u20ac' + totalMV.toFixed(1) + 'm';
-            document.getElementById('missing-impact').textContent = totalImpact.toFixed(2);
-            document.getElementById('missing-goals').textContent = totalGoals;
-            document.getElementById('missing-assists').textContent = totalAssists;
+            document.getElementById(prefix + '-count').textContent = count;
+            document.getElementById(prefix + '-value').textContent = '\\u20ac' + totalMV.toFixed(1) + 'm';
+            document.getElementById(prefix + '-impact').textContent = totalImpact.toFixed(2);
+            document.getElementById(prefix + '-goals').textContent = totalGoals;
+            document.getElementById(prefix + '-assists').textContent = totalAssists;
         }}
 
         document.querySelectorAll('.tab').forEach(tab => {{
