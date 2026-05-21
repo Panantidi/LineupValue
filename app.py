@@ -212,6 +212,23 @@ def _choose_journo_prefix(seed: str) -> str:
     return JOURNO_PREFIXES[idx]
 
 
+_ENCRYPT_KEY = os.environ.get("FORMALERT_ENCRYPT_KEY", "x11radar-secret-key-2026")
+
+def _encrypt(text: str) -> str:
+    """Simple reversible encryption for storing plain passwords."""
+    import base64 as _b64
+    raw = text.encode()
+    key = _ENCRYPT_KEY.encode()
+    enc = bytes(a ^ key[i % len(key)] for i, a in enumerate(raw))
+    return _b64.b64encode(enc).decode()
+
+def _decrypt(token: str) -> str:
+    """Decrypt stored plain password."""
+    import base64 as _b64
+    key = _ENCRYPT_KEY.encode()
+    dec = _b64.b64decode(token)
+    return bytes(a ^ key[i % len(key)] for i, a in enumerate(dec)).decode()
+
 def _hash_password(password: str) -> str:
     """Hash password with salt using SHA-256."""
     salt = secrets.token_hex(16)
@@ -386,12 +403,18 @@ def ensure_db():
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT NOT NULL UNIQUE,
           password_hash TEXT NOT NULL,
+          plain_password TEXT,
           is_admin INTEGER NOT NULL DEFAULT 0,
           active INTEGER NOT NULL DEFAULT 1,
           created_at TEXT NOT NULL,
           last_login TEXT
         )
     """)
+    # Add plain_password column if missing
+    try:
+        con.execute("ALTER TABLE users ADD COLUMN plain_password TEXT")
+    except Exception:
+        pass
     # Seed default admin if table is empty
     if con.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
         _ph = _hash_password("admin")
@@ -3540,7 +3563,7 @@ async def admin_panel(request: Request):
     msg = _flash_get(flash_key) if flash_key else ""
 
     con = sqlite3.connect(DB_PATH)
-    users = con.execute("SELECT id, username, is_admin, active, created_at, last_login FROM users ORDER BY id").fetchall()
+    users = con.execute("SELECT id, username, is_admin, active, created_at, last_login, plain_password FROM users ORDER BY id").fetchall()
     total_logins = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
     logs = con.execute("SELECT username, ip, path, action, details, timestamp FROM access_log ORDER BY id DESC LIMIT 50").fetchall()
     con.close()
@@ -3557,21 +3580,30 @@ async def admin_panel(request: Request):
 
     rows = ""
     for u in users:
-        uid, uname, is_adm, active, created, last = u
+        uid, uname, is_adm, active, created, last, plain_pwd = u[:7]
         role_badge = '<span class="badge badge-admin">Admin</span>' if is_adm else '<span class="badge badge-user">User</span>'
         status_badge = '<span class="badge badge-active">Active</span>' if active else '<span class="badge badge-inactive">Inactive</span>'
         toggle_text = "Деактивировать" if active else "Активировать"
         toggle_cls = "btn-toggle"
+        pwd_display = ""
+        if plain_pwd:
+            try:
+                pwd_display = f'<span class="pwd-hidden" data-pwd="{_decrypt(plain_pwd)}" onclick="this.textContent=this.dataset.pwd;this.style.cursor=\'text\'" style="cursor:pointer;color:#6ee7b7;font-weight:600;">••••••</span>'
+            except Exception:
+                pwd_display = "–"
+        else:
+            pwd_display = "–"
         rows += f"""<tr>
             <td>{uid}</td>
             <td><strong>{uname}</strong></td>
+            <td>{pwd_display}</td>
             <td>{role_badge}</td>
             <td>{status_badge}</td>
             <td>{_fmt_msk(created)}</td>
             <td>{_fmt_msk(last)}</td>
             <td>
                 <form method="POST" action="/admin/toggle/{uid}" style="display:inline"><button class="btn {toggle_cls}">{toggle_text}</button></form>
-                <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Сброс пароля</button></form>
+                <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Новый пароль</button></form>
                 {'' if uname == 'admin' else f'<form method="POST" action="/admin/delete/{uid}" style="display:inline"><button class="btn btn-del" onclick="return confirm(\'Удалить {uname}?\')">Удалить</button></form>'}
             </td>
         </tr>"""
@@ -3586,7 +3618,7 @@ async def admin_panel(request: Request):
             </form>
         </div>
         <table>
-            <thead><tr><th>ID</th><th>Логин</th><th>Роль</th><th>Статус</th><th>Создан</th><th>Последний вход</th><th>Действия</th></tr></thead>
+            <thead><tr><th>ID</th><th>Логин</th><th>Пароль</th><th>Роль</th><th>Статус</th><th>Создан</th><th>Вход</th><th>Действия</th></tr></thead>
             <tbody>{rows}</tbody>
         </table>
     </div>"""
@@ -3626,8 +3658,8 @@ async def admin_generate_user(request: Request):
         uname = custom
     else:
         uname = _generate_username()
-    con.execute("INSERT INTO users (username, password_hash, is_admin, active, created_at) VALUES (?,?,?,?,?)",
-                (uname, ph, 0, 1, datetime.now(timezone.utc).isoformat()))
+    con.execute("INSERT INTO users (username, password_hash, plain_password, is_admin, active, created_at) VALUES (?,?,?,?,?,?)",
+                (uname, ph, _encrypt(pwd), 0, 1, datetime.now(timezone.utc).isoformat()))
     con.commit()
     con.close()
     _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "create_user", f"created {uname}")
@@ -3680,7 +3712,7 @@ async def admin_reset_password(uid: int, request: Request):
     if row:
         pwd = _generate_password()
         ph = _hash_password(pwd)
-        con.execute("UPDATE users SET password_hash=? WHERE id=?", (ph, uid))
+        con.execute("UPDATE users SET password_hash=?, plain_password=? WHERE id=?", (ph, _encrypt(pwd), uid))
         con.commit()
         _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "reset_password", f"reset for {row[0]}")
         con.close()
@@ -3694,7 +3726,7 @@ async def admin_reset_password(uid: int, request: Request):
 async def _admin_with_msg(request: Request, msg: str):
     """Re-render admin panel with a message."""
     con = sqlite3.connect(DB_PATH)
-    users = con.execute("SELECT id, username, is_admin, active, created_at, last_login FROM users ORDER BY id").fetchall()
+    users = con.execute("SELECT id, username, is_admin, active, created_at, last_login, plain_password FROM users ORDER BY id").fetchall()
     total_logins = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
     logs = con.execute("SELECT username, ip, path, action, details, timestamp FROM access_log ORDER BY id DESC LIMIT 50").fetchall()
     con.close()
@@ -3711,21 +3743,30 @@ async def _admin_with_msg(request: Request, msg: str):
 
     rows = ""
     for u in users:
-        uid, uname, is_adm, active, created, last = u
+        uid, uname, is_adm, active, created, last, plain_pwd = u[:7]
         role_badge = '<span class="badge badge-admin">Admin</span>' if is_adm else '<span class="badge badge-user">User</span>'
         status_badge = '<span class="badge badge-active">Active</span>' if active else '<span class="badge badge-inactive">Inactive</span>'
         toggle_text = "Деактивировать" if active else "Активировать"
         toggle_cls = "btn-toggle"
+        pwd_display = ""
+        if plain_pwd:
+            try:
+                pwd_display = f'<span class="pwd-hidden" data-pwd="{_decrypt(plain_pwd)}" onclick="this.textContent=this.dataset.pwd;this.style.cursor=\'text\'" style="cursor:pointer;color:#6ee7b7;font-weight:600;">••••••</span>'
+            except Exception:
+                pwd_display = "–"
+        else:
+            pwd_display = "–"
         rows += f"""<tr>
             <td>{uid}</td>
             <td><strong>{uname}</strong></td>
+            <td>{pwd_display}</td>
             <td>{role_badge}</td>
             <td>{status_badge}</td>
             <td>{_fmt_msk(created)}</td>
             <td>{_fmt_msk(last)}</td>
             <td>
                 <form method="POST" action="/admin/toggle/{uid}" style="display:inline"><button class="btn {toggle_cls}">{toggle_text}</button></form>
-                <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Сброс пароля</button></form>
+                <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Новый пароль</button></form>
                 {'' if uname == 'admin' else f'<form method="POST" action="/admin/delete/{uid}" style="display:inline"><button class="btn btn-del" onclick="return confirm(\'Удалить {uname}?\')">Удалить</button></form>'}
             </td>
         </tr>"""
@@ -3740,7 +3781,7 @@ async def _admin_with_msg(request: Request, msg: str):
             </form>
         </div>
         <table>
-            <thead><tr><th>ID</th><th>Логин</th><th>Роль</th><th>Статус</th><th>Создан</th><th>Последний вход</th><th>Действия</th></tr></thead>
+            <thead><tr><th>ID</th><th>Логин</th><th>Пароль</th><th>Роль</th><th>Статус</th><th>Создан</th><th>Вход</th><th>Действия</th></tr></thead>
             <tbody>{rows}</tbody>
         </table>
     </div>"""
