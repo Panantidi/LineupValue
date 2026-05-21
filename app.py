@@ -3436,8 +3436,10 @@ button, .btn {{ display: inline-block; padding: 4px 10px; border: none; border-r
 .stat {{ background: #1e293b; padding: 16px 20px; border-radius: 10px; text-align: center; flex: 1; }}
 .stat-val {{ font-size: 28px; font-weight: 700; color: #667eea; }}
 .stat-label {{ font-size: 11px; color: #64748b; text-transform: uppercase; margin-top: 4px; }}
-.gen-box {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; }}
+.gen-box {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }}
 .gen-box code {{ color: #6ee7b7; font-size: 15px; font-weight: 600; }}
+.gen-box input[type=text] {{ background: #334155; border: 1px solid #475569; color: #e2e8f0; padding: 6px 10px; border-radius: 6px; font-size: 13px; width: 160px; outline: none; }}
+.gen-box input[type=text]::placeholder {{ color: #64748b; }}
 </style>
 </head>
 <body>
@@ -3501,7 +3503,8 @@ async def admin_panel(request: Request):
         {stats}
         <div class="gen-box">
             <form method="POST" action="/admin/generate" style="display:inline">
-                <button class="btn btn-gen">+ Сгенерировать пользователя</button>
+                <input type="text" name="custom_username" placeholder="Логин (пусто = автоген)">
+                <button class="btn btn-gen">+ Сгенерировать логин и пароль</button>
             </form>
         </div>
         <table>
@@ -3531,17 +3534,27 @@ async def admin_panel(request: Request):
 async def admin_generate_user(request: Request):
     if not getattr(request.state, "is_admin", False):
         raise HTTPException(status_code=403)
-    uname = _generate_username()
+    form = await request.form()
+    custom = (form.get("custom_username") or "").strip()
     pwd = _generate_password()
     ph = _hash_password(pwd)
     con = sqlite3.connect(DB_PATH)
+    if custom:
+        # Use custom username
+        existing = con.execute("SELECT id FROM users WHERE username=?", (custom,)).fetchone()
+        if existing:
+            con.close()
+            return await _admin_with_msg(request, f"Логин <strong>{custom}</strong> уже занят!")
+        uname = custom
+    else:
+        # Auto-generate username
+        uname = _generate_username()
     con.execute("INSERT INTO users (username, password_hash, is_admin, active, created_at) VALUES (?,?,?,?,?)",
                 (uname, ph, 0, 1, datetime.now(timezone.utc).isoformat()))
     con.commit()
     con.close()
     _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "create_user", f"created {uname}")
-    msg = f"Создан пользователь: <strong>{uname}</strong> / Пароль: <code>{pwd}</code> — сохраните пароль, он больше не будет показан!"
-    # Re-render with message
+    msg = f"Логин: <strong>{uname}</strong> &nbsp;|&nbsp; Пароль: <code>{pwd}</code> — сохраните, больше не будет показан!"
     return await _admin_with_msg(request, msg)
 
 
@@ -3640,7 +3653,8 @@ async def _admin_with_msg(request: Request, msg: str):
         {stats}
         <div class="gen-box">
             <form method="POST" action="/admin/generate" style="display:inline">
-                <button class="btn btn-gen">+ Сгенерировать пользователя</button>
+                <input type="text" name="custom_username" placeholder="Логин (пусто = автоген)">
+                <button class="btn btn-gen">+ Сгенерировать логин и пароль</button>
             </form>
         </div>
         <table>
