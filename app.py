@@ -8,7 +8,7 @@ import re
 import hashlib
 import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import httpx
 from fastapi import FastAPI, Request, Form, Depends, HTTPException
@@ -3400,6 +3400,19 @@ async def send(
 # ADMIN PANEL
 # =====================================================================
 
+_MSK = timezone(timedelta(hours=3))
+
+def _fmt_msk(iso_str: str | None) -> str:
+    """Format ISO datetime to dd.mm.yy HH:MM MSK."""
+    if not iso_str:
+        return "–"
+    try:
+        dt = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
+        return dt.astimezone(_MSK).strftime("%d.%m.%y %H:%M")
+    except Exception:
+        return iso_str[:16] if len(iso_str) >= 16 else iso_str
+
+
 def _admin_html(users_html: str, log_html: str, msg: str = "") -> str:
     return f"""<!DOCTYPE html>
 <html lang="ru">
@@ -3489,8 +3502,8 @@ async def admin_panel(request: Request):
             <td><strong>{uname}</strong></td>
             <td>{role_badge}</td>
             <td>{status_badge}</td>
-            <td>{created[:16] if created else '–'}</td>
-            <td>{last[:16] if last else '–'}</td>
+            <td>{_fmt_msk(created)}</td>
+            <td>{_fmt_msk(last)}</td>
             <td>
                 <form method="POST" action="/admin/toggle/{uid}" style="display:inline"><button class="btn {toggle_cls}">{toggle_text}</button></form>
                 <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Сброс пароля</button></form>
@@ -3516,7 +3529,7 @@ async def admin_panel(request: Request):
     log_rows = ""
     for l in logs:
         username, ip, path, action, details, ts = l
-        log_rows += f"<tr><td>{ts[:16]}</td><td>{username}</td><td>{ip or ''}</td><td>{path}</td><td>{action}</td><td style='color:#94a3b8'>{details or ''}</td></tr>"
+        log_rows += f"<tr><td>{_fmt_msk(ts)}</td><td>{username}</td><td>{ip or ''}</td><td>{path}</td><td>{action}</td><td style='color:#94a3b8'>{details or ''}</td></tr>"
 
     log_section = f"""<div class="card">
         <h2>Последние действия (50)</h2>
@@ -3639,8 +3652,8 @@ async def _admin_with_msg(request: Request, msg: str):
             <td><strong>{uname}</strong></td>
             <td>{role_badge}</td>
             <td>{status_badge}</td>
-            <td>{created[:16] if created else '–'}</td>
-            <td>{last[:16] if last else '–'}</td>
+            <td>{_fmt_msk(created)}</td>
+            <td>{_fmt_msk(last)}</td>
             <td>
                 <form method="POST" action="/admin/toggle/{uid}" style="display:inline"><button class="btn {toggle_cls}">{toggle_text}</button></form>
                 <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Сброс пароля</button></form>
@@ -3666,7 +3679,7 @@ async def _admin_with_msg(request: Request, msg: str):
     log_rows = ""
     for l in logs:
         username, ip, path, action, details, ts = l
-        log_rows += f"<tr><td>{ts[:16]}</td><td>{username}</td><td>{ip or ''}</td><td>{path}</td><td>{action}</td><td style='color:#94a3b8'>{details or ''}</td></tr>"
+        log_rows += f"<tr><td>{_fmt_msk(ts)}</td><td>{username}</td><td>{ip or ''}</td><td>{path}</td><td>{action}</td><td style='color:#94a3b8'>{details or ''}</td></tr>"
 
     log_section = f"""<div class="card">
         <h2>Последние действия (50)</h2>
