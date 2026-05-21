@@ -13,7 +13,7 @@ sys.path.insert(0, '/home/openclaw/FormAlert')
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 
-BASE = 'https://us.soccerway.com'
+BASE = 'https://www.soccerway.com'
 CACHE_DIR = '/home/openclaw/.openclaw/workspace'
 
 def get_surname(name):
@@ -53,9 +53,9 @@ async def fetch_and_parse_lineups(matches, known_surnames):
             slug = game_path.group(1).rstrip('/') if game_path else (match_path.group(1).rstrip('/') if match_path else '')
 
             if slug and mid:
-                url = f'{BASE}/game/{slug}/summary/lineups/?mid={mid}'
+                url = f'{BASE}/match/{slug}/summary/lineups/?mid={mid}'
             elif slug:
-                url = f'{BASE}/game/{slug}/summary/lineups/'
+                url = f'{BASE}/match/{slug}/summary/lineups/'
             else:
                 url = match.url
 

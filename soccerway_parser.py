@@ -145,10 +145,10 @@ async def get_squad_page(team_id: str, team_name: str = "") -> str:
         # Если есть имя команды — формируем slug, иначе используем только ID
         if team_name:
             slug = team_name.lower().replace(" ", "-").replace("'", "").replace(".", "")
-            url = f'https://us.soccerway.com/team/{slug}/{team_id}/squad/'
+            url = f'https://www.soccerway.com/team/{slug}/{team_id}/squad/'
         else:
             # Пробуем без slug — Soccerway может редиректнуть
-            url = f'https://us.soccerway.com/team/{team_id}/squad/'
+            url = f'https://www.soccerway.com/team/{team_id}/squad/'
 
         print(f"  [Playwright] Loading {url}")
 
@@ -157,7 +157,7 @@ async def get_squad_page(team_id: str, team_name: str = "") -> str:
         except Exception as e:
             # Если не загрузилось, попробуем альтернативный формат
             if team_name:
-                alt_url = f'https://us.soccerway.com/team/{team_id}/squad/'
+                alt_url = f'https://www.soccerway.com/team/{team_id}/squad/'
                 print(f"  [Playwright] Retrying {alt_url}")
                 await page.goto(alt_url, wait_until='networkidle', timeout=30000)
             else:
@@ -168,7 +168,13 @@ async def get_squad_page(team_id: str, team_name: str = "") -> str:
             await page.wait_for_selector('table', timeout=15000)
         except:
             # Возможно, таблица подгружается динамически — ждём ещё
-            await page.wait_for_timeout(5000)
+            await page.wait_for_timeout(3000)
+        # Scroll to trigger lazy loading of match results
+        for _ in range(5):
+            await page.evaluate("window.scrollBy(0, 500)")
+            await page.wait_for_timeout(500)
+        await page.evaluate("window.scrollTo(0, 0)")
+        await page.wait_for_timeout(2000)
 
         html = await page.content()
         await browser.close()
@@ -370,7 +376,7 @@ async def enrich_players_async(players: List[Player], concurrency: int = 1) -> L
         for player in players:
             if not player.player_url:
                 continue
-            url = f'https://us.soccerway.com{player.player_url}'
+            url = f'https://www.soccerway.com{player.player_url}'
             try:
                 await page.goto(url, wait_until='domcontentloaded', timeout=15000)
                 await page.wait_for_timeout(1000)
@@ -412,27 +418,28 @@ async def enrich_players_async(players: List[Player], concurrency: int = 1) -> L
 async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
     """Fetch last 3 completed matches from results page"""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=[
-            '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage',
-            '--disable-blink-features=AutomationControlled'
-        ])
+        browser = await p.chromium.launch(headless=True, args=['--no-sandbox'])
         context = await browser.new_context(
             user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
             viewport={'width': 1920, 'height': 1080},
-            locale='en-US'
         )
-        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         page = await context.new_page()
 
         if team_name:
             slug = team_name.lower().replace(" ", "-").replace("'", "").replace(".", "")
-            url = f'https://us.soccerway.com/team/{slug}/{team_id}/results/'
+            url = f'https://www.soccerway.com/team/{slug}/{team_id}/results/'
         else:
-            url = f'https://us.soccerway.com/team/{team_id}/results/'
+            url = f'https://www.soccerway.com/team/{team_id}/results/'
         print(f"  [Playwright] Loading {url}")
 
-        await page.goto(url, wait_until='domcontentloaded', timeout=30000)
-        await page.wait_for_timeout(5000)
+        await page.goto(url, wait_until='load', timeout=30000)
+        await page.wait_for_timeout(3000)
+        # Scroll to trigger lazy loading of match results
+        for _ in range(5):
+            await page.evaluate("window.scrollBy(0, 500)")
+            await page.wait_for_timeout(500)
+        await page.evaluate("window.scrollTo(0, 0)")
+        await page.wait_for_timeout(2000)
 
         html = await page.content()
         await browser.close()
@@ -513,7 +520,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         if not tournament:
             tournament = "CUP"
 
-        match_url = f"https://us.soccerway.com{href}" if href.startswith('/') else href
+        match_url = f"https://www.soccerway.com{href}" if href.startswith('/') else href
         # Convert /match/ URLs to /game/ for lineup page compatibility
         if "/match/" in match_url:
             match_url = match_url.replace("/match/", "/game/")
@@ -526,6 +533,8 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
     # Fallback: parse from div.event__match if not enough matches found
     # (new Soccerway layout may not have a[href*="/game/"] links)
     if len(matches) < 3:
+        matches = []
+        seen = set()
         if matches:
             print(f"  Only {len(matches)} from links, trying div.event__match fallback...")
         else:
@@ -550,7 +559,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
             seen.add(mid)
 
             # Build URL
-            match_url = f"https://us.soccerway.com{href}" if href.startswith('/') else href
+            match_url = f"https://www.soccerway.com{href}" if href.startswith('/') else href
             if "/match/" in match_url:
                 match_url = match_url.replace("/match/", "/game/")
 
