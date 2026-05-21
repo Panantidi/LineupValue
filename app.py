@@ -2321,6 +2321,7 @@ async def index(request: Request):
     options = "\n".join([f"<option value='{c}'>{c}</option>" for c in CATEGORIES])
     impacts = "\n".join([f"<option value='{i}'>{i}</option>" for i in IMPACT_LEVELS])
 
+    nav = _main_nav("/")
     html = f"""<!doctype html>
 <html lang=\"ru\">
 <head>
@@ -2341,7 +2342,7 @@ async def index(request: Request):
   </style>
 </head>
 <body>
-  """ + _main_nav("/") + """
+  {nav}
   <h1>FormAlert</h1>
   <p class='hint'>Отправляет алерт в Telegram и сохраняет в SQLite.</p>
 
@@ -2493,6 +2494,7 @@ async def keywords_page():
     bl_txt = html_escape("\n".join(bl))
     pn_txt = html_escape("\n".join(pn))
 
+    nav = _main_nav("/keywords")
     html = f"""<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
     <title>Keywords</title>
     <style>
@@ -2505,7 +2507,7 @@ async def keywords_page():
       .topnav a{{display:inline-block;margin-right:10px;padding:6px 10px;border-radius:10px;text-decoration:none;background:#eee;color:#111;font-weight:800}}
       .topnav a.active{{background:#111;color:#fff}}
     </style></head><body>
-    """ + _main_nav("/keywords") + """
+    {nav}
     <h1>Keywords</h1>
     <p class='hint'>1 строка = 1 слово/фраза. Сохраняется в .txt. Дубликаты удаляются.</p>
 
