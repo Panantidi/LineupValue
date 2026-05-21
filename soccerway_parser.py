@@ -497,15 +497,21 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         parent_text = parent.text.strip() if parent else ""
 
         date = ""
-        date_match = re.search(r'(\w{3})\s+(\d{1,2})', parent_text)
+        # Format 1: "17.05. 21:00" (DD.MM. HH:MM)
+        date_match = re.search(r'(\d{1,2})\.(\d{2})\.', parent_text)
         if date_match:
-            month = date_match.group(1)
-            day = date_match.group(2).zfill(2)
-            months = {'Jan':'01','Feb':'02','Mar':'03','Apr':'04','May':'05','Jun':'06',
-                      'Jul':'07','Aug':'08','Sep':'09','Oct':'10','Nov':'11','Dec':'12'}
-            mm = months.get(month, '')
-            if mm:
-                date = f"{day}.{mm}"
+            date = f"{date_match.group(1).zfill(2)}.{date_match.group(2)}"
+        if not date:
+            # Format 2: "May 17" (Mon DD)
+            date_match = re.search(r'(\w{3})\s+(\d{1,2})', parent_text)
+            if date_match:
+                month = date_match.group(1)
+                day = date_match.group(2).zfill(2)
+                months = {'Jan':'01','Feb':'02','Mar':'03','Apr':'04','May':'05','Jun':'06',
+                          'Jul':'07','Aug':'08','Sep':'09','Oct':'10','Nov':'11','Dec':'12'}
+                mm = months.get(month, '')
+                if mm:
+                    date = f"{day}.{mm}"
 
         # Tournament from parent league container
         tournament = ""
