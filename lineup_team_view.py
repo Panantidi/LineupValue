@@ -707,30 +707,26 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 </tbody>
             </table>
             </div>
-            <!-- Value S-XI: S-XI vs P-XI comparison -->
+            <!-- Value S-XI: S-XI vs P-XI Δ (%) only -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:8px 16px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:8px 16px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">S-XI vs P-XI</th>
-                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
+                        <th style="padding:8px 16px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">S-XI vs P-XI Δ (%)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;">
                         <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Impact Score</td>
-                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-impact">–</td>
                         <td style="padding:8px 16px;text-align:center;" id="cmp-val-pct-impact">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;">
                         <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Market Value</td>
-                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-mv">–</td>
                         <td style="padding:8px 16px;text-align:center;" id="cmp-val-pct-mv">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;">
                         <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Av.Age</td>
-                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-age">–</td>
                         <td style="padding:8px 16px;text-align:center;" id="cmp-val-pct-age">–</td>
                     </tr>
                 </tbody>
@@ -1197,12 +1193,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             var sxiMv = parseMV(sxiMvText);
             var pxiMv = parseMV(pxiMvText);
 
-            // Impact
-            var el1 = document.getElementById('cmp-val-impact');
-            if (el1) {{
-                if (sxiImpact > 0) el1.textContent = sxiImpact.toFixed(2);
-                else el1.textContent = '–';
-            }}
+            // Impact Δ (%)
             var el2 = document.getElementById('cmp-val-pct-impact');
             if (el2) {{
                 if (pxiImpact > 0 && sxiImpact > 0) {{
@@ -1211,12 +1202,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 }} else el2.textContent = '–';
             }}
 
-            // MV
-            var el3 = document.getElementById('cmp-val-mv');
-            if (el3) {{
-                if (sxiMv > 0) el3.textContent = sxiMv >= 1000 ? (sxiMv/1000).toFixed(2)+'bn' : sxiMv.toFixed(1)+'m';
-                else el3.textContent = '–';
-            }}
+            // MV Δ (%)
             var el4 = document.getElementById('cmp-val-pct-mv');
             if (el4) {{
                 if (pxiMv > 0 && sxiMv > 0) {{
@@ -1225,12 +1211,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 }} else el4.textContent = '–';
             }}
 
-            // Age
-            var el5 = document.getElementById('cmp-val-age');
-            if (el5) {{
-                if (sxiAge > 0) el5.textContent = sxiAge.toFixed(1);
-                else el5.textContent = '–';
-            }}
+            // Age Δ (%)
             var el6 = document.getElementById('cmp-val-pct-age');
             if (el6) {{
                 if (pxiAge > 0 && sxiAge > 0) {{
