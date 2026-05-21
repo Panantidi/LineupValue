@@ -521,7 +521,9 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
             tournament = "CUP"
 
         match_url = f"https://www.soccerway.com{href}" if href.startswith('/') else href
-        # Keep /match/ URLs — Soccerway native format
+        # Convert /match/ URLs to /game/ for lineup page compatibility
+        if "/match/" in match_url:
+            match_url = match_url.replace("/match/", "/game/")
 
         matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0))
 
@@ -558,7 +560,8 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
 
             # Build URL
             match_url = f"https://www.soccerway.com{href}" if href.startswith('/') else href
-            # Keep /match/ URLs — Soccerway native format
+            if "/match/" in match_url:
+                match_url = match_url.replace("/match/", "/game/")
 
             # Get team names from participant divs
             home_div = ev.find("div", class_=re.compile(r"event__homeParticipant"))
@@ -657,30 +660,23 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
                 mid_match = re.search(r'mid=([a-zA-Z0-9]+)', match.url)
                 mid = mid_match.group(1) if mid_match else ""
             
-            # Extract slug from URL (works for both /game/ and /match/)
+            # Extract game slug from URL
             game_path = re.search(r'/game/([^?]+)', match.url)
-            match_path = re.search(r'/match/([^?]+)', match.url)
-            slug = game_path.group(1).rstrip('/') if game_path else (match_path.group(1).rstrip('/') if match_path else "")
+            slug = game_path.group(1).rstrip('/') if game_path else ""
             
             if slug and mid:
-                url = f'https://www.soccerway.com/match/{slug}/summary/lineups/?mid={mid}'
+                url = f'https://us.soccerway.com/game/{slug}/summary/lineups/?mid={mid}'
             else:
                 url = match.url
 
             try:
                 print(f"    Loading lineups: {match.date} {match.tournament}")
                 await page.goto(url, wait_until='load', timeout=30000)
-                await page.wait_for_timeout(4000)
-                # Scroll to load lazy content (Missing Players section)
-                for _ in range(5):
-                    await page.evaluate("window.scrollBy(0, 500)")
-                    await page.wait_for_timeout(500)
-                await page.evaluate("window.scrollTo(0, 0)")
-                await page.wait_for_timeout(2000)
+                await page.wait_for_timeout(6000)
                 html = await page.content()
             except Exception as e:
                 print(f"    Error loading lineups for {match.date}: {e}")
-                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': '', 'home_team': '', 'away_team': ''})
+                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': []})
                 continue
 
             soup = BeautifulSoup(html, 'html.parser')
@@ -766,64 +762,12 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
                         if name and not name.isdigit() and len(name) > 1:
                             substitutes.append(name)
 
-            # Parse Missing Players section
-            missing_players = []
-            miss_span = soup.find('span', string=re.compile(r'Missing Players', re.I))
-            if miss_span:
-                miss_sec = miss_span.find_parent('div', class_='section')
-                if miss_sec:
-                    miss_side = "left" if is_home else "right"
-                    miss_testid = f'wcl-lineupsParticipantGeneral-{miss_side}'
-                    for part in miss_sec.select(f'[data-testid="{miss_testid}"]'):
-                        name_el = part.select_one('span[class*="wcl-bold"]')
-                        if not name_el:
-                            continue
-                        full_name = name_el.text.strip()
-                        reason = ''
-                        for span in part.select('span'):
-                            txt = span.get_text(strip=True)
-                            if txt and txt != full_name and len(txt) > 2 and not txt.startswith('('):
-                                reason = txt
-                                break
-                        if full_name:
-                            missing_players.append({'name': full_name, 'reason': reason})
-
-            # Parse Captains from Starting Lineups
-            captains = set()
-            for part in start_sec.select(f'[data-testid="{testid_side}"]'):
-                if '(C)' in part.get_text():
-                    name_el = part.select_one('span[class*="wcl-bold"]')
-                    if name_el:
-                        captains.add(name_el.text.strip().split()[0].lower())
-
-            # Parse score from page title
-            title_el = soup.find('title')
-            title_text = title_el.get_text() if title_el else ''
-            score_str = ''
-            home_team_name = ''
-            away_team_name = ''
-            score_match = re.search(r'(\w+)\s+(\d+)\s*-\s*(\d+)\s+(\w+)\s*\|', title_text)
-            if score_match:
-                abbr1, s1, s2, abbr2 = score_match.group(1), int(score_match.group(2)), int(score_match.group(3)), score_match.group(4)
-                names_match = re.search(r'\|\s*([^v]+)\s+v\s+([^\d]+)', title_text)
-                if names_match:
-                    home_team_name = names_match.group(1).strip()
-                    away_team_name = names_match.group(2).strip().split(',')[0].strip()
-                    score_str = f'{home_team_name} {s1}-{s2} {away_team_name}'
-                else:
-                    score_str = f'{abbr1} {s1}-{s2} {abbr2}'
-
-            print(f"    {match.date} ({side_label}): starters={len(starters)}, subs={len(substitutes)}, missing={len(missing_players)}, captains={len(captains)}")
+            print(f"    {match.date} ({side_label}): starters={len(starters)}, subs={len(substitutes)}")
             results.append({
                 'date': match.date,
                 'tournament': match.tournament,
                 'starters': starters,
-                'substitutes': substitutes,
-                'missing': missing_players,
-                'captains': list(captains),
-                'score': score_str,
-                'home_team': home_team_name,
-                'away_team': away_team_name
+                'substitutes': substitutes
             })
 
         await browser.close()
@@ -836,7 +780,7 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
 # ============================================================
 
 def apply_last3_to_players(players: List[Player], lineups_data: List[Dict]) -> List[Player]:
-    """For each player, determine start/sub/missing status for each of 3 matches.
+    """For each player, determine start/sub status for each of 3 matches.
     Matching by surname (first word) because Soccerway uses 'Penders M.' 
     while our data has 'Penders Mike'."""
     
@@ -844,46 +788,19 @@ def apply_last3_to_players(players: List[Player], lineups_data: List[Dict]) -> L
         """Extract surname (first word) for matching"""
         return name.split()[0].lower().replace('.', '').strip() if name.strip() else ""
 
-    for player in players:
-        player.last3_missing = []
-        player.last3_captain = []
-
     for match_idx, match_data in enumerate(lineups_data):
-        starters_surnames = {get_surname(p) for p in match_data.get('starters', [])}
-        subs_surnames = {get_surname(p) for p in match_data.get('substitutes', [])}
-        missing_list = match_data.get('missing', [])
-        missing_map = {get_surname(m.get('name', '')): m.get('reason', '') for m in missing_list}
-        captains_set = set(match_data.get('captains', []))
+        starters_surnames = {get_surname(p) for p in match_data['starters']}
+        subs_surnames = {get_surname(p) for p in match_data['substitutes']}
 
         for player in players:
             p_surname = get_surname(player.name)
 
             if p_surname in starters_surnames:
                 player.last3.append("START")
-                player.last3_missing.append(None)
-                player.last3_captain.append(p_surname in captains_set)
             elif p_surname in subs_surnames:
                 player.last3.append("SUB")
-                player.last3_missing.append(None)
-                player.last3_captain.append(False)
-            elif p_surname in missing_map:
-                player.last3.append("")
-                player.last3_missing.append(missing_map[p_surname])
-                player.last3_captain.append(False)
             else:
                 player.last3.append("—")
-                player.last3_missing.append(None)
-                player.last3_captain.append(False)
-
-    # Ensure all players have exactly 3 entries
-    for player in players:
-        while len(player.last3) < 3:
-            player.last3.append("—")
-            player.last3_missing.append(None)
-            player.last3_captain.append(False)
-        player.last3 = player.last3[:3]
-        player.last3_missing = player.last3_missing[:3]
-        player.last3_captain = player.last3_captain[:3]
 
     return players
 
@@ -911,20 +828,14 @@ def to_lineup_format(team_data: TeamData) -> dict:
             "profile_path": p.player_url,
             "market_value": p.market_value,
             "last3": p.last3[:3] if p.last3 else ["—", "—", "—"],
-            "last3_missing": p.last3_missing[:3] if hasattr(p, 'last3_missing') and p.last3_missing else [None, None, None],
-            "last3_captain": p.last3_captain[:3] if hasattr(p, 'last3_captain') and p.last3_captain else [False, False, False],
         })
 
     matches_out = []
     for m in team_data.last3_matches:
         matches_out.append({
             "date": m.date,
-            "tournament": m.tournament,
+            "comp": m.tournament,
             "url": m.url,
-            "mid": m.mid,
-            "score": m.score,
-            "home_team": m.home_team,
-            "away_team": m.away_team,
         })
 
     return {

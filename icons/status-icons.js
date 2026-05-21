@@ -25,12 +25,18 @@ function updateStatusIcon(s) {
   var player = row.querySelector("td.player-name");
   if (!player) return;
   player.classList.remove("status-red","status-green","status-orange");
+  player.style.color = "";
+  player.style.fontWeight = "";
+  player.style.textDecoration = "";
   var x = ["Injury","Red card","Yellow red card","Not playing (Called up)","Not playing (Other)"];
   var g = ["Return (Injury)","Return (Susp)","Return (Called up)","Return (Other)"];
-  var o = ["Doubt"];
   if (x.indexOf(val) !== -1) player.classList.add("status-red");
   else if (g.indexOf(val) !== -1) player.classList.add("status-green");
-  else if (o.indexOf(val) !== -1) player.classList.add("status-orange");
+  else if (val === "Doubt") {
+    player.style.color = "#5F5D58";
+    player.style.fontWeight = "bold";
+    player.style.textDecoration = "underline";
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function() {

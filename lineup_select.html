@@ -238,6 +238,12 @@
             container.appendChild(errorDiv);
         }
         
+        // Ensure spinner is hidden on load and on bfcache restore
+        document.getElementById('spinner').classList.remove('active');
+        window.addEventListener('pageshow', function(e) {
+            document.getElementById('spinner').classList.remove('active');
+        });
+        
         // Initialize
         loadLineupData();
     </script>

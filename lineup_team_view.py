@@ -48,14 +48,16 @@ def get_flag_html(country_name):
         'Burkina Faso': 'bf', 'Burundi': 'bi', 'Cambodia': 'kh', 'Cameroon': 'cm',
         'Canada': 'ca', 'Cape Verde': 'cv', 'Cabo Verde': 'cv',
         'Central African Republic': 'cf', 'Chad': 'td', 'Chile': 'cl', 'China': 'cn',
-        'Colombia': 'co', 'Comoros': 'km', 'Congo': 'cg', 'DR Congo': 'cd',
+        'Colombia': 'co', 'Comoros': 'km',        'Congo': 'cg', 'Republic of the Congo': 'cg', 'DR Congo': 'cd',
         'Congo DR': 'cd', 'Democratic Republic of the Congo': 'cd',
         'Costa Rica': 'cr', 'Croatia': 'hr', 'Cuba': 'cu', 'Cyprus': 'cy',
         'Czech Republic': 'cz', 'Czechia': 'cz', 'Denmark': 'dk', 'Djibouti': 'dj',
         'Dominica': 'dm', 'Dominican Republic': 'do', 'Ecuador': 'ec', 'Egypt': 'eg',
         'El Salvador': 'sv', 'Equatorial Guinea': 'gq', 'Eritrea': 'er', 'Estonia': 'ee',
         'Eswatini': 'sz', 'Swaziland': 'sz', 'Ethiopia': 'et', 'Fiji': 'fj',
-        'Finland': 'fi', 'France': 'fr', 'French Guiana': 'gf', 'French Polynesia': 'pf', 'Gabon': 'ga', 'Gambia': 'gm',
+        'Finland': 'fi', 'France': 'fr', 'French Guiana': 'gf', 'French Polynesia': 'pf',
+        'Gabon': 'ga', 'Gambia': 'gm',
+        'Guadeloupe': 'gp', 'Guam': 'gu',
         'Georgia': 'ge', 'Germany': 'de', 'Ghana': 'gh', 'Greece': 'gr',
         'Grenada': 'gd', 'Guatemala': 'gt', 'Guinea': 'gn', 'Guinea-Bissau': 'gw',
         'Guyana': 'gy', 'Haiti': 'ht', 'Honduras': 'hn', 'Hungary': 'hu',
@@ -609,7 +611,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
     </style>
 
 
-\n<script src="/icons/status-icons.js?v=2"></script>
+
+<script src="/icons/status-icons.js?v=2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -621,6 +625,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Returning Players</div>
         </div>
         <a href="/lineup_ai/select">← Back to teams</a>
+        <div style="position:relative;display:inline-block;vertical-align:middle;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><button onclick="exportScreenshot()" id="btn-export" style="background:none;border:none;cursor:pointer;font-size:24px;padding:4px 8px;">&#x1F4F8;</button><span class="tooltip-delay" style="visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:12px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;transition:opacity 0.3s ease;">Save Screenshot</span></div>
     </div>
 
     <div class="container">
@@ -782,6 +787,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
     </div>
 
     <script>
+        var _tooltipTimer = null;
+        function showTooltip(el) {{ var t = el.querySelector('.tooltip-delay'); if(t){{ _tooltipTimer = setTimeout(function(){{ t.style.visibility='visible'; t.style.opacity='1'; }}, 800); }} }}
+        function hideTooltip(el) {{ if(_tooltipTimer){{ clearTimeout(_tooltipTimer); _tooltipTimer=null; }} var t = el.querySelector('.tooltip-delay'); if(t){{ t.style.opacity='0'; setTimeout(function(){{ t.style.visibility='hidden'; }}, 300); }} }}
         const MISSING_STATUSES = ['Injury', 'Red card', 'Yellow red card', 'Not playing (Called up)', 'Not playing (Other)'];
         const DOUBTFUL_STATUSES = ['Doubt'];
         const RETURNING_STATUSES = ['Return (Injury)', 'Return (Susp)', 'Return (Called up)', 'Return (Other)'];
@@ -1135,6 +1143,90 @@ def render_team_view(team_id: str) -> HTMLResponse:
         updateStartingCounter(null);
         recalcSelectedStartingStats();
         recalcPossibleXIStats();
+
+        function _replaceCheckboxesWithCircles(container) {{
+            // Replace <input type="checkbox"> with <div> circles that html2canvas can render
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => {{
+                const div = document.createElement('div');
+                div.style.cssText = 'width:20px;height:20px;border-radius:50%;display:inline-block;vertical-align:middle;';
+                const cls = cb.className;
+                if (cls.includes('squad-checkbox')) {{
+                    div.style.background = cb.checked ? '#000' : '#e0e0e0';
+                    if (!cb.checked) div.style.border = '2px solid #333';
+                }} else if (cls.includes('xi-checkbox')) {{
+                    div.style.background = cb.checked ? '#667eea' : '#e0e0e0';
+                    if (!cb.checked) div.style.border = '2px solid #667eea';
+                }} else if (cls.includes('starting-checkbox')) {{
+                    div.style.background = cb.checked ? '#dc3545' : '#e0e0e0';
+                    if (!cb.checked) div.style.border = '2px solid #dc3545';
+                }} else {{
+                    div.style.background = cb.checked ? '#000' : '#e0e0e0';
+                    if (!cb.checked) div.style.border = '2px solid #333';
+                }}
+                // Add ✓ for checked state (white text)
+                if (cb.checked) {{
+                    div.style.display = 'inline-flex';
+                    div.style.alignItems = 'center';
+                    div.style.justifyContent = 'center';
+                    div.innerHTML = '<span style="color:white;font-size:13px;line-height:1;">✓</span>';
+                }}
+                cb.parentNode.replaceChild(div, cb);
+            }});
+        }}
+
+        async function exportScreenshot() {{
+            const btn = document.getElementById('btn-export');
+            btn.disabled = true;
+            btn.style.opacity = '0.4';
+            try {{
+                // Build a wrapper that clones the visible sections
+                const teamName = document.querySelector('.header h1').textContent.trim();
+                const infoBar = document.getElementById('info-bar-squad');
+                const compTable = document.getElementById('comparison-table');
+                const mainTable = document.querySelector('.table-container');
+
+                // Create off-screen capture div
+                const capture = document.createElement('div');
+                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + document.querySelector('.container').offsetWidth + 'px;';
+
+                // Header with team name
+                const hdr = document.createElement('div');
+                hdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
+                hdr.textContent = teamName;
+                capture.appendChild(hdr);
+
+                // Clone sections (deep clone to preserve all state)
+                if (infoBar) capture.appendChild(infoBar.cloneNode(true));
+                if (compTable) capture.appendChild(compTable.cloneNode(true));
+                if (mainTable) capture.appendChild(mainTable.cloneNode(true));
+
+                // Replace checkboxes with circle divs in the clone
+                _replaceCheckboxesWithCircles(capture);
+
+                document.body.appendChild(capture);
+
+                const canvas = await html2canvas(capture, {{
+                    backgroundColor: '#f4f6f9',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                }});
+
+                document.body.removeChild(capture);
+
+                const link = document.createElement('a');
+                link.download = teamName.replace(/\s+/g, '_') + '_squad.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }} catch(e) {{
+                console.error('Export failed:', e);
+                alert('Export failed: ' + e.message);
+            }} finally {{
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }}
+        }}
 
     </script>
 </body>

@@ -242,7 +242,7 @@
                     <tr>
                         <td>{{player.number}}</td>
                         <td>{{player.national}}</td>
-                        <td><strong>{{player.name}}</strong></td>
+                        <td><strong>{{player.name}}{% if player.is_goal_leader %} ⚽️{% endif %}{% if player.is_assist_leader %} 👟{% endif %}</strong></td>
                         <td>
                             {% if player.status %}
                             <span class="status-{{player.status}}">{{player.status}}</span>
