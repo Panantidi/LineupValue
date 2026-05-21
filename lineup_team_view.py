@@ -707,6 +707,35 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 </tbody>
             </table>
             </div>
+            <!-- Value S-XI: S-XI vs P-XI comparison -->
+            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                <thead>
+                    <tr style="background:#f8f9fa;">
+                        <th style="padding:8px 16px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
+                        <th style="padding:8px 16px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">S-XI vs P-XI</th>
+                        <th style="padding:8px 16px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Impact Score</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-impact">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-pct-impact">–</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Market Value</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-mv">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-pct-mv">–</td>
+                    </tr>
+                    <tr style="border-top:1px solid #eee;">
+                        <td style="padding:8px 16px;font-weight:600;text-align:right;white-space:nowrap;">Av.Age</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-age">–</td>
+                        <td style="padding:8px 16px;text-align:center;" id="cmp-val-pct-age">–</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
             <!-- Starting XI -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
@@ -1128,6 +1157,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             checkbox.addEventListener('change', function() {{
                 updateXICounter(this);
                 recalcPossibleXIStats();
+                recalcValueComparison();
             }});
         }});
 
@@ -1135,6 +1165,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             checkbox.addEventListener('change', function() {{
                 updateStartingCounter(this);
                 recalcSelectedStartingStats();
+                recalcValueComparison();
             }});
         }});
 
@@ -1143,6 +1174,71 @@ def render_team_view(team_id: str) -> HTMLResponse:
         updateStartingCounter(null);
         recalcSelectedStartingStats();
         recalcPossibleXIStats();
+        recalcValueComparison();
+
+        function recalcValueComparison() {{
+            // Read S-XI values from already-updated comparison table
+            var sxiImpact = parseFloat((document.getElementById('cmp-sxi-impact') || {{}}).textContent) || 0;
+            var sxiMvText = (document.getElementById('cmp-sxi-mv') || {{}}).textContent || '0';
+            var sxiAge = parseFloat((document.getElementById('cmp-sxi-age') || {{}}).textContent) || 0;
+
+            // Read P-XI values
+            var pxiImpact = parseFloat((document.getElementById('cmp-pxi-impact') || {{}}).textContent) || 0;
+            var pxiMvText = (document.getElementById('cmp-pxi-mv') || {{}}).textContent || '0';
+            var pxiAge = parseFloat((document.getElementById('cmp-pxi-age') || {{}}).textContent) || 0;
+
+            // Parse MV values (handle "X.Xm" and "X.XXbn")
+            function parseMV(s) {{
+                s = (s || '').trim().toLowerCase().replace(/€/g, '');
+                if (s.endsWith('bn')) return parseFloat(s) * 1000;
+                if (s.endsWith('m')) return parseFloat(s);
+                return parseFloat(s) || 0;
+            }}
+            var sxiMv = parseMV(sxiMvText);
+            var pxiMv = parseMV(pxiMvText);
+
+            // Impact
+            var el1 = document.getElementById('cmp-val-impact');
+            if (el1) {{
+                if (sxiImpact > 0) el1.textContent = sxiImpact.toFixed(2);
+                else el1.textContent = '–';
+            }}
+            var el2 = document.getElementById('cmp-val-pct-impact');
+            if (el2) {{
+                if (pxiImpact > 0 && sxiImpact > 0) {{
+                    var d = (sxiImpact - pxiImpact) / pxiImpact * 100;
+                    el2.innerHTML = fmtPct(d);
+                }} else el2.textContent = '–';
+            }}
+
+            // MV
+            var el3 = document.getElementById('cmp-val-mv');
+            if (el3) {{
+                if (sxiMv > 0) el3.textContent = sxiMv >= 1000 ? (sxiMv/1000).toFixed(2)+'bn' : sxiMv.toFixed(1)+'m';
+                else el3.textContent = '–';
+            }}
+            var el4 = document.getElementById('cmp-val-pct-mv');
+            if (el4) {{
+                if (pxiMv > 0 && sxiMv > 0) {{
+                    var d2 = (sxiMv - pxiMv) / pxiMv * 100;
+                    el4.innerHTML = fmtPct(d2);
+                }} else el4.textContent = '–';
+            }}
+
+            // Age
+            var el5 = document.getElementById('cmp-val-age');
+            if (el5) {{
+                if (sxiAge > 0) el5.textContent = sxiAge.toFixed(1);
+                else el5.textContent = '–';
+            }}
+            var el6 = document.getElementById('cmp-val-pct-age');
+            if (el6) {{
+                if (pxiAge > 0 && sxiAge > 0) {{
+                    var d3 = (sxiAge - pxiAge) / pxiAge * 100;
+                    el6.innerHTML = fmtPct(d3);
+                }} else el6.textContent = '–';
+            }}
+        }}
 
         function _replaceCheckboxesWithCircles(container) {{
             // Replace <input type="checkbox"> with <div> circles that html2canvas can render
