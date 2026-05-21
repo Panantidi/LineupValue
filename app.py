@@ -2335,11 +2335,15 @@ async def index(request: Request):
     .row {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }}
     button {{ margin-top: 16px; padding: 12px 16px; font-weight: 700; }}
     .hint {{ color: #666; font-size: 13px; margin-top: 4px; }}
+    .topnav {{ margin: 0 0 14px 0; }}
+    .topnav a {{ display: inline-block; margin-right: 10px; padding: 6px 10px; border-radius: 10px; text-decoration: none; background: #eee; color: #111; font-weight: 800; }}
+    .topnav a.active {{ background: #111; color: #fff; }}
   </style>
 </head>
 <body>
+  """ + _main_nav("/") + """
   <h1>FormAlert</h1>
-  <p class='hint'>Отправляет алерт в Telegram и сохраняет в SQLite. <a href='/admin/'>Админ</a> • <a href='/keywords'>Keywords &amp; Blacklist</a></p>
+  <p class='hint'>Отправляет алерт в Telegram и сохраняет в SQLite.</p>
 
   <form method=\"post\" action=\"/send\">
 
@@ -2497,8 +2501,11 @@ async def keywords_page():
       .grid{{display:grid;grid-template-columns:1fr 1fr;gap:16px}}
       button{{padding:10px 14px;font-weight:800}}
       .hint{{color:#666;font-size:13px}}
+      .topnav{{margin:0 0 14px 0}}
+      .topnav a{{display:inline-block;margin-right:10px;padding:6px 10px;border-radius:10px;text-decoration:none;background:#eee;color:#111;font-weight:800}}
+      .topnav a.active{{background:#111;color:#fff}}
     </style></head><body>
-    <p><a href='/'>← На главную</a> · <a href='/admin/'>Admin</a></p>
+    """ + _main_nav("/keywords") + """
     <h1>Keywords</h1>
     <p class='hint'>1 строка = 1 слово/фраза. Сохраняется в .txt. Дубликаты удаляются.</p>
 
@@ -2538,7 +2545,7 @@ async def keywords_save(include: str = Form(default=""), blacklist: str = Form(d
     return RedirectResponse(url="/keywords", status_code=303)
 
 
-def _admin_nav(active: str) -> str:
+def _main_nav(active: str = "/") -> str:
     items = [
         ("Форма", "/"),
         ("Runs", "/admin/runs"),
@@ -2546,6 +2553,7 @@ def _admin_nav(active: str) -> str:
         ("Teams", "/admin/teams"),
         ("Status", "/admin/status"),
         ("Modes", "/admin/modes"),
+        ("Keywords & Blacklist", "/keywords"),
     ]
     links = []
     for name, href in items:
@@ -2554,6 +2562,10 @@ def _admin_nav(active: str) -> str:
     return (
         "<div class='topnav'>" + " ".join(links) + "</div>"
     )
+
+
+def _admin_back_link() -> str:
+    return "<div class='topnav'><a href='/'>← На главную</a></div>"
 
 
 @app.get("/admin/", response_class=HTMLResponse)
@@ -2567,7 +2579,7 @@ async def admin_home():
       .topnav a.active{background:#111;color:#fff}
     </style>
     </head><body>
-    """ + _admin_nav("/admin/") + """
+    """ + _admin_back_link() + """
     <h1>Admin</h1>
     <p class='muted'>Навигация сверху.</p>
     </body></html>"""
@@ -2603,7 +2615,7 @@ async def admin_status():
       .topnav a{display:inline-block;margin-right:10px;padding:6px 10px;border-radius:10px;text-decoration:none;background:#eee;color:#111;font-weight:800}
       .topnav a.active{background:#111;color:#fff}
     </style></head><body>
-    """ + _admin_nav("/admin/status") + """
+    """ + _admin_back_link() + """
     <h1>Status</h1>
     <pre>""" + html_escape(body) + """</pre>
     </body></html>"""
@@ -2625,7 +2637,7 @@ async def admin_modes():
       .topnav a.active{background:#111;color:#fff}
       .hint{color:#666;font-size:13px;margin:8px 0}
     </style></head><body>
-    """ + _admin_nav("/admin/modes") + """
+    """ + _admin_back_link() + """
     <h1>Modes</h1>
     <div class='hint'>Режимы хранятся в <code>modes.json</code>. Можно редактировать JSON и сохранять.</div>
 
@@ -2721,7 +2733,7 @@ async def admin_teams(sort: str = "source", dir: str = "asc"):
       th{background:#f6f6f6;text-align:left}
       input{padding:8px;width:100%}
     </style></head><body>
-    """ + _admin_nav("/admin/teams") + """
+    """ + _admin_back_link() + """
     <h1>Teams</h1>
 
     <h3>Добавить / обновить</h3>
@@ -2875,7 +2887,7 @@ async def admin_runs(limit: int = 50, date_from: str = "", date_to: str = "", ti
     </style></head><body>
 <div class='layout'>
 <div>
-    """ + _admin_nav("/admin/runs") + """
+    """ + _admin_back_link() + """
     <h1>Runs</h1>
 
     <h3>Сумма «Новых в БД» за период</h3>
@@ -3281,7 +3293,7 @@ async def admin_tweets(limit: int = 100, tweet_id: str = "", kw: str = "", playe
 
 <div class='layout'>
 <div>
-    """ + _admin_nav("/admin/tweets") + """
+    """ + _admin_back_link() + """
     <h1>Tweets</h1>
     <form method='get' action='/admin/tweets' style='margin:12px 0'>
       <input name='tweet_id' placeholder='Поиск по tweet_id' value='""" + esc(tweet_id) + """' style='padding:8px;width:220px;max-width:100%' />
