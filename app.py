@@ -5,14 +5,20 @@ import urllib.parse
 import json
 import unicodedata
 import re
+import hashlib
+import secrets
+import uuid
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Depends, HTTPException
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
 from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
+
+security = HTTPBasic(auto_error=False)
 
 APP_TITLE = "FormAlert"
 APP_VERSION = "3.0"
@@ -206,6 +212,57 @@ def _choose_journo_prefix(seed: str) -> str:
     return JOURNO_PREFIXES[idx]
 
 
+def _hash_password(password: str) -> str:
+    """Hash password with salt using SHA-256."""
+    salt = secrets.token_hex(16)
+    h = hashlib.sha256((salt + password).encode()).hexdigest()
+    return f"{salt}:{h}"
+
+def _verify_password(password: str, password_hash: str) -> bool:
+    """Verify password against stored hash."""
+    try:
+        salt, h = password_hash.split(":", 1)
+        return hashlib.sha256((salt + password).encode()).hexdigest() == h
+    except Exception:
+        return False
+
+def _generate_password(length: int = 12) -> str:
+    """Generate a random password."""
+    alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%"
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
+def _generate_username() -> str:
+    """Generate a random username."""
+    return "user_" + secrets.token_hex(4)
+
+def _get_current_user(credentials: HTTPBasicCredentials | None = Depends(security)):
+    """Verify Basic Auth credentials. Returns (username, is_admin) or raises 401."""
+    if not credentials:
+        raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Basic"})
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute("SELECT username, password_hash, is_admin, active FROM users WHERE username=? AND active=1",
+                      (credentials.username,)).fetchone()
+    con.close()
+    if not row or not _verify_password(credentials.password, row[1]):
+        raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Basic"})
+    return row[0], bool(row[2])
+
+def _log_access(username: str, ip: str, path: str, action: str, details: str = ""):
+    """Log user access/action."""
+    try:
+        con = sqlite3.connect(DB_PATH)
+        con.execute("INSERT INTO access_log (username, ip, path, action, details, timestamp) VALUES (?,?,?,?,?,?)",
+                     (username, ip, path, action, details, datetime.now(timezone.utc).isoformat()))
+        # Update last_login
+        if action == "login":
+            con.execute("UPDATE users SET last_login=? WHERE username=?",
+                         (datetime.now(timezone.utc).isoformat(), username))
+        con.commit()
+        con.close()
+    except Exception:
+        pass
+
+
 def ensure_db():
     con = sqlite3.connect(DB_PATH)
     con.execute(
@@ -322,6 +379,37 @@ def ensure_db():
     add_col("core_preview", "core_preview TEXT")
     add_col("duplicate_of", "duplicate_of TEXT")
     add_col("image_mode", "image_mode TEXT")  # '', 'media', 'og'
+
+    # --- Users table ---
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL UNIQUE,
+          password_hash TEXT NOT NULL,
+          is_admin INTEGER NOT NULL DEFAULT 0,
+          active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          last_login TEXT
+        )
+    """)
+    # Seed default admin if table is empty
+    if con.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
+        _ph = _hash_password("admin")
+        con.execute("INSERT INTO users (username, password_hash, is_admin, active, created_at) VALUES (?,?,?,?,?)",
+                     ("admin", _ph, 1, 1, datetime.now(timezone.utc).isoformat()))
+
+    # --- Access log ---
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS access_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL,
+          ip TEXT,
+          path TEXT,
+          action TEXT,
+          details TEXT,
+          timestamp TEXT NOT NULL
+        )
+    """)
 
     con.commit()
     con.close()
@@ -571,6 +659,38 @@ async def _fd_is_within_starting_xi_window(team_name: str, window_minutes: int =
 
 
 app = FastAPI(title=APP_TITLE)
+
+# --- Auth middleware ---
+PUBLIC_PATHS = {"/health", "/favicon.ico"}
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    # Skip auth for public paths and static icons
+    if path in PUBLIC_PATHS or path.startswith("/icons/"):
+        return await call_next(request)
+    # Check Basic Auth
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Basic "):
+        return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1><p>Требуется авторизация</p>")
+    try:
+        import base64
+        decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
+        username, password = decoded.split(":", 1)
+    except Exception:
+        return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1>")
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute("SELECT username, password_hash, is_admin, active FROM users WHERE username=? AND active=1", (username,)).fetchone()
+    con.close()
+    if not row or not _verify_password(password, row[1]):
+        return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1><p>Неверный логин или пароль</p>")
+    # Log access (throttled — only /lineup_ai pages)
+    if "/lineup_ai" in path and not path.endswith(".json"):
+        _log_access(username, request.client.host if request.client else "", path, "view")
+    request.state.username = username
+    request.state.is_admin = bool(row[2])
+    return await call_next(request)
+
 from fastapi.staticfiles import StaticFiles
 app.mount("/icons", StaticFiles(directory="/home/openclaw/FormAlert/icons"), name="icons")
 
@@ -3274,3 +3394,272 @@ async def send(
     con.close()
 
     return RedirectResponse(url="/", status_code=303)
+
+
+# =====================================================================
+# ADMIN PANEL
+# =====================================================================
+
+def _admin_html(users_html: str, log_html: str, msg: str = "") -> str:
+    return f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Admin Panel — LineUp AI</title>
+<style>
+* {{ box-sizing: border-box; margin: 0; padding: 0; }}
+body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }}
+.header {{ background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; }}
+.header h1 {{ font-size: 22px; color: #fff; }}
+.header a {{ color: #fff; text-decoration: none; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 6px; font-size: 13px; }}
+.container {{ max-width: 1100px; margin: 24px auto; padding: 0 16px; }}
+.card {{ background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }}
+.card h2 {{ font-size: 16px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }}
+.msg {{ background: #065f46; color: #6ee7b7; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }}
+table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+th {{ text-align: left; padding: 8px 10px; background: #334155; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }}
+td {{ padding: 8px 10px; border-bottom: 1px solid #334155; }}
+tr:hover {{ background: #334155; }}
+.badge {{ display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }}
+.badge-admin {{ background: #7c3aed; color: #fff; }}
+.badge-user {{ background: #1e40af; color: #93c5fd; }}
+.badge-active {{ background: #065f46; color: #6ee7b7; }}
+.badge-inactive {{ background: #7f1d1d; color: #fca5a5; }}
+form {{ display: inline; }}
+button, .btn {{ display: inline-block; padding: 4px 10px; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; color: #fff; font-weight: 500; }}
+.btn-gen {{ background: #667eea; }}
+.btn-del {{ background: #dc2626; }}
+.btn-toggle {{ background: #d97706; }}
+.btn-reset {{ background: #2563eb; }}
+.btn:hover {{ opacity: 0.85; }}
+.stats {{ display: flex; gap: 16px; margin-bottom: 20px; }}
+.stat {{ background: #1e293b; padding: 16px 20px; border-radius: 10px; text-align: center; flex: 1; }}
+.stat-val {{ font-size: 28px; font-weight: 700; color: #667eea; }}
+.stat-label {{ font-size: 11px; color: #64748b; text-transform: uppercase; margin-top: 4px; }}
+.gen-box {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; }}
+.gen-box code {{ color: #6ee7b7; font-size: 15px; font-weight: 600; }}
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>Admin Panel</h1>
+    <a href="/lineup_ai/select">← На сайт</a>
+</div>
+<div class="container">
+    {f'<div class="msg">{msg}</div>' if msg else ''}
+    {users_html}
+    {log_html}
+</div>
+</body>
+</html>"""
+
+
+@app.get("/admin")
+async def admin_panel(request: Request):
+    if not getattr(request.state, "is_admin", False):
+        raise HTTPException(status_code=403, detail="Доступ только для администратора")
+
+    con = sqlite3.connect(DB_PATH)
+    users = con.execute("SELECT id, username, is_admin, active, created_at, last_login FROM users ORDER BY id").fetchall()
+    total_logins = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
+    logs = con.execute("SELECT username, ip, path, action, details, timestamp FROM access_log ORDER BY id DESC LIMIT 50").fetchall()
+    con.close()
+
+    active_count = sum(1 for u in users if u[3])
+    admin_count = sum(1 for u in users if u[2])
+
+    stats = f"""<div class="stats">
+        <div class="stat"><div class="stat-val">{len(users)}</div><div class="stat-label">Пользователей</div></div>
+        <div class="stat"><div class="stat-val">{active_count}</div><div class="stat-label">Активных</div></div>
+        <div class="stat"><div class="stat-val">{admin_count}</div><div class="stat-label">Админов</div></div>
+        <div class="stat"><div class="stat-val">{total_logins}</div><div class="stat-label">Запросов</div></div>
+    </div>"""
+
+    rows = ""
+    for u in users:
+        uid, uname, is_adm, active, created, last = u
+        role_badge = '<span class="badge badge-admin">Admin</span>' if is_adm else '<span class="badge badge-user">User</span>'
+        status_badge = '<span class="badge badge-active">Active</span>' if active else '<span class="badge badge-inactive">Inactive</span>'
+        toggle_text = "Деактивировать" if active else "Активировать"
+        toggle_cls = "btn-toggle"
+        rows += f"""<tr>
+            <td>{uid}</td>
+            <td><strong>{uname}</strong></td>
+            <td>{role_badge}</td>
+            <td>{status_badge}</td>
+            <td>{created[:16] if created else '–'}</td>
+            <td>{last[:16] if last else '–'}</td>
+            <td>
+                <form method="POST" action="/admin/toggle/{uid}" style="display:inline"><button class="btn {toggle_cls}">{toggle_text}</button></form>
+                <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Сброс пароля</button></form>
+                {'' if uname == 'admin' else f'<form method="POST" action="/admin/delete/{uid}" style="display:inline"><button class="btn btn-del" onclick="return confirm(\'Удалить {uname}?\')">Удалить</button></form>'}
+            </td>
+        </tr>"""
+
+    users_section = f"""<div class="card">
+        <h2>Пользователи</h2>
+        {stats}
+        <div class="gen-box">
+            <form method="POST" action="/admin/generate" style="display:inline">
+                <button class="btn btn-gen">+ Сгенерировать пользователя</button>
+            </form>
+        </div>
+        <table>
+            <thead><tr><th>ID</th><th>Логин</th><th>Роль</th><th>Статус</th><th>Создан</th><th>Последний вход</th><th>Действия</th></tr></thead>
+            <tbody>{rows}</tbody>
+        </table>
+    </div>"""
+
+    log_rows = ""
+    for l in logs:
+        username, ip, path, action, details, ts = l
+        log_rows += f"<tr><td>{ts[:16]}</td><td>{username}</td><td>{ip or ''}</td><td>{path}</td><td>{action}</td><td style='color:#94a3b8'>{details or ''}</td></tr>"
+
+    log_section = f"""<div class="card">
+        <h2>Последние действия (50)</h2>
+        <table>
+            <thead><tr><th>Время</th><th>Пользователь</th><th>IP</th><th>Путь</th><th>Действие</th><th>Детали</th></tr></thead>
+            <tbody>{log_rows}</tbody>
+        </table>
+    </div>"""
+
+    _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "view")
+    return HTMLResponse(_admin_html(users_section, log_section))
+
+
+@app.post("/admin/generate")
+async def admin_generate_user(request: Request):
+    if not getattr(request.state, "is_admin", False):
+        raise HTTPException(status_code=403)
+    uname = _generate_username()
+    pwd = _generate_password()
+    ph = _hash_password(pwd)
+    con = sqlite3.connect(DB_PATH)
+    con.execute("INSERT INTO users (username, password_hash, is_admin, active, created_at) VALUES (?,?,?,?,?)",
+                (uname, ph, 0, 1, datetime.now(timezone.utc).isoformat()))
+    con.commit()
+    con.close()
+    _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "create_user", f"created {uname}")
+    msg = f"Создан пользователь: <strong>{uname}</strong> / Пароль: <code>{pwd}</code> — сохраните пароль, он больше не будет показан!"
+    # Re-render with message
+    return await _admin_with_msg(request, msg)
+
+
+@app.post("/admin/delete/{uid}")
+async def admin_delete_user(uid: int, request: Request):
+    if not getattr(request.state, "is_admin", False):
+        raise HTTPException(status_code=403)
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
+    if row and row[0] == "admin":
+        con.close()
+        return await _admin_with_msg(request, "Нельзя удалить администратора!")
+    if row:
+        con.execute("DELETE FROM users WHERE id=?", (uid,))
+        con.commit()
+        _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "delete_user", f"deleted {row[0]}")
+    con.close()
+    return await _admin_with_msg(request, f"Пользователь удалён" if row else "Пользователь не найден")
+
+
+@app.post("/admin/toggle/{uid}")
+async def admin_toggle_user(uid: int, request: Request):
+    if not getattr(request.state, "is_admin", False):
+        raise HTTPException(status_code=403)
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute("SELECT username, active FROM users WHERE id=?", (uid,)).fetchone()
+    if row:
+        new_active = 0 if row[1] else 1
+        con.execute("UPDATE users SET active=? WHERE id=?", (new_active, uid))
+        con.commit()
+        status = "активирован" if new_active else "деактивирован"
+        _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "toggle_user", f"{row[0]} {status}")
+    con.close()
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/reset/{uid}")
+async def admin_reset_password(uid: int, request: Request):
+    if not getattr(request.state, "is_admin", False):
+        raise HTTPException(status_code=403)
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
+    if row:
+        pwd = _generate_password()
+        ph = _hash_password(pwd)
+        con.execute("UPDATE users SET password_hash=? WHERE id=?", (ph, uid))
+        con.commit()
+        _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "reset_password", f"reset for {row[0]}")
+        con.close()
+        return await _admin_with_msg(request, f"Пароль сброшен для <strong>{row[0]}</strong>: <code>{pwd}</code> — сохраните!")
+    con.close()
+    return await _admin_with_msg(request, "Пользователь не найден")
+
+
+async def _admin_with_msg(request: Request, msg: str):
+    """Re-render admin panel with a message."""
+    con = sqlite3.connect(DB_PATH)
+    users = con.execute("SELECT id, username, is_admin, active, created_at, last_login FROM users ORDER BY id").fetchall()
+    total_logins = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
+    logs = con.execute("SELECT username, ip, path, action, details, timestamp FROM access_log ORDER BY id DESC LIMIT 50").fetchall()
+    con.close()
+
+    active_count = sum(1 for u in users if u[3])
+    admin_count = sum(1 for u in users if u[2])
+
+    stats = f"""<div class="stats">
+        <div class="stat"><div class="stat-val">{len(users)}</div><div class="stat-label">Пользователей</div></div>
+        <div class="stat"><div class="stat-val">{active_count}</div><div class="stat-label">Активных</div></div>
+        <div class="stat"><div class="stat-val">{admin_count}</div><div class="stat-label">Админов</div></div>
+        <div class="stat"><div class="stat-val">{total_logins}</div><div class="stat-label">Запросов</div></div>
+    </div>"""
+
+    rows = ""
+    for u in users:
+        uid, uname, is_adm, active, created, last = u
+        role_badge = '<span class="badge badge-admin">Admin</span>' if is_adm else '<span class="badge badge-user">User</span>'
+        status_badge = '<span class="badge badge-active">Active</span>' if active else '<span class="badge badge-inactive">Inactive</span>'
+        toggle_text = "Деактивировать" if active else "Активировать"
+        toggle_cls = "btn-toggle"
+        rows += f"""<tr>
+            <td>{uid}</td>
+            <td><strong>{uname}</strong></td>
+            <td>{role_badge}</td>
+            <td>{status_badge}</td>
+            <td>{created[:16] if created else '–'}</td>
+            <td>{last[:16] if last else '–'}</td>
+            <td>
+                <form method="POST" action="/admin/toggle/{uid}" style="display:inline"><button class="btn {toggle_cls}">{toggle_text}</button></form>
+                <form method="POST" action="/admin/reset/{uid}" style="display:inline"><button class="btn btn-reset">Сброс пароля</button></form>
+                {'' if uname == 'admin' else f'<form method="POST" action="/admin/delete/{uid}" style="display:inline"><button class="btn btn-del" onclick="return confirm(\'Удалить {uname}?\')">Удалить</button></form>'}
+            </td>
+        </tr>"""
+
+    users_section = f"""<div class="card">
+        <h2>Пользователи</h2>
+        {stats}
+        <div class="gen-box">
+            <form method="POST" action="/admin/generate" style="display:inline">
+                <button class="btn btn-gen">+ Сгенерировать пользователя</button>
+            </form>
+        </div>
+        <table>
+            <thead><tr><th>ID</th><th>Логин</th><th>Роль</th><th>Статус</th><th>Создан</th><th>Последний вход</th><th>Действия</th></tr></thead>
+            <tbody>{rows}</tbody>
+        </table>
+    </div>"""
+
+    log_rows = ""
+    for l in logs:
+        username, ip, path, action, details, ts = l
+        log_rows += f"<tr><td>{ts[:16]}</td><td>{username}</td><td>{ip or ''}</td><td>{path}</td><td>{action}</td><td style='color:#94a3b8'>{details or ''}</td></tr>"
+
+    log_section = f"""<div class="card">
+        <h2>Последние действия (50)</h2>
+        <table>
+            <thead><tr><th>Время</th><th>Пользователь</th><th>IP</th><th>Путь</th><th>Действие</th><th>Детали</th></tr></thead>
+            <tbody>{log_rows}</tbody>
+        </table>
+    </div>"""
+
+    return HTMLResponse(_admin_html(users_section, log_section, msg))
