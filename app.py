@@ -663,11 +663,72 @@ app = FastAPI(title=APP_TITLE)
 # --- Auth middleware ---
 PUBLIC_PATHS = {"/health", "/favicon.ico"}
 
+# IPs that bypass auth completely (owner VPN + direct)
+IP_WHITELIST = {
+    "217.107.106.0/24",
+    "152.53.124.0/22",
+    "159.195.0.0/16",
+    "165.154.155.0/24",
+    "185.215.184.0/24",
+    "85.192.48.0/24",
+    "45.92.219.0/24",
+    "85.9.196.0/24",
+    "50.7.177.0/24",
+    "212.193.4.0/24",
+    "37.203.37.0/24",
+    "77.90.188.0/24",
+    "127.0.0.1",
+}
+
+import ipaddress as _ip
+
+def _ip_whitelisted(ip_str: str) -> bool:
+    if not ip_str:
+        return False
+    try:
+        addr = _ip.ip_address(ip_str)
+        for cidr in IP_WHITELIST:
+            if "/" in cidr:
+                if addr in _ip.ip_network(cidr, strict=False):
+                    return True
+            elif ip_str == cidr:
+                return True
+    except Exception:
+        pass
+    return False
+
+# Flash messages (uuid -> msg), auto-expire
+_flash_store: dict[str, tuple[str, float]] = {}
+
+def _flash_set(msg: str) -> str:
+    key = secrets.token_hex(8)
+    _flash_store[key] = (msg, time.time() + 60)  # expires in 60s
+    return key
+
+def _flash_get(key: str) -> str:
+    if key in _flash_store:
+        msg, _ = _flash_store.pop(key)
+        return msg
+    return ""
+
+# Cleanup old flashes
+def _flash_cleanup():
+    now = time.time()
+    expired = [k for k, (_, exp) in _flash_store.items() if now > exp]
+    for k in expired:
+        del _flash_store[k]
+
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
     # Skip auth for public paths and static icons
     if path in PUBLIC_PATHS or path.startswith("/icons/"):
+        return await call_next(request)
+    # Check IP whitelist
+    client_ip = request.client.host if request.client else ""
+    if _ip_whitelisted(client_ip):
+        request.state.username = "owner"
+        request.state.is_admin = True
         return await call_next(request)
     # Check Basic Auth
     auth_header = request.headers.get("authorization", "")
@@ -686,7 +747,7 @@ async def auth_middleware(request: Request, call_next):
         return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1><p>Неверный логин или пароль</p>")
     # Log access (throttled — only /lineup_ai pages)
     if "/lineup_ai" in path and not path.endswith(".json"):
-        _log_access(username, request.client.host if request.client else "", path, "view")
+        _log_access(username, client_ip, path, "view")
     request.state.username = username
     request.state.is_admin = bool(row[2])
     return await call_next(request)
@@ -3474,6 +3535,10 @@ async def admin_panel(request: Request):
     if not getattr(request.state, "is_admin", False):
         raise HTTPException(status_code=403, detail="Доступ только для администратора")
 
+    _flash_cleanup()
+    flash_key = request.query_params.get("flash", "")
+    msg = _flash_get(flash_key) if flash_key else ""
+
     con = sqlite3.connect(DB_PATH)
     users = con.execute("SELECT id, username, is_admin, active, created_at, last_login FROM users ORDER BY id").fetchall()
     total_logins = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
@@ -3540,7 +3605,7 @@ async def admin_panel(request: Request):
     </div>"""
 
     _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "view")
-    return HTMLResponse(_admin_html(users_section, log_section))
+    return HTMLResponse(_admin_html(users_section, log_section, msg))
 
 
 @app.post("/admin/generate")
@@ -3553,14 +3618,13 @@ async def admin_generate_user(request: Request):
     ph = _hash_password(pwd)
     con = sqlite3.connect(DB_PATH)
     if custom:
-        # Use custom username
         existing = con.execute("SELECT id FROM users WHERE username=?", (custom,)).fetchone()
         if existing:
             con.close()
-            return await _admin_with_msg(request, f"Логин <strong>{custom}</strong> уже занят!")
+            key = _flash_set(f"Логин <strong>{custom}</strong> уже занят!")
+            return RedirectResponse(url=f"/admin?flash={key}", status_code=303)
         uname = custom
     else:
-        # Auto-generate username
         uname = _generate_username()
     con.execute("INSERT INTO users (username, password_hash, is_admin, active, created_at) VALUES (?,?,?,?,?)",
                 (uname, ph, 0, 1, datetime.now(timezone.utc).isoformat()))
@@ -3568,7 +3632,8 @@ async def admin_generate_user(request: Request):
     con.close()
     _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "create_user", f"created {uname}")
     msg = f"Логин: <strong>{uname}</strong> &nbsp;|&nbsp; Пароль: <code>{pwd}</code> — сохраните, больше не будет показан!"
-    return await _admin_with_msg(request, msg)
+    key = _flash_set(msg)
+    return RedirectResponse(url=f"/admin?flash={key}", status_code=303)
 
 
 @app.post("/admin/delete/{uid}")
@@ -3579,13 +3644,15 @@ async def admin_delete_user(uid: int, request: Request):
     row = con.execute("SELECT username FROM users WHERE id=?", (uid,)).fetchone()
     if row and row[0] == "admin":
         con.close()
-        return await _admin_with_msg(request, "Нельзя удалить администратора!")
+        key = _flash_set("Нельзя удалить администратора!")
+        return RedirectResponse(url=f"/admin?flash={key}", status_code=303)
     if row:
         con.execute("DELETE FROM users WHERE id=?", (uid,))
         con.commit()
         _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "delete_user", f"deleted {row[0]}")
     con.close()
-    return await _admin_with_msg(request, f"Пользователь удалён" if row else "Пользователь не найден")
+    key = _flash_set(f"Пользователь удалён" if row else "Пользователь не найден")
+    return RedirectResponse(url=f"/admin?flash={key}", status_code=303)
 
 
 @app.post("/admin/toggle/{uid}")
@@ -3617,9 +3684,11 @@ async def admin_reset_password(uid: int, request: Request):
         con.commit()
         _log_access(getattr(request.state, "username", ""), request.client.host if request.client else "", "/admin", "reset_password", f"reset for {row[0]}")
         con.close()
-        return await _admin_with_msg(request, f"Пароль сброшен для <strong>{row[0]}</strong>: <code>{pwd}</code> — сохраните!")
+        key = _flash_set(f"Пароль сброшен для <strong>{row[0]}</strong>: <code>{pwd}</code> — сохраните!")
+        return RedirectResponse(url=f"/admin?flash={key}", status_code=303)
     con.close()
-    return await _admin_with_msg(request, "Пользователь не найден")
+    key = _flash_set("Пользователь не найден")
+    return RedirectResponse(url=f"/admin?flash={key}", status_code=303)
 
 
 async def _admin_with_msg(request: Request, msg: str):
