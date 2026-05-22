@@ -684,7 +684,39 @@ async def _fd_is_within_starting_xi_window(team_name: str, window_minutes: int =
 app = FastAPI(title=APP_TITLE)
 
 # --- Auth middleware ---
-PUBLIC_PATHS = {"/health", "/favicon.ico"}
+PUBLIC_PATHS = {"/health", "/favicon.ico", "/login", "/logout"}
+
+# Session cookie signing
+_SESSION_SECRET = os.environ.get("FORMALERT_SESSION_SECRET", "x11radar-session-2026")
+
+def _make_session_token(username: str, is_admin: bool) -> str:
+    """Create signed session token: base64(username:is_admin:timestamp:hmac)"""
+    import base64 as _b64, hmac as _hmac
+    ts = str(int(time.time()))
+    payload = f"{username}:{int(is_admin)}:{ts}"
+    sig = _hmac.new(_SESSION_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()[:16]
+    token = f"{payload}:{sig}"
+    return _b64.b64encode(token.encode()).decode()
+
+def _parse_session_token(token: str) -> tuple[str, bool] | None:
+    """Verify and parse session token. Returns (username, is_admin) or None."""
+    import base64 as _b64, hmac as _hmac
+    try:
+        decoded = _b64.b64decode(token).decode()
+        parts = decoded.split(":")
+        if len(parts) != 4:
+            return None
+        username, admin_str, ts, sig = parts
+        payload = f"{username}:{admin_str}:{ts}"
+        expected_sig = _hmac.new(_SESSION_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()[:16]
+        if sig != expected_sig:
+            return None
+        # Token valid for 30 days
+        if int(time.time()) - int(ts) > 30 * 86400:
+            return None
+        return (username, admin_str == "1")
+    except Exception:
+        return None
 
 # IPs that bypass auth completely (owner VPN + direct)
 IP_WHITELIST = {
@@ -753,34 +785,163 @@ async def auth_middleware(request: Request, call_next):
         request.state.username = "owner"
         request.state.is_admin = True
         return await call_next(request)
-    # Check Basic Auth
-    auth_header = request.headers.get("authorization", "")
-    if not auth_header.startswith("Basic "):
-        return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1><p>Требуется авторизация</p>")
-    try:
-        import base64
-        decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
-        username, password = decoded.split(":", 1)
-    except Exception:
-        return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1>")
-    con = sqlite3.connect(DB_PATH)
-    row = con.execute("SELECT username, password_hash, is_admin, active FROM users WHERE username=? AND active=1", (username,)).fetchone()
-    con.close()
-    if not row or not _verify_password(password, row[1]):
-        return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1><p>Неверный логин или пароль</p>")
-    request.state.username = username
-    request.state.is_admin = bool(row[2])
+    # Check session cookie
+    session_cookie = request.cookies.get("fa_session")
+    user_info = None
+    if session_cookie:
+        user_info = _parse_session_token(session_cookie)
+    if not user_info:
+        # Redirect to login page with return URL
+        from urllib.parse import quote
+        return RedirectResponse(url=f"/login?next={quote(path)}", status_code=302)
+    request.state.username = user_info[0]
+    request.state.is_admin = user_info[1]
     # Block /admin for non-admin users
     if path == "/admin" or path.startswith("/admin/"):
         if not request.state.is_admin:
             return HTMLResponse(status_code=403, content="<h1>403 Forbidden</h1><p>Доступ запрещён</p>")
     # Log access (throttled — only /lineup_ai pages)
     if "/lineup_ai" in path and not path.endswith(".json"):
-        _log_access(username, client_ip, path, "view")
+        _log_access(request.state.username, client_ip, path, "view")
     return await call_next(request)
 
 from fastapi.staticfiles import StaticFiles
 app.mount("/icons", StaticFiles(directory="/home/openclaw/FormAlert/icons"), name="icons")
+
+# --- Login / Logout routes ---
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(next: str = "/"):
+    html = f"""<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Вход — FormAlert</title>
+  <style>
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{ font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+           background: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center;
+           align-items: center; min-height: 100vh; }}
+    .card {{ background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px;
+             padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }}
+    .logo {{ text-align: center; margin-bottom: 28px; }}
+    .logo h1 {{ font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }}
+    .logo p {{ color: #888; font-size: 14px; margin-top: 6px; }}
+    label {{ display: block; font-size: 13px; font-weight: 600; color: #aaa; margin-bottom: 6px; }}
+    input[type="text"], input[type="password"] {{
+      width: 100%; padding: 12px 14px; border: 1px solid #333; border-radius: 10px;
+      background: #111; color: #fff; font-size: 15px; outline: none; margin-bottom: 18px;
+      transition: border-color .2s;
+    }}
+    input:focus {{ border-color: #4a9eff; }}
+    button {{
+      width: 100%; padding: 14px; background: #4a9eff; color: #fff; border: none;
+      border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: background .2s;
+    }}
+    button:hover {{ background: #3a8eef; }}
+    .error {{ background: #3a1111; border: 1px solid #6a2222; color: #ff6b6b; padding: 10px 14px;
+              border-radius: 10px; margin-bottom: 18px; font-size: 14px; text-align: center; }}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>X11Radar</h1>
+    <p>Войдите, чтобы продолжить</p>
+  </div>
+  <form method="post" action="/login">
+    <input type="hidden" name="next" value="{html_escape(next)}"/>
+    <label>Логин</label>
+    <input type="text" name="username" placeholder="Введите логин" required autofocus/>
+    <label>Пароль</label>
+    <input type="password" name="password" placeholder="Введите пароль" required/>
+    <button type="submit">Войти</button>
+  </form>
+</div>
+</body>
+</html>"""
+    return HTMLResponse(html)
+
+@app.post("/login")
+async def login_submit(username: str = Form(...), password: str = Form(...), next: str = Form(default="/")):
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute("SELECT username, password_hash, is_admin, active FROM users WHERE username=? AND active=1", (username,)).fetchone()
+    con.close()
+    if not row or not _verify_password(password, row[1]):
+        # Show login page again with error
+        html = f"""<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Вход — FormAlert</title>
+  <style>
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{ font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+           background: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center;
+           align-items: center; min-height: 100vh; }}
+    .card {{ background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px;
+             padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }}
+    .logo {{ text-align: center; margin-bottom: 28px; }}
+    .logo h1 {{ font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }}
+    .logo p {{ color: #888; font-size: 14px; margin-top: 6px; }}
+    label {{ display: block; font-size: 13px; font-weight: 600; color: #aaa; margin-bottom: 6px; }}
+    input[type="text"], input[type="password"] {{
+      width: 100%; padding: 12px 14px; border: 1px solid #333; border-radius: 10px;
+      background: #111; color: #fff; font-size: 15px; outline: none; margin-bottom: 18px;
+      transition: border-color .2s;
+    }}
+    input:focus {{ border-color: #4a9eff; }}
+    button {{
+      width: 100%; padding: 14px; background: #4a9eff; color: #fff; border: none;
+      border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: background .2s;
+    }}
+    button:hover {{ background: #3a8eef; }}
+    .error {{ background: #3a1111; border: 1px solid #6a2222; color: #ff6b6b; padding: 10px 14px;
+              border-radius: 10px; margin-bottom: 18px; font-size: 14px; text-align: center; }}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>X11Radar</h1>
+    <p>Войдите, чтобы продолжить</p>
+  </div>
+  <div class="error">Неверный логин или пароль</div>
+  <form method="post" action="/login">
+    <input type="hidden" name="next" value="{html_escape(next)}"/>
+    <label>Логин</label>
+    <input type="text" name="username" placeholder="Введите логин" value="{html_escape(username)}" required autofocus/>
+    <label>Пароль</label>
+    <input type="password" name="password" placeholder="Введите пароль" required/>
+    <button type="submit">Войти</button>
+  </form>
+</div>
+</body>
+</html>"""
+        return HTMLResponse(html, status_code=401)
+    # Valid credentials — set session cookie and redirect
+    is_admin = bool(row[2])
+    token = _make_session_token(username, is_admin)
+    response = RedirectResponse(url=next or "/", status_code=303)
+    response.set_cookie(
+        key="fa_session",
+        value=token,
+        max_age=30 * 86400,  # 30 days
+        httponly=True,
+        samesite="lax",
+        secure=False,  # set True when HTTPS is proper
+        path="/",
+    )
+    return response
+
+@app.get("/logout")
+async def logout():
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie(key="fa_session", path="/")
+    return response
 
 # --- LineUp AI routes ---
 from fastapi.responses import JSONResponse
