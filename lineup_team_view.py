@@ -192,9 +192,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
     coach_name = coach.get("name", "–")
     coach_nationality = coach.get("nationality", "")
     coach_name_display = swap_name_order(coach_name) if coach_name != "–" else "–"
-    if coach_nationality:
-        coach_flag_html = get_flag_html(coach_nationality).replace('width:30px;height:30px;', 'width:16px;height:16px;').replace('vertical-align:middle;', 'vertical-align:middle;margin-right:4px;')
-        coach_name_display = f'{coach_flag_html} {coach_name_display}'
     
     stadium_name = data.get("stadium", "") or data.get("team", {}).get("stadium", "")
     stadium_display = stadium_name if stadium_name else "–"
