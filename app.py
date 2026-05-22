@@ -768,11 +768,15 @@ async def auth_middleware(request: Request, call_next):
     con.close()
     if not row or not _verify_password(password, row[1]):
         return HTMLResponse(status_code=401, headers={"WWW-Authenticate": "Basic"}, content="<h1>401 Unauthorized</h1><p>Неверный логин или пароль</p>")
+    request.state.username = username
+    request.state.is_admin = bool(row[2])
+    # Block /admin for non-admin users
+    if path == "/admin" or path.startswith("/admin/"):
+        if not request.state.is_admin:
+            return HTMLResponse(status_code=403, content="<h1>403 Forbidden</h1><p>Доступ запрещён</p>")
     # Log access (throttled — only /lineup_ai pages)
     if "/lineup_ai" in path and not path.endswith(".json"):
         _log_access(username, client_ip, path, "view")
-    request.state.username = username
-    request.state.is_admin = bool(row[2])
     return await call_next(request)
 
 from fastapi.staticfiles import StaticFiles
@@ -2317,82 +2321,7 @@ async def admin_debug_tick():
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    # Minimal HTML form
-    options = "\n".join([f"<option value='{c}'>{c}</option>" for c in CATEGORIES])
-    impacts = "\n".join([f"<option value='{i}'>{i}</option>" for i in IMPACT_LEVELS])
-
-    nav = _main_nav("/")
-    html = f"""<!doctype html>
-<html lang=\"ru\">
-<head>
-  <meta charset=\"utf-8\" />
-  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-  <title>FormAlert</title>
-  <style>
-    body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; max-width: 900px; }}
-    label {{ display:block; margin-top: 12px; font-weight: 600; }}
-    input, select, textarea {{ width: 100%; padding: 10px; margin-top: 6px; }}
-    textarea {{ min-height: 90px; }}
-    .row {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }}
-    button {{ margin-top: 16px; padding: 12px 16px; font-weight: 700; }}
-    .hint {{ color: #666; font-size: 13px; margin-top: 4px; }}
-    .topnav {{ margin: 0 0 14px 0; }}
-    .topnav a {{ display: inline-block; margin-right: 10px; padding: 6px 10px; border-radius: 10px; text-decoration: none; background: #eee; color: #111; font-weight: 800; }}
-    .topnav a.active {{ background: #111; color: #fff; }}
-  </style>
-</head>
-<body>
-  {nav}
-  <h1>FormAlert</h1>
-  <p class='hint'>Отправляет алерт в Telegram и сохраняет в SQLite.</p>
-
-  <form method=\"post\" action=\"/send\">
-
-    <label>Время (МСК, HH:MM)</label>
-    <input name=\"time_msk\" placeholder=\"18:45\" />
-
-    <label>Команда / TEAM</label>
-    <input name=\"team\" placeholder=\"Chelsea\" />
-
-    <div class=\"row\">
-      <div>
-        <label>Категория</label>
-        <select name=\"category\">{options}</select>
-      </div>
-      <div>
-        <label>Влияние</label>
-        <select name=\"impact_level\">{impacts}</select>
-      </div>
-      <div>
-        <label>Уверенность (0-1)</label>
-        <input name=\"confidence\" type=\"number\" step=\"0.01\" min=\"0\" max=\"1\" value=\"0.60\" />
-      </div>
-    </div>
-
-    <label>TITLE (рус)</label>
-    <input name=\"title\" placeholder=\"Напр.: Потеря игрока основы перед матчем\" />
-
-    <label>DETAILS_1 (рус)</label>
-    <textarea name=\"details1\" placeholder=\"Коротко по факту\"></textarea>
-
-    <label>DETAILS_2 (рус)</label>
-    <textarea name=\"details2\" placeholder=\"Уточнение (статус, матч, сроки)\"></textarea>
-
-    <label>DETAILS_3 (опц.)</label>
-    <textarea name=\"details3\" placeholder=\"Доп. деталь (если надо)\"></textarea>
-
-    <label>ORIGINAL_TEXT (как в твите, без правок)</label>
-    <textarea name=\"original_text\" placeholder=\"Вставь текст твита 1:1\" required></textarea>
-
-    <label>ORIGINAL_LINK</label>
-    <input name=\"original_link\" placeholder=\"https://x.com/...\" required />
-
-    <button type=\"submit\">Отправить</button>
-  </form>
-
-</body>
-</html>"""
-    return HTMLResponse(html)
+    return RedirectResponse(url="/lineup_ai/select", status_code=307)
 
 
 def _set_fetch_enabled(value: bool) -> None:
@@ -2484,7 +2413,7 @@ def _write_keywords_file(path: str, lines: list[str]) -> None:
         f.write("\n".join(cleaned) + "\n")
 
 
-@app.get("/keywords", response_class=HTMLResponse)
+@app.get("/admin/keywords", response_class=HTMLResponse)
 async def keywords_page():
     inc = _read_keywords_file(KEYWORDS_INCLUDE_PATH)
     bl = _read_keywords_file(KEYWORDS_BLACKLIST_PATH)
@@ -2494,7 +2423,7 @@ async def keywords_page():
     bl_txt = html_escape("\n".join(bl))
     pn_txt = html_escape("\n".join(pn))
 
-    nav = _main_nav("/keywords")
+    nav = _main_nav("/admin/keywords")
     html = f"""<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
     <title>Keywords</title>
     <style>
@@ -2511,7 +2440,7 @@ async def keywords_page():
     <h1>Keywords</h1>
     <p class='hint'>1 строка = 1 слово/фраза. Сохраняется в .txt. Дубликаты удаляются.</p>
 
-    <form method='post' action='/keywords/save'>
+    <form method='post' action='/admin/keywords/save'>
       <div class='grid'>
         <div>
           <h3>Keywords (include)</h3>
@@ -2536,7 +2465,7 @@ async def keywords_page():
     return HTMLResponse(html)
 
 
-@app.post("/keywords/save")
+@app.post("/admin/keywords/save")
 async def keywords_save(include: str = Form(default=""), blacklist: str = Form(default=""), player_names: str = Form(default="")):
     inc_lines = (include or "").splitlines()
     bl_lines = (blacklist or "").splitlines()
@@ -2544,18 +2473,18 @@ async def keywords_save(include: str = Form(default=""), blacklist: str = Form(d
     _write_keywords_file(KEYWORDS_INCLUDE_PATH, inc_lines)
     _write_keywords_file(KEYWORDS_BLACKLIST_PATH, bl_lines)
     _write_keywords_file(PLAYER_NAMES_PATH, pn_lines)
-    return RedirectResponse(url="/keywords", status_code=303)
+    return RedirectResponse(url="/admin/keywords", status_code=303)
 
 
-def _main_nav(active: str = "/") -> str:
+def _main_nav(active: str = "/admin/") -> str:
     items = [
-        ("Форма", "/"),
+        ("Форма", "/admin/"),
         ("Runs", "/admin/runs"),
         ("Tweets", "/admin/tweets"),
         ("Teams", "/admin/teams"),
         ("Status", "/admin/status"),
         ("Modes", "/admin/modes"),
-        ("Keywords & Blacklist", "/keywords"),
+        ("Keywords & Blacklist", "/admin/keywords"),
     ]
     links = []
     for name, href in items:
@@ -2567,23 +2496,56 @@ def _main_nav(active: str = "/") -> str:
 
 
 def _admin_back_link() -> str:
-    return "<div class='topnav'><a href='/'>← На главную</a></div>"
+    return "<div class='topnav'><a href='/admin/'>← Админ</a></div>"
 
 
 @app.get("/admin/", response_class=HTMLResponse)
 async def admin_home():
-    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    options = "\n".join([f"<option value='{c}'>{c}</option>" for c in CATEGORIES])
+    impacts = "\n".join([f"<option value='{i}'>{i}</option>" for i in IMPACT_LEVELS])
+    nav = _main_nav("/admin/")
+    html = f"""<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
     <title>FormAlert Admin</title>
     <style>
-      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:1200px}
-      .topnav{margin:0 0 14px 0}
-      .topnav a{display:inline-block;margin-right:10px;padding:6px 10px;border-radius:10px;text-decoration:none;background:#eee;color:#111;font-weight:800}
-      .topnav a.active{background:#111;color:#fff}
+      body{{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:900px}}
+      label{{display:block;margin-top:12px;font-weight:600}}
+      input,select,textarea{{width:100%;padding:10px;margin-top:6px}}
+      textarea{{min-height:90px}}
+      .row{{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}}
+      button{{margin-top:16px;padding:12px 16px;font-weight:700}}
+      .hint{{color:#666;font-size:13px;margin-top:4px}}
+      .topnav{{margin:0 0 14px 0}}
+      .topnav a{{display:inline-block;margin-right:10px;padding:6px 10px;border-radius:10px;text-decoration:none;background:#eee;color:#111;font-weight:800}}
+      .topnav a.active{{background:#111;color:#fff}}
     </style>
     </head><body>
-    """ + _admin_back_link() + """
-    <h1>Admin</h1>
-    <p class='muted'>Навигация сверху.</p>
+    {nav}
+    <h1>Форма отправки</h1>
+    <p class='hint'>Отправляет алерт в Telegram и сохраняет в SQLite.</p>
+    <form method="post" action="/admin/send">
+      <label>Время (МСК, HH:MM)</label>
+      <input name="time_msk" placeholder="18:45" />
+      <label>Команда / TEAM</label>
+      <input name="team" placeholder="Chelsea" />
+      <div class="row">
+        <div><label>Категория</label><select name="category">{options}</select></div>
+        <div><label>Влияние</label><select name="impact_level">{impacts}</select></div>
+        <div><label>Уверенность (0-1)</label><input name="confidence" type="number" step="0.01" min="0" max="1" value="0.60" /></div>
+      </div>
+      <label>TITLE (рус)</label>
+      <input name="title" placeholder="Напр.: Потеря игрока основы перед матчем" />
+      <label>DETAILS_1 (рус)</label>
+      <textarea name="details1" placeholder="Коротко по факту"></textarea>
+      <label>DETAILS_2 (рус)</label>
+      <textarea name="details2" placeholder="Уточнение (статус, матч, сроки)"></textarea>
+      <label>DETAILS_3 (опц.)</label>
+      <textarea name="details3" placeholder="Доп. деталь (если надо)"></textarea>
+      <label>ORIGINAL_TEXT (как в твите, без правок)</label>
+      <textarea name="original_text" placeholder="Вставь текст твита 1:1" required></textarea>
+      <label>ORIGINAL_LINK</label>
+      <input name="original_link" placeholder="https://x.com/..." required />
+      <button type="submit">Отправить</button>
+    </form>
     </body></html>"""
     return HTMLResponse(html)
 
@@ -3426,7 +3388,7 @@ async def admin_reclassify_one(tweet_id: str):
     return f"tweet_id={tid} gate_calls={gate_calls} core_calls={core_calls} relevant={relevant} sent={sent}"
 
 
-@app.post("/send")
+@app.post("/admin/send")
 async def send(
     time_msk: str = Form(default=""),
     team: str = Form(default=""),
@@ -3491,7 +3453,7 @@ async def send(
     con.commit()
     con.close()
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/admin/", status_code=303)
 
 
 # =====================================================================
