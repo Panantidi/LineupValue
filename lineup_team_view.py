@@ -8,11 +8,8 @@ import re
 from fastapi.responses import HTMLResponse
 
 def swap_name_order(name):
-    """Always swap to: First Name Last Name"""
-    injury_words = ['Injury', 'Illness', 'Knee', 'Ankle', 'Muscle', 'Leg', 'Foot', 'Thigh', 'Hamstring', 'Groin', 'Shoulder', 'Back', 'Hip']
-    for word in injury_words:
-        name = re.sub(rf'\b{word}\b', '', name, flags=re.IGNORECASE)
-    
+    """Swap Soccerway format (Surname FirstName) to display (FirstName Surname),
+    keeping prefixes like de/van/al before the surname."""
     name = re.sub(r'\s*\([^)]*\)\s*', '', name)
     name = re.sub(r'\s+', ' ', name).strip()
     
@@ -20,16 +17,33 @@ def swap_name_order(name):
     if len(parts) < 2:
         return name
     
-    prefixes = {'El', 'La', 'Le', 'De', 'Di', 'Van', 'Von', 'Da', "D'"}
+    # Lowercase prefix set for case-insensitive matching
+    prefixes_lower = {'el', 'la', 'le', 'de', 'di', 'van', 'von', 'da', 'al', 'del', 'der', 'den', 'het', 'lo'}
     
-    last_name = parts[0]
-    first_name = ' '.join(parts[1:])
+    # Soccerway format: [prefix...] Surname FirstName [FirstName2...]
+    # Collect leading prefixes
+    prefix_parts = []
+    i = 0
+    while i < len(parts) and parts[i].lower() in prefixes_lower:
+        prefix_parts.append(parts[i])
+        i += 1
     
-    if last_name in prefixes and len(parts) >= 3:
-        last_name = parts[1] + ' ' + last_name
-        first_name = ' '.join(parts[2:])
-    
-    return f"{first_name} {last_name}"
+    if prefix_parts and i < len(parts):
+        # prefix(es) + surname + first name(s)
+        # e.g. "de Roon Marten" -> prefix=["de"], surname="Roon", first="Marten"
+        # e.g. "Van de Beek Donny" -> prefix=["Van","de"], surname="Beek", first="Donny"
+        surname = parts[i]
+        first_name = ' '.join(parts[i+1:]) if i+1 < len(parts) else ''
+        full_last = ' '.join(prefix_parts + [surname])
+        if first_name:
+            return f"{first_name} {full_last}"
+        else:
+            return full_last
+    else:
+        # No prefix: "Surname FirstName" -> "FirstName Surname"
+        last_name = parts[0]
+        first_name = ' '.join(parts[1:])
+        return f"{first_name} {last_name}"
 
 def get_flag_html(country_name):
     """Get HTML with flag image from flagcdn.com (no text)"""
