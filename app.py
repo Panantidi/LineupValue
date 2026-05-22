@@ -2495,9 +2495,6 @@ def _main_nav(active: str = "/admin/") -> str:
     )
 
 
-def _admin_back_link() -> str:
-    return "<div class='topnav'><a href='/admin/'>← Админ</a></div>"
-
 
 @app.get("/admin/", response_class=HTMLResponse)
 async def admin_home():
@@ -2579,7 +2576,7 @@ async def admin_status():
       .topnav a{display:inline-block;margin-right:10px;padding:6px 10px;border-radius:10px;text-decoration:none;background:#eee;color:#111;font-weight:800}
       .topnav a.active{background:#111;color:#fff}
     </style></head><body>
-    """ + _admin_back_link() + """
+    """ + _main_nav("/admin/status") + """
     <h1>Status</h1>
     <pre>""" + html_escape(body) + """</pre>
     </body></html>"""
@@ -2601,7 +2598,7 @@ async def admin_modes():
       .topnav a.active{background:#111;color:#fff}
       .hint{color:#666;font-size:13px;margin:8px 0}
     </style></head><body>
-    """ + _admin_back_link() + """
+    """ + _main_nav("/admin/modes") + """
     <h1>Modes</h1>
     <div class='hint'>Режимы хранятся в <code>modes.json</code>. Можно редактировать JSON и сохранять.</div>
 
@@ -2697,7 +2694,7 @@ async def admin_teams(sort: str = "source", dir: str = "asc"):
       th{background:#f6f6f6;text-align:left}
       input{padding:8px;width:100%}
     </style></head><body>
-    """ + _admin_back_link() + """
+    """ + _main_nav("/admin/teams") + """
     <h1>Teams</h1>
 
     <h3>Добавить / обновить</h3>
@@ -2851,7 +2848,7 @@ async def admin_runs(limit: int = 50, date_from: str = "", date_to: str = "", ti
     </style></head><body>
 <div class='layout'>
 <div>
-    """ + _admin_back_link() + """
+    """ + _main_nav("/admin/runs") + """
     <h1>Runs</h1>
 
     <h3>Сумма «Новых в БД» за период</h3>
@@ -3257,7 +3254,7 @@ async def admin_tweets(limit: int = 100, tweet_id: str = "", kw: str = "", playe
 
 <div class='layout'>
 <div>
-    """ + _admin_back_link() + """
+    """ + _main_nav("/admin/tweets") + """
     <h1>Tweets</h1>
     <form method='get' action='/admin/tweets' style='margin:12px 0'>
       <input name='tweet_id' placeholder='Поиск по tweet_id' value='""" + esc(tweet_id) + """' style='padding:8px;width:220px;max-width:100%' />
@@ -3266,7 +3263,7 @@ async def admin_tweets(limit: int = 100, tweet_id: str = "", kw: str = "", playe
       <label style='margin-left:8px;white-space:nowrap'><input type='checkbox' name='only_players' value='1' """ + ("checked" if only_players else "") + """/> only players list</label>
       <button type='submit' style='padding:8px 12px;font-weight:700'>Search</button>
       <a href='/admin/tweets' style='margin-left:10px'>Reset</a>
-      <a href='/keywords' style='margin-left:10px'>Keywords</a>
+      <a href='/admin/keywords' style='margin-left:10px'>Keywords</a>
     </form>
 
     <div style='margin:10px 0'>
