@@ -125,12 +125,12 @@ async def fetch_and_parse_lineups(matches, known_surnames):
             our_parts = left_parts if is_home else right_parts
             print(f'    {"HOME" if is_home else "AWAY"}: left={left_match} right={right_match} starters={len(left_names if is_home else right_names)}')
 
-            # Captains
-            our_captains = set()
+            # Captains — store full lineup name for disambiguation
+            our_captains = []
             for part in our_parts:
                 if '(C)' in part.get_text():
                     el = part.select_one('span[class*="wcl-bold"]')
-                    if el: our_captains.add(get_surname(el.get_text(strip=True)))
+                    if el: our_captains.append(el.get_text(strip=True))
 
             # Substitutes
             our_subs = []
@@ -164,6 +164,7 @@ async def fetch_and_parse_lineups(matches, known_surnames):
                 'starters': left_names if is_home else right_names,
                 'substitutes': our_subs, 'missing': our_missing,
                 'captains': list(our_captains),
+                'captains_full': list(our_captains),
                 'score': score_str, 'home_team': home_team_name, 'away_team': away_team_name
             })
             print(f'    -> starters={len(results[-1]["starters"])} subs={len(our_subs)} missing={len(our_missing)}')
@@ -171,16 +172,41 @@ async def fetch_and_parse_lineups(matches, known_surnames):
         await browser.close()
     return results
 
+def _is_captain(player_name, cap_fullnames):
+    """Check if player is captain. cap_fullnames are full names from lineups
+    like 'Martinez L.'. When surname is ambiguous, also check initial."""
+    p_surname = get_surname(player_name)
+    p_initials = [w[0].lower() for w in player_name.split() if w and w[0].isalpha()]
+    for cap_name in cap_fullnames:
+        cap_surname = get_surname(cap_name)
+        if cap_surname != p_surname:
+            continue
+        # Surname matches — if lineup name has initial (e.g. "Martinez L.")
+        # verify initial matches one of player's name parts
+        cap_parts = cap_name.replace('.', ' ').split()
+        cap_initials = [w[0].lower() for w in cap_parts if w and w[0].isalpha()]
+        # If captain name only has surname + initial(s), check those initials
+        if len(cap_parts) >= 2 and len(cap_initials) > 1:
+            # Check if any initial from captain matches any non-surname part of player name
+            for ci in cap_initials[1:]:  # skip surname initial
+                if ci in p_initials[1:]:
+                    return True
+            return False  # surname matched but initials didn't
+        # Only surname in captain name — accept
+        return True
+    return False
+
 def apply_last3(players, lineups_data):
     for p in players:
         surname = get_surname(p['name'])
         last3, last3_missing, last3_captain = [], [], []
         for ld in lineups_data:
+            cap_fullnames = ld.get('captains_full', ld.get('captains', []))
             found = False
             for s in ld.get('starters', []):
                 if get_surname(s) == surname:
                     last3.append('START')
-                    last3_captain.append(surname in ld.get('captains', []))
+                    last3_captain.append(_is_captain(p['name'], cap_fullnames))
                     last3_missing.append(None)
                     found = True; break
             if found: continue
