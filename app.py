@@ -809,54 +809,119 @@ from fastapi.staticfiles import StaticFiles
 app.mount("/icons", StaticFiles(directory="/home/openclaw/FormAlert/icons"), name="icons")
 
 # --- Login / Logout routes ---
+_LOGIN_STYLE = """
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 420px;
+            width: 100%;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 32px;
+            font-size: 15px;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s;
+        }
+        input:hover {
+            border-color: #667eea;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+"""
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(next: str = "/"):
     html = f"""<!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Вход — FormAlert</title>
-  <style>
-    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{ font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-           background: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center;
-           align-items: center; min-height: 100vh; }}
-    .card {{ background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px;
-             padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }}
-    .logo {{ text-align: center; margin-bottom: 28px; }}
-    .logo h1 {{ font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }}
-    .logo p {{ color: #888; font-size: 14px; margin-top: 6px; }}
-    label {{ display: block; font-size: 13px; font-weight: 600; color: #aaa; margin-bottom: 6px; }}
-    input[type="text"], input[type="password"] {{
-      width: 100%; padding: 12px 14px; border: 1px solid #333; border-radius: 10px;
-      background: #111; color: #fff; font-size: 15px; outline: none; margin-bottom: 18px;
-      transition: border-color .2s;
-    }}
-    input:focus {{ border-color: #4a9eff; }}
-    button {{
-      width: 100%; padding: 14px; background: #4a9eff; color: #fff; border: none;
-      border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
-      transition: background .2s;
-    }}
-    button:hover {{ background: #3a8eef; }}
-    .error {{ background: #3a1111; border: 1px solid #6a2222; color: #ff6b6b; padding: 10px 14px;
-              border-radius: 10px; margin-bottom: 18px; font-size: 14px; text-align: center; }}
-  </style>
+  <title>Sign In — LineupValue</title>
+  {_LOGIN_STYLE}
 </head>
 <body>
-<div class="card">
-  <div class="logo">
-    <h1>X11Radar</h1>
-    <p>Войдите, чтобы продолжить</p>
-  </div>
+<div class="container">
+  <h1>📊 LineupValue</h1>
+  <p class="subtitle">Sign in to continue</p>
   <form method="post" action="/login">
     <input type="hidden" name="next" value="{html_escape(next)}"/>
-    <label>Логин</label>
-    <input type="text" name="username" placeholder="Введите логин" required autofocus/>
-    <label>Пароль</label>
-    <input type="password" name="password" placeholder="Введите пароль" required/>
-    <button type="submit">Войти</button>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" placeholder="Enter username" required autofocus/>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Enter password" required/>
+    </div>
+    <button type="submit">Sign In</button>
   </form>
 </div>
 </body>
@@ -869,54 +934,30 @@ async def login_submit(username: str = Form(...), password: str = Form(...), nex
     row = con.execute("SELECT username, password_hash, is_admin, active FROM users WHERE username=? AND active=1", (username,)).fetchone()
     con.close()
     if not row or not _verify_password(password, row[1]):
-        # Show login page again with error
         html = f"""<!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Вход — FormAlert</title>
-  <style>
-    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{ font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-           background: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center;
-           align-items: center; min-height: 100vh; }}
-    .card {{ background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px;
-             padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }}
-    .logo {{ text-align: center; margin-bottom: 28px; }}
-    .logo h1 {{ font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }}
-    .logo p {{ color: #888; font-size: 14px; margin-top: 6px; }}
-    label {{ display: block; font-size: 13px; font-weight: 600; color: #aaa; margin-bottom: 6px; }}
-    input[type="text"], input[type="password"] {{
-      width: 100%; padding: 12px 14px; border: 1px solid #333; border-radius: 10px;
-      background: #111; color: #fff; font-size: 15px; outline: none; margin-bottom: 18px;
-      transition: border-color .2s;
-    }}
-    input:focus {{ border-color: #4a9eff; }}
-    button {{
-      width: 100%; padding: 14px; background: #4a9eff; color: #fff; border: none;
-      border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
-      transition: background .2s;
-    }}
-    button:hover {{ background: #3a8eef; }}
-    .error {{ background: #3a1111; border: 1px solid #6a2222; color: #ff6b6b; padding: 10px 14px;
-              border-radius: 10px; margin-bottom: 18px; font-size: 14px; text-align: center; }}
-  </style>
+  <title>Sign In — LineupValue</title>
+  {_LOGIN_STYLE}
 </head>
 <body>
-<div class="card">
-  <div class="logo">
-    <h1>X11Radar</h1>
-    <p>Войдите, чтобы продолжить</p>
-  </div>
-  <div class="error">Неверный логин или пароль</div>
+<div class="container">
+  <h1>📊 LineupValue</h1>
+  <p class="subtitle">Sign in to continue</p>
+  <div class="error">Invalid username or password</div>
   <form method="post" action="/login">
     <input type="hidden" name="next" value="{html_escape(next)}"/>
-    <label>Логин</label>
-    <input type="text" name="username" placeholder="Введите логин" value="{html_escape(username)}" required autofocus/>
-    <label>Пароль</label>
-    <input type="password" name="password" placeholder="Введите пароль" required/>
-    <button type="submit">Войти</button>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" placeholder="Enter username" value="{html_escape(username)}" required autofocus/>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Enter password" required/>
+    </div>
+    <button type="submit">Sign In</button>
   </form>
 </div>
 </body>
@@ -932,7 +973,7 @@ async def login_submit(username: str = Form(...), password: str = Form(...), nex
         max_age=30 * 86400,  # 30 days
         httponly=True,
         samesite="lax",
-        secure=False,  # set True when HTTPS is proper
+        secure=False,
         path="/",
     )
     return response
