@@ -240,8 +240,10 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
 
     print(f'[1/5] Squad: {team_name}...')
     html = await get_squad_page(team_id, team_name)
-    players_raw, coach_name, _ = parse_squad_html(html, team_id)
-    print(f'  {len(players_raw)} players')
+    players_raw, coach_name, stadium_from_page = parse_squad_html(html, team_id)
+    if not stadium:
+        stadium = stadium_from_page
+    print(f'  {len(players_raw)} players, stadium: {stadium}')
 
     print('[2/5] Enriching...')
     players_raw = await enrich_players_async(players_raw, concurrency=1)
