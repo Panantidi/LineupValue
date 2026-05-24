@@ -1321,22 +1321,39 @@ def render_team_view(team_id: str) -> HTMLResponse:
             var teamId = window.location.pathname.split('/').pop();
             var refreshBar = document.createElement('div');
             refreshBar.id = 'auto-refresh-bar';
-            refreshBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;background:linear-gradient(90deg,#667eea,#764ba2);transition:opacity 0.5s;';
+            refreshBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:28px;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;font-family:system-ui;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);box-shadow:0 2px 8px rgba(0,0,0,0.2);transition:all 0.5s ease;';
+            refreshBar.innerHTML = '<span class="sync-spinner" style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:8px;"></span>Syncing live data...';
+            // Add spin animation
+            var style = document.createElement('style');
+            style.textContent = '@keyframes spin {{ to {{ transform: rotate(360deg); }} }}';
+            document.head.appendChild(style);
             document.body.appendChild(refreshBar);
 
             fetch('/lineup_ai/api/fetch/' + teamId)
                 .then(function(r) {{ return r.json(); }})
                 .then(function(data) {{
-                    refreshBar.style.opacity = '0';
-                    setTimeout(function() {{ refreshBar.remove(); }}, 600);
                     if (data.changed) {{
-                        // Данные обновились — тихо перезагружаем страницу
-                        window.location.reload();
+                        refreshBar.innerHTML = '&#x2705; Data updated — reloading...';
+                        refreshBar.style.background = '#17843f';
+                        setTimeout(function() {{ window.location.reload(); }}, 400);
+                    }} else {{
+                        refreshBar.innerHTML = '&#x2705; Data is up to date';
+                        refreshBar.style.background = '#28a745';
+                        setTimeout(function() {{
+                            refreshBar.style.opacity = '0';
+                            refreshBar.style.transform = 'translateY(-100%)';
+                            setTimeout(function() {{ refreshBar.remove(); }}, 500);
+                        }}, 800);
                     }}
                 }})
                 .catch(function(err) {{
-                    refreshBar.style.opacity = '0';
-                    setTimeout(function() {{ refreshBar.remove(); }}, 600);
+                    refreshBar.innerHTML = '&#x26A0; Sync failed';
+                    refreshBar.style.background = '#dc3545';
+                    setTimeout(function() {{
+                        refreshBar.style.opacity = '0';
+                        refreshBar.style.transform = 'translateY(-100%)';
+                        setTimeout(function() {{ refreshBar.remove(); }}, 500);
+                    }}, 1500);
                     console.log('Auto-refresh failed:', err);
                 }});
         }})();
@@ -1345,4 +1362,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
 </body>
 </html>"""
     
-    return HTMLResponse(html)
+    response = HTMLResponse(html)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
