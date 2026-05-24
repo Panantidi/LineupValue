@@ -1316,6 +1316,31 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }}
         }}
 
+        // === Авто-обновление: при открытии страницы дергаем свежие данные ===
+        (function() {{
+            var teamId = window.location.pathname.split('/').pop();
+            var refreshBar = document.createElement('div');
+            refreshBar.id = 'auto-refresh-bar';
+            refreshBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;background:linear-gradient(90deg,#667eea,#764ba2);transition:opacity 0.5s;';
+            document.body.appendChild(refreshBar);
+
+            fetch('/lineup_ai/api/fetch/' + teamId)
+                .then(function(r) {{ return r.json(); }})
+                .then(function(data) {{
+                    refreshBar.style.opacity = '0';
+                    setTimeout(function() {{ refreshBar.remove(); }}, 600);
+                    if (data.changed) {{
+                        // Данные обновились — тихо перезагружаем страницу
+                        window.location.reload();
+                    }}
+                }})
+                .catch(function(err) {{
+                    refreshBar.style.opacity = '0';
+                    setTimeout(function() {{ refreshBar.remove(); }}, 600);
+                    console.log('Auto-refresh failed:', err);
+                }});
+        }})();
+
     </script>
 </body>
 </html>"""

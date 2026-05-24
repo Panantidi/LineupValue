@@ -1010,15 +1010,46 @@ async def lineup_index():
 
 @app.get("/lineup_ai/api/fetch/{team_id}")
 async def lineup_api_fetch(team_id: str):
-    """Live-fetch данных команды с Soccerway. Возвращает JSON."""
-    import sys
+    """Live-fetch данных команды с Soccerway. Сравнивает с текущим кэшем.
+    Возвращает {"changed": true/false, "cached_at": ..., "error": ...}.
+    Сравнение только по ключевым полям (players, matches, coach, stadium, team).
+    """
+    import sys, json, hashlib
     sys.path.insert(0, "/home/openclaw/FormAlert")
-    from soccerway_live import fetch_team_live
+    from soccerway_live import _load_live_cache, _save_live_cache, fetch_team_live
+
+    # Поля, по которым сравниваем (исключаем таймстемпы и технические поля)
+    COMPARE_KEYS = ["team", "coach", "stadium", "players", "matches"]
+
+    # 1. Прочитать текущий кэш и снять хэш по ключевым полям
+    old_cache = _load_live_cache(team_id)
+    old_hash = ""
+    if old_cache:
+        old_subset = {k: old_cache.get(k) for k in COMPARE_KEYS}
+        old_hash = hashlib.md5(json.dumps(old_subset, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+    # 2. Запросить свежие данные (force_refresh!)
     try:
-        data = await fetch_team_live(team_id)
-        return JSONResponse(content=data)
+        fresh_data = await fetch_team_live(team_id, force_refresh=True)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=502)
+        return JSONResponse(content={"changed": False, "error": str(e)})
+
+    # 3. Сравнить свежие данные с кэшем по ключевым полям
+    fresh_subset = {k: fresh_data.get(k) for k in COMPARE_KEYS}
+    fresh_hash = hashlib.md5(json.dumps(fresh_subset, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+    changed = (old_hash != fresh_hash)
+
+    if changed:
+        # Данные изменились — обновляем кэш
+        _save_live_cache(team_id, fresh_data)
+
+    cached_at = fresh_data.get("_cached_at", 0)
+    return JSONResponse(content={
+        "changed": changed,
+        "cached_at": cached_at,
+        "error": None,
+    })
 
 
 @app.get("/lineup_ai/{team_id}")
