@@ -1,5 +1,6 @@
 import os
 import time
+import asyncio
 import sqlite3
 import urllib.parse
 import json
@@ -1028,9 +1029,11 @@ async def lineup_api_fetch(team_id: str):
         old_subset = {k: old_cache.get(k) for k in COMPARE_KEYS}
         old_hash = hashlib.md5(json.dumps(old_subset, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
-    # 2. Запросить свежие данные (force_refresh!)
+    # 2. Запросить свежие данные (force_refresh!) с таймаутом 60 сек
     try:
-        fresh_data = await fetch_team_live(team_id, force_refresh=True)
+        fresh_data = await asyncio.wait_for(fetch_team_live(team_id, force_refresh=True), timeout=60)
+    except asyncio.TimeoutError:
+        return JSONResponse(content={"changed": False, "error": "Fetch timed out (60s)"})
     except Exception as e:
         return JSONResponse(content={"changed": False, "error": str(e)})
 
@@ -1040,9 +1043,13 @@ async def lineup_api_fetch(team_id: str):
 
     changed = (old_hash != fresh_hash)
 
-    if changed:
+    # Не обновляем кэш если свежие данные пустые (парсер не смог)
+    fresh_players = len(fresh_data.get("players", []))
+    if changed and fresh_players > 0:
         # Данные изменились — обновляем кэш
         _save_live_cache(team_id, fresh_data)
+    elif changed and fresh_players == 0:
+        changed = False  # Не считаем "изменением" пустой результат
 
     cached_at = fresh_data.get("_cached_at", 0)
     return JSONResponse(content={

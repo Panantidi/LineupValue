@@ -1321,7 +1321,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             var teamId = window.location.pathname.split('/').pop();
             var refreshBar = document.createElement('div');
             refreshBar.id = 'auto-refresh-bar';
-            refreshBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:28px;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;font-family:system-ui;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);box-shadow:0 2px 8px rgba(0,0,0,0.2);transition:all 0.5s ease;';
+            refreshBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:28px;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;font-family:system-ui;background:#dc3545;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:all 0.5s ease;';
             refreshBar.innerHTML = '<span class="sync-spinner" style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:8px;"></span>Syncing live data...';
             // Add spin animation
             var style = document.createElement('style');
@@ -1332,6 +1332,16 @@ def render_team_view(team_id: str) -> HTMLResponse:
             fetch('/lineup_ai/api/fetch/' + teamId)
                 .then(function(r) {{ return r.json(); }})
                 .then(function(data) {{
+                    if (data.error) {{
+                        refreshBar.innerHTML = '\\u26A0 Sync failed: ' + data.error;
+                        refreshBar.style.background = '#dc3545';
+                        setTimeout(function() {{
+                            refreshBar.style.opacity = '0';
+                            refreshBar.style.transform = 'translateY(-100%)';
+                            setTimeout(function() {{ refreshBar.remove(); }}, 500);
+                        }}, 2000);
+                        return;
+                    }}
                     if (data.changed) {{
                         refreshBar.innerHTML = '&#x2705; Data updated — reloading...';
                         refreshBar.style.background = '#17843f';
