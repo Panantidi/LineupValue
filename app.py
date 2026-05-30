@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 
 import httpx
-from fastapi import FastAPI, Request, Form, Depends, HTTPException
+from fastapi import FastAPI, Request, Form, Body, Depends, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -1005,6 +1005,60 @@ sys.path.insert(0, "/home/openclaw/FormAlert")
 from lineup_team_view import render_team_view
 from lineup_data_complete import load_complete_hierarchy
 
+
+def _lineup_account(request: Request) -> str:
+    """Stable per-user key for lineup saves. Uses authenticated username when available."""
+    auth_user = getattr(getattr(request, "state", None), "username", None)
+    if auth_user:
+        return str(auth_user)[:120]
+    import hashlib
+    for header in ("x-forwarded-user", "x-auth-user", "remote-user"):
+        val = (request.headers.get(header) or "").strip()
+        if val:
+            return val[:120]
+    cookie_user = (request.cookies.get("formalert_user") or "").strip()
+    if cookie_user:
+        return cookie_user[:120]
+    raw = f"{request.client.host if request.client else ''}|{request.headers.get('user-agent','')}"
+    return "anon:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+
+
+def _team_cache_path(team_id: str) -> str:
+    return os.path.join("/home/openclaw/.openclaw/workspace", f"_live_cache_{team_id}.json")
+
+
+def _cache_age_seconds(team_id: str) -> float | None:
+    path = _team_cache_path(team_id)
+    if not os.path.exists(path):
+        return None
+    return max(0.0, time.time() - os.path.getmtime(path))
+
+
+def _read_team_cache(team_id: str) -> dict:
+    with open(_team_cache_path(team_id), "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _lineup_save_payload(payload: dict) -> dict:
+    """Keep only allowed user-scoped fields: statuses + Squad/P-XI/S-XI."""
+    players = payload.get("players") if isinstance(payload, dict) else []
+    clean_players = []
+    if isinstance(players, list):
+        for item in players:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name") or "").strip()
+            if not name:
+                continue
+            clean_players.append({
+                "name": name,
+                "status": str(item.get("status") or "Available"),
+                "squad": bool(item.get("squad")),
+                "pxi": bool(item.get("pxi")),
+                "sxi": bool(item.get("sxi")),
+            })
+    return {"players": clean_players}
+
 async def lineup_get_hierarchy():
     return load_complete_hierarchy()
 
@@ -1072,128 +1126,99 @@ async def lineup_api_fetch(team_id: str):
     })
 
 
+@app.get("/lineup_ai/save/{team_id}")
+async def lineup_get_save(team_id: str, request: Request):
+    ensure_db()
+    username = _lineup_account(request)
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute(
+        "SELECT save_data, saved_at FROM user_lineup_saves WHERE username=? AND team_id=? AND save_name='Default'",
+        (username, team_id),
+    ).fetchone()
+    con.close()
+    if not row:
+        return JSONResponse(content={"ok": True, "data": {"players": []}, "saved_at": None})
+    try:
+        data = json.loads(row[0])
+    except Exception:
+        data = {"players": []}
+    return JSONResponse(content={"ok": True, "data": data, "saved_at": row[1]})
+
+
+@app.post("/lineup_ai/save/{team_id}")
+async def lineup_save(team_id: str, request: Request, payload: dict = Body(default_factory=dict)):
+    ensure_db()
+    username = _lineup_account(request)
+    clean = _lineup_save_payload(payload)
+    saved_at = datetime.now(timezone.utc).isoformat()
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        "INSERT INTO user_lineup_saves(username, team_id, save_name, save_data, saved_at) VALUES(?,?,?,?,?) "
+        "ON CONFLICT(username, team_id, save_name) DO UPDATE SET save_data=excluded.save_data, saved_at=excluded.saved_at",
+        (username, team_id, "Default", json.dumps(clean, ensure_ascii=False), saved_at),
+    )
+    con.commit()
+    con.close()
+    return JSONResponse(content={"ok": True, "saved_at": saved_at, "players": len(clean.get("players", []))})
+
+
+@app.post("/lineup_ai/refresh/{team_id}")
+async def lineup_refresh(team_id: str, force: int = 0):
+    """Refresh dynamic Soccerway data with a 6h cache. Fresh cache is reused; stale cache is refetched."""
+    import subprocess
+    ttl = 6 * 3600
+    age = _cache_age_seconds(team_id)
+    if age is not None and age < ttl and not force:
+        return JSONResponse(content={"ok": True, "cached": True, "age_seconds": int(age)})
+
+    try:
+        cache = _read_team_cache(team_id)
+    except Exception as e:
+        return JSONResponse(content={"ok": False, "error": f"cache missing/unreadable: {e}"}, status_code=404)
+    team = cache.get("team") or {}
+    team_name = team.get("name") or team_id
+    team_slug = team.get("slug") or ""
+    coach_nat = (cache.get("coach") or {}).get("nationality") or ""
+    stadium = cache.get("stadium") or team.get("stadium") or ""
+    # Full refresh updates season stats (Apps/Min/G/A/YC/RC), MV/positions, Last 3, match dates/tournament/scores.
+    cmd = [
+        "/home/openclaw/FormAlert/.venv/bin/python3", "-u", "/home/openclaw/FormAlert/fetch_team.py", team_id,
+        "--full", "--team-name", team_name, "--slug", team_slug, "--coach-nat", coach_nat, "--stadium", stadium,
+    ]
+    try:
+        proc = subprocess.run(cmd, cwd="/home/openclaw/FormAlert", text=True, capture_output=True, timeout=900)
+    except subprocess.TimeoutExpired as e:
+        return JSONResponse(content={"ok": False, "error": "refresh timeout", "output": (e.stdout or "")[-4000:]}, status_code=504)
+    if proc.returncode != 0:
+        return JSONResponse(content={"ok": False, "error": "refresh failed", "output": (proc.stdout + proc.stderr)[-6000:]}, status_code=502)
+    refreshed = _read_team_cache(team_id)
+    return JSONResponse(content={
+        "ok": True, "cached": False, "age_seconds": 0,
+        "players": len(refreshed.get("players", [])),
+        "matches": len(refreshed.get("matches", [])),
+        "output": proc.stdout[-4000:],
+    })
+
+
+@app.post("/team/{team_id}/save")
+async def team_save_alias(team_id: str, request: Request, payload: dict = Body(default_factory=dict)):
+    return await lineup_save(team_id, request, payload)
+
+
+@app.post("/team/{team_id}/refresh")
+async def team_refresh_alias(team_id: str, force: int = 0):
+    return await lineup_refresh(team_id, force=force)
+
+
+@app.get("/team/{team_id}")
+async def team_get_alias(team_id: str):
+    return render_team_view(team_id)
+
+
 @app.get("/lineup_ai/{team_id}")
 async def lineup_team(team_id: str):
     return render_team_view(team_id)
 
-
-
-# ═══════════════════════════════════════════════════════════════
-#  ВСТАВИТЬ В app.py после route /lineup_ai/view/{team_id}
-#  Три endpoint: save / load / refresh
-# ═══════════════════════════════════════════════════════════════
-
-
-@app.post("/lineup_ai/save/{team_id}", response_class=JSONResponse)
-async def lineup_save_state(team_id: str, request: Request):
-    """Сохраняет статусы + чекбоксы для текущего пользователя.
-    Данные изолированы: каждый пользователь видит только свои."""
-    username = getattr(request.state, "username", None)
-    if not username:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    try:
-        body = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON")
-
-    save_name = str(body.get("save_name", "Default"))[:64].strip() or "Default"
-    save_data_str = json.dumps(body.get("data", {}), ensure_ascii=False)
-    ts = datetime.now(timezone.utc).isoformat()
-
-    con = sqlite3.connect(DB_PATH)
-    try:
-        con.execute(
-            """
-            INSERT INTO user_lineup_saves
-                (username, team_id, save_name, save_data, saved_at)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(username, team_id, save_name)
-            DO UPDATE SET
-                save_data = excluded.save_data,
-                saved_at  = excluded.saved_at
-            """,
-            (username, team_id, save_name, save_data_str, ts)
-        )
-        con.commit()
-    finally:
-        con.close()
-
-    return JSONResponse({"ok": True, "saved_at": ts})
-
-
-@app.get("/lineup_ai/load/{team_id}", response_class=JSONResponse)
-async def lineup_load_state(
-    team_id: str,
-    request: Request,
-    save_name: str = "Default"
-):
-    """Загружает сохранение + список всех сохранений пользователя.
-    save_name='__none__' вернёт только список без данных."""
-    username = getattr(request.state, "username", None)
-    if not username:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    con = sqlite3.connect(DB_PATH)
-    try:
-        saves_list = [
-            {"name": r[0], "saved_at": r[1]}
-            for r in con.execute(
-                """SELECT save_name, saved_at
-                   FROM user_lineup_saves
-                   WHERE username=? AND team_id=?
-                   ORDER BY saved_at DESC""",
-                (username, team_id)
-            ).fetchall()
-        ]
-
-        if save_name == "__none__":
-            return JSONResponse({"ok": False, "data": None, "saves": saves_list})
-
-        row = con.execute(
-            """SELECT save_data, saved_at
-               FROM user_lineup_saves
-               WHERE username=? AND team_id=? AND save_name=?""",
-            (username, team_id, save_name)
-        ).fetchone()
-    finally:
-        con.close()
-
-    if not row:
-        return JSONResponse({"ok": False, "data": None, "saves": saves_list})
-
-    try:
-        data = json.loads(row[0])
-    except Exception:
-        data = {}
-
-    return JSONResponse({
-        "ok": True,
-        "data": data,
-        "saved_at": row[1],
-        "saves": saves_list
-    })
-
-
-@app.post("/lineup_ai/refresh/{team_id}")
-async def lineup_refresh_cache(team_id: str, request: Request):
-    """Сбрасывает live-кэш команды.
-    Следующий открытый запрос пересоздаст кэш со свежими данными от Soccerway."""
-    DATA_DIR = "/home/openclaw/.openclaw/workspace"
-    live_cache_path = os.path.join(DATA_DIR, f"_live_cache_{team_id}.json")
-
-    if os.path.exists(live_cache_path):
-        try:
-            os.remove(live_cache_path)
-        except OSError as e:
-            # Не критично — логируем и продолжаем
-            pass
-
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(
-        url=f"/lineup_ai/view/{team_id}?refreshed=1",
-        status_code=303
-    )
 
 
 
