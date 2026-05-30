@@ -8,6 +8,7 @@ import unicodedata
 import re
 import hashlib
 import secrets
+import subprocess
 import uuid
 from datetime import datetime, timezone, timedelta
 
@@ -460,6 +461,22 @@ def ensure_db():
         )
     """)
     con.execute("CREATE INDEX IF NOT EXISTS idx_lineup_snapshots_user_team ON user_lineup_snapshots(username, team_id, created_at DESC)")
+
+
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS team_data_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            team_id TEXT NOT NULL,
+            version INTEGER NOT NULL,
+            data_json TEXT NOT NULL,
+            data_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            last_checked_at TEXT NOT NULL,
+            is_current INTEGER NOT NULL DEFAULT 1,
+            UNIQUE(team_id, version)
+        )
+    """)
+    con.execute("CREATE INDEX IF NOT EXISTS idx_team_versions_current ON team_data_versions(team_id, is_current, version DESC)")
 
     con.commit()
     con.close()
@@ -1071,6 +1088,174 @@ def _lookup_lineup_team(team_id: str) -> dict:
     return {"id": team_id, "name": team_id, "slug": ""}
 
 
+
+TEAM_VERSION_CHECK_TTL = 3 * 3600
+TEAM_VERSION_KEEP = 20
+
+
+def _version_canonical_player(p: dict) -> dict:
+    return {
+        "name": str(p.get("name") or ""),
+        "number": str(p.get("number") or p.get("shirt_number") or ""),
+        "nationality": str(p.get("nationality") or ""),
+        "status": str(p.get("status") or ""),
+        "age": str(p.get("age") or ""),
+        "mv": str(p.get("mv") or p.get("market_value") or ""),
+        "pos": str(p.get("pos") or p.get("position") or ""),
+        "impact_score": str(p.get("impact_score") or ""),
+        "squad_role": str(p.get("squad_role") or ""),
+        "last3": p.get("last3") or [],
+        "last3_missing": p.get("last3_missing") or [],
+        "last3_captain": p.get("last3_captain") or [],
+        "apps": str(p.get("apps") or p.get("app") or p.get("appearances") or ""),
+        "min": str(p.get("min") or p.get("minutes") or ""),
+        "goal": str(p.get("goal") or p.get("goals") or ""),
+        "assist": str(p.get("assist") or p.get("assists") or ""),
+        "yellow_card": str(p.get("yellow_card") or p.get("yellow_cards") or ""),
+        "red_card": str(p.get("red_card") or p.get("red_cards") or ""),
+    }
+
+
+def _team_version_subset(data: dict) -> dict:
+    players = data.get("players") if isinstance(data, dict) else []
+    matches = data.get("matches") if isinstance(data, dict) else []
+    return {
+        "team": data.get("team") or {},
+        "coach": data.get("coach") or {},
+        "stadium": data.get("stadium") or "",
+        "players": sorted([_version_canonical_player(p) for p in players if isinstance(p, dict)], key=lambda x: x.get("name", "")),
+        "matches": [
+            {
+                "date": str(m.get("date") or ""),
+                "tournament": str(m.get("tournament") or m.get("comp") or ""),
+                "score": str(m.get("score") or ""),
+                "home_team": str(m.get("home_team") or ""),
+                "away_team": str(m.get("away_team") or ""),
+                "mid": str(m.get("mid") or ""),
+            }
+            for m in matches if isinstance(m, dict)
+        ],
+    }
+
+
+def _team_data_hash(data: dict) -> str:
+    subset = _team_version_subset(data)
+    return hashlib.sha256(json.dumps(subset, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def _get_current_team_version(team_id: str) -> dict | None:
+    ensure_db()
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute(
+        "SELECT id, version, data_json, data_hash, created_at, last_checked_at FROM team_data_versions WHERE team_id=? AND is_current=1 ORDER BY version DESC LIMIT 1",
+        (team_id,),
+    ).fetchone()
+    con.close()
+    if not row:
+        return None
+    return {"id": row[0], "version": row[1], "data": json.loads(row[2]), "hash": row[3], "created_at": row[4], "last_checked_at": row[5]}
+
+
+def _save_team_version(team_id: str, data: dict, data_hash: str | None = None, checked_only: bool = False) -> dict:
+    ensure_db()
+    now = datetime.now(timezone.utc).isoformat()
+    data_hash = data_hash or _team_data_hash(data)
+    con = sqlite3.connect(DB_PATH)
+    current = con.execute(
+        "SELECT id, version, data_hash FROM team_data_versions WHERE team_id=? AND is_current=1 ORDER BY version DESC LIMIT 1",
+        (team_id,),
+    ).fetchone()
+    if current and current[2] == data_hash:
+        con.execute("UPDATE team_data_versions SET last_checked_at=? WHERE id=?", (now, current[0]))
+        con.commit()
+        con.close()
+        return {"created": False, "version": current[1], "checked_at": now}
+    next_version = (int(current[1]) + 1) if current else 1
+    con.execute("UPDATE team_data_versions SET is_current=0 WHERE team_id=?", (team_id,))
+    con.execute(
+        "INSERT INTO team_data_versions(team_id, version, data_json, data_hash, created_at, last_checked_at, is_current) VALUES(?,?,?,?,?,?,1)",
+        (team_id, next_version, json.dumps(data, ensure_ascii=False), data_hash, now, now),
+    )
+    # Keep latest N versions only.
+    stale = con.execute(
+        "SELECT id FROM team_data_versions WHERE team_id=? ORDER BY version DESC LIMIT -1 OFFSET ?",
+        (team_id, TEAM_VERSION_KEEP),
+    ).fetchall()
+    if stale:
+        con.executemany("DELETE FROM team_data_versions WHERE id=?", stale)
+    con.commit()
+    con.close()
+    return {"created": True, "version": next_version, "checked_at": now}
+
+
+def _write_team_cache(team_id: str, data: dict) -> None:
+    path = _team_cache_path(team_id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict | None:
+    base_data = base_data or {}
+    team = (base_data.get("team") if isinstance(base_data, dict) else {}) or _lookup_lineup_team(team_id)
+    if not team.get("name") or team.get("name") == team_id:
+        team = _lookup_lineup_team(team_id)
+    team_name = team.get("name") or team_id
+    team_slug = team.get("slug") or re.sub(r"[^a-z0-9]+", "-", team_name.lower()).strip("-")
+    coach_nat = ((base_data.get("coach") or {}) if isinstance(base_data, dict) else {}).get("nationality") or ""
+    stadium = (base_data.get("stadium") if isinstance(base_data, dict) else "") or team.get("stadium") or ""
+    cmd = [
+        "/home/openclaw/FormAlert/.venv/bin/python3", "-u", "/home/openclaw/FormAlert/fetch_team.py", team_id,
+        "--full", "--team-name", team_name, "--slug", team_slug, "--coach-nat", coach_nat, "--stadium", stadium,
+    ]
+    proc = subprocess.run(cmd, cwd="/home/openclaw/FormAlert", text=True, capture_output=True, timeout=900)
+    if proc.returncode != 0:
+        raise RuntimeError((proc.stdout + proc.stderr)[-4000:])
+    data = _read_team_cache(team_id)
+    if not data.get("players"):
+        raise RuntimeError("fresh fetch returned empty players")
+    return data
+
+
+def prepare_team_data_version(team_id: str) -> dict:
+    """Return current version data, checking source at most every 3h.
+
+    If last check < 3h, return DB version immediately. If stale, fetch fresh data,
+    compare canonical fields, and create a new version only when the data changed.
+    """
+    current = _get_current_team_version(team_id)
+    now = datetime.now(timezone.utc)
+    if current:
+        try:
+            last_checked = datetime.fromisoformat(current["last_checked_at"])
+            if last_checked.tzinfo is None:
+                last_checked = last_checked.replace(tzinfo=timezone.utc)
+            if (now - last_checked).total_seconds() < TEAM_VERSION_CHECK_TTL:
+                _write_team_cache(team_id, current["data"])
+                return current["data"]
+        except Exception:
+            pass
+    # Bootstrap from existing cache first so first open is fast and creates Version 1.
+    if not current:
+        try:
+            cached = _read_team_cache(team_id)
+            if cached.get("players"):
+                _save_team_version(team_id, cached)
+                return cached
+        except Exception:
+            pass
+    base_data = current["data"] if current else None
+    try:
+        fresh = _fetch_fresh_team_data(team_id, base_data)
+        result = _save_team_version(team_id, fresh)
+        _write_team_cache(team_id, fresh)
+        return fresh
+    except Exception:
+        if current:
+            return current["data"]
+        raise
+
+
 def _lineup_save_payload(payload: dict) -> dict:
     """Normalize a full user-scoped page snapshot.
 
@@ -1316,11 +1501,19 @@ async def lineup_delete_snapshot(team_id: str, snapshot_id: int, request: Reques
 
 @app.get("/team/{team_id}")
 async def team_get_alias(team_id: str):
+    try:
+        prepare_team_data_version(team_id)
+    except Exception:
+        pass
     return render_team_view(team_id)
 
 
 @app.get("/lineup_ai/{team_id}")
 async def lineup_team(team_id: str):
+    try:
+        prepare_team_data_version(team_id)
+    except Exception:
+        pass
     return render_team_view(team_id)
 
 
