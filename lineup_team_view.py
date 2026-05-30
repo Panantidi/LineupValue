@@ -151,11 +151,17 @@ def render_team_view(team_id: str) -> HTMLResponse:
     team_file = None
     
     # Сначала проверяем live-кеш (свежие данные)
+    LIVE_CACHE_TTL = 6 * 3600
+    cache_age_hours = 999.0
+
     if os.path.exists(live_cache_path):
         try:
-            with open(live_cache_path, 'r', encoding='utf-8') as f:
-                cached = json.load(f)
-            if True:  # always use live cache if exists
+            age_s = _time.time() - os.path.getmtime(live_cache_path)
+            cache_age_hours = age_s / 3600
+            if age_s < LIVE_CACHE_TTL:
+                team_file = live_cache_path
+            else:
+                # Stale cache — still use as fallback, badge will show "stale"
                 team_file = live_cache_path
         except Exception:
             pass
@@ -403,6 +409,16 @@ def render_team_view(team_id: str) -> HTMLResponse:
         tooltip = f"Ligue 1: {score_str}" if score_str else ""
         last3_header_cells += f'<th style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;" title="{tooltip}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
+    # Badge freshness indicator
+    if cache_age_hours < 1:
+        cache_badge = "\U0001f7e2 Свежие данные"
+    elif cache_age_hours < 6:
+        h = int(cache_age_hours)
+        m = int((cache_age_hours - h) * 60)
+        cache_badge = f"\U0001f7e1 {h}\u0447 {m}\u043c назад"
+    else:
+        cache_badge = "\U0001f534 Устарело"
+
     html = f"""<!doctype html>
 <html>
 <head>
@@ -628,7 +644,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
 </head>
 <body>
     <div class="header">
-        <h1>{team_name}</h1>
+        <h1>{team_name}</h1> <span style="font-size:11px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:12px;">{{cache_badge}}</span>
         <div class="header-tabs">
             <div class="tab active">Squad</div>
             <div class="tab">Missing Players</div>
@@ -636,6 +652,13 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Returning Players</div>
         </div>
         <a href="/lineup_ai/select" style="margin-left:auto;">← Back to teams</a>
+        <form method="post"
+              action="/lineup_ai/refresh/{team_id}"
+              style="display:inline;margin:0 4px 0 0;">
+            <button type="submit"
+                    title="Update Last 3 data"
+                    style="background:none;border:1px solid rgba(255,255,255,0.4);border-radius:6px;cursor:pointer;font-size:20px;padding:3px 8px;color:white;">&#x1F504;</button>
+        </form>
         <div style="position:relative;display:inline-block;vertical-align:middle;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><button onclick="exportScreenshot()" id="btn-export" style="background:none;border:none;cursor:pointer;font-size:24px;padding:4px 8px;">&#x1F4F8;</button><span class="tooltip-delay" style="visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:12px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;transition:opacity 0.3s ease;">Save Screenshot</span></div>
     </div>
 
@@ -784,6 +807,101 @@ def render_team_view(team_id: str) -> HTMLResponse:
         </div>
 
         <div class="main-layout">
+<!-- ═══════════════════════════════════════
+     SAVE PANEL
+     Вставить как ПЕРВЫЙ элемент в .main-layout
+     ════════════════════════════════════════ -->
+<div id="save-panel" style="
+    width: 200px;
+    flex-shrink: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: flex-start;
+    position: sticky;
+    top: 16px;
+">
+    <!-- Заголовок панели -->
+    <div style="display:flex;align-items:center;gap:6px;
+                border-bottom:1px solid #eee;padding-bottom:8px;">
+        <span style="font-size:15px;">💾</span>
+        <span style="font-size:12px;font-weight:600;color:#333;">Сохранение</span>
+        <span id="save-status"
+              style="margin-left:auto;font-size:10px;color:#888;
+                     font-weight:400;min-width:65px;text-align:right;">
+        </span>
+    </div>
+
+    <!-- Поле названия -->
+    <div>
+        <label style="font-size:10px;color:#aaa;display:block;margin-bottom:3px;
+                      text-transform:uppercase;letter-spacing:0.4px;">
+            Название
+        </label>
+        <input id="save-name-input"
+               type="text"
+               value="Default"
+               maxlength="64"
+               placeholder="Моё сохранение..."
+               style="width:100%;padding:6px 8px;
+                      border:1.5px solid #e0e0e0;border-radius:7px;
+                      font-size:12px;box-sizing:border-box;outline:none;
+                      transition:border-color 0.2s;"
+               onfocus="this.style.borderColor='#667eea'"
+               onblur="this.style.borderColor='#e0e0e0'" />
+    </div>
+
+    <!-- Кнопка СОХРАНИТЬ -->
+    <button onclick="saveLineupState()"
+            style="width:100%;padding:8px 6px;
+                   background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                   color:white;border:none;border-radius:8px;cursor:pointer;
+                   font-size:12px;font-weight:600;letter-spacing:0.2px;
+                   box-shadow:0 2px 6px rgba(102,126,234,0.35);
+                   transition:opacity 0.2s;"
+            onmouseenter="this.style.opacity='0.85'"
+            onmouseleave="this.style.opacity='1'">
+        💾 Сохранить
+    </button>
+
+    <!-- Кнопка ЗАГРУЗИТЬ -->
+    <button onclick="loadLineupState(document.getElementById('save-name-input').value)"
+            style="width:100%;padding:7px 6px;background:#f5f5f5;
+                   color:#444;border:1.5px solid #e8e8e8;border-radius:8px;
+                   cursor:pointer;font-size:12px;font-weight:500;
+                   transition:background 0.15s;"
+            onmouseenter="this.style.background='#ebebeb'"
+            onmouseleave="this.style.background='#f5f5f5'">
+        📂 Загрузить
+    </button>
+
+    <!-- Список сохранений пользователя -->
+    <div id="saves-list-block" style="display:none;">
+        <div style="font-size:10px;color:#aaa;text-transform:uppercase;
+                    letter-spacing:0.4px;margin-bottom:5px;">
+            Мои сохранения
+        </div>
+        <div id="saves-list-items"
+             style="display:flex;flex-direction:column;gap:3px;
+                    max-height:180px;overflow-y:auto;">
+        </div>
+    </div>
+
+    <!-- Подпись -->
+    <div style="border-top:1px solid #f0f0f0;padding-top:8px;
+                font-size:10px;color:#ccc;line-height:1.7;">
+        Сохраняется:<br>
+        · Статусы игроков<br>
+        · Squad / P-XI / S-XI<br>
+        <em style="color:#ddd;">Только для вашего аккаунта</em>
+    </div>
+</div>
+<!-- ═══════════ END SAVE PANEL ═══════════ -->
+
             <div class="main-table">
                 <div class="table-container">
             <table>
@@ -1368,7 +1486,214 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 }});
         }})();
 
-    </script>
+    
+// ════════════════════════════════════════════════════
+//   SAVE / LOAD lineup state
+//   Вставить ПЕРЕД закрывающим </script> в lineup_team_view.py
+//
+//   ВАЖНО: в Python f-string замени строку:
+//     const _TEAM_ID = "{{{{{{{{team_id}}}}}}}}";
+//   (двойные {{{{{{{{ }}}}}}}} в f-string станут одинарными {{{{ }}}})
+// ════════════════════════════════════════════════════
+
+const _TEAM_ID = "{{team_id}}";  // ← Python подставит реальный ID
+
+// ────────────────────────────────
+//  Сбор состояния страницы
+// ────────────────────────────────
+function _collectState() {{
+    const s = {{ statuses: {{}}, squad: [], pxi: [], sxi: [] }};
+    document.querySelectorAll(".main-table tbody tr[data-last]").forEach(row => {{
+        const nc = row.querySelector(".player-name strong");
+        if (!nc) return;
+        const name = nc.textContent.replace(/[\u26BD\u1F97F⚽️👟]/gu, "").trim();
+        if (!name) return;
+
+        const sel = row.querySelector(".status-select");
+        if (sel) s.statuses[name] = sel.value;
+
+        if (row.querySelector(".squad-checkbox:checked")) s.squad.push(name);
+        if (row.querySelector(".xi-checkbox:checked"))    s.pxi.push(name);
+        if (row.querySelector(".starting-checkbox:checked")) s.sxi.push(name);
+    }});
+    return s;
+}}
+
+// ────────────────────────────────
+//  Применение сохранённого состояния
+// ────────────────────────────────
+function _applyState(s) {{
+    if (!s) return;
+
+    document.querySelectorAll(".main-table tbody tr[data-last]").forEach(row => {{
+        const nc = row.querySelector(".player-name strong");
+        if (!nc) return;
+        const name = nc.textContent.replace(/[\u26BD\u1F97F⚽️👟]/gu, "").trim();
+        if (!name) return;
+
+        // Статус
+        if (s.statuses && s.statuses[name] !== undefined) {{
+            const sel = row.querySelector(".status-select");
+            if (sel) {{ sel.value = s.statuses[name]; updateStatusIcon(sel); }}
+        }}
+
+        // Squad checkbox
+        const sqCb = row.querySelector(".squad-checkbox");
+        if (sqCb) {{
+            sqCb.checked = (s.squad || []).includes(name);
+            sqCb.style.background = sqCb.checked ? "#000" : "#e0e0e0";
+            sqCb.style.border = sqCb.checked ? "none" : "2px solid #333";
+        }}
+
+        // P-XI checkbox
+        const xiCb = row.querySelector(".xi-checkbox");
+        if (xiCb) {{
+            xiCb.checked = (s.pxi || []).includes(name);
+            xiCb.style.background = xiCb.checked ? "#667eea" : "#e0e0e0";
+            xiCb.style.border = "2px solid #667eea";
+        }}
+
+        // S-XI checkbox
+        const stCb = row.querySelector(".starting-checkbox");
+        if (stCb) {{
+            stCb.checked = (s.sxi || []).includes(name);
+            stCb.style.background = stCb.checked ? "#dc3545" : "#e0e0e0";
+            stCb.style.border = "2px solid #dc3545";
+        }}
+    }});
+
+    // Пересчёт счётчиков P-XI и S-XI
+    let xiN = 0, sxiN = 0;
+    document.querySelectorAll(".xi-checkbox:checked").forEach(() => xiN++);
+    document.querySelectorAll(".starting-checkbox:checked").forEach(() => sxiN++);
+
+    const xiEl = document.getElementById("xi-counter");
+    if (xiEl) xiEl.textContent = xiN + "/11";
+    const sxiEl = document.getElementById("starting-counter");
+    if (sxiEl) sxiEl.textContent = sxiN + "/11";
+
+    // Пересчитать таблицы сравнения если функции существуют
+    if (typeof updateXIStats === "function") updateXIStats();
+    if (typeof updateStartingXIStats === "function") updateStartingXIStats();
+}}
+
+// ────────────────────────────────
+//  Утилита: статус-строка
+// ────────────────────────────────
+function _setSaveStatus(msg, ms = 3000) {{
+    const el = document.getElementById("save-status");
+    if (!el) return;
+    el.textContent = msg;
+    if (ms > 0) setTimeout(() => el.textContent = "", ms);
+}}
+
+// ────────────────────────────────
+//  СОХРАНИТЬ
+// ────────────────────────────────
+async function saveLineupState() {{
+    const saveName = (document.getElementById("save-name-input")?.value || "Default").trim() || "Default";
+    _setSaveStatus("⏳ Сохраняю...", 0);
+    try {{
+        const r = await fetch("/lineup_ai/save/" + _TEAM_ID, {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json" }},
+            body: JSON.stringify({{ save_name: saveName, data: _collectState() }})
+        }});
+        const j = await r.json();
+        _setSaveStatus(j.ok ? "✅ Готово" : "❌ Ошибка");
+        if (j.ok) await loadSavesList();
+    }} catch (e) {{
+        _setSaveStatus("❌ " + (e.message || "Ошибка сети"));
+    }}
+}}
+
+// ────────────────────────────────
+//  ЗАГРУЗИТЬ
+// ────────────────────────────────
+async function loadLineupState(saveName) {{
+    const name = (saveName || "Default").trim() || "Default";
+    _setSaveStatus("⏳ Загружаю...", 0);
+    try {{
+        const r = await fetch(
+            "/lineup_ai/load/" + _TEAM_ID + "?save_name=" + encodeURIComponent(name)
+        );
+        const j = await r.json();
+        if (j.ok && j.data) {{
+            _applyState(j.data);
+            _setSaveStatus("✅ Загружено");
+        }} else {{
+            _setSaveStatus("ℹ️ Нет сохранения");
+        }}
+        _renderSavesList(j.saves || []);
+    }} catch (e) {{
+        _setSaveStatus("❌ " + (e.message || "Ошибка сети"));
+    }}
+}}
+
+// ────────────────────────────────
+//  Обновить список сохранений
+// ────────────────────────────────
+async function loadSavesList() {{
+    try {{
+        const r = await fetch("/lineup_ai/load/" + _TEAM_ID + "?save_name=__none__");
+        const j = await r.json();
+        _renderSavesList(j.saves || []);
+    }} catch (e) {{}}
+}}
+
+// ────────────────────────────────
+//  Рендер списка сохранений
+// ────────────────────────────────
+function _renderSavesList(saves) {{
+    const block = document.getElementById("saves-list-block");
+    const items = document.getElementById("saves-list-items");
+    if (!block || !items) return;
+
+    if (!saves || !saves.length) {{
+        block.style.display = "none";
+        return;
+    }}
+    block.style.display = "block";
+
+    items.innerHTML = saves.map(s => {{
+        const dt = s.saved_at
+            ? new Date(s.saved_at).toLocaleString("ru-RU", {{
+                day: "2-digit", month: "2-digit",
+                hour: "2-digit", minute: "2-digit"
+              }})
+            : "";
+        const esc = s.name.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        return `<div
+            onclick="document.getElementById('save-name-input').value='${{esc}}';
+                     loadLineupState('${{esc}}');"
+            style="padding:5px 7px;border:1px solid #eee;border-radius:6px;
+                   cursor:pointer;font-size:10px;background:#fafafa;
+                   transition:background 0.12s;"
+            onmouseenter="this.style.background='#f0f0f0'"
+            onmouseleave="this.style.background='#fafafa'">
+            <b style="color:#333;">${{s.name}}</b>
+            <span style="float:right;color:#bbb;font-size:9px;">${{dt}}</span>
+        </div>`;
+    }}).join("");
+}}
+
+// ────────────────────────────────
+//  Автозагрузка "Default" при открытии
+// ────────────────────────────────
+(async function _autoLoad() {{
+    try {{
+        const r = await fetch("/lineup_ai/load/" + _TEAM_ID + "?save_name=Default");
+        const j = await r.json();
+        if (j.ok && j.data) {{
+            _applyState(j.data);
+        }}
+        _renderSavesList(j.saves || []);
+    }} catch (e) {{
+        // Тихий фейл — нет сохранения или нет сети
+    }}
+}})();
+
+</script>
 </body>
 </html>"""
     

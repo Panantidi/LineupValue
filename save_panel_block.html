@@ -1,0 +1,94 @@
+<!-- ═══════════════════════════════════════
+     SAVE PANEL
+     Вставить как ПЕРВЫЙ элемент в .main-layout
+     ════════════════════════════════════════ -->
+<div id="save-panel" style="
+    width: 200px;
+    flex-shrink: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: flex-start;
+    position: sticky;
+    top: 16px;
+">
+    <!-- Заголовок панели -->
+    <div style="display:flex;align-items:center;gap:6px;
+                border-bottom:1px solid #eee;padding-bottom:8px;">
+        <span style="font-size:15px;">💾</span>
+        <span style="font-size:12px;font-weight:600;color:#333;">Сохранение</span>
+        <span id="save-status"
+              style="margin-left:auto;font-size:10px;color:#888;
+                     font-weight:400;min-width:65px;text-align:right;">
+        </span>
+    </div>
+
+    <!-- Поле названия -->
+    <div>
+        <label style="font-size:10px;color:#aaa;display:block;margin-bottom:3px;
+                      text-transform:uppercase;letter-spacing:0.4px;">
+            Название
+        </label>
+        <input id="save-name-input"
+               type="text"
+               value="Default"
+               maxlength="64"
+               placeholder="Моё сохранение..."
+               style="width:100%;padding:6px 8px;
+                      border:1.5px solid #e0e0e0;border-radius:7px;
+                      font-size:12px;box-sizing:border-box;outline:none;
+                      transition:border-color 0.2s;"
+               onfocus="this.style.borderColor='#667eea'"
+               onblur="this.style.borderColor='#e0e0e0'" />
+    </div>
+
+    <!-- Кнопка СОХРАНИТЬ -->
+    <button onclick="saveLineupState()"
+            style="width:100%;padding:8px 6px;
+                   background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                   color:white;border:none;border-radius:8px;cursor:pointer;
+                   font-size:12px;font-weight:600;letter-spacing:0.2px;
+                   box-shadow:0 2px 6px rgba(102,126,234,0.35);
+                   transition:opacity 0.2s;"
+            onmouseenter="this.style.opacity='0.85'"
+            onmouseleave="this.style.opacity='1'">
+        💾 Сохранить
+    </button>
+
+    <!-- Кнопка ЗАГРУЗИТЬ -->
+    <button onclick="loadLineupState(document.getElementById('save-name-input').value)"
+            style="width:100%;padding:7px 6px;background:#f5f5f5;
+                   color:#444;border:1.5px solid #e8e8e8;border-radius:8px;
+                   cursor:pointer;font-size:12px;font-weight:500;
+                   transition:background 0.15s;"
+            onmouseenter="this.style.background='#ebebeb'"
+            onmouseleave="this.style.background='#f5f5f5'">
+        📂 Загрузить
+    </button>
+
+    <!-- Список сохранений пользователя -->
+    <div id="saves-list-block" style="display:none;">
+        <div style="font-size:10px;color:#aaa;text-transform:uppercase;
+                    letter-spacing:0.4px;margin-bottom:5px;">
+            Мои сохранения
+        </div>
+        <div id="saves-list-items"
+             style="display:flex;flex-direction:column;gap:3px;
+                    max-height:180px;overflow-y:auto;">
+        </div>
+    </div>
+
+    <!-- Подпись -->
+    <div style="border-top:1px solid #f0f0f0;padding-top:8px;
+                font-size:10px;color:#ccc;line-height:1.7;">
+        Сохраняется:<br>
+        · Статусы игроков<br>
+        · Squad / P-XI / S-XI<br>
+        <em style="color:#ddd;">Только для вашего аккаунта</em>
+    </div>
+</div>
+<!-- ═══════════ END SAVE PANEL ═══════════ -->
