@@ -183,7 +183,48 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
     
     if not team_file:
-        return HTMLResponse("Team not found", status_code=404)
+        team_name_hint = team_id
+        try:
+            from lineup_data_complete import load_complete_hierarchy
+            hierarchy = load_complete_hierarchy()
+            for leagues in hierarchy.values():
+                if isinstance(leagues, dict):
+                    for teams in leagues.values():
+                        if isinstance(teams, list):
+                            for team in teams:
+                                if isinstance(team, dict) and str(team.get("id")) == str(team_id):
+                                    team_name_hint = str(team.get("name") or team_id)
+                                    raise StopIteration
+        except StopIteration:
+            pass
+        except Exception:
+            pass
+        html = f"""<!doctype html>
+<html><head><meta charset="utf-8"><title>{team_name_hint} - loading</title></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;margin:0;padding:32px;">
+  <div style="max-width:760px;margin:60px auto;background:white;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
+    <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
+    <p style="color:#666;line-height:1.5;">Данные команды ещё не загружены в кэш. Нажмите Refresh — система получит актуальный состав и статистику с Soccerway и сохранит кэш.</p>
+    <button id="refresh-btn" onclick="refreshMissingTeam()" style="border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">🔄 Refresh / Обновить</button>
+    <span id="refresh-msg" style="margin-left:12px;color:#667eea;font-weight:600;"></span>
+  </div>
+  <script>
+    async function refreshMissingTeam() {{
+      const btn=document.getElementById('refresh-btn'), msg=document.getElementById('refresh-msg');
+      btn.disabled=true; msg.textContent='Fetching data...';
+      try {{
+        const r=await fetch('/lineup_ai/refresh/{team_id}?force=1', {{method:'POST'}});
+        const j=await r.json();
+        if(!r.ok || !j.ok) throw new Error(j.error || 'refresh failed');
+        msg.textContent='Готово, открываю команду...';
+        location.reload();
+      }} catch(e) {{
+        msg.style.color='#dc3545'; msg.textContent='❌ '+e.message; btn.disabled=false;
+      }}
+    }}
+  </script>
+</body></html>"""
+        return HTMLResponse(html)
     
     try:
         with open(team_file, 'r', encoding='utf-8') as f:

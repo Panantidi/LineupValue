@@ -1039,6 +1039,25 @@ def _read_team_cache(team_id: str) -> dict:
         return json.load(f)
 
 
+def _lookup_lineup_team(team_id: str) -> dict:
+    try:
+        hierarchy = load_complete_hierarchy()
+        for leagues in hierarchy.values():
+            if not isinstance(leagues, dict):
+                continue
+            for teams in leagues.values():
+                if not isinstance(teams, list):
+                    continue
+                for team in teams:
+                    if isinstance(team, dict) and str(team.get("id")) == str(team_id):
+                        name = str(team.get("name") or team_id)
+                        slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+                        return {"id": team_id, "name": name, "slug": slug}
+    except Exception:
+        pass
+    return {"id": team_id, "name": team_id, "slug": ""}
+
+
 def _lineup_save_payload(payload: dict) -> dict:
     """Keep only allowed user-scoped fields: statuses + Squad/P-XI/S-XI."""
     players = payload.get("players") if isinstance(payload, dict) else []
@@ -1173,11 +1192,13 @@ async def lineup_refresh(team_id: str, force: int = 0):
 
     try:
         cache = _read_team_cache(team_id)
-    except Exception as e:
-        return JSONResponse(content={"ok": False, "error": f"cache missing/unreadable: {e}"}, status_code=404)
-    team = cache.get("team") or {}
+    except Exception:
+        cache = {"team": _lookup_lineup_team(team_id), "coach": {}, "stadium": ""}
+    team = cache.get("team") or _lookup_lineup_team(team_id)
+    if not team.get("name") or team.get("name") == team_id:
+        team = _lookup_lineup_team(team_id)
     team_name = team.get("name") or team_id
-    team_slug = team.get("slug") or ""
+    team_slug = team.get("slug") or re.sub(r"[^a-z0-9]+", "-", team_name.lower()).strip("-")
     coach_nat = (cache.get("coach") or {}).get("nationality") or ""
     stadium = cache.get("stadium") or team.get("stadium") or ""
     # Full refresh updates season stats (Apps/Min/G/A/YC/RC), MV/positions, Last 3, match dates/tournament/scores.
