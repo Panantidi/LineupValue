@@ -148,6 +148,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
     
     # --- Попробовать live-кеш (свежие данные от Soccerway) ---
     import time as _time
+    if not os.path.exists(DATA_DIR):
+        alt_dir = os.path.join(os.path.dirname(__file__), "sample_workspace")
+        if os.path.exists(alt_dir):
+            DATA_DIR = alt_dir
     live_cache_path = os.path.join(DATA_DIR, f"_live_cache_{team_id}.json")
     team_file = None
     
@@ -697,6 +701,94 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .status-green {{ color: green !important; font-weight: bold !important; text-decoration: underline !important; }}
         .status-orange {{ color: orange !important; font-weight: bold !important; text-decoration: underline !important; }}
         tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
+
+        :root {{
+            --mi-dark: #151922;
+            --mi-orange: #ff7a1a;
+            --mi-purple: #667eea;
+            --mi-muted: #6b7280;
+            --mi-card: #ffffff;
+            --mi-border: #e8edf5;
+        }}
+        body {{
+            background: #eef2f7;
+        }}
+        .header {{
+            background:
+                radial-gradient(circle at 12% 10%, rgba(255,122,26,.35), transparent 26%),
+                linear-gradient(135deg, #151922 0%, #272f42 58%, #667eea 100%) !important;
+            box-shadow: 0 12px 32px rgba(21,25,34,.22);
+        }}
+        .header h1::before {{
+            content: "⚽";
+            margin-right: 9px;
+        }}
+        .header-tabs .tab {{
+            border-radius: 999px !important;
+            border: 1px solid rgba(255,255,255,.24);
+            background: rgba(255,255,255,.12);
+        }}
+        .header-tabs .tab.active {{
+            background: var(--mi-orange) !important;
+            border-color: var(--mi-orange) !important;
+            box-shadow: 0 6px 16px rgba(255,122,26,.28);
+        }}
+        .cache-badge, .expari-pill {{
+            background: #fff;
+            border: 1px solid var(--mi-border);
+            border-radius: 999px;
+            padding: 8px 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+            font-size: 13px;
+            font-weight: 700;
+        }}
+        .match-info-hero {{
+            background:
+                linear-gradient(135deg, rgba(21,25,34,.96), rgba(43,52,74,.94)),
+                repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 2px, transparent 2px 14px);
+            color: white;
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 26px rgba(21,25,34,.18);
+            overflow: hidden;
+            position: relative;
+        }}
+        .match-info-hero:after {{
+            content: "";
+            position: absolute;
+            right: -40px; top: -55px;
+            width: 190px; height: 190px;
+            border-radius: 50%;
+            background: rgba(255,122,26,.22);
+        }}
+        .match-info-hero h2 {{ margin: 0 0 6px; font-size: 22px; }}
+        .match-info-hero p {{ margin: 0; color: rgba(255,255,255,.78); font-size: 13px; line-height: 1.45; max-width: 780px; }}
+        .hero-metrics {{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; position:relative; z-index:1; }}
+        .hero-metric {{ background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:8px 10px; min-width:88px; text-align:center; }}
+        .hero-metric b {{ display:block; font-size:16px; color:#fff; }}
+        .hero-metric span {{ display:block; font-size:10px; color:rgba(255,255,255,.68); text-transform:uppercase; }}
+        .insight-row {{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px; margin:0 0 14px; }}
+        .insight-card {{ background:var(--mi-card); border:1px solid var(--mi-border); border-radius:14px; padding:12px; box-shadow:0 2px 8px rgba(15,23,42,.05); }}
+        .insight-card .label {{ color:var(--mi-muted); font-size:10px; text-transform:uppercase; letter-spacing:.45px; margin-bottom:6px; }}
+        .insight-card .value {{ color:#1f2937; font-weight:800; font-size:17px; }}
+        .insight-card .hint {{ color:#8b95a6; font-size:11px; margin-top:3px; }}
+        .action-btn {{ border-radius:999px !important; padding:10px 16px !important; }}
+        .refresh-btn {{ background:#272f42 !important; }}
+        .save-btn {{ background:var(--mi-orange) !important; }}
+        .table-container {{ border:1px solid var(--mi-border); }}
+        th {{ background:#f4f7fb !important; color:#2d3648 !important; }}
+        tbody tr[data-last="START"] td:first-child {{ border-left:3px solid #17843f; }}
+        tbody tr:hover td {{ background:#fff8f1 !important; }}
+        #comparison-table > div {{ border:1px solid var(--mi-border); }}
+        @media (max-width: 980px) {{
+            .match-info-hero {{ align-items:flex-start; flex-direction:column; }}
+            .insight-row {{ grid-template-columns:repeat(2, minmax(0, 1fr)); }}
+        }}
     </style>
 
 
@@ -706,7 +798,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
 </head>
 <body>
     <div class="header">
-        <h1>{team_name}</h1> <span style="font-size:11px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:12px;">{{cache_badge}}</span>
+        <h1>{team_name}</h1> <span style="font-size:11px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:12px;">{cache_badge}</span>
         <div class="header-tabs">
             <div class="tab active">Squad</div>
             <div class="tab">Missing Players</div>
@@ -730,6 +822,26 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Missing Players</div>
             <div class="tab">Doubtful Players</div>
             <div class="tab">Returning Players</div>
+        </div>
+
+        <section class="match-info-hero">
+            <div>
+                <h2>Match Info Control Center</h2>
+                <p>Инструмент для профессионального анализа состава: травмы, дисквалификации, заявки, P-XI/S-XI, Last 3 и сезонная статистика. Логика FormAlert сохранена и усилена: Impact Score, Squad Role и сравнения считаются автоматически.</p>
+            </div>
+            <div class="hero-metrics">
+                <div class="hero-metric"><b id="hero-squad-count">0</b><span>Squad</span></div>
+                <div class="hero-metric"><b id="hero-pxi-count">0</b><span>P-XI</span></div>
+                <div class="hero-metric"><b id="hero-sxi-count">0</b><span>S-XI</span></div>
+                <div class="hero-metric"><b id="hero-risk-count">0</b><span>Risk</span></div>
+            </div>
+        </section>
+
+        <div class="insight-row" id="insight-row">
+            <div class="insight-card"><div class="label">Availability watch</div><div class="value" id="insight-risk">0 players</div><div class="hint">Missing + doubtful + suspended</div></div>
+            <div class="insight-card"><div class="label">Last match starters</div><div class="value" id="insight-last-start">0</div><div class="hint">green dots in Last 3 match #1</div></div>
+            <div class="insight-card"><div class="label">Selected XI readiness</div><div class="value" id="insight-readiness">0/22</div><div class="hint">P-XI + S-XI selected</div></div>
+            <div class="insight-card"><div class="label">Table mode</div><div class="value" id="insight-mode">Squad</div><div class="hint">quick filter status</div></div>
         </div>
 
         <div class="actions-bar">
@@ -924,6 +1036,26 @@ def render_team_view(team_id: str) -> HTMLResponse:
         const DOUBTFUL_STATUSES = ['Doubt'];
         const RETURNING_STATUSES = ['Return (Injury)', 'Return (Susp)', 'Return (Called up)', 'Return (Other)'];
 
+
+        function updateInsightCards(mode) {{
+            const rows = Array.from(document.querySelectorAll('.main-table tbody tr[data-last]'));
+            const riskStatuses = MISSING_STATUSES.concat(DOUBTFUL_STATUSES);
+            const squadCount = rows.filter(r => (r.querySelector('.squad-checkbox') || {{}}).checked).length;
+            const pxiCount = rows.filter(r => (r.querySelector('.xi-checkbox') || {{}}).checked).length;
+            const sxiCount = rows.filter(r => (r.querySelector('.starting-checkbox') || {{}}).checked).length;
+            const riskCount = rows.filter(r => riskStatuses.includes(((r.querySelector('.status-select') || {{}}).value || ''))).length;
+            const lastStart = rows.filter(r => r.getAttribute('data-last') === 'START').length;
+            const setText = (id, value) => {{ const el = document.getElementById(id); if (el) el.textContent = value; }};
+            setText('hero-squad-count', squadCount);
+            setText('hero-pxi-count', pxiCount + '/11');
+            setText('hero-sxi-count', sxiCount + '/11');
+            setText('hero-risk-count', riskCount);
+            setText('insight-risk', riskCount + ' players');
+            setText('insight-last-start', lastStart + '/11');
+            setText('insight-readiness', (pxiCount + sxiCount) + '/22');
+            setText('insight-mode', mode || 'Squad');
+        }}
+
         const TEAM_ID = "{team_id}";
 
         function collectTeamState() {{
@@ -1072,6 +1204,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 }}
                 row.style.display = show ? '' : 'none';
             }});
+            updateInsightCards(tabName);
         }}
 
         function calcGroupStats(prefix, statuses) {{
@@ -1154,6 +1287,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             if (counter) {{
                 counter.textContent = selectedCount;
             }}
+            updateInsightCards(document.getElementById('insight-mode') ? document.getElementById('insight-mode').textContent : 'Squad');
         }}
         
         // Starting XI counter - red fill, max 11
@@ -1196,6 +1330,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             if (counter) {{
                 counter.textContent = selectedCount;
             }}
+            updateInsightCards(document.getElementById('insight-mode') ? document.getElementById('insight-mode').textContent : 'Squad');
             
             // Highlight players who STARTED last match but NOT in current Starting XI
             const allRows = document.querySelectorAll('tbody tr[data-last]');
@@ -1373,6 +1508,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
         }});
 
         loadSavedState();
+
+        document.querySelectorAll('.status-select, .squad-checkbox').forEach(el => {{
+            el.addEventListener('change', function() {{ updateInsightCards(document.getElementById('insight-mode') ? document.getElementById('insight-mode').textContent : 'Squad'); }});
+        }});
 
         // Initialize counters
         updateXICounter(null);
