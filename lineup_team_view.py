@@ -208,25 +208,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;margin:0;padding:32px;">
   <div style="max-width:760px;margin:60px auto;background:white;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
     <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
-    <p style="color:#666;line-height:1.5;">Данные команды ещё не загружены в кэш. Нажмите Refresh — система получит актуальный состав и статистику с Soccerway и сохранит кэш.</p>
-    <button id="refresh-btn" onclick="refreshMissingTeam()" style="border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">🔄 Refresh / Обновить</button>
-    <span id="refresh-msg" style="margin-left:12px;color:#667eea;font-weight:600;"></span>
+    <p style="color:#666;line-height:1.5;">Данные команды ещё не загружены в кэш.</p>
+    <a href="/lineup_ai/select" style="display:inline-block;text-decoration:none;border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">← Back to teams</a>
   </div>
-  <script>
-    async function refreshMissingTeam() {{
-      const btn=document.getElementById('refresh-btn'), msg=document.getElementById('refresh-msg');
-      btn.disabled=true; msg.textContent='Fetching data...';
-      try {{
-        const r=await fetch('/lineup_ai/refresh/{team_id}?force=1', {{method:'POST'}});
-        const j=await r.json();
-        if(!r.ok || !j.ok) throw new Error(j.error || 'refresh failed');
-        msg.textContent='Готово, открываю команду...';
-        location.reload();
-      }} catch(e) {{
-        msg.style.color='#dc3545'; msg.textContent='❌ '+e.message; btn.disabled=false;
-      }}
-    }}
-  </script>
 </body></html>"""
         return HTMLResponse(html)
     
@@ -758,13 +742,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Returning Players</div>
         </div>
         <a href="/lineup_ai/select" style="margin-left:auto;">← Back to teams</a>
-        <form method="post"
-              action="/lineup_ai/refresh/{team_id}"
-              style="display:inline;margin:0 4px 0 0;">
-            <button type="submit"
-                    title="Update Last 3 data"
-                    style="background:none;border:1px solid rgba(255,255,255,0.4);border-radius:6px;cursor:pointer;font-size:20px;padding:3px 8px;color:white;">&#x1F504;</button>
-        </form>
         <div style="position:relative;display:inline-block;vertical-align:middle;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><button onclick="exportScreenshot()" id="btn-export" style="background:none;border:none;cursor:pointer;font-size:24px;padding:4px 8px;">&#x1F4F8;</button><span class="tooltip-delay" style="visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:12px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;transition:opacity 0.3s ease;">Save Screenshot</span></div>
     </div>
 
@@ -777,7 +754,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
         </div>
 
         <div class="actions-bar">
-            <button type="button" class="action-btn refresh-btn" id="refresh-btn" onclick="refreshTeamData()">🔄 Refresh / Обновить</button>
             <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
             <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text or 'Cache status unknown'}</span>
             <span id="save-message"></span>
@@ -1044,23 +1020,6 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 renderSavedSnapshot();
                 msg.style.color = '#dc3545'; msg.textContent = 'Snapshot shown, server save failed: ' + e.message;
             }} finally {{ btn.disabled = false; }}
-        }}
-
-        async function refreshTeamData() {{
-            const btn = document.getElementById('refresh-btn');
-            const msg = document.getElementById('save-message');
-            btn.disabled = true; msg.style.color = '#667eea'; msg.textContent = 'Refreshing Soccerway data...';
-            const state = collectTeamState();
-            try {{
-                const res = await fetch('/lineup_ai/refresh/' + encodeURIComponent(TEAM_ID), {{method:'POST'}});
-                const json = await res.json();
-                if (!res.ok || !json.ok) throw new Error(json.error || 'refresh failed');
-                sessionStorage.setItem('lineup_state_' + TEAM_ID, JSON.stringify(state));
-                window.location.reload();
-            }} catch (e) {{
-                msg.style.color = '#dc3545'; msg.textContent = '❌ ' + e.message;
-                btn.disabled = false;
-            }}
         }}
 
         async function loadSavedState() {{

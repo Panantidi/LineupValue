@@ -1181,54 +1181,9 @@ async def lineup_save(team_id: str, request: Request, payload: dict = Body(defau
     return JSONResponse(content={"ok": True, "saved_at": saved_at, "players": len(clean.get("players", []))})
 
 
-@app.post("/lineup_ai/refresh/{team_id}")
-async def lineup_refresh(team_id: str, force: int = 0):
-    """Refresh dynamic Soccerway data with a 6h cache. Fresh cache is reused; stale cache is refetched."""
-    import subprocess
-    ttl = 6 * 3600
-    age = _cache_age_seconds(team_id)
-    if age is not None and age < ttl and not force:
-        return JSONResponse(content={"ok": True, "cached": True, "age_seconds": int(age)})
-
-    try:
-        cache = _read_team_cache(team_id)
-    except Exception:
-        cache = {"team": _lookup_lineup_team(team_id), "coach": {}, "stadium": ""}
-    team = cache.get("team") or _lookup_lineup_team(team_id)
-    if not team.get("name") or team.get("name") == team_id:
-        team = _lookup_lineup_team(team_id)
-    team_name = team.get("name") or team_id
-    team_slug = team.get("slug") or re.sub(r"[^a-z0-9]+", "-", team_name.lower()).strip("-")
-    coach_nat = (cache.get("coach") or {}).get("nationality") or ""
-    stadium = cache.get("stadium") or team.get("stadium") or ""
-    # Full refresh updates season stats (Apps/Min/G/A/YC/RC), MV/positions, Last 3, match dates/tournament/scores.
-    cmd = [
-        "/home/openclaw/FormAlert/.venv/bin/python3", "-u", "/home/openclaw/FormAlert/fetch_team.py", team_id,
-        "--full", "--team-name", team_name, "--slug", team_slug, "--coach-nat", coach_nat, "--stadium", stadium,
-    ]
-    try:
-        proc = subprocess.run(cmd, cwd="/home/openclaw/FormAlert", text=True, capture_output=True, timeout=900)
-    except subprocess.TimeoutExpired as e:
-        return JSONResponse(content={"ok": False, "error": "refresh timeout", "output": (e.stdout or "")[-4000:]}, status_code=504)
-    if proc.returncode != 0:
-        return JSONResponse(content={"ok": False, "error": "refresh failed", "output": (proc.stdout + proc.stderr)[-6000:]}, status_code=502)
-    refreshed = _read_team_cache(team_id)
-    return JSONResponse(content={
-        "ok": True, "cached": False, "age_seconds": 0,
-        "players": len(refreshed.get("players", [])),
-        "matches": len(refreshed.get("matches", [])),
-        "output": proc.stdout[-4000:],
-    })
-
-
 @app.post("/team/{team_id}/save")
 async def team_save_alias(team_id: str, request: Request, payload: dict = Body(default_factory=dict)):
     return await lineup_save(team_id, request, payload)
-
-
-@app.post("/team/{team_id}/refresh")
-async def team_refresh_alias(team_id: str, force: int = 0):
-    return await lineup_refresh(team_id, force=force)
 
 
 @app.get("/team/{team_id}")
