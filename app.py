@@ -448,6 +448,19 @@ def ensure_db():
         )
     """)
 
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS user_lineup_snapshots (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            username  TEXT NOT NULL,
+            team_id   TEXT NOT NULL,
+            name      TEXT NOT NULL,
+            snapshot_data TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    con.execute("CREATE INDEX IF NOT EXISTS idx_lineup_snapshots_user_team ON user_lineup_snapshots(username, team_id, created_at DESC)")
+
     con.commit()
     con.close()
 
@@ -1059,24 +1072,47 @@ def _lookup_lineup_team(team_id: str) -> dict:
 
 
 def _lineup_save_payload(payload: dict) -> dict:
-    """Keep only allowed user-scoped fields: statuses + Squad/P-XI/S-XI."""
-    players = payload.get("players") if isinstance(payload, dict) else []
+    """Normalize a full user-scoped page snapshot.
+
+    The snapshot intentionally stores rendered/current page state (player visible stats,
+    Last 3 cells, status and Squad/P-XI/S-XI flags) instead of references to live team data.
+    """
+    if not isinstance(payload, dict):
+        return {"players": []}
+    players = payload.get("players") if isinstance(payload.get("players"), list) else []
     clean_players = []
-    if isinstance(players, list):
-        for item in players:
-            if not isinstance(item, dict):
-                continue
-            name = str(item.get("name") or "").strip()
-            if not name:
-                continue
-            clean_players.append({
-                "name": name,
-                "status": str(item.get("status") or "Available"),
-                "squad": bool(item.get("squad")),
-                "pxi": bool(item.get("pxi")),
-                "sxi": bool(item.get("sxi")),
-            })
-    return {"players": clean_players}
+    for item in players:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        clean_players.append({
+            "name": name,
+            "number": str(item.get("number") or ""),
+            "nationality_html": str(item.get("nationality_html") or ""),
+            "status": str(item.get("status") or "Available"),
+            "age": str(item.get("age") or ""),
+            "mv": str(item.get("mv") or ""),
+            "pos": str(item.get("pos") or ""),
+            "role_html": str(item.get("role_html") or ""),
+            "impact": str(item.get("impact") or ""),
+            "squad": bool(item.get("squad")),
+            "pxi": bool(item.get("pxi")),
+            "sxi": bool(item.get("sxi")),
+            "last3_html": item.get("last3_html") if isinstance(item.get("last3_html"), list) else [],
+            "stats": item.get("stats") if isinstance(item.get("stats"), dict) else {},
+            "row_html": str(item.get("row_html") or ""),
+        })
+    meta = payload.get("meta") if isinstance(payload.get("meta"), dict) else {}
+    return {
+        "version": 1,
+        "team_id": str(payload.get("team_id") or ""),
+        "team_name": str(payload.get("team_name") or ""),
+        "meta": meta,
+        "players": clean_players,
+        "page_html": str(payload.get("page_html") or ""),
+    }
 
 async def lineup_get_hierarchy():
     return load_complete_hierarchy()
@@ -1184,6 +1220,98 @@ async def lineup_save(team_id: str, request: Request, payload: dict = Body(defau
 @app.post("/team/{team_id}/save")
 async def team_save_alias(team_id: str, request: Request, payload: dict = Body(default_factory=dict)):
     return await lineup_save(team_id, request, payload)
+
+
+@app.get("/lineup_ai/snapshots/{team_id}")
+async def lineup_list_snapshots(team_id: str, request: Request):
+    ensure_db()
+    username = _lineup_account(request)
+    con = sqlite3.connect(DB_PATH)
+    rows = con.execute(
+        "SELECT id, name, created_at, updated_at FROM user_lineup_snapshots WHERE username=? AND team_id=? ORDER BY created_at DESC, id DESC",
+        (username, team_id),
+    ).fetchall()
+    con.close()
+    return JSONResponse(content={"ok": True, "snapshots": [
+        {"id": r[0], "name": r[1], "created_at": r[2], "updated_at": r[3]} for r in rows
+    ]})
+
+
+@app.post("/lineup_ai/snapshots/{team_id}")
+async def lineup_create_snapshot(team_id: str, request: Request, payload: dict = Body(default_factory=dict)):
+    ensure_db()
+    username = _lineup_account(request)
+    clean = _lineup_save_payload(payload)
+    now = datetime.now(timezone.utc).isoformat()
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        name = f"{clean.get('team_name') or team_id} — Last Update"
+    con = sqlite3.connect(DB_PATH)
+    cur = con.execute(
+        "INSERT INTO user_lineup_snapshots(username, team_id, name, snapshot_data, created_at, updated_at) VALUES(?,?,?,?,?,?)",
+        (username, team_id, name, json.dumps(clean, ensure_ascii=False), now, now),
+    )
+    snap_id = cur.lastrowid
+    con.commit()
+    con.close()
+    return JSONResponse(content={"ok": True, "id": snap_id, "name": name, "created_at": now})
+
+
+@app.get("/lineup_ai/snapshots/{team_id}/{snapshot_id}")
+async def lineup_get_snapshot(team_id: str, snapshot_id: int, request: Request):
+    ensure_db()
+    username = _lineup_account(request)
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute(
+        "SELECT id, name, snapshot_data, created_at, updated_at FROM user_lineup_snapshots WHERE username=? AND team_id=? AND id=?",
+        (username, team_id, snapshot_id),
+    ).fetchone()
+    con.close()
+    if not row:
+        return JSONResponse(content={"ok": False, "error": "snapshot not found"}, status_code=404)
+    try:
+        data = json.loads(row[2])
+    except Exception:
+        data = {"players": []}
+    return JSONResponse(content={"ok": True, "snapshot": {"id": row[0], "name": row[1], "data": data, "created_at": row[3], "updated_at": row[4]}})
+
+
+@app.patch("/lineup_ai/snapshots/{team_id}/{snapshot_id}")
+async def lineup_rename_snapshot(team_id: str, snapshot_id: int, request: Request, payload: dict = Body(default_factory=dict)):
+    ensure_db()
+    username = _lineup_account(request)
+    name = str((payload or {}).get("name") or "").strip()
+    if not name:
+        return JSONResponse(content={"ok": False, "error": "empty name"}, status_code=400)
+    now = datetime.now(timezone.utc).isoformat()
+    con = sqlite3.connect(DB_PATH)
+    cur = con.execute(
+        "UPDATE user_lineup_snapshots SET name=?, updated_at=? WHERE username=? AND team_id=? AND id=?",
+        (name, now, username, team_id, snapshot_id),
+    )
+    con.commit()
+    changed = cur.rowcount
+    con.close()
+    if not changed:
+        return JSONResponse(content={"ok": False, "error": "snapshot not found"}, status_code=404)
+    return JSONResponse(content={"ok": True, "id": snapshot_id, "name": name, "updated_at": now})
+
+
+@app.delete("/lineup_ai/snapshots/{team_id}/{snapshot_id}")
+async def lineup_delete_snapshot(team_id: str, snapshot_id: int, request: Request):
+    ensure_db()
+    username = _lineup_account(request)
+    con = sqlite3.connect(DB_PATH)
+    cur = con.execute(
+        "DELETE FROM user_lineup_snapshots WHERE username=? AND team_id=? AND id=?",
+        (username, team_id, snapshot_id),
+    )
+    con.commit()
+    changed = cur.rowcount
+    con.close()
+    if not changed:
+        return JSONResponse(content={"ok": False, "error": "snapshot not found"}, status_code=404)
+    return JSONResponse(content={"ok": True, "id": snapshot_id})
 
 
 @app.get("/team/{team_id}")

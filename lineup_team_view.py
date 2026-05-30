@@ -686,45 +686,87 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .status-orange {{ color: orange !important; font-weight: bold !important; text-decoration: underline !important; }}
         tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
 
-        .saved-snapshots-row {{
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            margin: 0 0 12px 0;
-            flex-wrap: wrap;
+        .my-squads-sidebar {{
+            width: 230px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 12px;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
         }}
-        .snapshot-card {{
-            width: 250px;
-            background: #ffffff;
+        .my-squads-title {{
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }}
+        .my-squads-help {{
+            font-size: 11px;
+            color: #888;
+            line-height: 1.35;
+            margin-bottom: 10px;
+        }}
+        .snapshot-list-item {{
             border: 1px solid #e6e9f2;
             border-left: 4px solid #667eea;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            padding: 9px 10px;
-            font-size: 11px;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: #fff;
+            cursor: pointer;
+        }}
+        .snapshot-list-item.active {{
+            background: #f2f5ff;
+            border-color: #667eea;
+        }}
+        .snapshot-list-name {{
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.25;
             color: #333;
+            margin-bottom: 6px;
         }}
-        .snapshot-card .snap-title {{
-            display:flex;
-            justify-content:space-between;
-            gap:6px;
-            font-weight:700;
-            color:#222;
-            margin-bottom:6px;
+        .snapshot-list-actions {{
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
         }}
-        .snapshot-card .snap-time {{ color:#888; font-weight:500; white-space:nowrap; }}
-        .snapshot-card .snap-row {{ display:flex; gap:6px; margin-top:5px; }}
-        .snapshot-card .snap-col {{ flex:1; min-width:0; }}
-        .snapshot-card .snap-label {{ font-weight:700; color:#667eea; margin-bottom:3px; }}
-        .snapshot-card .snap-player {{
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            line-height:16px;
-            border-bottom:1px dashed #edf0f5;
+        .snapshot-list-actions button {{
+            border: 0;
+            border-radius: 5px;
+            padding: 4px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #eef1f8;
+            color: #444;
         }}
-        .snapshot-card .snap-status {{ color:#555; font-size:10px; }}
-        .snapshot-empty {{ color:#999; font-style:italic; }}
+        .snapshot-list-actions button:hover {{ background:#dde4f4; }}
+        .snapshot-delete {{ background:#f8d7da !important; color:#842029 !important; }}
+        .snapshot-empty-list {{
+            color: #999;
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 8px 0;
+        }}
+        body.snapshot-mode .table-container {{
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }}
+        .snapshot-mode-banner {{
+            display: none;
+            background: #fff3cd;
+            color: #7a5a00;
+            border: 1px solid #ffe08a;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 0 0 12px 0;
+            font-size: 13px;
+            font-weight: 700;
+        }}
+        body.snapshot-mode .snapshot-mode-banner {{ display:block; }}
     </style>
 
 
@@ -758,8 +800,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text or 'Cache status unknown'}</span>
             <span id="save-message"></span>
         </div>
-        <div id="saved-snapshots" class="saved-snapshots-row" aria-label="Saved team snapshots"></div>
-        <div id="team-preview" style="display:none;"></div>
+        <div id="snapshot-mode-banner" class="snapshot-mode-banner">Snapshot mode: showing saved independent squad. <button type="button" onclick="returnToLiveTeam()" style="margin-left:10px;border:0;border-radius:5px;background:#667eea;color:white;font-weight:700;padding:4px 8px;cursor:pointer;">Back to current team</button></div>
 
         <!-- Info Bar: Coach, Stadium, Stats — full width (Squad mode) -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;">
@@ -898,6 +939,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
         </div>
 
         <div class="main-layout">
+            <aside class="my-squads-sidebar" id="my-squads-sidebar">
+                <div class="my-squads-title">My Squads</div>
+                <div class="my-squads-help">Saved snapshots are independent from future team data updates.</div>
+                <div id="my-squads-list"><div class="snapshot-empty-list">No saved squads yet.</div></div>
+            </aside>
 
             <div class="main-table">
                 <div class="table-container">
@@ -947,19 +993,49 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
         const TEAM_ID = "{team_id}";
 
+        function pad2(n) {{ return String(n).padStart(2, '0'); }}
+        function snapshotStamp(d) {{ return pad2(d.getDate()) + '.' + pad2(d.getMonth()+1) + '.' + String(d.getFullYear()).slice(-2) + ' - ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }}
+        function snapshotName(dateObj) {{ return "{team_name} — Last Update (" + snapshotStamp(dateObj) + ")"; }}
+        function cellText(cells, idx) {{ return cells[idx] ? cells[idx].textContent.trim() : ''; }}
+
         function collectTeamState() {{
             const players = [];
             document.querySelectorAll('.main-table tbody tr[data-player-name]').forEach(row => {{
-                const name = row.getAttribute('data-player-name') || '';
+                const cells = row.querySelectorAll('td');
+                const last3 = [];
+                for (let i = 12; i <= 14; i++) last3.push(cells[i] ? cells[i].innerHTML : '');
                 players.push({{
-                    name: name,
+                    name: row.getAttribute('data-player-name') || cellText(cells, 2),
+                    number: cellText(cells, 0),
+                    nationality_html: cells[1] ? cells[1].innerHTML : '',
                     status: (row.querySelector('.status-select') || {{}}).value || 'Available',
+                    age: cellText(cells, 4),
+                    mv: cellText(cells, 5),
+                    pos: cellText(cells, 6),
+                    role_html: cells[7] ? cells[7].innerHTML : '',
+                    impact: cellText(cells, 8),
                     squad: !!(row.querySelector('.squad-checkbox') || {{}}).checked,
                     pxi: !!(row.querySelector('.xi-checkbox') || {{}}).checked,
-                    sxi: !!(row.querySelector('.starting-checkbox') || {{}}).checked
+                    sxi: !!(row.querySelector('.starting-checkbox') || {{}}).checked,
+                    last3_html: last3,
+                    stats: {{apps: cellText(cells, 15), min: cellText(cells, 16), g: cellText(cells, 17), a: cellText(cells, 18), yc: cellText(cells, 19), rc: cellText(cells, 20)}},
+                    row_html: row.innerHTML
                 }});
             }});
-            return {{players}};
+            return {{
+                version: 1,
+                team_id: TEAM_ID,
+                team_name: "{team_name}",
+                meta: {{
+                    saved_local: new Date().toISOString(),
+                    cache_badge: document.querySelector('.cache-badge') ? document.querySelector('.cache-badge').textContent.trim() : '',
+                    comparison_html: document.getElementById('comparison-table') ? document.getElementById('comparison-table').innerHTML : '',
+                    info_squad_html: document.getElementById('info-bar-squad') ? document.getElementById('info-bar-squad').innerHTML : '',
+                    last3_header: Array.from(document.querySelectorAll('thead tr:nth-child(2) th')).map(th => th.innerHTML)
+                }},
+                players: players,
+                page_html: document.querySelector('.main-table') ? document.querySelector('.main-table').innerHTML : ''
+            }};
         }}
 
         function applySavedState(data) {{
@@ -968,6 +1044,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             document.querySelectorAll('.main-table tbody tr[data-player-name]').forEach(row => {{
                 const st = byName.get(row.getAttribute('data-player-name'));
                 if (!st) return;
+                const cells = row.querySelectorAll('td');
                 const status = row.querySelector('.status-select');
                 const squad = row.querySelector('.squad-checkbox');
                 const pxi = row.querySelector('.xi-checkbox');
@@ -976,63 +1053,104 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 if (squad) {{ squad.checked = !!st.squad; squad.style.background = squad.checked ? '#000' : '#e0e0e0'; squad.style.border = squad.checked ? 'none' : '2px solid #333'; }}
                 if (pxi) pxi.checked = !!st.pxi;
                 if (sxi) sxi.checked = !!st.sxi;
+                if (st.last3_html && Array.isArray(st.last3_html)) {{ for (let i=0; i<3; i++) if (cells[12+i]) cells[12+i].innerHTML = st.last3_html[i] || ''; }}
+                if (st.stats) {{
+                    if (cells[15]) cells[15].textContent = st.stats.apps || '';
+                    if (cells[16]) cells[16].textContent = st.stats.min || '';
+                    if (cells[17]) cells[17].textContent = st.stats.g || '';
+                    if (cells[18]) cells[18].textContent = st.stats.a || '';
+                    if (cells[19]) cells[19].textContent = st.stats.yc || '';
+                    if (cells[20]) cells[20].textContent = st.stats.rc || '';
+                }}
+                if (cells[5] && st.mv) cells[5].textContent = st.mv;
+                if (cells[7] && st.role_html) cells[7].innerHTML = st.role_html;
+                if (cells[8] && st.impact) cells[8].textContent = st.impact;
             }});
             updateXICounter(document.querySelector('.xi-checkbox'));
             updateStartingCounter(document.querySelector('.starting-checkbox'));
             recalcPossibleXIStats();
             recalcSelectedStartingStats();
+            recalcValueComparison();
         }}
 
-        function playerSnapshotLine(row) {{
-            const cells = row.querySelectorAll('td');
-            const name = (cells[2] ? cells[2].textContent.trim() : row.getAttribute('data-player-name'));
-            const pos = cells[6] ? cells[6].textContent.trim() : '';
-            const status = (row.querySelector('.status-select') || {{}}).value || 'Available';
-            return '<div class="snap-player" title="' + name + ' · ' + pos + ' · ' + status + '">' + name + ' <span class="snap-status">' + pos + ' · ' + status + '</span></div>';
+        function setSnapshotMode(snapshotNameText) {{
+            document.body.classList.add('snapshot-mode');
+            const banner = document.getElementById('snapshot-mode-banner');
+            if (banner) banner.firstChild.textContent = 'Snapshot mode: ' + snapshotNameText + ' ';
+        }}
+        function returnToLiveTeam() {{ window.location.href = window.location.pathname; }}
+
+        function renderMySquads(items) {{
+            const list = document.getElementById('my-squads-list');
+            if (!list) return;
+            if (!items || !items.length) {{ list.innerHTML = '<div class="snapshot-empty-list">No saved squads yet.</div>'; return; }}
+            list.innerHTML = items.map(item => '<div class="snapshot-list-item" data-snapshot-id="' + item.id + '">' +
+                '<div class="snapshot-list-name">' + item.name + '</div>' +
+                '<div class="snapshot-list-actions">' +
+                '<button type="button" onclick="openSnapshot(event,' + item.id + ')">Open</button>' +
+                '<button type="button" onclick="renameSnapshot(event,' + item.id + ')">Rename</button>' +
+                '<button type="button" class="snapshot-delete" onclick="deleteSnapshot(event,' + item.id + ')">Delete</button>' +
+                '</div></div>').join('');
         }}
 
-        function renderSavedSnapshot() {{
-            const rows = Array.from(document.querySelectorAll('.main-table tbody tr[data-player-name]'));
-            const pxi = rows.filter(r => (r.querySelector('.xi-checkbox') || {{}}).checked);
-            const sxi = rows.filter(r => (r.querySelector('.starting-checkbox') || {{}}).checked);
-            const statusChanged = rows.filter(r => ((r.querySelector('.status-select') || {{}}).value || 'Available') !== 'Available');
-            const list = (title, rows) => '<div class="snap-col"><div class="snap-label">' + title + ' (' + rows.length + ')</div>' + (rows.length ? rows.map(playerSnapshotLine).join('') : '<div class="snapshot-empty">empty</div>') + '</div>';
-            const el = document.getElementById('saved-snapshots');
-            const card = document.createElement('div');
-            card.className = 'snapshot-card';
-            card.innerHTML = '<div class="snap-title"><span>{team_name}</span><span class="snap-time">' + new Date().toLocaleString() + '</span></div>' +
-                '<div class="snap-row">' + list('P-XI', pxi) + list('S-XI', sxi) + '</div>' +
-                '<div class="snap-row">' + list('Status', statusChanged) + '</div>';
-            el.prepend(card);
+        async function loadSnapshotsList() {{
+            try {{
+                const res = await fetch('/lineup_ai/snapshots/' + encodeURIComponent(TEAM_ID));
+                const json = await res.json();
+                if (json && json.ok) renderMySquads(json.snapshots || []);
+            }} catch(e) {{}}
+        }}
+
+        async function openSnapshot(evt, id) {{
+            if (evt) evt.stopPropagation();
+            const res = await fetch('/lineup_ai/snapshots/' + encodeURIComponent(TEAM_ID) + '/' + encodeURIComponent(id));
+            const json = await res.json();
+            if (!res.ok || !json.ok) {{ alert(json.error || 'snapshot not found'); return; }}
+            document.querySelectorAll('.snapshot-list-item').forEach(el => el.classList.toggle('active', el.getAttribute('data-snapshot-id') == String(id)));
+            applySavedState(json.snapshot.data);
+            setSnapshotMode(json.snapshot.name);
+        }}
+
+        async function renameSnapshot(evt, id) {{
+            if (evt) evt.stopPropagation();
+            const current = (evt && evt.target.closest('.snapshot-list-item') && evt.target.closest('.snapshot-list-item').querySelector('.snapshot-list-name')) ? evt.target.closest('.snapshot-list-item').querySelector('.snapshot-list-name').textContent : '';
+            const name = prompt('Rename snapshot', current);
+            if (!name) return;
+            const res = await fetch('/lineup_ai/snapshots/' + encodeURIComponent(TEAM_ID) + '/' + encodeURIComponent(id), {{method:'PATCH', headers:{{'Content-Type':'application/json'}}, body: JSON.stringify({{name}})}});
+            const json = await res.json();
+            if (!res.ok || !json.ok) {{ alert(json.error || 'rename failed'); return; }}
+            await loadSnapshotsList();
+        }}
+
+        async function deleteSnapshot(evt, id) {{
+            if (evt) evt.stopPropagation();
+            if (!confirm('Delete this saved squad?')) return;
+            const res = await fetch('/lineup_ai/snapshots/' + encodeURIComponent(TEAM_ID) + '/' + encodeURIComponent(id), {{method:'DELETE'}});
+            const json = await res.json();
+            if (!res.ok || !json.ok) {{ alert(json.error || 'delete failed'); return; }}
+            await loadSnapshotsList();
         }}
 
         async function saveTeamState() {{
             const btn = document.getElementById('save-btn');
             const msg = document.getElementById('save-message');
-            btn.disabled = true; msg.style.color = '#667eea'; msg.textContent = 'Saving...';
+            const savedAt = new Date();
+            const payload = collectTeamState();
+            payload.name = snapshotName(savedAt);
+            btn.disabled = true; msg.style.color = '#667eea'; msg.textContent = 'Saving snapshot...';
             try {{
-                const res = await fetch('/lineup_ai/save/' + encodeURIComponent(TEAM_ID), {{method:'POST', headers:{{'Content-Type':'application/json'}}, body: JSON.stringify(collectTeamState())}});
+                const res = await fetch('/lineup_ai/snapshots/' + encodeURIComponent(TEAM_ID), {{method:'POST', headers:{{'Content-Type':'application/json'}}, body: JSON.stringify(payload)}});
                 const json = await res.json();
                 if (!res.ok || !json.ok) throw new Error(json.error || 'save failed');
-                msg.style.color = '#17843f'; msg.textContent = '✅ Saved';
-                renderSavedSnapshot();
+                msg.style.color = '#17843f'; msg.textContent = '✅ Snapshot saved';
+                await loadSnapshotsList();
             }} catch (e) {{
-                renderSavedSnapshot();
-                msg.style.color = '#dc3545'; msg.textContent = 'Snapshot shown, server save failed: ' + e.message;
+                msg.style.color = '#dc3545'; msg.textContent = '❌ ' + e.message;
             }} finally {{ btn.disabled = false; }}
         }}
 
         async function loadSavedState() {{
-            let transient = sessionStorage.getItem('lineup_state_' + TEAM_ID);
-            if (transient) {{
-                sessionStorage.removeItem('lineup_state_' + TEAM_ID);
-                try {{ applySavedState(JSON.parse(transient)); return; }} catch(e) {{}}
-            }}
-            try {{
-                const res = await fetch('/lineup_ai/save/' + encodeURIComponent(TEAM_ID));
-                const json = await res.json();
-                if (json && json.ok) applySavedState(json.data);
-            }} catch(e) {{}}
+            await loadSnapshotsList();
         }}
 
         function switchTab(tabName) {{
