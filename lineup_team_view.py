@@ -148,6 +148,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
     
     # --- Попробовать live-кеш (свежие данные от Soccerway) ---
     import time as _time
+    if not os.path.exists(DATA_DIR):
+        alt_dir = os.path.join(os.path.dirname(__file__), "sample_workspace")
+        if os.path.exists(alt_dir):
+            DATA_DIR = alt_dir
     live_cache_path = os.path.join(DATA_DIR, f"_live_cache_{team_id}.json")
     team_file = None
     
@@ -697,6 +701,46 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .status-green {{ color: green !important; font-weight: bold !important; text-decoration: underline !important; }}
         .status-orange {{ color: orange !important; font-weight: bold !important; text-decoration: underline !important; }}
         tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
+
+        .saved-snapshots-row {{
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin: 0 0 12px 0;
+            flex-wrap: wrap;
+        }}
+        .snapshot-card {{
+            width: 250px;
+            background: #ffffff;
+            border: 1px solid #e6e9f2;
+            border-left: 4px solid #667eea;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 9px 10px;
+            font-size: 11px;
+            color: #333;
+        }}
+        .snapshot-card .snap-title {{
+            display:flex;
+            justify-content:space-between;
+            gap:6px;
+            font-weight:700;
+            color:#222;
+            margin-bottom:6px;
+        }}
+        .snapshot-card .snap-time {{ color:#888; font-weight:500; white-space:nowrap; }}
+        .snapshot-card .snap-row {{ display:flex; gap:6px; margin-top:5px; }}
+        .snapshot-card .snap-col {{ flex:1; min-width:0; }}
+        .snapshot-card .snap-label {{ font-weight:700; color:#667eea; margin-bottom:3px; }}
+        .snapshot-card .snap-player {{
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            line-height:16px;
+            border-bottom:1px dashed #edf0f5;
+        }}
+        .snapshot-card .snap-status {{ color:#555; font-size:10px; }}
+        .snapshot-empty {{ color:#999; font-style:italic; }}
     </style>
 
 
@@ -706,7 +750,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
 </head>
 <body>
     <div class="header">
-        <h1>{team_name}</h1> <span style="font-size:11px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:12px;">{{cache_badge}}</span>
+        <h1>{team_name}</h1> <span style="font-size:11px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:12px;">{cache_badge}</span>
         <div class="header-tabs">
             <div class="tab active">Squad</div>
             <div class="tab">Missing Players</div>
@@ -734,11 +778,12 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
         <div class="actions-bar">
             <button type="button" class="action-btn refresh-btn" id="refresh-btn" onclick="refreshTeamData()">🔄 Refresh / Обновить</button>
-            <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Сохранить</button>
+            <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
             <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text or 'Cache status unknown'}</span>
             <span id="save-message"></span>
         </div>
-        <div id="team-preview"></div>
+        <div id="saved-snapshots" class="saved-snapshots-row" aria-label="Saved team snapshots"></div>
+        <div id="team-preview" style="display:none;"></div>
 
         <!-- Info Bar: Coach, Stadium, Stats — full width (Squad mode) -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;">
@@ -962,23 +1007,27 @@ def render_team_view(team_id: str) -> HTMLResponse:
             recalcSelectedStartingStats();
         }}
 
-        function playerLine(row) {{
+        function playerSnapshotLine(row) {{
             const cells = row.querySelectorAll('td');
             const name = (cells[2] ? cells[2].textContent.trim() : row.getAttribute('data-player-name'));
             const pos = cells[6] ? cells[6].textContent.trim() : '';
             const status = (row.querySelector('.status-select') || {{}}).value || 'Available';
-            return '<div class="preview-player"><span>' + name + '</span><span>' + pos + ' · ' + status + '</span></div>';
+            return '<div class="snap-player" title="' + name + ' · ' + pos + ' · ' + status + '">' + name + ' <span class="snap-status">' + pos + ' · ' + status + '</span></div>';
         }}
 
-        function renderPreview() {{
+        function renderSavedSnapshot() {{
             const rows = Array.from(document.querySelectorAll('.main-table tbody tr[data-player-name]'));
-            const squad = rows.filter(r => (r.querySelector('.squad-checkbox') || {{}}).checked);
             const pxi = rows.filter(r => (r.querySelector('.xi-checkbox') || {{}}).checked);
             const sxi = rows.filter(r => (r.querySelector('.starting-checkbox') || {{}}).checked);
-            const col = (title, list) => '<div class="preview-col"><div class="preview-title">' + title + ' (' + list.length + ')</div>' + (list.length ? list.map(playerLine).join('') : '<div class="preview-empty">No players selected</div>') + '</div>';
-            const el = document.getElementById('team-preview');
-            el.innerHTML = '<div class="preview-header"><span>{team_name} — saved team snapshot</span><span>' + new Date().toLocaleString() + '</span></div><div class="preview-body">' + col('Squad', squad) + col('P-XI', pxi) + col('S-XI', sxi) + '</div>';
-            el.style.display = 'block';
+            const statusChanged = rows.filter(r => ((r.querySelector('.status-select') || {{}}).value || 'Available') !== 'Available');
+            const list = (title, rows) => '<div class="snap-col"><div class="snap-label">' + title + ' (' + rows.length + ')</div>' + (rows.length ? rows.map(playerSnapshotLine).join('') : '<div class="snapshot-empty">empty</div>') + '</div>';
+            const el = document.getElementById('saved-snapshots');
+            const card = document.createElement('div');
+            card.className = 'snapshot-card';
+            card.innerHTML = '<div class="snap-title"><span>{team_name}</span><span class="snap-time">' + new Date().toLocaleString() + '</span></div>' +
+                '<div class="snap-row">' + list('P-XI', pxi) + list('S-XI', sxi) + '</div>' +
+                '<div class="snap-row">' + list('Status', statusChanged) + '</div>';
+            el.prepend(card);
         }}
 
         async function saveTeamState() {{
@@ -989,10 +1038,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 const res = await fetch('/lineup_ai/save/' + encodeURIComponent(TEAM_ID), {{method:'POST', headers:{{'Content-Type':'application/json'}}, body: JSON.stringify(collectTeamState())}});
                 const json = await res.json();
                 if (!res.ok || !json.ok) throw new Error(json.error || 'save failed');
-                msg.style.color = '#17843f'; msg.textContent = '✅ Сохранено';
-                renderPreview();
+                msg.style.color = '#17843f'; msg.textContent = '✅ Saved';
+                renderSavedSnapshot();
             }} catch (e) {{
-                msg.style.color = '#dc3545'; msg.textContent = '❌ ' + e.message;
+                renderSavedSnapshot();
+                msg.style.color = '#dc3545'; msg.textContent = 'Snapshot shown, server save failed: ' + e.message;
             }} finally {{ btn.disabled = false; }}
         }}
 
