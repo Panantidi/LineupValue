@@ -247,75 +247,93 @@
     "Bundesliga": [
       {
         "id": "nVp0wiqd",
-        "name": "Bayern Munich"
+        "name": "Bayern Munich",
+        "slug": "bayern-munich"
       },
       {
         "id": "nP1i5US1",
-        "name": "Dortmund"
+        "name": "Dortmund",
+        "slug": "dortmund"
       },
       {
         "id": "KbS1suSm",
-        "name": "RB Leipzig"
+        "name": "RB Leipzig",
+        "slug": "rb-leipzig"
       },
       {
         "id": "nJQmYp1B",
-        "name": "Stuttgart"
+        "name": "Stuttgart",
+        "slug": "vfb-stuttgart"
       },
       {
         "id": "hQAtP9Sl",
-        "name": "Hoffenheim"
+        "name": "Hoffenheim",
+        "slug": "hoffenheim"
       },
       {
         "id": "4jcj2zMd",
-        "name": "Bayer Leverkusen"
+        "name": "Bayer Leverkusen",
+        "slug": "bayer-leverkusen"
       },
       {
         "id": "fiEQZ7C7",
-        "name": "Freiburg"
+        "name": "Freiburg",
+        "slug": "freiburg"
       },
       {
         "id": "8vndvXTk",
-        "name": "Eintracht Frankfurt"
+        "name": "Eintracht Frankfurt",
+        "slug": "eintracht-frankfurt"
       },
       {
         "id": "fTVNku3I",
-        "name": "Augsburg"
+        "name": "Augsburg",
+        "slug": "augsburg"
       },
       {
         "id": "EuakNmc1",
-        "name": "Mainz"
+        "name": "Mainz",
+        "slug": "mainz"
       },
       {
         "id": "pzHW4oaE",
-        "name": "Union Berlin"
+        "name": "Union Berlin",
+        "slug": "union-berlin"
       },
       {
         "id": "88HSzjDr",
-        "name": "B. Monchengladbach"
+        "name": "B. Monchengladbach",
+        "slug": "b-monchengladbach"
       },
       {
         "id": "v9k3aY5F",
-        "name": "Hamburger SV"
+        "name": "Hamburger SV",
+        "slug": "hamburger"
       },
       {
         "id": "WG9pOTse",
-        "name": "FC Koln"
+        "name": "FC Koln",
+        "slug": "1-fc-koln"
       },
       {
         "id": "Ig1f1fy3",
-        "name": "Werder Bremen"
+        "name": "Werder Bremen",
+        "slug": "werder-bremen"
       },
       {
         "id": "nwkTahLL",
-        "name": "Wolfsburg"
+        "name": "Wolfsburg",
+        "slug": "wolfsburg"
       },
       {
         "id": "KWixEVWi",
-        "name": "Heidenheim"
+        "name": "Heidenheim",
+        "slug": "heidenheim"
       },
       {
         "id": "ILyJuN3g",
-        "name": "St. Pauli"
+        "name": "St. Pauli",
+        "slug": "st-pauli"
       }
     ]
   }

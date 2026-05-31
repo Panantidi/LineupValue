@@ -1081,8 +1081,10 @@ def _lookup_lineup_team(team_id: str) -> dict:
                 for team in teams:
                     if isinstance(team, dict) and str(team.get("id")) == str(team_id):
                         name = str(team.get("name") or team_id)
-                        slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
-                        return {"id": team_id, "name": name, "slug": slug}
+                        slug = str(team.get("slug") or "").strip()
+                        if not slug:
+                            slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+                        return {"id": team_id, "name": name, "slug": slug, "stadium": team.get("stadium") or ""}
     except Exception:
         pass
     return {"id": team_id, "name": team_id, "slug": ""}
