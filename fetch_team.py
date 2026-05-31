@@ -234,8 +234,62 @@ def apply_last3(players, lineups_data):
         p['last3_captain'] = last3_captain[:3]
     return players
 
+
+async def get_last3_matches_by_slug(team_id, team_name, team_slug):
+    """Fetch last 3 matches using official Soccerway slug from standings/overall."""
+    from soccerway_parser import Match
+    from playwright.async_api import async_playwright
+    comp_map = {
+        'bundesliga': 'BL', '2. bundesliga': 'B2', 'dfb pokal': 'DFB', 'league cup': 'LC',
+        'ligue 1': 'L1', 'serie a': 'SA', 'la liga': 'LL', 'laliga': 'LL', 'premier league': 'PL',
+    }
+    url = f'{BASE}/team/{team_slug}/{team_id}/results/'
+    print(f'  [Playwright] Loading configured results {url}')
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--disable-blink-features=AutomationControlled'])
+        context = await browser.new_context(user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36', viewport={'width':1920,'height':1080}, locale='en-US')
+        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        page = await context.new_page()
+        await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+        await page.wait_for_timeout(5000)
+        for _ in range(6):
+            await page.evaluate("window.scrollBy(0, 600)")
+            await page.wait_for_timeout(500)
+        html = await page.content()
+        await browser.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    matches=[]; seen=set()
+    for a in soup.select('a[href*="/match/"], a[href*="/game/"]'):
+        href=a.get('href','')
+        if team_id not in href:
+            continue
+        mid_m=re.search(r'[?&]mid=([A-Za-z0-9]+)', href)
+        mid=mid_m.group(1) if mid_m else ''
+        if not mid or mid in seen:
+            continue
+        seen.add(mid)
+        match_url = href if href.startswith('http') else f'{BASE}{href}'
+        parent=a.find_parent('div', class_=re.compile(r'event__match'))
+        parent_text=parent.get_text(' ', strip=True) if parent else a.get_text(' ', strip=True)
+        date=''
+        dm=re.search(r'(\d{1,2})\.(\d{2})\.', parent_text)
+        if dm:
+            date=f'{dm.group(1).zfill(2)}.{dm.group(2)}'
+        league_div=a.find_parent('div', class_=re.compile(r'leagues'))
+        lt=(league_div.get_text(' ', strip=True).lower() if league_div else '')
+        tournament='BL'
+        for key,val in comp_map.items():
+            if key in lt:
+                tournament=val; break
+        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0))
+        if len(matches) >= 3:
+            break
+    for m in matches:
+        print(f'    {m.date} {m.tournament}: {m.url}')
+    return matches
+
 async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
-    from soccerway_parser import get_squad_page, parse_squad_html, enrich_players_async, get_last3_matches
+    from soccerway_parser import get_squad_page, parse_squad_html, enrich_players_async, get_last3_matches, Match
     cache_path = f'{CACHE_DIR}/_live_cache_{team_id}.json'
 
     print(f'[1/5] Squad: {team_name}...')
@@ -281,7 +335,7 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     print('  [saved enrichment]')
 
     print('[3/5] Last 3 matches...')
-    matches = await get_last3_matches(team_id, team_name)
+    matches = await get_last3_matches_by_slug(team_id, team_name, team_slug) if team_slug else await get_last3_matches(team_id, team_name)
     print(f'  {len(matches)} matches')
 
     print('[4/5] Lineups + scores...')
@@ -313,7 +367,7 @@ async def run_last3_only(team_id, team_name):
     known_surnames = set(get_surname(p['name']) for p in players if p.get('name'))
 
     print('[1/3] Last 3 matches...')
-    matches = await get_last3_matches(team_id, team_name)
+    matches = await get_last3_matches_by_slug(team_id, team_name, team_slug) if team_slug else await get_last3_matches(team_id, team_name)
     print(f'  {len(matches)} matches')
 
     print('[2/3] Lineups + scores...')
