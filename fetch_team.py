@@ -239,7 +239,24 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     cache_path = f'{CACHE_DIR}/_live_cache_{team_id}.json'
 
     print(f'[1/5] Squad: {team_name}...')
-    html = await get_squad_page(team_id, team_name)
+    html = ''
+    # get_squad_page builds slug from team_name, which fails for official Soccerway
+    # slugs like 1-fc-koln or vfb-stuttgart. If --slug is provided, prefer it.
+    if team_slug:
+        from playwright.async_api import async_playwright
+        url = f'https://www.soccerway.com/team/{team_slug}/{team_id}/squad/'
+        print(f'  [Playwright] Loading configured slug {url}')
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True, args=['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--disable-blink-features=AutomationControlled'])
+            context = await browser.new_context(user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36', viewport={'width':1920,'height':1080}, locale='en-US')
+            await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            page = await context.new_page()
+            await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+            await page.wait_for_timeout(5000)
+            html = await page.content()
+            await browser.close()
+    if not html:
+        html = await get_squad_page(team_id, team_name)
     players_raw, coach_name, stadium_from_page = parse_squad_html(html, team_id)
     if not stadium:
         stadium = stadium_from_page
