@@ -1247,9 +1247,12 @@ def _start_team_version_refresh(team_id: str) -> bool:
 
 def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict | None:
     base_data = base_data or {}
-    team = (base_data.get("team") if isinstance(base_data, dict) else {}) or _lookup_lineup_team(team_id)
+    team = (base_data.get("team") if isinstance(base_data, dict) else {}) or {}
+    lookup_team = _lookup_lineup_team(team_id)
     if not team.get("name") or team.get("name") == team_id:
-        team = _lookup_lineup_team(team_id)
+        team = lookup_team
+    elif not team.get("slug") and lookup_team.get("slug"):
+        team["slug"] = lookup_team.get("slug")
     team_name = team.get("name") or team_id
     team_slug = team.get("slug") or re.sub(r"[^a-z0-9]+", "-", team_name.lower()).strip("-")
     coach_nat = ((base_data.get("coach") or {}) if isinstance(base_data, dict) else {}).get("nationality") or ""
