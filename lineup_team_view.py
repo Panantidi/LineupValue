@@ -889,13 +889,13 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 </tbody>
             </table>
             </div>
-            <!-- Value S-XI: S-XI vs P-XI Δ (%) only -->
+            <!-- Value S-XI: STARTING XI vs POSSIBLE XI Δ (%) only -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">S-XI vs P-XI Δ (%)</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">STARTING XI vs POSSIBLE XI Δ (%)</th>
                     </tr>
                 </thead>
                 <tbody>
