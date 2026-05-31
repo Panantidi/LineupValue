@@ -16,25 +16,35 @@ if not TEAM_ID:
     raise SystemExit("usage: refresh_team_version.py TEAM_ID")
 
 LOCK = os.path.join("/tmp", f"formalert_refresh_{re.sub(r'[^A-Za-z0-9_.-]', '_', TEAM_ID)}.lock")
+GLOBAL_LOCK = os.path.join("/tmp", "formalert_refresh_global.lock")
 LOG = os.path.join("/tmp", f"formalert_refresh_{re.sub(r'[^A-Za-z0-9_.-]', '_', TEAM_ID)}.log")
 
-# Atomic lock create. If another refresh is running, exit silently.
-try:
-    fd = os.open(LOCK, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    os.write(fd, str(os.getpid()).encode())
-    os.close(fd)
-except FileExistsError:
-    # stale lock cleanup
+
+def acquire_lock(path: str) -> bool:
     try:
-        if time.time() - os.path.getmtime(LOCK) > 1800:
-            os.remove(LOCK)
-        else:
-            raise SystemExit(0)
-    except SystemExit:
-        raise
-    fd = os.open(LOCK, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    os.write(fd, str(os.getpid()).encode())
-    os.close(fd)
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(fd, str(os.getpid()).encode())
+        os.close(fd)
+        return True
+    except FileExistsError:
+        try:
+            if time.time() - os.path.getmtime(path) > 1800:
+                os.remove(path)
+                return acquire_lock(path)
+        except Exception:
+            pass
+        return False
+
+
+# Atomic locks. Only one Soccerway/Playwright refresh may run globally.
+if not acquire_lock(GLOBAL_LOCK):
+    raise SystemExit(0)
+if not acquire_lock(LOCK):
+    try:
+        os.remove(GLOBAL_LOCK)
+    except FileNotFoundError:
+        pass
+    raise SystemExit(0)
 
 try:
     sys.path.insert(0, os.path.dirname(__file__))
@@ -53,7 +63,8 @@ except Exception:
         f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} error {TEAM_ID}\n")
         f.write(traceback.format_exc()[-4000:] + "\n")
 finally:
-    try:
-        os.remove(LOCK)
-    except FileNotFoundError:
-        pass
+    for path in (LOCK, GLOBAL_LOCK):
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass

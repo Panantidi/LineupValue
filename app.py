@@ -1201,13 +1201,12 @@ def _team_version_refresh_lock_path(team_id: str) -> str:
     return os.path.join("/tmp", f"formalert_refresh_{re.sub(r'[^A-Za-z0-9_.-]', '_', team_id)}.lock")
 
 
-def _is_team_refresh_running(team_id: str) -> bool:
-    path = _team_version_refresh_lock_path(team_id)
+def _refresh_lock_is_active(path: str, max_age: int = 1800) -> bool:
     if not os.path.exists(path):
         return False
     try:
         age = time.time() - os.path.getmtime(path)
-        if age > 1800:
+        if age > max_age:
             os.remove(path)
             return False
     except Exception:
@@ -1215,9 +1214,19 @@ def _is_team_refresh_running(team_id: str) -> bool:
     return True
 
 
+def _is_team_refresh_running(team_id: str) -> bool:
+    return _refresh_lock_is_active(_team_version_refresh_lock_path(team_id))
+
+
+def _is_any_team_refresh_running() -> bool:
+    return _refresh_lock_is_active("/tmp/formalert_refresh_global.lock")
+
+
 def _start_team_version_refresh(team_id: str) -> bool:
     """Start a detached, serialized refresh. Page rendering must never wait for it."""
-    if _is_team_refresh_running(team_id):
+    # Soccerway/Playwright is heavy on the VPS: allow only one background refresh
+    # globally. Extra page opens must stay fast and skip scheduling.
+    if _is_any_team_refresh_running() or _is_team_refresh_running(team_id):
         return False
     script = os.path.join(os.path.dirname(__file__), "refresh_team_version.py")
     if not os.path.exists(script):
