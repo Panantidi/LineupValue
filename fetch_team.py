@@ -359,11 +359,13 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     for m in cache['matches']:
         print(f'  {m["date"]} {m["tournament"]}: {m.get("score","?")}')
 
-async def run_last3_only(team_id, team_name):
+async def run_last3_only(team_id, team_name, team_slug=''):
     from soccerway_parser import get_last3_matches
     cache_path = f'{CACHE_DIR}/_live_cache_{team_id}.json'
     with open(cache_path, 'r') as f: cache = json.load(f)
     players = cache['players']
+    if not team_slug:
+        team_slug = cache.get('team', {}).get('slug', '')
     known_surnames = set(get_surname(p['name']) for p in players if p.get('name'))
 
     print('[1/3] Last 3 matches...')
@@ -415,4 +417,4 @@ if __name__ == '__main__':
                     team_name = json.load(f).get('team',{}).get('name','')
             except: pass
         if not team_name: print('ERROR: need --team-name or existing cache'); sys.exit(1)
-        asyncio.run(run_last3_only(team_id, team_name))
+        asyncio.run(run_last3_only(team_id, team_name, team_slug))
