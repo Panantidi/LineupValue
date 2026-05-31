@@ -1,72 +1,322 @@
 {
   "France": {
     "Ligue 1": [
-      {"id": "SAlF91iL", "name": "Angers"},
-      {"id": "MTLr36WA", "name": "Auxerre"},
-      {"id": "Cr4VGaUl", "name": "Brest"},
-      {"id": "CIEe04GT", "name": "Le Havre"},
-      {"id": "IBmris38", "name": "Lens"},
-      {"id": "pfDZL71o", "name": "Lille"},
-      {"id": "jgNAYRGi", "name": "Lorient"},
-      {"id": "2akflumR", "name": "Lyon"},
-      {"id": "SblU3Hee", "name": "Marseille"},
-      {"id": "4v0yqlWc", "name": "Metz"},
-      {"id": "2PIvr8o4", "name": "Monaco"},
-      {"id": "veuetnGG", "name": "Nantes"},
-      {"id": "YagoQJpq", "name": "Nice"},
-      {"id": "CjhkPw0k", "name": "PSG"},
-      {"id": "0OEHEprs", "name": "Paris FC"},
-      {"id": "d2nnj1IE", "name": "Rennes"},
-      {"id": "nP6UzIU1", "name": "Strasbourg"},
-      {"id": "MLmY2yB1", "name": "Toulouse"}
+      {
+        "id": "SAlF91iL",
+        "name": "Angers"
+      },
+      {
+        "id": "MTLr36WA",
+        "name": "Auxerre"
+      },
+      {
+        "id": "Cr4VGaUl",
+        "name": "Brest"
+      },
+      {
+        "id": "CIEe04GT",
+        "name": "Le Havre"
+      },
+      {
+        "id": "IBmris38",
+        "name": "Lens"
+      },
+      {
+        "id": "pfDZL71o",
+        "name": "Lille"
+      },
+      {
+        "id": "jgNAYRGi",
+        "name": "Lorient"
+      },
+      {
+        "id": "2akflumR",
+        "name": "Lyon"
+      },
+      {
+        "id": "SblU3Hee",
+        "name": "Marseille"
+      },
+      {
+        "id": "4v0yqlWc",
+        "name": "Metz"
+      },
+      {
+        "id": "2PIvr8o4",
+        "name": "Monaco"
+      },
+      {
+        "id": "veuetnGG",
+        "name": "Nantes"
+      },
+      {
+        "id": "YagoQJpq",
+        "name": "Nice"
+      },
+      {
+        "id": "CjhkPw0k",
+        "name": "PSG"
+      },
+      {
+        "id": "0OEHEprs",
+        "name": "Paris FC"
+      },
+      {
+        "id": "d2nnj1IE",
+        "name": "Rennes"
+      },
+      {
+        "id": "nP6UzIU1",
+        "name": "Strasbourg"
+      },
+      {
+        "id": "MLmY2yB1",
+        "name": "Toulouse"
+      }
     ]
   },
   "Italy": {
     "Serie A": [
-      {"id": "Iw7eKK25", "name": "Inter"},
-      {"id": "69Dxbc61", "name": "Napoli"},
-      {"id": "8Sa8HInO", "name": "AC Milan"},
-      {"id": "zVqqL0ma", "name": "AS Roma"},
-      {"id": "ttyLthOA", "name": "Como"},
-      {"id": "C06aJvIB", "name": "Juventus"},
-      {"id": "8C9JjMXu", "name": "Atalanta"},
-      {"id": "0M9xNN8N", "name": "Bologna"},
-      {"id": "URcSl02h", "name": "Lazio"},
-      {"id": "rXw8YKDE", "name": "Udinese"},
-      {"id": "QDdvI0zl", "name": "Sassuolo"},
-      {"id": "MZFZnvX4", "name": "Torino"},
-      {"id": "6DxlaxHN", "name": "Parma"},
-      {"id": "d0PJxeie", "name": "Genoa"},
-      {"id": "Q3A3IbXH", "name": "Fiorentina"},
-      {"id": "SCGVmKHb", "name": "Cagliari"},
-      {"id": "G8lYsMgU", "name": "Lecce"},
-      {"id": "KUzfp5N3", "name": "Cremonese"},
-      {"id": "rJVAIaHo", "name": "Verona"},
-      {"id": "roasMsOT", "name": "Pisa"}
+      {
+        "id": "Iw7eKK25",
+        "name": "Inter"
+      },
+      {
+        "id": "69Dxbc61",
+        "name": "Napoli"
+      },
+      {
+        "id": "8Sa8HInO",
+        "name": "AC Milan"
+      },
+      {
+        "id": "zVqqL0ma",
+        "name": "AS Roma"
+      },
+      {
+        "id": "ttyLthOA",
+        "name": "Como"
+      },
+      {
+        "id": "C06aJvIB",
+        "name": "Juventus"
+      },
+      {
+        "id": "8C9JjMXu",
+        "name": "Atalanta"
+      },
+      {
+        "id": "0M9xNN8N",
+        "name": "Bologna"
+      },
+      {
+        "id": "URcSl02h",
+        "name": "Lazio"
+      },
+      {
+        "id": "rXw8YKDE",
+        "name": "Udinese"
+      },
+      {
+        "id": "QDdvI0zl",
+        "name": "Sassuolo"
+      },
+      {
+        "id": "MZFZnvX4",
+        "name": "Torino"
+      },
+      {
+        "id": "6DxlaxHN",
+        "name": "Parma"
+      },
+      {
+        "id": "d0PJxeie",
+        "name": "Genoa"
+      },
+      {
+        "id": "Q3A3IbXH",
+        "name": "Fiorentina"
+      },
+      {
+        "id": "SCGVmKHb",
+        "name": "Cagliari"
+      },
+      {
+        "id": "G8lYsMgU",
+        "name": "Lecce"
+      },
+      {
+        "id": "KUzfp5N3",
+        "name": "Cremonese"
+      },
+      {
+        "id": "rJVAIaHo",
+        "name": "Verona"
+      },
+      {
+        "id": "roasMsOT",
+        "name": "Pisa"
+      }
     ]
   },
   "Spain": {
     "LaLiga": [
-      {"id": "SKbpVP5K", "name": "Barcelona"},
-      {"id": "W8mj7MDD", "name": "Real Madrid"},
-      {"id": "lUatW5jE", "name": "Villarreal"},
-      {"id": "jaarqpLQ", "name": "Atl. Madrid"},
-      {"id": "vJbTeCGP", "name": "Betis"},
-      {"id": "8pvUZFhf", "name": "Celta Vigo"},
-      {"id": "dboeiWOt", "name": "Getafe"},
-      {"id": "8bcjFy6O", "name": "Rayo Vallecano"},
-      {"id": "CQeaytrD", "name": "Valencia"},
-      {"id": "jNvak2f3", "name": "Real Sociedad"},
-      {"id": "QFfPdh1J", "name": "Espanyol"},
-      {"id": "IP5zl0cJ", "name": "Ath Bilbao"},
-      {"id": "h8oAv4Ts", "name": "Sevilla"},
-      {"id": "hxt57t2q", "name": "Alaves"},
-      {"id": "G8FL0ShI", "name": "Levante"},
-      {"id": "ETdxjU8a", "name": "Osasuna"},
-      {"id": "4jl02tPF", "name": "Elche"},
-      {"id": "nNNpcUSL", "name": "Girona"},
-      {"id": "4jDQxrbf", "name": "Mallorca"},
-      {"id": "SzYzw34K", "name": "Oviedo"}
+      {
+        "id": "SKbpVP5K",
+        "name": "Barcelona"
+      },
+      {
+        "id": "W8mj7MDD",
+        "name": "Real Madrid"
+      },
+      {
+        "id": "lUatW5jE",
+        "name": "Villarreal"
+      },
+      {
+        "id": "jaarqpLQ",
+        "name": "Atl. Madrid"
+      },
+      {
+        "id": "vJbTeCGP",
+        "name": "Betis"
+      },
+      {
+        "id": "8pvUZFhf",
+        "name": "Celta Vigo"
+      },
+      {
+        "id": "dboeiWOt",
+        "name": "Getafe"
+      },
+      {
+        "id": "8bcjFy6O",
+        "name": "Rayo Vallecano"
+      },
+      {
+        "id": "CQeaytrD",
+        "name": "Valencia"
+      },
+      {
+        "id": "jNvak2f3",
+        "name": "Real Sociedad"
+      },
+      {
+        "id": "QFfPdh1J",
+        "name": "Espanyol"
+      },
+      {
+        "id": "IP5zl0cJ",
+        "name": "Ath Bilbao"
+      },
+      {
+        "id": "h8oAv4Ts",
+        "name": "Sevilla"
+      },
+      {
+        "id": "hxt57t2q",
+        "name": "Alaves"
+      },
+      {
+        "id": "G8FL0ShI",
+        "name": "Levante"
+      },
+      {
+        "id": "ETdxjU8a",
+        "name": "Osasuna"
+      },
+      {
+        "id": "4jl02tPF",
+        "name": "Elche"
+      },
+      {
+        "id": "nNNpcUSL",
+        "name": "Girona"
+      },
+      {
+        "id": "4jDQxrbf",
+        "name": "Mallorca"
+      },
+      {
+        "id": "SzYzw34K",
+        "name": "Oviedo"
+      }
+    ]
+  },
+  "Germany": {
+    "Bundesliga": [
+      {
+        "id": "nVp0wiqd",
+        "name": "Bayern Munich"
+      },
+      {
+        "id": "nP1i5US1",
+        "name": "Dortmund"
+      },
+      {
+        "id": "KbS1suSm",
+        "name": "RB Leipzig"
+      },
+      {
+        "id": "nJQmYp1B",
+        "name": "Stuttgart"
+      },
+      {
+        "id": "hQAtP9Sl",
+        "name": "Hoffenheim"
+      },
+      {
+        "id": "4jcj2zMd",
+        "name": "Bayer Leverkusen"
+      },
+      {
+        "id": "fiEQZ7C7",
+        "name": "Freiburg"
+      },
+      {
+        "id": "8vndvXTk",
+        "name": "Eintracht Frankfurt"
+      },
+      {
+        "id": "fTVNku3I",
+        "name": "Augsburg"
+      },
+      {
+        "id": "EuakNmc1",
+        "name": "Mainz"
+      },
+      {
+        "id": "pzHW4oaE",
+        "name": "Union Berlin"
+      },
+      {
+        "id": "88HSzjDr",
+        "name": "B. Monchengladbach"
+      },
+      {
+        "id": "v9k3aY5F",
+        "name": "Hamburger SV"
+      },
+      {
+        "id": "WG9pOTse",
+        "name": "FC Koln"
+      },
+      {
+        "id": "Ig1f1fy3",
+        "name": "Werder Bremen"
+      },
+      {
+        "id": "nwkTahLL",
+        "name": "Wolfsburg"
+      },
+      {
+        "id": "KWixEVWi",
+        "name": "Heidenheim"
+      },
+      {
+        "id": "ILyJuN3g",
+        "name": "St. Pauli"
+      }
     ]
   }
 }
