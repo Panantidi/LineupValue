@@ -1195,6 +1195,45 @@ def _write_team_cache(team_id: str, data: dict) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+
+
+def _team_version_refresh_lock_path(team_id: str) -> str:
+    return os.path.join("/tmp", f"formalert_refresh_{re.sub(r'[^A-Za-z0-9_.-]', '_', team_id)}.lock")
+
+
+def _is_team_refresh_running(team_id: str) -> bool:
+    path = _team_version_refresh_lock_path(team_id)
+    if not os.path.exists(path):
+        return False
+    try:
+        age = time.time() - os.path.getmtime(path)
+        if age > 1800:
+            os.remove(path)
+            return False
+    except Exception:
+        pass
+    return True
+
+
+def _start_team_version_refresh(team_id: str) -> bool:
+    """Start a detached, serialized refresh. Page rendering must never wait for it."""
+    if _is_team_refresh_running(team_id):
+        return False
+    script = os.path.join(os.path.dirname(__file__), "refresh_team_version.py")
+    if not os.path.exists(script):
+        return False
+    try:
+        subprocess.Popen(
+            ["/home/openclaw/FormAlert/.venv/bin/python3", script, team_id],
+            cwd="/home/openclaw/FormAlert",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        return True
+    except Exception:
+        return False
+
 def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict | None:
     base_data = base_data or {}
     team = (base_data.get("team") if isinstance(base_data, dict) else {}) or _lookup_lineup_team(team_id)
@@ -1218,42 +1257,41 @@ def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict 
 
 
 def prepare_team_data_version(team_id: str) -> dict:
-    """Return current version data, checking source at most every 3h.
+    """Return page data immediately; schedule stale refresh in background.
 
-    If last check < 3h, return DB version immediately. If stale, fetch fresh data,
-    compare canonical fields, and create a new version only when the data changed.
+    Opening a team must never block on Soccerway/Playwright. If the current version
+    was checked less than 3h ago, use it. If older than 3h, serve the existing
+    version/cache and start one detached refresh process. That process compares
+    canonical fields and creates a new version only if data changed.
     """
     current = _get_current_team_version(team_id)
     now = datetime.now(timezone.utc)
     if current:
+        stale = True
         try:
             last_checked = datetime.fromisoformat(current["last_checked_at"])
             if last_checked.tzinfo is None:
                 last_checked = last_checked.replace(tzinfo=timezone.utc)
-            if (now - last_checked).total_seconds() < TEAM_VERSION_CHECK_TTL:
-                _write_team_cache(team_id, current["data"])
-                return current["data"]
+            stale = (now - last_checked).total_seconds() >= TEAM_VERSION_CHECK_TTL
         except Exception:
-            pass
+            stale = True
+        _write_team_cache(team_id, current["data"])
+        if stale:
+            _start_team_version_refresh(team_id)
+        return current["data"]
+
     # Bootstrap from existing cache first so first open is fast and creates Version 1.
-    if not current:
-        try:
-            cached = _read_team_cache(team_id)
-            if cached.get("players"):
-                _save_team_version(team_id, cached)
-                return cached
-        except Exception:
-            pass
-    base_data = current["data"] if current else None
     try:
-        fresh = _fetch_fresh_team_data(team_id, base_data)
-        result = _save_team_version(team_id, fresh)
-        _write_team_cache(team_id, fresh)
-        return fresh
+        cached = _read_team_cache(team_id)
+        if cached.get("players"):
+            _save_team_version(team_id, cached)
+            return cached
     except Exception:
-        if current:
-            return current["data"]
-        raise
+        pass
+
+    # No cache/version exists: start background fetch and render the lightweight page.
+    _start_team_version_refresh(team_id)
+    return {}
 
 
 def _lineup_save_payload(payload: dict) -> dict:
