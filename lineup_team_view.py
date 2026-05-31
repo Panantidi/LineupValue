@@ -421,11 +421,23 @@ def render_team_view(team_id: str) -> HTMLResponse:
     for p in sorted_players:
         last3 = p.get("last3", [])
         last_start = "START" if (last3 and len(last3) > 0 and last3[0] == "START") else ""
+        player_display_name = swap_name_order(p.get("name", "–"))
+        try:
+            player_impact = float(p.get("impact_score", 0) or 0)
+        except Exception:
+            player_impact = 0.0
+        try:
+            player_minutes = int(str(p.get("min", 0) or 0).replace(",", ""))
+        except Exception:
+            player_minutes = 0
+        pos_code = str(p.get("position", "") or "").upper()
+        df_aliases = {"DF", "D", "DEF", "DEFENDER", "CB", "LB", "RB", "LWB", "RWB"}
+        df_fire = " 🔥" if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
         player_row = f"""
             <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}">
                 <td style="text-align:center;padding:4px 2px;">{p.get("number", "–")}</td>
                 <td style="text-align:center;">{get_flag_html(p.get("national", "–"))}</td>
-                <td class="player-name" style="white-space:nowrap;"><strong>{swap_name_order(p.get("name", "–"))}{' ⚽️' if unique_goal_leader and swap_name_order(p.get("name", "–")) == unique_goal_leader else ''}{' 👟' if unique_assist_leader and swap_name_order(p.get("name", "–")) == unique_assist_leader else ''}</strong></td>
+                <td class="player-name" style="white-space:nowrap;"><strong>{player_display_name}{df_fire}{' ⚽️' if unique_goal_leader and player_display_name == unique_goal_leader else ''}{' 👟' if unique_assist_leader and player_display_name == unique_assist_leader else ''}</strong></td>
                 <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option></select></div></td>
                 <td style="text-align:center;padding:4px 2px;">{p.get("age", "–")}</td>
                 <td style="text-align:center;">{p.get("market_value", "–")}</td>
