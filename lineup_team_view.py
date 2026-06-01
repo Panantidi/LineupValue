@@ -6,6 +6,7 @@ import glob
 import os
 import re
 import time
+import html
 from fastapi.responses import HTMLResponse
 
 def swap_name_order(name):
@@ -463,17 +464,32 @@ def render_team_view(team_id: str) -> HTMLResponse:
         players_rows += player_row
 
     # --- Last 3: заголовок (две строки) ---
-    # --- Last 3: заголовок (две строки) ---
     # Строка 1: "Last 3" (colspan=3)
     # Строка 2: дата + турнир для каждого матча
+    def _full_comp_name(comp):
+        raw = str(comp or "").strip()
+        key = raw.upper().replace(".", "")
+        mapping = {
+            "L1": "Ligue 1", "L2": "Ligue 2", "PL": "Premier League", "CH": "Championship",
+            "LL": "La Liga", "SA": "Serie A", "BL": "Bundesliga", "B2": "2. Bundesliga",
+            "ER": "Eredivisie", "LP": "Liga Portugal", "JPL": "Jupiler Pro League",
+            "SL": "Süper Lig", "SUL": "Super League", "SUP": "Superliga", "ALL": "Allsvenskan",
+            "ELI": "Eliteserien", "FA": "FA Cup", "CDF": "Coupe de France", "CL": "Champions League",
+            "EL": "Europa League", "ECL": "Conference League", "DFB": "DFB Pokal", "CDR": "Copa del Rey",
+            "CI": "Coppa Italia", "LC": "League Cup", "CUP": "National Cup",
+        }
+        return mapping.get(key, raw or "Match")
+
     last3_header_row1 = '<th colspan="3" style="text-align:center;font-size:11px;padding:6px 4px;border-bottom:none;">Last 3</th>'
     last3_header_cells = ""
     for m in last3_matches:
         date_str = m.get("date", "")
         comp_str = m.get("comp", "") or m.get("tournament", "")
         score_str = m.get("score", "")
-        tooltip = f"Ligue 1: {score_str}" if score_str else ""
-        last3_header_cells += f'<th style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;" title="{tooltip}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
+        full_comp = _full_comp_name(comp_str)
+        tooltip_text = f"{full_comp}: {score_str}" if score_str else full_comp
+        tooltip_html = html.escape(tooltip_text, quote=True)
+        last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
     # Badge freshness indicator
     if cache_age_hours < 1:
@@ -783,6 +799,36 @@ def render_team_view(team_id: str) -> HTMLResponse:
             font-weight: 700;
         }}
         body.snapshot-mode .snapshot-mode-banner {{ display:block; }}
+        .last3-tooltip {{
+            position: relative;
+        }}
+        .last3-tooltip::after {{
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 8px);
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.96);
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.25;
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 1000;
+            transition: opacity .18s ease .65s, visibility 0s linear .65s;
+        }}
+        .last3-tooltip:hover::after {{
+            opacity: 1;
+            visibility: visible;
+        }}
     </style>
 
 
