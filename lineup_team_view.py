@@ -6,7 +6,7 @@ import glob
 import os
 import re
 import time
-import html
+import html as html_lib
 from fastapi.responses import HTMLResponse
 
 def swap_name_order(name):
@@ -488,7 +488,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         score_str = m.get("score", "")
         full_comp = _full_comp_name(comp_str)
         tooltip_text = f"{full_comp}: {score_str}" if score_str else full_comp
-        tooltip_html = html.escape(tooltip_text, quote=True)
+        tooltip_html = html_lib.escape(tooltip_text, quote=True)
         last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
     # Badge freshness indicator
