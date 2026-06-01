@@ -242,6 +242,8 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug):
     comp_map = {
         'bundesliga': 'BL', '2. bundesliga': 'B2', 'dfb pokal': 'DFB', 'league cup': 'LC',
         'ligue 1': 'L1', 'serie a': 'SA', 'la liga': 'LL', 'laliga': 'LL', 'premier league': 'PL',
+        'conference league': 'ECL', 'europa league': 'EL', 'champions league': 'CL',
+        'fa cup': 'FA', 'efl cup': 'LC', 'club friendlies': 'FR', 'friendlies': 'FR', 'friendly': 'FR',
     }
     url = f'{BASE}/team/{team_slug}/{team_id}/results/'
     print(f'  [Playwright] Loading configured results {url}')
@@ -276,8 +278,23 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug):
         if dm:
             date=f'{dm.group(1).zfill(2)}.{dm.group(2)}'
         league_div=a.find_parent('div', class_=re.compile(r'leagues'))
-        lt=(league_div.get_text(' ', strip=True).lower() if league_div else '')
-        tournament='BL'
+        header_text = ''
+        if league_div and parent:
+            current_header = None
+            for child in league_div.find_all(['div', 'section'], recursive=False):
+                classes = ' '.join(child.get('class', []))
+                if 'headerLeague' in classes:
+                    current_header = child.get_text(' ', strip=True)
+                if child is parent:
+                    header_text = current_header or ''
+                    break
+        if not header_text:
+            # Fallback: only inspect nearby previous league headers, never the whole
+            # leagues container (it can contain multiple competitions).
+            header = parent.find_previous_sibling(class_=re.compile(r'headerLeague')) if parent else None
+            header_text = header.get_text(' ', strip=True) if header else ''
+        lt = header_text.lower()
+        tournament = 'UNK'
         for key,val in comp_map.items():
             if key in lt:
                 tournament=val; break

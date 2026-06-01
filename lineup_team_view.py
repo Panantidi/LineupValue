@@ -477,6 +477,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             "ELI": "Eliteserien", "FA": "FA Cup", "CDF": "Coupe de France", "CL": "Champions League",
             "EL": "Europa League", "ECL": "Conference League", "DFB": "DFB Pokal", "CDR": "Copa del Rey",
             "CI": "Coppa Italia", "LC": "League Cup", "CUP": "National Cup",
+            "FR": "Friendly", "UNK": "Other Competition",
         }
         return mapping.get(key, raw or "Match")
 
