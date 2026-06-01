@@ -843,45 +843,108 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
 
 def apply_last3_to_players(players: List[Player], lineups_data: List[Dict]) -> List[Player]:
     """For each player, determine start/sub/missing status for each of 3 matches.
-    Matching by surname (first word) because Soccerway uses 'Penders M.' 
-    while our data has 'Penders Mike'."""
-    
+
+    Each Soccerway lineup entry is assigned to at most one roster player. This
+    prevents duplicate green START circles when two players share the same
+    surname (or first displayed token), e.g. Murphy A. / Murphy J.
+    """
+
     def get_surname(name: str) -> str:
-        """Extract surname (first word) for matching"""
-        return name.split()[0].lower().replace('.', '').strip() if name.strip() else ""
+        return name.split()[0].lower().replace('.', '').strip() if name and name.strip() else ""
+
+    def name_initials(name: str) -> List[str]:
+        cleaned = re.sub(r'[^A-Za-zÀ-ÖØ-öø-ÿ\s.-]', ' ', str(name or '')).replace('.', ' ')
+        return [p[0].lower() for p in cleaned.split() if p and p[0].isalpha()]
+
+    def match_lineup_to_player(lineup_name: str, candidates: List[Player]):
+        l_surname = get_surname(lineup_name)
+        same = [p for p in candidates if get_surname(p.name) == l_surname]
+        if not same:
+            return None
+        if len(same) == 1:
+            return same[0]
+        parts = str(lineup_name or '').replace('.', ' ').split()
+        l_extra = name_initials(' '.join(parts[1:])) if len(parts) > 1 else []
+        if l_extra:
+            filtered = []
+            for p in same:
+                p_parts = str(p.name or '').split()
+                p_extra = name_initials(' '.join(p_parts[1:])) if len(p_parts) > 1 else []
+                if all(i in p_extra for i in l_extra):
+                    filtered.append(p)
+            if len(filtered) == 1:
+                return filtered[0]
+            if filtered:
+                same = filtered
+        def mins(player):
+            try:
+                return int(str(player.minutes or 0).replace(',', ''))
+            except Exception:
+                return 0
+        return sorted(same, key=mins, reverse=True)[0]
+
+    def assign(lineup_names: List[str], candidates: List[Player]):
+        available = list(candidates)
+        out = {}
+        for lname in lineup_names or []:
+            player = match_lineup_to_player(lname, available)
+            if not player:
+                continue
+            out[id(player)] = player
+            available.remove(player)
+        return out
 
     for player in players:
+        player.last3 = []
         player.last3_missing = []
         player.last3_captain = []
 
     for match_idx, match_data in enumerate(lineups_data):
-        starters_surnames = {get_surname(p) for p in match_data.get('starters', [])}
-        subs_surnames = {get_surname(p) for p in match_data.get('substitutes', [])}
-        missing_list = match_data.get('missing', [])
-        missing_map = {get_surname(m.get('name', '')): m.get('reason', '') for m in missing_list}
-        captains_set = set(match_data.get('captains', []))
+        starter_map = assign(match_data.get('starters', []), players)
+        sub_map = assign(
+            match_data.get('substitutes', []),
+            [p for p in players if id(p) not in starter_map]
+        )
+        missing_list = match_data.get('missing', []) or []
+        missing_names = [m.get('name', '') for m in missing_list if isinstance(m, dict)]
+        missing_map = assign(
+            missing_names,
+            [p for p in players if id(p) not in starter_map and id(p) not in sub_map]
+        )
+        missing_reason = {}
+        for m in missing_list:
+            if not isinstance(m, dict):
+                continue
+            mp = match_lineup_to_player(m.get('name', ''), [p for p in players if id(p) in missing_map])
+            if mp:
+                missing_reason[id(mp)] = m.get('reason', '')
+
+        captains = match_data.get('captains_full', match_data.get('captains', []))
+        captain_ids = set()
+        for cap in captains:
+            cp = match_lineup_to_player(cap, [p for p in players if id(p) in starter_map])
+            if cp:
+                captain_ids.add(id(cp))
 
         for player in players:
-            p_surname = get_surname(player.name)
-
-            if p_surname in starters_surnames:
+            key = id(player)
+            if key in starter_map:
                 player.last3.append("START")
                 player.last3_missing.append(None)
-                player.last3_captain.append(p_surname in captains_set)
-            elif p_surname in subs_surnames:
+                player.last3_captain.append(key in captain_ids)
+            elif key in sub_map:
                 player.last3.append("SUB")
                 player.last3_missing.append(None)
                 player.last3_captain.append(False)
-            elif p_surname in missing_map:
+            elif key in missing_map:
                 player.last3.append("")
-                player.last3_missing.append(missing_map[p_surname])
+                player.last3_missing.append(missing_reason.get(key, ""))
                 player.last3_captain.append(False)
             else:
                 player.last3.append("—")
                 player.last3_missing.append(None)
                 player.last3_captain.append(False)
 
-    # Ensure all players have exactly 3 entries
     for player in players:
         while len(player.last3) < 3:
             player.last3.append("—")
@@ -892,7 +955,6 @@ def apply_last3_to_players(players: List[Player], lineups_data: List[Dict]) -> L
         player.last3_captain = player.last3_captain[:3]
 
     return players
-
 
 # ============================================================
 # Convert to Player_Info.json format (compatible with lineup_team_view.py)

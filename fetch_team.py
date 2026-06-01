@@ -196,44 +196,122 @@ def _is_captain(player_name, cap_fullnames):
         return True
     return False
 
-def apply_last3(players, lineups_data):
-    for p in players:
-        surname = get_surname(p['name'])
-        last3, last3_missing, last3_captain = [], [], []
-        for ld in lineups_data:
-            cap_fullnames = ld.get('captains_full', ld.get('captains', []))
-            found = False
-            for s in ld.get('starters', []):
-                if get_surname(s) == surname:
-                    last3.append('START')
-                    last3_captain.append(_is_captain(p['name'], cap_fullnames))
-                    last3_missing.append(None)
-                    found = True; break
-            if found: continue
-            for s in ld.get('substitutes', []):
-                if get_surname(s) == surname:
-                    last3.append('SUB')
-                    last3_captain.append(False)
-                    last3_missing.append(None)
-                    found = True; break
-            if found: continue
-            for m in ld.get('missing', []):
-                if get_surname(m.get('name', '')) == surname:
-                    last3.append('')
-                    last3_captain.append(False)
-                    last3_missing.append(m.get('reason', ''))
-                    found = True; break
-            if not found:
-                last3.append('-')
-                last3_captain.append(False)
-                last3_missing.append(None)
-        while len(last3) < 3:
-            last3.append('-'); last3_captain.append(False); last3_missing.append(None)
-        p['last3'] = last3[:3]
-        p['last3_missing'] = last3_missing[:3]
-        p['last3_captain'] = last3_captain[:3]
-    return players
+def _name_initials(name):
+    cleaned = re.sub(r'[^A-Za-zÀ-ÖØ-öø-ÿ\s.-]', ' ', str(name or '')).replace('.', ' ')
+    parts = [p for p in cleaned.split() if p]
+    return [p[0].lower() for p in parts if p and p[0].isalpha()]
 
+
+def _match_lineup_to_player(lineup_name, candidates):
+    """Return one best roster player for a Soccerway lineup name.
+
+    Soccerway often has abbreviated names like "Murphy A." while the cache has
+    "Murphy Alex" and "Murphy Jacob". Matching every cache player by surname
+    duplicates START circles. This function consumes each lineup entry once and
+    disambiguates by initials when a surname is not unique.
+    """
+    l_surname = get_surname(lineup_name)
+    if not l_surname:
+        return None
+    same_surname = [p for p in candidates if get_surname(p.get('name', '')) == l_surname]
+    if not same_surname:
+        return None
+    if len(same_surname) == 1:
+        return same_surname[0]
+
+    l_parts = str(lineup_name or '').replace('.', ' ').split()
+    l_extra_initials = _name_initials(' '.join(l_parts[1:])) if len(l_parts) > 1 else []
+    if l_extra_initials:
+        filtered = []
+        for p in same_surname:
+            p_parts = str(p.get('name', '') or '').split()
+            p_extra_initials = _name_initials(' '.join(p_parts[1:])) if len(p_parts) > 1 else []
+            if all(i in p_extra_initials for i in l_extra_initials):
+                filtered.append(p)
+        if len(filtered) == 1:
+            return filtered[0]
+        if filtered:
+            same_surname = filtered
+
+    # If Soccerway gives no usable initial for an ambiguous surname, choose the
+    # player with the highest season minutes as the least damaging fallback.
+    def mins(p):
+        try:
+            return int(str(p.get('min', 0) or 0).replace(',', ''))
+        except Exception:
+            return 0
+    return sorted(same_surname, key=mins, reverse=True)[0]
+
+
+def _assign_lineup_statuses(players, lineup_names):
+    available = list(players)
+    assigned = {}
+    for lname in lineup_names or []:
+        p = _match_lineup_to_player(lname, available)
+        if not p:
+            continue
+        key = id(p)
+        if key in assigned:
+            continue
+        assigned[key] = lname
+        available.remove(p)
+    return assigned
+
+
+def apply_last3(players, lineups_data):
+    # Reset arrays first.
+    for p in players:
+        p['last3'] = []
+        p['last3_missing'] = []
+        p['last3_captain'] = []
+
+    for ld in lineups_data:
+        cap_fullnames = ld.get('captains_full', ld.get('captains', []))
+        starter_map = _assign_lineup_statuses(players, ld.get('starters', []))
+        sub_map = _assign_lineup_statuses(
+            [p for p in players if id(p) not in starter_map],
+            ld.get('substitutes', [])
+        )
+        missing_entries = ld.get('missing', []) or []
+        missing_names = [m.get('name', '') for m in missing_entries if isinstance(m, dict)]
+        missing_map_players = _assign_lineup_statuses(
+            [p for p in players if id(p) not in starter_map and id(p) not in sub_map],
+            missing_names
+        )
+        missing_reason_by_player = {}
+        for m in missing_entries:
+            if not isinstance(m, dict):
+                continue
+            mp = _match_lineup_to_player(m.get('name', ''), [p for p in players if id(p) in missing_map_players])
+            if mp:
+                missing_reason_by_player[id(mp)] = m.get('reason', '')
+
+        for p in players:
+            key = id(p)
+            if key in starter_map:
+                p['last3'].append('START')
+                p['last3_captain'].append(_is_captain(p['name'], cap_fullnames))
+                p['last3_missing'].append(None)
+            elif key in sub_map:
+                p['last3'].append('SUB')
+                p['last3_captain'].append(False)
+                p['last3_missing'].append(None)
+            elif key in missing_map_players:
+                p['last3'].append('')
+                p['last3_captain'].append(False)
+                p['last3_missing'].append(missing_reason_by_player.get(key, ''))
+            else:
+                p['last3'].append('-')
+                p['last3_captain'].append(False)
+                p['last3_missing'].append(None)
+
+    for p in players:
+        while len(p['last3']) < 3:
+            p['last3'].append('-'); p['last3_captain'].append(False); p['last3_missing'].append(None)
+        p['last3'] = p['last3'][:3]
+        p['last3_missing'] = p['last3_missing'][:3]
+        p['last3_captain'] = p['last3_captain'][:3]
+    return players
 
 async def get_last3_matches_by_slug(team_id, team_name, team_slug):
     """Fetch last 3 matches using official Soccerway slug from standings/overall."""
