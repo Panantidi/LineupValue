@@ -383,9 +383,43 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug):
         print(f'    {m.date} {m.tournament}: {m.url}')
     return matches
 
+def _copy_existing_last3_fields(new_players, old_cache):
+    """Preserve Last 3 fields from existing cache while a full refresh is in progress.
+
+    Full refresh saves an intermediate enriched squad before lineups are parsed.
+    Without this, opening the team during/after an incomplete full refresh can
+    show blank Last 3. Match by exact name first, then one-to-one surname fallback.
+    """
+    old_players = list((old_cache or {}).get('players') or [])
+    if not old_players:
+        return new_players
+    by_name = {str(p.get('name', '')).strip().lower(): p for p in old_players if p.get('name')}
+    remaining_old = list(old_players)
+    for p in new_players:
+        old = by_name.get(str(p.get('name', '')).strip().lower())
+        if not old:
+            old = _match_lineup_to_player(p.get('name', ''), remaining_old)
+        if old:
+            for k, default in [('last3', ['-', '-', '-']), ('last3_missing', [None, None, None]), ('last3_captain', [False, False, False])]:
+                p[k] = list(old.get(k) or default)[:3]
+            if old in remaining_old:
+                remaining_old.remove(old)
+        else:
+            p.setdefault('last3', ['-', '-', '-'])
+            p.setdefault('last3_missing', [None, None, None])
+            p.setdefault('last3_captain', [False, False, False])
+    return new_players
+
+
 async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     from soccerway_parser import get_squad_page, parse_squad_html, enrich_players_async, get_last3_matches, Match
     cache_path = f'{CACHE_DIR}/_live_cache_{team_id}.json'
+    existing_cache = {}
+    try:
+        with open(cache_path, 'r') as f:
+            existing_cache = json.load(f)
+    except Exception:
+        existing_cache = {}
 
     print(f'[1/5] Squad: {team_name}...')
     html = ''
@@ -419,6 +453,7 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
         for old, new in {'minutes':'min','goals':'goal','assists':'assist','yellow_cards':'yellow_card','red_cards':'red_card','player_url':'profile_path'}.items():
             if old in d and new not in d: d[new] = d.pop(old)
         players.append(d)
+    players = _copy_existing_last3_fields(players, existing_cache)
     enriched = sum(1 for p in players if p.get('market_value') or p.get('position'))
     print(f'  Enriched: {enriched}/{len(players)}')
     known_surnames = set(get_surname(p['name']) for p in players if p.get('name'))
