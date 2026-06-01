@@ -336,5 +336,109 @@
         "slug": "st-pauli"
       }
     ]
+  },
+  "England": {
+    "Premier League": [
+      {
+        "id": "j3Azpf5d",
+        "name": "Wolves",
+        "slug": "wolves"
+      },
+      {
+        "id": "hA1Zm19f",
+        "name": "Arsenal",
+        "slug": "arsenal"
+      },
+      {
+        "id": "p6ahwuwJ",
+        "name": "Newcastle",
+        "slug": "newcastle-utd"
+      },
+      {
+        "id": "xYe7DwID",
+        "name": "Brentford",
+        "slug": "brentford"
+      },
+      {
+        "id": "OtpNdwrc",
+        "name": "Bournemouth",
+        "slug": "bournemouth"
+      },
+      {
+        "id": "4fGZN2oK",
+        "name": "Chelsea",
+        "slug": "chelsea"
+      },
+      {
+        "id": "KluSTr9s",
+        "name": "Everton",
+        "slug": "everton"
+      },
+      {
+        "id": "tUxUbLR2",
+        "name": "Leeds",
+        "slug": "leeds"
+      },
+      {
+        "id": "UDg08Ohm",
+        "name": "Tottenham",
+        "slug": "tottenham"
+      },
+      {
+        "id": "Wtn9Stg0",
+        "name": "Manchester City",
+        "slug": "manchester-city"
+      },
+      {
+        "id": "Cxq57r8g",
+        "name": "West Ham",
+        "slug": "west-ham"
+      },
+      {
+        "id": "AovF1Mia",
+        "name": "Crystal Palace",
+        "slug": "crystal-palace"
+      },
+      {
+        "id": "WSzc94ws",
+        "name": "Sunderland",
+        "slug": "sunderland"
+      },
+      {
+        "id": "2XrRecc3",
+        "name": "Brighton",
+        "slug": "brighton"
+      },
+      {
+        "id": "69ZiU2Om",
+        "name": "Fulham",
+        "slug": "fulham"
+      },
+      {
+        "id": "UsushcZr",
+        "name": "Nottingham",
+        "slug": "nottingham"
+      },
+      {
+        "id": "ppjDR086",
+        "name": "Manchester Utd",
+        "slug": "manchester-united"
+      },
+      {
+        "id": "W00wmLO0",
+        "name": "Aston Villa",
+        "slug": "aston-villa"
+      },
+      {
+        "id": "z3dmTMMO",
+        "name": "Burnley",
+        "slug": "burnley"
+      },
+      {
+        "id": "lId4TMwf",
+        "name": "Liverpool",
+        "slug": "liverpool"
+      }
+    ]
   }
 }
