@@ -3,75 +3,93 @@
     "Ligue 1": [
       {
         "id": "SAlF91iL",
-        "name": "Angers"
+        "name": "Angers",
+        "slug": "angers"
       },
       {
         "id": "MTLr36WA",
-        "name": "Auxerre"
+        "name": "Auxerre",
+        "slug": "auxerre"
       },
       {
         "id": "Cr4VGaUl",
-        "name": "Brest"
+        "name": "Brest",
+        "slug": "brest"
       },
       {
         "id": "CIEe04GT",
-        "name": "Le Havre"
+        "name": "Le Havre",
+        "slug": "le-havre"
       },
       {
         "id": "IBmris38",
-        "name": "Lens"
+        "name": "Lens",
+        "slug": "lens"
       },
       {
         "id": "pfDZL71o",
-        "name": "Lille"
+        "name": "Lille",
+        "slug": "lille"
       },
       {
         "id": "jgNAYRGi",
-        "name": "Lorient"
+        "name": "Lorient",
+        "slug": "lorient"
       },
       {
         "id": "2akflumR",
-        "name": "Lyon"
+        "name": "Lyon",
+        "slug": "lyon"
       },
       {
         "id": "SblU3Hee",
-        "name": "Marseille"
+        "name": "Marseille",
+        "slug": "marseille"
       },
       {
         "id": "4v0yqlWc",
-        "name": "Metz"
+        "name": "Metz",
+        "slug": "metz"
       },
       {
         "id": "2PIvr8o4",
-        "name": "Monaco"
+        "name": "Monaco",
+        "slug": "monaco"
       },
       {
         "id": "veuetnGG",
-        "name": "Nantes"
+        "name": "Nantes",
+        "slug": "nantes"
       },
       {
         "id": "YagoQJpq",
-        "name": "Nice"
+        "name": "Nice",
+        "slug": "nice"
       },
       {
         "id": "CjhkPw0k",
-        "name": "PSG"
+        "name": "PSG",
+        "slug": "psg"
       },
       {
         "id": "0OEHEprs",
-        "name": "Paris FC"
+        "name": "Paris FC",
+        "slug": "paris-fc"
       },
       {
         "id": "d2nnj1IE",
-        "name": "Rennes"
+        "name": "Rennes",
+        "slug": "rennes"
       },
       {
         "id": "nP6UzIU1",
-        "name": "Strasbourg"
+        "name": "Strasbourg",
+        "slug": "strasbourg"
       },
       {
         "id": "MLmY2yB1",
-        "name": "Toulouse"
+        "name": "Toulouse",
+        "slug": "toulouse"
       }
     ]
   },
@@ -79,83 +97,103 @@
     "Serie A": [
       {
         "id": "Iw7eKK25",
-        "name": "Inter"
+        "name": "Inter",
+        "slug": "inter"
       },
       {
         "id": "69Dxbc61",
-        "name": "Napoli"
+        "name": "Napoli",
+        "slug": "napoli"
       },
       {
         "id": "8Sa8HInO",
-        "name": "AC Milan"
+        "name": "AC Milan",
+        "slug": "ac-milan"
       },
       {
         "id": "zVqqL0ma",
-        "name": "AS Roma"
+        "name": "AS Roma",
+        "slug": "as-roma"
       },
       {
         "id": "ttyLthOA",
-        "name": "Como"
+        "name": "Como",
+        "slug": "como"
       },
       {
         "id": "C06aJvIB",
-        "name": "Juventus"
+        "name": "Juventus",
+        "slug": "juventus"
       },
       {
         "id": "8C9JjMXu",
-        "name": "Atalanta"
+        "name": "Atalanta",
+        "slug": "atalanta"
       },
       {
         "id": "0M9xNN8N",
-        "name": "Bologna"
+        "name": "Bologna",
+        "slug": "bologna"
       },
       {
         "id": "URcSl02h",
-        "name": "Lazio"
+        "name": "Lazio",
+        "slug": "lazio"
       },
       {
         "id": "rXw8YKDE",
-        "name": "Udinese"
+        "name": "Udinese",
+        "slug": "udinese"
       },
       {
         "id": "QDdvI0zl",
-        "name": "Sassuolo"
+        "name": "Sassuolo",
+        "slug": "sassuolo"
       },
       {
         "id": "MZFZnvX4",
-        "name": "Torino"
+        "name": "Torino",
+        "slug": "torino"
       },
       {
         "id": "6DxlaxHN",
-        "name": "Parma"
+        "name": "Parma",
+        "slug": "parma"
       },
       {
         "id": "d0PJxeie",
-        "name": "Genoa"
+        "name": "Genoa",
+        "slug": "genoa"
       },
       {
         "id": "Q3A3IbXH",
-        "name": "Fiorentina"
+        "name": "Fiorentina",
+        "slug": "fiorentina"
       },
       {
         "id": "SCGVmKHb",
-        "name": "Cagliari"
+        "name": "Cagliari",
+        "slug": "cagliari"
       },
       {
         "id": "G8lYsMgU",
-        "name": "Lecce"
+        "name": "Lecce",
+        "slug": "lecce"
       },
       {
         "id": "KUzfp5N3",
-        "name": "Cremonese"
+        "name": "Cremonese",
+        "slug": "cremonese"
       },
       {
         "id": "rJVAIaHo",
-        "name": "Verona"
+        "name": "Verona",
+        "slug": "verona"
       },
       {
         "id": "roasMsOT",
-        "name": "Pisa"
+        "name": "Pisa",
+        "slug": "pisa"
       }
     ]
   },
@@ -163,83 +201,103 @@
     "LaLiga": [
       {
         "id": "SKbpVP5K",
-        "name": "Barcelona"
+        "name": "Barcelona",
+        "slug": "barcelona"
       },
       {
         "id": "W8mj7MDD",
-        "name": "Real Madrid"
+        "name": "Real Madrid",
+        "slug": "real-madrid"
       },
       {
         "id": "lUatW5jE",
-        "name": "Villarreal"
+        "name": "Villarreal",
+        "slug": "villarreal"
       },
       {
         "id": "jaarqpLQ",
-        "name": "Atl. Madrid"
+        "name": "Atl. Madrid",
+        "slug": "atl-madrid"
       },
       {
         "id": "vJbTeCGP",
-        "name": "Betis"
+        "name": "Betis",
+        "slug": "betis"
       },
       {
         "id": "8pvUZFhf",
-        "name": "Celta Vigo"
+        "name": "Celta Vigo",
+        "slug": "celta-vigo"
       },
       {
         "id": "dboeiWOt",
-        "name": "Getafe"
+        "name": "Getafe",
+        "slug": "getafe"
       },
       {
         "id": "8bcjFy6O",
-        "name": "Rayo Vallecano"
+        "name": "Rayo Vallecano",
+        "slug": "rayo-vallecano"
       },
       {
         "id": "CQeaytrD",
-        "name": "Valencia"
+        "name": "Valencia",
+        "slug": "valencia"
       },
       {
         "id": "jNvak2f3",
-        "name": "Real Sociedad"
+        "name": "Real Sociedad",
+        "slug": "real-sociedad"
       },
       {
         "id": "QFfPdh1J",
-        "name": "Espanyol"
+        "name": "Espanyol",
+        "slug": "espanyol"
       },
       {
         "id": "IP5zl0cJ",
-        "name": "Ath Bilbao"
+        "name": "Ath Bilbao",
+        "slug": "ath-bilbao"
       },
       {
         "id": "h8oAv4Ts",
-        "name": "Sevilla"
+        "name": "Sevilla",
+        "slug": "sevilla"
       },
       {
         "id": "hxt57t2q",
-        "name": "Alaves"
+        "name": "Alaves",
+        "slug": "alaves"
       },
       {
         "id": "G8FL0ShI",
-        "name": "Levante"
+        "name": "Levante",
+        "slug": "levante"
       },
       {
         "id": "ETdxjU8a",
-        "name": "Osasuna"
+        "name": "Osasuna",
+        "slug": "osasuna"
       },
       {
         "id": "4jl02tPF",
-        "name": "Elche"
+        "name": "Elche",
+        "slug": "elche"
       },
       {
         "id": "nNNpcUSL",
-        "name": "Girona"
+        "name": "Girona",
+        "slug": "girona"
       },
       {
         "id": "4jDQxrbf",
-        "name": "Mallorca"
+        "name": "Mallorca",
+        "slug": "mallorca"
       },
       {
         "id": "SzYzw34K",
-        "name": "Oviedo"
+        "name": "Oviedo",
+        "slug": "oviedo"
       }
     ]
   },

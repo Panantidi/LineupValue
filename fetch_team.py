@@ -432,15 +432,25 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     print('[3/5] Last 3 matches...')
     matches = await get_last3_matches_by_slug(team_id, team_name, team_slug) if team_slug else await get_last3_matches(team_id, team_name)
     print(f'  {len(matches)} matches')
+    if len(matches) < 3:
+        print('ABORT: fewer than 3 matches parsed; keeping enrichment cache without wiping Last 3')
+        return
 
     print('[4/5] Lineups + scores...')
     lineups_data = await fetch_and_parse_lineups(matches, known_surnames)
+    start_counts = [len(ld.get('starters', [])) for ld in lineups_data[:3]]
+    if len(lineups_data) < 3 or any(c == 0 for c in start_counts):
+        print(f'ABORT: incomplete lineups start_counts={start_counts}; keeping enrichment cache without bad Last 3')
+        return
 
     print('[5/5] Applying...')
     players = apply_last3(players, lineups_data)
     m1s = sum(1 for p in players if p.get('last3',[])[0:1]==['START'])
     m2s = sum(1 for p in players if len(p.get('last3',[]))>1 and p['last3'][1]=='START')
     m3s = sum(1 for p in players if len(p.get('last3',[]))>2 and p['last3'][2]=='START')
+    if any(c == 0 for c in [m1s, m2s, m3s]) or any(c > 11 for c in [m1s, m2s, m3s]):
+        print(f'ABORT: invalid START counts={[m1s,m2s,m3s]}; keeping enrichment cache without bad Last 3')
+        return
     print(f'  START: m1={m1s} m2={m2s} m3={m3s}')
 
     cache['players'] = players
@@ -466,12 +476,23 @@ async def run_last3_only(team_id, team_name, team_slug=''):
     print('[1/3] Last 3 matches...')
     matches = await get_last3_matches_by_slug(team_id, team_name, team_slug) if team_slug else await get_last3_matches(team_id, team_name)
     print(f'  {len(matches)} matches')
+    if len(matches) < 3:
+        print('ABORT: fewer than 3 matches parsed; keeping existing cache so Last 3 does not disappear')
+        return
 
     print('[2/3] Lineups + scores...')
     lineups_data = await fetch_and_parse_lineups(matches, known_surnames)
+    start_counts = [len(ld.get('starters', [])) for ld in lineups_data[:3]]
+    if len(lineups_data) < 3 or any(c == 0 for c in start_counts):
+        print(f'ABORT: incomplete lineups start_counts={start_counts}; keeping existing cache so Last 3 does not disappear')
+        return
 
     print('[3/3] Applying...')
     players = apply_last3(players, lineups_data)
+    applied_starts = [sum(1 for p in players if len(p.get('last3', [])) > i and p['last3'][i] == 'START') for i in range(3)]
+    if any(c == 0 for c in applied_starts) or any(c > 11 for c in applied_starts):
+        print(f'ABORT: invalid applied START counts={applied_starts}; keeping existing cache')
+        return
 
     cache['players'] = players
     cache['matches'] = [{'date': m.date, 'tournament': m.tournament, 'url': m.url, 'mid': m.mid,
@@ -480,7 +501,7 @@ async def run_last3_only(team_id, team_name, team_slug=''):
     cache['_cached_at'] = time.time()
     cache['last_updated'] = time.time()
     with open(cache_path, 'w') as f: json.dump(cache, f, indent=2, ensure_ascii=False)
-    print(f'Done!')
+    print(f'Done! START={applied_starts}')
     for m in cache['matches']:
         print(f'  {m["date"]} {m["tournament"]}: {m.get("score","?")}')
 
