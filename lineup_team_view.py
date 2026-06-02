@@ -1027,7 +1027,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                     <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
                     <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Choose image</button>
                     <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
-                    <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">👁️ Vision Apply</button>
+                    <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">🤖 AI Vision</button>
                     <span id="vision-lineup-status" class="vision-lineup-status"></span>
                 </div>
             </div>
