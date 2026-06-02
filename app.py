@@ -821,8 +821,8 @@ def _flash_cleanup():
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
-    # Skip auth for public paths and static icons
-    if path in PUBLIC_PATHS or path.startswith("/icons/"):
+    # Skip auth for public paths and static assets needed by external services
+    if path in PUBLIC_PATHS or path.startswith("/icons/") or path.startswith("/vision_uploads/"):
         return await call_next(request)
     # Check IP whitelist
     client_ip = request.client.host if request.client else ""
@@ -852,6 +852,8 @@ async def auth_middleware(request: Request, call_next):
 
 from fastapi.staticfiles import StaticFiles
 app.mount("/icons", StaticFiles(directory="/home/openclaw/FormAlert/icons"), name="icons")
+os.makedirs("/home/openclaw/FormAlert/vision_uploads", exist_ok=True)
+app.mount("/vision_uploads", StaticFiles(directory="/home/openclaw/FormAlert/vision_uploads"), name="vision_uploads")
 
 # --- Login / Logout routes ---
 _LOGIN_STYLE = """
@@ -1594,6 +1596,8 @@ def _parse_vision_players_text(text: str) -> list[str]:
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.IGNORECASE | re.MULTILINE).strip()
     try:
         obj = json.loads(cleaned)
+        if isinstance(obj, str):
+            obj = json.loads(obj)
         if isinstance(obj, dict):
             arr = obj.get("players") or obj.get("names") or []
         elif isinstance(obj, list):
@@ -1607,8 +1611,7 @@ def _parse_vision_players_text(text: str) -> list[str]:
             x = re.sub(r"^\s*\d+[.)-]?\s*", "", str(x)).strip()
             if x:
                 names.append(x)
-        if names:
-            return names[:30]
+        return names[:30]
     except Exception:
         pass
     # Fallback: split natural text/list.
@@ -1635,13 +1638,24 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
     image = str((payload or {}).get("image") or "").strip()
     if not image.startswith("data:image/") or ";base64," not in image:
         return JSONResponse(content={"ok": False, "error": "Expected image data URL"}, status_code=400)
-    b64 = image.split(",", 1)[1]
+    header, b64 = image.split(",", 1)
     if len(b64) > 8_000_000:
         return JSONResponse(content={"ok": False, "error": "Image is too large"}, status_code=413)
     try:
-        base64.b64decode(b64, validate=True)
+        image_bytes = base64.b64decode(b64, validate=True)
     except Exception:
         return JSONResponse(content={"ok": False, "error": "Invalid image base64"}, status_code=400)
+    mime = header.split(";", 1)[0].replace("data:", "")
+    ext = "jpg" if mime in ("image/jpeg", "image/jpg") else "png" if mime == "image/png" else "webp" if mime == "image/webp" else "bin"
+    if ext == "bin":
+        return JSONResponse(content={"ok": False, "error": "Unsupported image type"}, status_code=400)
+    upload_dir = "/home/openclaw/FormAlert/vision_uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    image_name = f"{uuid.uuid4().hex}.{ext}"
+    image_path = os.path.join(upload_dir, image_name)
+    with open(image_path, "wb") as f:
+        f.write(image_bytes)
+    image_url = f"{BASE_URL}/vision_uploads/{image_name}"
 
     roster = []
     try:
@@ -1666,7 +1680,7 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
             "role": "user",
             "content": [
                 {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": image},
+                {"type": "input_image", "image_url": image_url},
             ],
         }],
         "stream": False,
@@ -1677,11 +1691,26 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
             r = await client.post(api_url, headers=headers, json=payload_api)
             r.raise_for_status()
             data = r.json()
+    except httpx.HTTPStatusError as e:
+        detail = (e.response.text or "")[:500] if e.response is not None else ""
+        try:
+            os.remove(image_path)
+        except Exception:
+            pass
+        return JSONResponse(content={"ok": False, "error": f"Vision API HTTP {e.response.status_code if e.response is not None else ''}: {detail}"}, status_code=502)
     except Exception as e:
+        try:
+            os.remove(image_path)
+        except Exception:
+            pass
         return JSONResponse(content={"ok": False, "error": f"Vision API error: {type(e).__name__}"}, status_code=502)
 
     out_text = _extract_response_text(data)
     players = _parse_vision_players_text(out_text)
+    try:
+        os.remove(image_path)
+    except Exception:
+        pass
     return JSONResponse(content={"ok": True, "players": players, "raw": out_text[:1000]})
 
 
