@@ -897,6 +897,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
             padding: 8px 12px;
             cursor: pointer;
         }}
+        .bulk-lineup-controls button, .vision-lineup-btn {{
+            width: 128px;
+            min-width: 128px;
+            text-align: center;
+        }}
         .vision-lineup-row {{
             display: flex;
             gap: 8px;
@@ -1017,11 +1022,13 @@ def render_team_view(team_id: str) -> HTMLResponse:
                     <option value="start">🔴 Start</option>
                     <option value="squad">⚫️ List Squad</option>
                 </select>
-                <textarea id="bulk-lineup-text" placeholder="Paste players: Mignolet, Arnold, Matip... or one player per line"></textarea>
+                <textarea id="bulk-lineup-text" placeholder="Paste players"></textarea>
                 <button type="button" onclick="applyBulkLineup()">Apply</button>
             </div>
             <div class="vision-lineup-row">
-                <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image">
+                <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
+                <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Choose image</button>
+                <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
                 <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">👁️ Vision Apply</button>
                 <span id="vision-lineup-status" class="vision-lineup-status"></span>
             </div>
@@ -1555,6 +1562,16 @@ def render_team_view(team_id: str) -> HTMLResponse:
             const mode = modeEl ? modeEl.value : 'possible';
             applyBulkLineupFromTokens(tokens, mode);
         }}
+
+        document.addEventListener('DOMContentLoaded', function() {{
+            const fileEl = document.getElementById('vision-lineup-image');
+            const fileNameEl = document.getElementById('vision-file-name');
+            if (fileEl && fileNameEl) {{
+                fileEl.addEventListener('change', function() {{
+                    fileNameEl.textContent = (fileEl.files && fileEl.files[0]) ? fileEl.files[0].name : 'File not selected';
+                }});
+            }}
+        }});
 
         async function applyVisionLineup() {{
             const fileEl = document.getElementById('vision-lineup-image');
@@ -2099,55 +2116,18 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }}
         }}
 
-        // === Авто-обновление: при открытии страницы дергаем свежие данные ===
+        // === Background live-data sync: no visible popup/bar ===
         (function() {{
             var teamId = window.location.pathname.split('/').pop();
-            var refreshBar = document.createElement('div');
-            refreshBar.id = 'auto-refresh-bar';
-            refreshBar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:28px;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;font-family:system-ui;background:#dc3545;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:all 0.5s ease;';
-            refreshBar.innerHTML = '<span class="sync-spinner" style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;margin-right:8px;"></span>Syncing live data...';
-            // Add spin animation
-            var style = document.createElement('style');
-            style.textContent = '@keyframes spin {{ to {{ transform: rotate(360deg); }} }}';
-            document.head.appendChild(style);
-            document.body.appendChild(refreshBar);
-
             fetch('/lineup_ai/api/fetch/' + teamId)
                 .then(function(r) {{ return r.json(); }})
                 .then(function(data) {{
-                    if (data.error) {{
-                        refreshBar.innerHTML = '\\u26A0 Sync failed: ' + data.error;
-                        refreshBar.style.background = '#dc3545';
-                        setTimeout(function() {{
-                            refreshBar.style.opacity = '0';
-                            refreshBar.style.transform = 'translateY(-100%)';
-                            setTimeout(function() {{ refreshBar.remove(); }}, 500);
-                        }}, 2000);
-                        return;
-                    }}
-                    if (data.changed) {{
-                        refreshBar.innerHTML = '&#x2705; Data updated — reloading...';
-                        refreshBar.style.background = '#17843f';
-                        setTimeout(function() {{ window.location.reload(); }}, 400);
-                    }} else {{
-                        refreshBar.innerHTML = '&#x2705; Data is up to date';
-                        refreshBar.style.background = '#28a745';
-                        setTimeout(function() {{
-                            refreshBar.style.opacity = '0';
-                            refreshBar.style.transform = 'translateY(-100%)';
-                            setTimeout(function() {{ refreshBar.remove(); }}, 500);
-                        }}, 800);
+                    if (data && data.changed) {{
+                        window.location.reload();
                     }}
                 }})
                 .catch(function(err) {{
-                    refreshBar.innerHTML = '&#x26A0; Sync failed';
-                    refreshBar.style.background = '#dc3545';
-                    setTimeout(function() {{
-                        refreshBar.style.opacity = '0';
-                        refreshBar.style.transform = 'translateY(-100%)';
-                        setTimeout(function() {{ refreshBar.remove(); }}, 500);
-                    }}, 1500);
-                    console.log('Auto-refresh failed:', err);
+                    console.log('Background live-data sync failed:', err);
                 }});
         }})();
 
