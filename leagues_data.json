@@ -498,5 +498,159 @@
         "slug": "liverpool"
       }
     ]
+  },
+  "USA": {
+    "MLS": [
+      {
+        "id": "K2dlua5N",
+        "name": "Vancouver Whitecaps",
+        "slug": "vancouver-whitecaps"
+      },
+      {
+        "id": "x05z14ue",
+        "name": "San Jose Earthquakes",
+        "slug": "san-jose-earthquakes"
+      },
+      {
+        "id": "W0ealpQl",
+        "name": "Real Salt Lake",
+        "slug": "real-salt-lake"
+      },
+      {
+        "id": "4GtbI4Q1",
+        "name": "FC Dallas",
+        "slug": "fc-dallas"
+      },
+      {
+        "id": "txUJt9AR",
+        "name": "Los Angeles FC",
+        "slug": "los-angeles-fc"
+      },
+      {
+        "id": "6P5S63Ah",
+        "name": "Seattle Sounders",
+        "slug": "seattle-sounders"
+      },
+      {
+        "id": "2i4sdl32",
+        "name": "Houston Dynamo",
+        "slug": "houston-dynamo"
+      },
+      {
+        "id": "zXFxsw2a",
+        "name": "Minnesota United",
+        "slug": "minnesota-united"
+      },
+      {
+        "id": "U3ebh62R",
+        "name": "Los Angeles Galaxy",
+        "slug": "los-angeles-galaxy"
+      },
+      {
+        "id": "EuGkBf33",
+        "name": "San Diego FC",
+        "slug": "san-diego-fc"
+      },
+      {
+        "id": "jmBZNRn8",
+        "name": "Colorado Rapids",
+        "slug": "colorado-rapids"
+      },
+      {
+        "id": "4r4sKQud",
+        "name": "St. Louis City",
+        "slug": "st-louis-city"
+      },
+      {
+        "id": "bm8usLzB",
+        "name": "Portland Timbers",
+        "slug": "portland-timbers"
+      },
+      {
+        "id": "IeT6JBE3",
+        "name": "Austin FC",
+        "slug": "austin-fc"
+      },
+      {
+        "id": "CURGfJWt",
+        "name": "Sporting Kansas City",
+        "slug": "sporting-kansas-city"
+      },
+      {
+        "id": "84yIDQMe",
+        "name": "Nashville SC",
+        "slug": "nashville-sc"
+      },
+      {
+        "id": "0AheRyBg",
+        "name": "Inter Miami",
+        "slug": "inter-miami"
+      },
+      {
+        "id": "UwAwNo2E",
+        "name": "Chicago Fire",
+        "slug": "chicago-fire"
+      },
+      {
+        "id": "tr3oe8I8",
+        "name": "New England Revolution",
+        "slug": "new-england-revolution"
+      },
+      {
+        "id": "zV5YmQAr",
+        "name": "New York Red Bulls",
+        "slug": "new-york-red-bulls"
+      },
+      {
+        "id": "QJF7WTFB",
+        "name": "Charlotte",
+        "slug": "charlotte-fc"
+      },
+      {
+        "id": "8btog05R",
+        "name": "FC Cincinnati",
+        "slug": "fc-cincinnati"
+      },
+      {
+        "id": "vZraQYnO",
+        "name": "New York City",
+        "slug": "new-york-city"
+      },
+      {
+        "id": "O6hjfSXE",
+        "name": "DC United",
+        "slug": "dc-united"
+      },
+      {
+        "id": "pQ8rarA7",
+        "name": "Columbus Crew",
+        "slug": "columbus-crew"
+      },
+      {
+        "id": "j9cigLCr",
+        "name": "CF Montreal",
+        "slug": "cf-montreal"
+      },
+      {
+        "id": "rsHkUNCo",
+        "name": "Orlando City",
+        "slug": "orlando-city"
+      },
+      {
+        "id": "zsdfgnmL",
+        "name": "Toronto FC",
+        "slug": "toronto-fc"
+      },
+      {
+        "id": "EPngUvhk",
+        "name": "Atlanta Utd",
+        "slug": "atlanta-united"
+      },
+      {
+        "id": "Szrwix67",
+        "name": "Philadelphia Union",
+        "slug": "philadelphia-union"
+      }
+    ]
   }
 }
