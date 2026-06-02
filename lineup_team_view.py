@@ -1008,15 +1008,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Returning Players</div>
         </div>
 
-        <div class="actions-bar">
-            <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
-            <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text or 'Cache status unknown'}</span>
-            <span id="save-message"></span>
-        </div>
         <div id="snapshot-mode-banner" class="snapshot-mode-banner">Snapshot mode: showing saved independent squad. <button type="button" onclick="returnToLiveTeam()" style="margin-left:10px;border:0;border-radius:5px;background:#667eea;color:white;font-weight:700;padding:4px 8px;cursor:pointer;">Back to current team</button></div>
 
         <div class="bulk-lineup-panel">
-            <div class="bulk-lineup-title">Bulk lineup input</div>
             <div class="bulk-lineup-controls">
                 <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
                     <option value="possible">🔵 Possible</option>
@@ -1175,6 +1169,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
         <div class="main-layout">
             <aside class="my-squads-sidebar" id="my-squads-sidebar">
+                <div class="actions-bar" style="margin:0 0 10px 0;align-items:flex-start;flex-direction:column;gap:6px;">
+                    <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
+                    <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text or 'Cache status unknown'}</span>
+                    <span id="save-message"></span>
+                </div>
                 <div class="my-squads-title">My Squads</div>
                 <div class="my-squads-help">Saved snapshots are independent from future team data updates.</div>
                 <div id="my-squads-list"><div class="snapshot-empty-list">No saved squads yet.</div></div>
