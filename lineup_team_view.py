@@ -443,7 +443,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 <td style="text-align:center;padding:4px 2px;">{p.get("number", "–")}</td>
                 <td style="text-align:center;">{get_flag_html(p.get("national", "–"))}</td>
                 <td class="player-name" style="white-space:nowrap;"><strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}{' ⚽️' if unique_goal_leader and player_display_name == unique_goal_leader else ''}{' 👟' if unique_assist_leader and player_display_name == unique_assist_leader else ''}</strong></td>
-                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option></select></div></td>
+                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
                 <td style="text-align:center;padding:4px 2px;">{p.get("age", "–")}</td>
                 <td style="text-align:center;">{p.get("market_value", "–")}</td>
                 <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;text-align:center;padding:4px 2px;">{p.get("position", "–")}</td>
@@ -981,7 +981,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
 
 
-<script src="/icons/status-icons.js?v=2"></script>
+<script src="/icons/status-icons.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>

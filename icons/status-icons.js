@@ -10,7 +10,9 @@ var STATUS_EMOJI = {
   "Return (Injury)": "\uD83D\uDD19",
   "Return (Susp)": "\uD83D\uDD19",
   "Return (Called up)": "\uD83D\uDD19",
-  "Return (Other)": "\uD83D\uDD19"
+  "Return (Other)": "\uD83D\uDD19",
+  "New player": "\uD83C\uDD95",
+  "Left the team": "\uD83D\uDEAA"
 };
 
 function updateStatusIcon(s) {
@@ -28,8 +30,8 @@ function updateStatusIcon(s) {
   player.style.color = "";
   player.style.fontWeight = "";
   player.style.textDecoration = "";
-  var x = ["Injury","Red card","Yellow red card","Not playing (Called up)","Not playing (Other)"];
-  var g = ["Return (Injury)","Return (Susp)","Return (Called up)","Return (Other)"];
+  var x = ["Injury","Red card","Yellow red card","Not playing (Called up)","Not playing (Other)","Left the team"];
+  var g = ["Return (Injury)","Return (Susp)","Return (Called up)","Return (Other)","New player"];
   if (x.indexOf(val) !== -1) player.classList.add("status-red");
   else if (g.indexOf(val) !== -1) player.classList.add("status-green");
   else if (val === "Doubt") {
