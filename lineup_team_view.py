@@ -922,6 +922,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
         }}
         .bulk-ambiguous-row label {{ min-width: 150px; font-weight: 700; color: #7a5a00; }}
         .bulk-ambiguous-row select {{ flex: 1; padding: 5px; border-radius: 6px; border: 1px solid #d5c16d; }}
+        .squad-checkbox:checked {{ background: #000 !important; border: none !important; }}
+        .xi-checkbox:checked {{ background: #667eea !important; border: 2px solid #667eea !important; }}
+        .starting-checkbox:checked {{ background: #dc3545 !important; border: 2px solid #dc3545 !important; }}
         .last3-tooltip {{
             position: relative;
         }}
@@ -1375,7 +1378,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
         function bulkParseInput(text) {{
             return String(text || '')
-                .split(/[,;\n\r]+|\s+-\s+/g)
+                .split(/[,;\\n\\r]+|\s+-\s+/g)
                 .map(x => x.trim())
                 .filter(Boolean);
         }}
@@ -1437,8 +1440,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         function bulkSetCheckbox(cb, checked, color, borderColor) {{
             if (!cb) return;
             cb.checked = !!checked;
-            cb.style.background = cb.checked ? color : '#e0e0e0';
-            cb.style.border = cb.checked ? '2px solid ' + borderColor : '2px solid ' + borderColor;
+            cb.dispatchEvent(new Event('change', {{ bubbles: true }}));
         }}
 
         function bulkMarkRow(row, mode) {{
@@ -1454,8 +1456,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
         }}
 
         function bulkRefreshStats() {{
-            updateXICounter(document.querySelector('.xi-checkbox'));
-            updateStartingCounter(document.querySelector('.starting-checkbox'));
+            updateXICounter(null);
+            updateStartingCounter(null);
             recalcPossibleXIStats();
             recalcSelectedStartingStats();
             recalcValueComparison();
@@ -1464,11 +1466,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
         function bulkRenderReport(total, found, notFound, ambiguous) {{
             const el = document.getElementById('bulk-lineup-report');
             if (!el) return;
-            let html = 'Total: ' + total + ' players\n' +
-                       '<span class="found">Found: ' + found + ' players</span>\n' +
+            let html = 'Total: ' + total + ' players\\n' +
+                       '<span class="found">Found: ' + found + ' players</span>\\n' +
                        '<span class="not-found">Not found: ' + notFound.length + ' player' + (notFound.length === 1 ? '' : 's') + '</span>';
-            if (notFound.length) html += '\n' + notFound.map(x => x.raw || x).join('\n');
-            if (ambiguous && ambiguous.length) html += '\nAmbiguous: ' + ambiguous.length + ' — choose below';
+            if (notFound.length) html += '\\n' + notFound.map(x => x.raw || x).join('\\n');
+            if (ambiguous && ambiguous.length) html += '\\nAmbiguous: ' + ambiguous.length + ' — choose below';
             el.innerHTML = html;
         }}
 
@@ -1499,7 +1501,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             const box = document.getElementById('bulk-lineup-ambiguous');
             if (box) {{ box.style.display = 'none'; box.innerHTML = ''; }}
             const rep = document.getElementById('bulk-lineup-report');
-            if (rep) rep.innerHTML += '\n<span class="found">Manual choices applied: ' + applied + '</span>';
+            if (rep) rep.innerHTML += '\\n<span class="found">Manual choices applied: ' + applied + '</span>';
         }}
 
         function applyBulkLineup() {{
@@ -1618,17 +1620,22 @@ def render_team_view(team_id: str) -> HTMLResponse:
         
         // Possible XI counter - blue fill, max 11
         function updateXICounter(checkbox) {{
+            const xiCheckboxes = document.querySelectorAll('.xi-checkbox');
+            let selectedCount = 0;
+
+            // Called without a concrete checkbox during initialization, snapshot restore,
+            // and bulk lineup apply. Do NOT recurse here: just repaint all circles.
             if (!checkbox) {{
-                const checkboxes = document.querySelectorAll('.xi-checkbox');
-                checkboxes.forEach(cb => {{
-                    if (cb.checked) cb.style.background = '#667eea';
+                xiCheckboxes.forEach(cb => {{
+                    if (cb.checked) selectedCount++;
+                    cb.style.background = cb.checked ? '#667eea' : '#e0e0e0';
+                    cb.style.border = '2px solid #667eea';
                 }});
-                updateXICounter(null);
+                const counter = document.getElementById('xi-counter');
+                if (counter) counter.textContent = selectedCount;
                 return;
             }}
             
-            const xiCheckboxes = document.querySelectorAll('.xi-checkbox');
-            let selectedCount = 0;
             
             xiCheckboxes.forEach(cb => {{
                 if (cb.checked) {{
@@ -1660,17 +1667,33 @@ def render_team_view(team_id: str) -> HTMLResponse:
         
         // Starting XI counter - red fill, max 11
         function updateStartingCounter(checkbox) {{
+            const startingCheckboxes = document.querySelectorAll('.starting-checkbox');
+            let selectedCount = 0;
+
+            // Called without a concrete checkbox during initialization, snapshot restore,
+            // and bulk lineup apply. Do NOT recurse here: just repaint all circles.
             if (!checkbox) {{
-                const checkboxes = document.querySelectorAll('.starting-checkbox');
-                checkboxes.forEach(cb => {{
-                    if (cb.checked) cb.style.background = '#dc3545';
+                startingCheckboxes.forEach(cb => {{
+                    if (cb.checked) selectedCount++;
+                    cb.style.background = cb.checked ? '#dc3545' : '#e0e0e0';
+                    cb.style.border = '2px solid #dc3545';
                 }});
-                updateStartingCounter(null);
+                const counter = document.getElementById('starting-counter');
+                if (counter) counter.textContent = selectedCount;
+
+                const allRows = document.querySelectorAll('tbody tr[data-last]');
+                allRows.forEach(row => row.classList.remove('missing-from-last'));
+                if (selectedCount === 11) {{
+                    allRows.forEach(row => {{
+                        if (row.getAttribute('data-last') === 'START') {{
+                            const cb = row.querySelector('.starting-checkbox');
+                            if (cb && !cb.checked) row.classList.add('missing-from-last');
+                        }}
+                    }});
+                }}
                 return;
             }}
             
-            const startingCheckboxes = document.querySelectorAll('.starting-checkbox');
-            let selectedCount = 0;
             
             startingCheckboxes.forEach(cb => {{
                 if (cb.checked) {{
