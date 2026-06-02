@@ -313,8 +313,13 @@ def apply_last3(players, lineups_data):
         p['last3_captain'] = p['last3_captain'][:3]
     return players
 
-async def get_last3_matches_by_slug(team_id, team_name, team_slug):
-    """Fetch last 3 matches using official Soccerway slug from standings/overall."""
+async def get_last3_matches_by_slug(team_id, team_name, team_slug, limit=6):
+    """Fetch recent match candidates using official Soccerway slug from standings/overall.
+
+    We fetch more than 3 candidates because Soccerway sometimes lists a match
+    without lineup data (postponed/fixture/partial page). Later we keep the
+    first 3 candidates that actually have parsed starting lineups.
+    """
     from soccerway_parser import Match
     from playwright.async_api import async_playwright
     comp_map = {
@@ -377,7 +382,7 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug):
             if key in lt:
                 tournament=val; break
         matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0))
-        if len(matches) >= 3:
+        if len(matches) >= limit:
             break
     for m in matches:
         print(f'    {m.date} {m.tournament}: {m.url}')
@@ -472,11 +477,15 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
         return
 
     print('[4/5] Lineups + scores...')
-    lineups_data = await fetch_and_parse_lineups(matches, known_surnames)
-    start_counts = [len(ld.get('starters', [])) for ld in lineups_data[:3]]
-    if len(lineups_data) < 3 or any(c == 0 for c in start_counts):
-        print(f'ABORT: incomplete lineups start_counts={start_counts}; keeping enrichment cache without bad Last 3')
+    lineups_data_all = await fetch_and_parse_lineups(matches, known_surnames)
+    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if len(ld.get('starters', [])) > 0]
+    if len(valid_pairs) < 3:
+        print(f'ABORT: only {len(valid_pairs)} playable lineups from {len(matches)} candidates; keeping enrichment cache without bad Last 3')
         return
+    matches = [m for m, _ in valid_pairs[:3]]
+    lineups_data = [ld for _, ld in valid_pairs[:3]]
+    start_counts = [len(ld.get('starters', [])) for ld in lineups_data]
+    print(f'  playable START candidates: {start_counts}')
 
     print('[5/5] Applying...')
     players = apply_last3(players, lineups_data)
@@ -516,11 +525,15 @@ async def run_last3_only(team_id, team_name, team_slug=''):
         return
 
     print('[2/3] Lineups + scores...')
-    lineups_data = await fetch_and_parse_lineups(matches, known_surnames)
-    start_counts = [len(ld.get('starters', [])) for ld in lineups_data[:3]]
-    if len(lineups_data) < 3 or any(c == 0 for c in start_counts):
-        print(f'ABORT: incomplete lineups start_counts={start_counts}; keeping existing cache so Last 3 does not disappear')
+    lineups_data_all = await fetch_and_parse_lineups(matches, known_surnames)
+    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if len(ld.get('starters', [])) > 0]
+    if len(valid_pairs) < 3:
+        print(f'ABORT: only {len(valid_pairs)} playable lineups from {len(matches)} candidates; keeping existing cache so Last 3 does not disappear')
         return
+    matches = [m for m, _ in valid_pairs[:3]]
+    lineups_data = [ld for _, ld in valid_pairs[:3]]
+    start_counts = [len(ld.get('starters', [])) for ld in lineups_data]
+    print(f'  playable START candidates: {start_counts}')
 
     print('[3/3] Applying...')
     players = apply_last3(players, lineups_data)
