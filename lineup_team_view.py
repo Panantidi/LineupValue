@@ -995,6 +995,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Missing Players</div>
             <div class="tab">Doubtful Players</div>
             <div class="tab">Returning Players</div>
+            <div class="tab">Transfer In</div>
+            <div class="tab">Transfer Out</div>
         </div>
         <a href="/lineup_ai/select" style="margin-left:auto;">← Back to teams</a>
         <div style="position:relative;display:inline-block;vertical-align:middle;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><button onclick="exportScreenshot()" id="btn-export" style="background:none;border:none;cursor:pointer;font-size:24px;padding:4px 8px;">&#x1F4F8;</button><span class="tooltip-delay" style="visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:12px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;transition:opacity 0.3s ease;">Save Screenshot</span></div>
@@ -1006,6 +1008,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div class="tab">Missing Players</div>
             <div class="tab">Doubtful Players</div>
             <div class="tab">Returning Players</div>
+            <div class="tab">Transfer In</div>
+            <div class="tab">Transfer Out</div>
         </div>
 
         <div id="snapshot-mode-banner" class="snapshot-mode-banner">Snapshot mode: showing saved independent squad. <button type="button" onclick="returnToLiveTeam()" style="margin-left:10px;border:0;border-radius:5px;background:#667eea;color:white;font-weight:700;padding:4px 8px;cursor:pointer;">Back to current team</button></div>
@@ -1065,6 +1069,26 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
+        </div>
+
+
+
+        <!-- Transfer In Stats (hidden by default) -->
+        <div id="info-bar-transfer-in" style="display:none;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
+        </div>
+
+        <!-- Transfer Out Stats (hidden by default) -->
+        <div id="info-bar-transfer-out" style="display:none;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
 
         <!-- Comparison Tables: P-XI left, S-XI right — full width (Squad mode) -->
@@ -1224,6 +1248,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
         const MISSING_STATUSES = ['Injury', 'Red card', 'Yellow red card', 'Not playing (Called up)', 'Not playing (Other)'];
         const DOUBTFUL_STATUSES = ['Doubt'];
         const RETURNING_STATUSES = ['Return (Injury)', 'Return (Susp)', 'Return (Called up)', 'Return (Other)'];
+        const TRANSFER_IN_STATUSES = ['New player'];
+        const TRANSFER_OUT_STATUSES = ['Left the team'];
 
         const TEAM_ID = "{team_id}";
 
@@ -1612,6 +1638,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
             const missingBar = document.getElementById('info-bar-missing');
             const doubtfulBar = document.getElementById('info-bar-doubtful');
             const returningBar = document.getElementById('info-bar-returning');
+            const transferInBar = document.getElementById('info-bar-transfer-in');
+            const transferOutBar = document.getElementById('info-bar-transfer-out');
             const compTable = document.getElementById('comparison-table');
 
             // Hide all bars
@@ -1619,6 +1647,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
             missingBar.style.display = 'none';
             doubtfulBar.style.display = 'none';
             returningBar.style.display = 'none';
+            transferInBar.style.display = 'none';
+            transferOutBar.style.display = 'none';
             compTable.style.display = 'none';
 
             // Show relevant bar
@@ -1634,6 +1664,12 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }} else if (tabName === 'Returning Players') {{
                 returningBar.style.display = 'flex';
                 calcGroupStats('returning', RETURNING_STATUSES);
+            }} else if (tabName === 'Transfer In') {{
+                transferInBar.style.display = 'flex';
+                calcGroupStats('transfer-in', TRANSFER_IN_STATUSES);
+            }} else if (tabName === 'Transfer Out') {{
+                transferOutBar.style.display = 'flex';
+                calcGroupStats('transfer-out', TRANSFER_OUT_STATUSES);
             }}
 
             // Filter table rows
@@ -1650,6 +1686,10 @@ def render_team_view(team_id: str) -> HTMLResponse:
                     show = DOUBTFUL_STATUSES.includes(status);
                 }} else if (tabName === 'Returning Players') {{
                     show = RETURNING_STATUSES.includes(status);
+                }} else if (tabName === 'Transfer In') {{
+                    show = TRANSFER_IN_STATUSES.includes(status);
+                }} else if (tabName === 'Transfer Out') {{
+                    show = TRANSFER_OUT_STATUSES.includes(status);
                 }}
                 row.style.display = show ? '' : 'none';
             }});
