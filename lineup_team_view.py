@@ -439,7 +439,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         star_impact = " ⭐️" if 7 <= player_impact <= 8.99 and player_minutes >= 900 else ""
         top_impact = " 🔝" if player_impact >= 9 and player_minutes >= 900 else ""
         player_row = f"""
-            <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}">
+            <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}" data-player-number="{p.get("number", "–")}">
                 <td style="text-align:center;padding:4px 2px;">{p.get("number", "–")}</td>
                 <td style="text-align:center;">{get_flag_html(p.get("national", "–"))}</td>
                 <td class="player-name" style="white-space:nowrap;"><strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}{' ⚽️' if unique_goal_leader and player_display_name == unique_goal_leader else ''}{' 👟' if unique_assist_leader and player_display_name == unique_assist_leader else ''}</strong></td>
@@ -850,6 +850,78 @@ def render_team_view(team_id: str) -> HTMLResponse:
             font-weight: 700;
         }}
         body.snapshot-mode .snapshot-mode-banner {{ display:block; }}
+        .bulk-lineup-panel {{
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 12px;
+            margin: 0 0 12px 0;
+            border-left: 4px solid #667eea;
+        }}
+        .bulk-lineup-title {{
+            font-size: 14px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 8px;
+        }}
+        .bulk-lineup-controls {{
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }}
+        .bulk-lineup-controls select {{
+            border: 1px solid #d5d9e8;
+            border-radius: 8px;
+            padding: 7px 8px;
+            font-weight: 700;
+            color: #333;
+            background: #f8f9fc;
+        }}
+        .bulk-lineup-controls textarea {{
+            flex: 1;
+            min-height: 58px;
+            border: 1px solid #d5d9e8;
+            border-radius: 8px;
+            padding: 8px 10px;
+            resize: vertical;
+            font-size: 12px;
+            line-height: 1.35;
+            font-family: inherit;
+        }}
+        .bulk-lineup-controls button, .bulk-ambiguous button {{
+            border: 0;
+            border-radius: 8px;
+            background: #667eea;
+            color: #fff;
+            font-weight: 800;
+            padding: 8px 12px;
+            cursor: pointer;
+        }}
+        .bulk-lineup-report {{
+            margin-top: 8px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #333;
+            white-space: pre-wrap;
+        }}
+        .bulk-lineup-report .not-found {{ color: #dc3545; font-weight: 700; }}
+        .bulk-lineup-report .found {{ color: #17843f; font-weight: 700; }}
+        .bulk-ambiguous {{
+            margin-top: 8px;
+            padding: 8px;
+            border: 1px solid #ffe08a;
+            background: #fff8dd;
+            border-radius: 8px;
+            font-size: 12px;
+        }}
+        .bulk-ambiguous-row {{
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 5px 0;
+        }}
+        .bulk-ambiguous-row label {{ min-width: 150px; font-weight: 700; color: #7a5a00; }}
+        .bulk-ambiguous-row select {{ flex: 1; padding: 5px; border-radius: 6px; border: 1px solid #d5c16d; }}
         .last3-tooltip {{
             position: relative;
         }}
@@ -917,6 +989,21 @@ def render_team_view(team_id: str) -> HTMLResponse:
             <span id="save-message"></span>
         </div>
         <div id="snapshot-mode-banner" class="snapshot-mode-banner">Snapshot mode: showing saved independent squad. <button type="button" onclick="returnToLiveTeam()" style="margin-left:10px;border:0;border-radius:5px;background:#667eea;color:white;font-weight:700;padding:4px 8px;cursor:pointer;">Back to current team</button></div>
+
+        <div class="bulk-lineup-panel">
+            <div class="bulk-lineup-title">Bulk lineup input</div>
+            <div class="bulk-lineup-controls">
+                <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
+                    <option value="possible">🔵 Possible</option>
+                    <option value="start">🔴 Start</option>
+                    <option value="squad">⚫️ List Squad</option>
+                </select>
+                <textarea id="bulk-lineup-text" placeholder="Paste players: Mignolet, Arnold, Matip... or one player per line"></textarea>
+                <button type="button" onclick="applyBulkLineup()">Apply</button>
+            </div>
+            <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
+            <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
+        </div>
 
         <!-- Info Bar: Coach, Stadium, Stats — full width (Squad mode) -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;">
@@ -1267,6 +1354,178 @@ def render_team_view(team_id: str) -> HTMLResponse:
 
         async function loadSavedState() {{
             await loadSnapshotsList();
+        }}
+
+        function bulkNormalizeText(s) {{
+            return String(s || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[’'`]/g, '')
+                .replace(/[^a-z0-9\s-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }}
+
+        function bulkNameParts(s) {{
+            const n = bulkNormalizeText(s);
+            if (!n) return [];
+            const parts = n.split(/[\s-]+/).filter(Boolean);
+            return Array.from(new Set(parts));
+        }}
+
+        function bulkParseInput(text) {{
+            return String(text || '')
+                .split(/[,;\n\r]+|\s+-\s+/g)
+                .map(x => x.trim())
+                .filter(Boolean);
+        }}
+
+        function bulkParseToken(token) {{
+            const nums = String(token || '').match(/\b\d+\b/g) || [];
+            const number = nums.length ? nums[nums.length - 1] : '';
+            const name = String(token || '').replace(/\b\d+\b/g, ' ').replace(/\s+/g, ' ').trim();
+            const norm = bulkNormalizeText(name || token);
+            return {{ raw: token, number: number, name: name, norm: norm, parts: bulkNameParts(name || token) }};
+        }}
+
+        function bulkRowsIndex() {{
+            return Array.from(document.querySelectorAll('.main-table tbody tr[data-player-name]')).map(row => {{
+                const rawName = row.getAttribute('data-player-name') || '';
+                const cells = row.querySelectorAll('td');
+                const displayName = cells[2] ? cells[2].textContent.replace(/[🔥⚡⭐🔝⚽👟️]/g, ' ') : rawName;
+                const number = String(row.getAttribute('data-player-number') || (cells[0] ? cells[0].textContent : '') || '').trim();
+                const norm = bulkNormalizeText(rawName + ' ' + displayName);
+                const parts = bulkNameParts(rawName + ' ' + displayName);
+                const rawParts = bulkNameParts(rawName);
+                const surname = rawParts.length ? rawParts[0] : (parts[0] || '');
+                return {{ row: row, rawName: rawName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, surname: surname }};
+            }});
+        }}
+
+        function bulkUnique(rows) {{
+            const seen = new Set();
+            return rows.filter(r => {{ if (seen.has(r.row)) return false; seen.add(r.row); return true; }});
+        }}
+
+        function bulkFindMatches(parsed, rows) {{
+            const hasName = !!parsed.norm;
+            const hasNum = !!parsed.number;
+            const surnameCandidates = hasName ? rows.filter(r =>
+                r.surname === parsed.norm ||
+                r.parts.includes(parsed.norm) ||
+                parsed.parts.some(p => r.surname === p)
+            ) : [];
+            const numberCandidates = hasNum ? rows.filter(r => r.number === parsed.number) : [];
+            const nameNumberCandidates = (hasName && hasNum) ? rows.filter(r => r.number === parsed.number && (r.norm.includes(parsed.norm) || parsed.parts.some(p => r.parts.includes(p)))) : [];
+
+            // Priority: surname+number, surname, number, name+number. More exact matches first.
+            if (hasName && hasNum) {{
+                let exact = rows.filter(r => r.number === parsed.number && (r.surname === parsed.norm || parsed.parts.some(p => r.surname === p)));
+                exact = bulkUnique(exact);
+                if (exact.length) return exact;
+            }}
+            if (surnameCandidates.length) return bulkUnique(surnameCandidates);
+            if (numberCandidates.length) return bulkUnique(numberCandidates);
+            if (nameNumberCandidates.length) return bulkUnique(nameNumberCandidates);
+            if (hasName) {{
+                const full = rows.filter(r => r.norm.includes(parsed.norm) || parsed.parts.every(p => r.parts.includes(p)));
+                return bulkUnique(full);
+            }}
+            return [];
+        }}
+
+        function bulkSetCheckbox(cb, checked, color, borderColor) {{
+            if (!cb) return;
+            cb.checked = !!checked;
+            cb.style.background = cb.checked ? color : '#e0e0e0';
+            cb.style.border = cb.checked ? '2px solid ' + borderColor : '2px solid ' + borderColor;
+        }}
+
+        function bulkMarkRow(row, mode) {{
+            if (!row) return;
+            if (mode === 'possible') {{
+                bulkSetCheckbox(row.querySelector('.xi-checkbox'), true, '#667eea', '#667eea');
+            }} else if (mode === 'start') {{
+                bulkSetCheckbox(row.querySelector('.starting-checkbox'), true, '#dc3545', '#dc3545');
+            }} else if (mode === 'squad') {{
+                const cb = row.querySelector('.squad-checkbox');
+                if (cb) {{ cb.checked = true; cb.style.background = '#000'; cb.style.border = 'none'; }}
+            }}
+        }}
+
+        function bulkRefreshStats() {{
+            updateXICounter(document.querySelector('.xi-checkbox'));
+            updateStartingCounter(document.querySelector('.starting-checkbox'));
+            recalcPossibleXIStats();
+            recalcSelectedStartingStats();
+            recalcValueComparison();
+        }}
+
+        function bulkRenderReport(total, found, notFound, ambiguous) {{
+            const el = document.getElementById('bulk-lineup-report');
+            if (!el) return;
+            let html = 'Total: ' + total + ' players\n' +
+                       '<span class="found">Found: ' + found + ' players</span>\n' +
+                       '<span class="not-found">Not found: ' + notFound.length + ' player' + (notFound.length === 1 ? '' : 's') + '</span>';
+            if (notFound.length) html += '\n' + notFound.map(x => x.raw || x).join('\n');
+            if (ambiguous && ambiguous.length) html += '\nAmbiguous: ' + ambiguous.length + ' — choose below';
+            el.innerHTML = html;
+        }}
+
+        let bulkAmbiguousItems = [];
+        function bulkRenderAmbiguous(items, mode) {{
+            const box = document.getElementById('bulk-lineup-ambiguous');
+            if (!box) return;
+            bulkAmbiguousItems = items || [];
+            if (!items || !items.length) {{ box.style.display = 'none'; box.innerHTML = ''; return; }}
+            box.style.display = 'block';
+            box.innerHTML = '<b>Multiple matches — choose manually:</b>' + items.map((item, idx) =>
+                '<div class="bulk-ambiguous-row"><label>' + item.parsed.raw + '</label><select data-bulk-amb-idx="' + idx + '">' +
+                '<option value="">Skip</option>' + item.matches.map((m, mi) => '<option value="' + mi + '">#' + (m.number || '–') + ' ' + m.rawName + '</option>').join('') +
+                '</select></div>'
+            ).join('') + '<button type="button" onclick="applyBulkAmbiguousChoices()">Apply choices</button>';
+        }}
+
+        function applyBulkAmbiguousChoices() {{
+            const mode = document.getElementById('bulk-lineup-mode') ? document.getElementById('bulk-lineup-mode').value : 'possible';
+            let applied = 0;
+            document.querySelectorAll('[data-bulk-amb-idx]').forEach(sel => {{
+                const idx = parseInt(sel.getAttribute('data-bulk-amb-idx'), 10);
+                const mi = sel.value === '' ? -1 : parseInt(sel.value, 10);
+                const item = bulkAmbiguousItems[idx];
+                if (item && mi >= 0 && item.matches[mi]) {{ bulkMarkRow(item.matches[mi].row, mode); applied++; }}
+            }});
+            bulkRefreshStats();
+            const box = document.getElementById('bulk-lineup-ambiguous');
+            if (box) {{ box.style.display = 'none'; box.innerHTML = ''; }}
+            const rep = document.getElementById('bulk-lineup-report');
+            if (rep) rep.innerHTML += '\n<span class="found">Manual choices applied: ' + applied + '</span>';
+        }}
+
+        function applyBulkLineup() {{
+            const textEl = document.getElementById('bulk-lineup-text');
+            const modeEl = document.getElementById('bulk-lineup-mode');
+            const tokens = bulkParseInput(textEl ? textEl.value : '');
+            const mode = modeEl ? modeEl.value : 'possible';
+            const rows = bulkRowsIndex();
+            let found = 0;
+            const notFound = [];
+            const ambiguous = [];
+            tokens.forEach(token => {{
+                const parsed = bulkParseToken(token);
+                const matches = bulkFindMatches(parsed, rows);
+                if (matches.length === 1) {{
+                    bulkMarkRow(matches[0].row, mode);
+                    found++;
+                }} else if (matches.length > 1) {{
+                    ambiguous.push({{ parsed: parsed, matches: matches }});
+                }} else {{
+                    notFound.push(parsed);
+                }}
+            }});
+            bulkRefreshStats();
+            bulkRenderReport(tokens.length, found, notFound, ambiguous);
+            bulkRenderAmbiguous(ambiguous, mode);
         }}
 
         function switchTab(tabName) {{
