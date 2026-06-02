@@ -888,7 +888,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             line-height: 1.35;
             font-family: inherit;
         }}
-        .bulk-lineup-controls button, .bulk-ambiguous button {{
+        .bulk-lineup-controls button, .bulk-ambiguous button, .vision-lineup-btn {{
             border: 0;
             border-radius: 8px;
             background: #667eea;
@@ -897,6 +897,22 @@ def render_team_view(team_id: str) -> HTMLResponse:
             padding: 8px 12px;
             cursor: pointer;
         }}
+        .vision-lineup-row {{
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #555;
+        }}
+        .vision-lineup-row input[type="file"] {{
+            flex: 1;
+            border: 1px solid #d5d9e8;
+            border-radius: 8px;
+            padding: 6px 8px;
+            background: #f8f9fc;
+        }}
+        .vision-lineup-status {{ font-size: 12px; font-weight: 700; }}
         .bulk-lineup-report {{
             margin-top: 8px;
             font-size: 12px;
@@ -1003,6 +1019,11 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 </select>
                 <textarea id="bulk-lineup-text" placeholder="Paste players: Mignolet, Arnold, Matip... or one player per line"></textarea>
                 <button type="button" onclick="applyBulkLineup()">Apply</button>
+            </div>
+            <div class="vision-lineup-row">
+                <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image">
+                <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">👁️ Vision Apply</button>
+                <span id="vision-lineup-status" class="vision-lineup-status"></span>
             </div>
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
@@ -1504,11 +1525,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             if (rep) rep.innerHTML += '\\n<span class="found">Manual choices applied: ' + applied + '</span>';
         }}
 
-        function applyBulkLineup() {{
-            const textEl = document.getElementById('bulk-lineup-text');
-            const modeEl = document.getElementById('bulk-lineup-mode');
-            const tokens = bulkParseInput(textEl ? textEl.value : '');
-            const mode = modeEl ? modeEl.value : 'possible';
+        function applyBulkLineupFromTokens(tokens, mode) {{
             const rows = bulkRowsIndex();
             let found = 0;
             const notFound = [];
@@ -1528,6 +1545,49 @@ def render_team_view(team_id: str) -> HTMLResponse:
             bulkRefreshStats();
             bulkRenderReport(tokens.length, found, notFound, ambiguous);
             bulkRenderAmbiguous(ambiguous, mode);
+            return {{ total: tokens.length, found: found, notFound: notFound.length, ambiguous: ambiguous.length }};
+        }}
+
+        function applyBulkLineup() {{
+            const textEl = document.getElementById('bulk-lineup-text');
+            const modeEl = document.getElementById('bulk-lineup-mode');
+            const tokens = bulkParseInput(textEl ? textEl.value : '');
+            const mode = modeEl ? modeEl.value : 'possible';
+            applyBulkLineupFromTokens(tokens, mode);
+        }}
+
+        async function applyVisionLineup() {{
+            const fileEl = document.getElementById('vision-lineup-image');
+            const textEl = document.getElementById('bulk-lineup-text');
+            const modeEl = document.getElementById('bulk-lineup-mode');
+            const statusEl = document.getElementById('vision-lineup-status');
+            const file = fileEl && fileEl.files && fileEl.files[0];
+            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Choose image'; }} return; }}
+            if (statusEl) {{ statusEl.style.color = '#667eea'; statusEl.textContent = 'Vision reading...'; }}
+            try {{
+                const imageDataUrl = await new Promise((resolve, reject) => {{
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(new Error('image read failed'));
+                    reader.readAsDataURL(file);
+                }});
+                const res = await fetch('/lineup_ai/vision_lineup/' + encodeURIComponent(TEAM_ID), {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{ image: imageDataUrl, mode: modeEl ? (modeEl.value || 'possible') : 'possible' }})
+                }});
+                const json = await res.json();
+                if (!res.ok || !json.ok) throw new Error(json.error || 'vision failed');
+                const names = Array.isArray(json.players) ? json.players : [];
+                if (textEl) textEl.value = names.join('\\n');
+                const result = applyBulkLineupFromTokens(names, modeEl ? modeEl.value : 'possible');
+                if (statusEl) {{
+                    statusEl.style.color = result.found ? '#17843f' : '#dc3545';
+                    statusEl.textContent = 'Vision: ' + names.length + ' names, marked ' + result.found;
+                }}
+            }} catch (e) {{
+                if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Vision error: ' + e.message; }}
+            }}
         }}
 
         function switchTab(tabName) {{

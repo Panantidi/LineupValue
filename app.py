@@ -10,6 +10,7 @@ import hashlib
 import secrets
 import subprocess
 import uuid
+import base64
 from datetime import datetime, timezone, timedelta
 
 import httpx
@@ -1549,6 +1550,139 @@ async def lineup_delete_snapshot(team_id: str, snapshot_id: int, request: Reques
     if not changed:
         return JSONResponse(content={"ok": False, "error": "snapshot not found"}, status_code=404)
     return JSONResponse(content={"ok": True, "id": snapshot_id})
+
+
+def _extract_response_text(data: dict) -> str:
+    """Extract text from OpenAI-compatible Responses/Chat payloads."""
+    try:
+        output_text = data.get("output_text")
+        if output_text:
+            return str(output_text)
+    except Exception:
+        pass
+    try:
+        output = data.get("output") or []
+        chunks = []
+        for item in output:
+            for c in item.get("content") or []:
+                txt = c.get("text") or c.get("output_text")
+                if txt:
+                    chunks.append(str(txt))
+        if chunks:
+            return "\n".join(chunks)
+    except Exception:
+        pass
+    try:
+        choices = data.get("choices") or []
+        if choices:
+            msg = choices[0].get("message") or {}
+            content = msg.get("content")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                return "\n".join(str(x.get("text") or "") for x in content if isinstance(x, dict))
+    except Exception:
+        pass
+    return ""
+
+
+def _parse_vision_players_text(text: str) -> list[str]:
+    raw = (text or "").strip()
+    if not raw:
+        return []
+    # Prefer JSON: {"players": [..]} or [..]
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.IGNORECASE | re.MULTILINE).strip()
+    try:
+        obj = json.loads(cleaned)
+        if isinstance(obj, dict):
+            arr = obj.get("players") or obj.get("names") or []
+        elif isinstance(obj, list):
+            arr = obj
+        else:
+            arr = []
+        names = []
+        for x in arr:
+            if isinstance(x, dict):
+                x = x.get("name") or x.get("player") or ""
+            x = re.sub(r"^\s*\d+[.)-]?\s*", "", str(x)).strip()
+            if x:
+                names.append(x)
+        if names:
+            return names[:30]
+    except Exception:
+        pass
+    # Fallback: split natural text/list.
+    raw = re.sub(r"(?i)^players?\s*:\s*", "", raw)
+    parts = re.split(r"[,;\n\r]+", raw)
+    out = []
+    for p in parts:
+        p = re.sub(r"^\s*[-*•\d.)]+\s*", "", p).strip()
+        p = re.sub(r"\s+", " ", p)
+        if p and len(p) <= 80:
+            out.append(p)
+    return out[:30]
+
+
+@app.post("/lineup_ai/vision_lineup/{team_id}")
+async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factory=dict)):
+    api_url = os.environ.get("VISION_API_URL") or os.environ.get("LLM_API_URL")
+    api_key = os.environ.get("VISION_API_KEY") or os.environ.get("LLM_API_KEY")
+    model = os.environ.get("VISION_MODEL") or os.environ.get("LLM_MODEL") or os.environ.get("GATE_MODEL")
+    timeout_s = int(os.environ.get("VISION_TIMEOUT_SECONDS", os.environ.get("LLM_TIMEOUT_SECONDS", "45")))
+    if not api_url or not api_key or not model:
+        return JSONResponse(content={"ok": False, "error": "Vision API is not configured"}, status_code=503)
+
+    image = str((payload or {}).get("image") or "").strip()
+    if not image.startswith("data:image/") or ";base64," not in image:
+        return JSONResponse(content={"ok": False, "error": "Expected image data URL"}, status_code=400)
+    b64 = image.split(",", 1)[1]
+    if len(b64) > 8_000_000:
+        return JSONResponse(content={"ok": False, "error": "Image is too large"}, status_code=413)
+    try:
+        base64.b64decode(b64, validate=True)
+    except Exception:
+        return JSONResponse(content={"ok": False, "error": "Invalid image base64"}, status_code=400)
+
+    roster = []
+    try:
+        cache_path = f"/home/openclaw/.openclaw/workspace/_live_cache_{team_id}.json"
+        with open(cache_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        roster = [str(p.get("name") or "").strip() for p in data.get("players", []) if p.get("name")]
+    except Exception:
+        roster = []
+
+    prompt = (
+        "Extract football player names from this lineup/squad image. "
+        "Return ONLY strict JSON with this schema: {\"players\":[\"Name\",\"Name\"]}. "
+        "Do not add markdown or explanations. Preserve accents when visible. "
+        "If the image contains abbreviated surnames, return the surname as visible. "
+        "If a roster list is provided, prefer matching names/surnames from that roster.\n\n"
+        "Current team roster candidates:\n" + "\n".join(roster[:60])
+    )
+    payload_api = {
+        "model": model,
+        "input": [{
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": prompt},
+                {"type": "input_image", "image_url": image},
+            ],
+        }],
+        "stream": False,
+    }
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient(timeout=timeout_s) as client:
+            r = await client.post(api_url, headers=headers, json=payload_api)
+            r.raise_for_status()
+            data = r.json()
+    except Exception as e:
+        return JSONResponse(content={"ok": False, "error": f"Vision API error: {type(e).__name__}"}, status_code=502)
+
+    out_text = _extract_response_text(data)
+    players = _parse_vision_players_text(out_text)
+    return JSONResponse(content={"ok": True, "players": players, "raw": out_text[:1000]})
 
 
 @app.get("/team/{team_id}")
