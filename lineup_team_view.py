@@ -867,7 +867,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
         .bulk-lineup-controls {{
             display: flex;
             gap: 8px;
-            align-items: stretch;
+            align-items: center;
+            flex-wrap: nowrap;
         }}
         .bulk-lineup-controls select {{
             border: 1px solid #d5d9e8;
@@ -906,9 +907,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
             display: flex;
             gap: 8px;
             align-items: center;
-            margin-top: 8px;
             font-size: 12px;
             color: #555;
+            white-space: nowrap;
         }}
         .vision-lineup-row input[type="file"] {{
             flex: 1;
@@ -1024,13 +1025,13 @@ def render_team_view(team_id: str) -> HTMLResponse:
                 </select>
                 <textarea id="bulk-lineup-text" placeholder="Paste players"></textarea>
                 <button type="button" onclick="applyBulkLineup()">Apply</button>
-            </div>
-            <div class="vision-lineup-row">
-                <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Choose image</button>
-                <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
-                <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">👁️ Vision Apply</button>
-                <span id="vision-lineup-status" class="vision-lineup-status"></span>
+                <div class="vision-lineup-row">
+                    <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
+                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Choose image</button>
+                    <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
+                    <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">👁️ Vision Apply</button>
+                    <span id="vision-lineup-status" class="vision-lineup-status"></span>
+                </div>
             </div>
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
