@@ -261,6 +261,90 @@
       }
     ]
   },
+  "Russia": {
+    "Premier League": [
+      {
+        "id": "vsXou9m7",
+        "name": "Zenit",
+        "slug": "zenit-st-petersburg"
+      },
+      {
+        "id": "dz6KeNj3",
+        "name": "Krasnodar",
+        "slug": "krasnodar"
+      },
+      {
+        "id": "Sjs63WfK",
+        "name": "Lokomotiv Moscow",
+        "slug": "lokomotiv-moscow"
+      },
+      {
+        "id": "IXVkvT2D",
+        "name": "Spartak Moscow",
+        "slug": "spartak-moscow"
+      },
+      {
+        "id": "l0r24CuE",
+        "name": "CSKA Moscow",
+        "slug": "cska-moscow"
+      },
+      {
+        "id": "2cJYOpxn",
+        "name": "Baltika",
+        "slug": "baltika"
+      },
+      {
+        "id": "AFWA2jAQ",
+        "name": "Dynamo Moscow",
+        "slug": "dynamo-moscow"
+      },
+      {
+        "id": "t482C620",
+        "name": "Rubin Kazan",
+        "slug": "rubin-kazan"
+      },
+      {
+        "id": "bJGqkoet",
+        "name": "Akhmat Grozny",
+        "slug": "akhmat-grozny"
+      },
+      {
+        "id": "GbznhOLi",
+        "name": "FK Rostov",
+        "slug": "fk-rostov"
+      },
+      {
+        "id": "SKAE94nJ",
+        "name": "Krylya Sovetov",
+        "slug": "krylya-sovetov-samara"
+      },
+      {
+        "id": "Q19CngBE",
+        "name": "Orenburg",
+        "slug": "orenburg"
+      },
+      {
+        "id": "6qPFRkGT",
+        "name": "Akron Togliatti",
+        "slug": "akron-togliatti"
+      },
+      {
+        "id": "6T0lbAmI",
+        "name": "Dynamo Makhachkala",
+        "slug": "dynamo-makhachkala"
+      },
+      {
+        "id": "IFM1GxUm",
+        "name": "Pari NN",
+        "slug": "pari-nizhny-novgorod"
+      },
+      {
+        "id": "OAtyZ41T",
+        "name": "Sochi",
+        "slug": "pfc-sochi"
+      }
+    ]
+  },
   "Kazakhstan": {
     "Premier League": [
       {
