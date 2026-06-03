@@ -1,4 +1,68 @@
 {
+  "Australia": {
+    "A-League": [
+      {
+        "id": "EaZ5xZo0",
+        "name": "Newcastle Jets",
+        "slug": "newcastle-jets"
+      },
+      {
+        "id": "4AZ2ueHm",
+        "name": "Adelaide United",
+        "slug": "adelaide-utd"
+      },
+      {
+        "id": "2J7jacL6",
+        "name": "Auckland FC",
+        "slug": "auckland-fc"
+      },
+      {
+        "id": "Qql6CzOP",
+        "name": "Melbourne Victory",
+        "slug": "melbourne-victory"
+      },
+      {
+        "id": "6JsBlXVI",
+        "name": "Sydney FC",
+        "slug": "sydney-fc"
+      },
+      {
+        "id": "OKfoGJBe",
+        "name": "Melbourne City",
+        "slug": "melbourne-city"
+      },
+      {
+        "id": "bL3ChiWQ",
+        "name": "Macarthur FC",
+        "slug": "macarthur-fc"
+      },
+      {
+        "id": "Ctp2DG8J",
+        "name": "Wellington Phoenix",
+        "slug": "wellington-phoenix"
+      },
+      {
+        "id": "Wzp1wFWg",
+        "name": "Central Coast Mariners",
+        "slug": "central-coast"
+      },
+      {
+        "id": "hjY9yg16",
+        "name": "Perth Glory",
+        "slug": "perth-glory"
+      },
+      {
+        "id": "SSr7kDGC",
+        "name": "Brisbane Roar",
+        "slug": "brisbane-roar"
+      },
+      {
+        "id": "l00pXxBN",
+        "name": "WS Wanderers",
+        "slug": "western-sydney-wanderers"
+      }
+    ]
+  },
   "France": {
     "Ligue 1": [
       {
