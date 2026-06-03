@@ -197,6 +197,90 @@
       }
     ]
   },
+  "Kazakhstan": {
+    "Premier League": [
+      {
+        "id": "SvGYfE0m",
+        "name": "Ordabasy",
+        "slug": "ordabasy"
+      },
+      {
+        "id": "CrO7xXpJ",
+        "name": "Kairat Almaty",
+        "slug": "kairat-almaty"
+      },
+      {
+        "id": "llHUefos",
+        "name": "Okzhetpes",
+        "slug": "okzhetpes"
+      },
+      {
+        "id": "GEwrHVl3",
+        "name": "Yelimay Semey",
+        "slug": "yelimay-semey"
+      },
+      {
+        "id": "M34GD2Gt",
+        "name": "FC Astana",
+        "slug": "fc-astana"
+      },
+      {
+        "id": "K6zaDmlS",
+        "name": "Ulytau",
+        "slug": "ulytau"
+      },
+      {
+        "id": "xAiob3nF",
+        "name": "Aktobe",
+        "slug": "aktobe"
+      },
+      {
+        "id": "nXUwwgG6",
+        "name": "Zhenis",
+        "slug": "zhenis"
+      },
+      {
+        "id": "8tWZwZ00",
+        "name": "Kyzylzhar",
+        "slug": "kyzylzhar"
+      },
+      {
+        "id": "8dEIueWm",
+        "name": "Atyrau",
+        "slug": "atyrau"
+      },
+      {
+        "id": "6JSBfhVa",
+        "name": "Zhetysu Taldykorgan",
+        "slug": "zhetysu-taldykorgan"
+      },
+      {
+        "id": "I5Qb1GNJ",
+        "name": "Kaisar Kyzylorda",
+        "slug": "kaisar-kyzylorda"
+      },
+      {
+        "id": "YiP3wDVC",
+        "name": "Ertis Pavlodar",
+        "slug": "ertis-pavlodar"
+      },
+      {
+        "id": "0KPqUk69",
+        "name": "Altai",
+        "slug": "altai"
+      },
+      {
+        "id": "C2dM0UAp",
+        "name": "Tobol",
+        "slug": "tobol"
+      },
+      {
+        "id": "KhVEI8B5",
+        "name": "Kaspij Aktau",
+        "slug": "kaspij-aktau"
+      }
+    ]
+  },
   "Spain": {
     "LaLiga": [
       {
