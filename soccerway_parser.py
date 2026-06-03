@@ -268,14 +268,25 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             if flag:
                 national = flag.get('title', '') or ''
 
-            age = ""
-            age_cell = row.select_one('div.lineupTable__cell--age')
-            if age_cell:
-                age = age_cell.text.strip()
-
             def _cell_text(cls):
                 cell = row.select_one(f'div.lineupTable__cell--{cls}')
-                return cell.text.strip() if cell else ""
+                if not cell:
+                    return ""
+                txt = cell.text.strip()
+                # Normalize Soccerway placeholders for unknown / missing values.
+                # Otherwise the renderer may later call float()/int() on "?" and 500.
+                if txt in {"?", "–", "—", "N/A", "n/a", "-"}:
+                    return "0"
+                return txt
+
+            age = "0"
+            age_cell = row.select_one('div.lineupTable__cell--age')
+            if age_cell:
+                age_txt = age_cell.text.strip()
+                if age_txt in {"?", "–", "—", "N/A", "n/a", "-"}:
+                    age = "0"
+                else:
+                    age = age_txt
 
             apps = _cell_text('matchesPlayed')
             minutes = _cell_text('minutesPlayed')

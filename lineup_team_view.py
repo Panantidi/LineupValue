@@ -128,7 +128,7 @@ def get_flag_html(country_name):
 
 def _parse_mv(value):
     s = str(value or "").strip()
-    if not s or s in {"-", "—"}:
+    if not s or s in {"-", "—", "?", "N/A", "n/a"}:
         return 0.0
     s = s.replace("€", "").replace(",", ".").strip().lower()
     mult = 1.0
@@ -142,6 +142,26 @@ def _parse_mv(value):
         return float(s) * mult
     except Exception:
         return 0.0
+
+
+def _safe_num(value, default=0.0, cast=float):
+    """Safely cast a cache value to int/float.
+
+    Soccerway may store "?" / "–" / "N/A" / empty string for unknown numeric
+    fields (age, MV, apps, minutes, goals, etc.). This helper returns
+    `default` for any non-numeric input instead of raising ValueError.
+    """
+    if value is None:
+        return cast(default)
+    s = str(value).strip()
+    if not s or s in {"-", "—", "?", "N/A", "n/a"}:
+        return cast(default)
+    s = s.replace(",", "").replace("€", "").strip()
+    try:
+        return cast(s)
+    except (ValueError, TypeError):
+        return cast(default)
+
 
 def render_team_view(team_id: str) -> HTMLResponse:
     """Render team squad page"""
@@ -347,7 +367,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
     
     # Impact Score (Last match) = sum of impact_score for START players in last match
     last_match_impact = round(sum(
-        float(p.get("impact_score", 0) or 0)
+        _safe_num(p.get("impact_score", 0), default=0.0)
         for p in sorted_players
         if p.get("last3") and len(p["last3"]) > 0 and p["last3"][0] == "START"
     ), 2)
@@ -359,9 +379,9 @@ def render_team_view(team_id: str) -> HTMLResponse:
     ) / 1_000_000.0, 1)
     # Av.Age (Last match) = average age for START players in last match
     last_match_ages = [
-        float(p.get("age", 0) or 0)
+        _safe_num(p.get("age", 0), default=0.0)
         for p in sorted_players
-        if p.get("last3") and len(p["last3"]) > 0 and p["last3"][0] == "START" and p.get("age")
+        if p.get("last3") and len(p["last3"]) > 0 and p["last3"][0] == "START" and p.get("age") not in (None, "", "?", "-", "—", "N/A")
     ]
     last_match_age = round(sum(last_match_ages) / len(last_match_ages), 1) if last_match_ages else 0.0
     # Impact Diff will be calculated in JS: Starting XI Impact Score - Last Match Impact
@@ -424,7 +444,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         last_start = "START" if (last3 and len(last3) > 0 and last3[0] == "START") else ""
         player_display_name = swap_name_order(p.get("name", "–"))
         try:
-            player_impact = float(p.get("impact_score", 0) or 0)
+            player_impact = _safe_num(p.get("impact_score", 0), default=0.0)
         except Exception:
             player_impact = 0.0
         try:
