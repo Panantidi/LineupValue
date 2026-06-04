@@ -261,6 +261,100 @@
       }
     ]
   },
+  "Netherlands": {
+    "Eredivisie": [
+      {
+        "id": "M9UEHJWi",
+        "name": "PSV",
+        "slug": "psv"
+      },
+      {
+        "id": "8zjySeoN",
+        "name": "Feyenoord",
+        "slug": "feyenoord"
+      },
+      {
+        "id": "nRluRF0T",
+        "name": "Nijmegen",
+        "slug": "nijmegen"
+      },
+      {
+        "id": "dhOKTHGA",
+        "name": "Twente",
+        "slug": "twente"
+      },
+      {
+        "id": "8UOvIwnb",
+        "name": "Ajax",
+        "slug": "ajax"
+      },
+      {
+        "id": "p6QXMgOj",
+        "name": "Utrecht",
+        "slug": "utrecht"
+      },
+      {
+        "id": "2RxOow1i",
+        "name": "AZ Alkmaar",
+        "slug": "az-alkmaar"
+      },
+      {
+        "id": "EDjXSyWG",
+        "name": "Heerenveen",
+        "slug": "heerenveen"
+      },
+      {
+        "id": "MBUGcjb9",
+        "name": "Groningen",
+        "slug": "groningen"
+      },
+      {
+        "id": "KK4FaFV3",
+        "name": "Sparta Rotterdam",
+        "slug": "sparta-rotterdam"
+      },
+      {
+        "id": "YH8HX5iP",
+        "name": "Sittard",
+        "slug": "sittard"
+      },
+      {
+        "id": "hG8POBb8",
+        "name": "G.A. Eagles",
+        "slug": "g-a-eagles"
+      },
+      {
+        "id": "nNlLsRUr",
+        "name": "Excelsior",
+        "slug": "excelsior"
+      },
+      {
+        "id": "Aw0qTPat",
+        "name": "Telstar",
+        "slug": "telstar"
+      },
+      {
+        "id": "r1L5w2EB",
+        "name": "Zwolle",
+        "slug": "zwolle"
+      },
+      {
+        "id": "6VbkuOqa",
+        "name": "FC Volendam",
+        "slug": "fc-volendam"
+      },
+      {
+        "id": "nLNrHc14",
+        "name": "NAC Breda",
+        "slug": "nac-breda"
+      },
+      {
+        "id": "bB3JbZpA",
+        "name": "Heracles",
+        "slug": "heracles"
+      }
+    ]
+  },
   "Russia": {
     "Premier League": [
       {
