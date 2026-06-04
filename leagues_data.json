@@ -63,6 +63,90 @@
       }
     ]
   },
+  "Belarus": {
+    "Vysshaya Liga": [
+      {
+        "id": "UkzXzc1n",
+        "name": "ML Vitebsk",
+        "slug": "ml-vitebsk"
+      },
+      {
+        "id": "Wtzu8xF1",
+        "name": "Din. Minsk",
+        "slug": "din-minsk"
+      },
+      {
+        "id": "As405FJb",
+        "name": "FC Gomel",
+        "slug": "fc-gomel"
+      },
+      {
+        "id": "4GTnTwiR",
+        "name": "Neman",
+        "slug": "neman"
+      },
+      {
+        "id": "dAlJ9nqA",
+        "name": "FC Minsk",
+        "slug": "fc-minsk"
+      },
+      {
+        "id": "djQvVaME",
+        "name": "Zhodino",
+        "slug": "zhodino"
+      },
+      {
+        "id": "tzxamCjB",
+        "name": "Isloch",
+        "slug": "isloch-minsk"
+      },
+      {
+        "id": "IaRzWu78",
+        "name": "Dynamo Brest",
+        "slug": "dynamo-brest"
+      },
+      {
+        "id": "nuJA13Zc",
+        "name": "Slavia Mozyr",
+        "slug": "slavia-mozyr"
+      },
+      {
+        "id": "2TVOKuTs",
+        "name": "Arsenal Dzerzhinsk",
+        "slug": "arsenal-dzerzhinsk"
+      },
+      {
+        "id": "xKzy9Iae",
+        "name": "Vitebsk",
+        "slug": "vitebsk"
+      },
+      {
+        "id": "M7jlaLYM",
+        "name": "Belshina",
+        "slug": "belshina"
+      },
+      {
+        "id": "GnDSyToM",
+        "name": "BATE",
+        "slug": "bate"
+      },
+      {
+        "id": "Ac6FOcar",
+        "name": "Dnepr Mogilev",
+        "slug": "dnepr-mogilev"
+      },
+      {
+        "id": "n1pAZ1iB",
+        "name": "Baranovici",
+        "slug": "fk-baranovici"
+      },
+      {
+        "id": "OGWW9bpk",
+        "name": "Naftan",
+        "slug": "naftan"
+      }
+    ]
+  },
   "France": {
     "Ligue 1": [
       {
