@@ -355,6 +355,100 @@
       }
     ]
   },
+  "Portugal": {
+    "Liga Portugal": [
+      {
+        "id": "S2NmScGp",
+        "name": "FC Porto",
+        "slug": "fc-porto"
+      },
+      {
+        "id": "tljXuHBC",
+        "name": "Sporting CP",
+        "slug": "sporting-cp"
+      },
+      {
+        "id": "zBkyuyRI",
+        "name": "Benfica",
+        "slug": "benfica"
+      },
+      {
+        "id": "dpUer7ht",
+        "name": "Braga",
+        "slug": "braga"
+      },
+      {
+        "id": "ABBgitC3",
+        "name": "Famalicao",
+        "slug": "famalicao"
+      },
+      {
+        "id": "CS0fFFd8",
+        "name": "Gil Vicente",
+        "slug": "gil-vicente"
+      },
+      {
+        "id": "8d9NGt9H",
+        "name": "Moreirense",
+        "slug": "moreirense"
+      },
+      {
+        "id": "fJqfm7CG",
+        "name": "Arouca",
+        "slug": "arouca"
+      },
+      {
+        "id": "pQYVZyD2",
+        "name": "Vitoria Guimaraes",
+        "slug": "vitoria-guimaraes"
+      },
+      {
+        "id": "htoKuYZl",
+        "name": "Estoril",
+        "slug": "estoril"
+      },
+      {
+        "id": "roaMksQg",
+        "name": "Alverca",
+        "slug": "alverca"
+      },
+      {
+        "id": "jPzXLi4l",
+        "name": "Rio Ave",
+        "slug": "rio-ave"
+      },
+      {
+        "id": "YmQyLBJf",
+        "name": "Santa Clara",
+        "slug": "santa-clara"
+      },
+      {
+        "id": "4ETLrR7n",
+        "name": "Nacional",
+        "slug": "nacional"
+      },
+      {
+        "id": "hrYABE5k",
+        "name": "Estrela",
+        "slug": "estrela-da-amadora"
+      },
+      {
+        "id": "QFHt9Zgs",
+        "name": "Casa Pia",
+        "slug": "casa-pia"
+      },
+      {
+        "id": "nFFgCnVo",
+        "name": "Tondela",
+        "slug": "tondela"
+      },
+      {
+        "id": "IZPeUwtM",
+        "name": "AFS",
+        "slug": "afs"
+      }
+    ]
+  },
   "Russia": {
     "Premier League": [
       {
