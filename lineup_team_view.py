@@ -229,7 +229,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;margin:0;padding:32px;">
   <div style="max-width:760px;margin:60px auto;background:white;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
     <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
-    <p style="color:#666;line-height:1.5;">Данные команды ещё не загружены в кэш.</p>
+    <p style="color:#666;line-height:1.5;">Team data has not been loaded yet</p>
     <a href="/lineup_ai/select" style="display:inline-block;text-decoration:none;border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">← Back to teams</a>
   </div>
 </body></html>"""
