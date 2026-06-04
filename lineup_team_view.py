@@ -66,7 +66,7 @@ def get_flag_html(country_name):
         'Central African Republic': 'cf', 'Chad': 'td', 'Chile': 'cl', 'China': 'cn',
         'Colombia': 'co', 'Comoros': 'km',        'Congo': 'cg', 'Republic of the Congo': 'cg', 'DR Congo': 'cd',
         'Congo DR': 'cd', 'Democratic Republic of the Congo': 'cd',
-        'Costa Rica': 'cr', 'Croatia': 'hr', 'Cuba': 'cu', 'Cyprus': 'cy',
+        'Costa Rica': 'cr', 'Croatia': 'hr',        'Cuba': 'cu', 'Curaçao': 'cw', 'Cyprus': 'cy',
         'Czech Republic': 'cz', 'Czechia': 'cz', 'Denmark': 'dk', 'Djibouti': 'dj',
         'Dominica': 'dm', 'Dominican Republic': 'do', 'Ecuador': 'ec', 'Egypt': 'eg',
         'El Salvador': 'sv', 'Equatorial Guinea': 'gq', 'Eritrea': 'er', 'Estonia': 'ee',
