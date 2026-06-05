@@ -63,6 +63,70 @@
       }
     ]
   },
+  "Austria": {
+    "Bundesliga": [
+      {
+        "id": "zcDa6MTF",
+        "name": "Hartberg",
+        "slug": "hartberg"
+      },
+      {
+        "id": "KIrFH87n",
+        "name": "BW Linz",
+        "slug": "bw-linz"
+      },
+      {
+        "id": "MipWYeKQ",
+        "name": "LASK",
+        "slug": "lask-linz"
+      },
+      {
+        "id": "xKbLXKij",
+        "name": "Wolfsberger AC",
+        "slug": "wolfsberger-ac"
+      },
+      {
+        "id": "6c17idcf",
+        "name": "Ried",
+        "slug": "ried"
+      },
+      {
+        "id": "lvnOzIkE",
+        "name": "Austria Vienna",
+        "slug": "austria-vienna"
+      },
+      {
+        "id": "rejcUFSs",
+        "name": "SK Rapid",
+        "slug": "rapid-vienna"
+      },
+      {
+        "id": "Olvehxrl",
+        "name": "Salzburg",
+        "slug": "salzburg"
+      },
+      {
+        "id": "zsktjfsD",
+        "name": "Sturm Graz",
+        "slug": "sturm-graz"
+      },
+      {
+        "id": "ER0XiGC0",
+        "name": "Altach",
+        "slug": "altach"
+      },
+      {
+        "id": "fBe1n304",
+        "name": "Tirol",
+        "slug": "tirol"
+      },
+      {
+        "id": "bcsfIr0i",
+        "name": "Grazer AK",
+        "slug": "grazer-ak"
+      }
+    ]
+  },
   "Belarus": {
     "Vysshaya Liga": [
       {
