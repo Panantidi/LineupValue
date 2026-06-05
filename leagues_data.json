@@ -211,6 +211,110 @@
       }
     ]
   },
+  "Belgium": {
+    "Jupiler Pro League": [
+      {
+        "id": "vslqAKNo",
+        "name": "Anderlecht",
+        "slug": "anderlecht"
+      },
+      {
+        "id": "rVpPxw8H",
+        "name": "Antwerp",
+        "slug": "antwerp"
+      },
+      {
+        "id": "EaOtKH1f",
+        "name": "Beerschot VA",
+        "slug": "beerschot-va"
+      },
+      {
+        "id": "IXnm9vwh",
+        "name": "Cercle Brugge",
+        "slug": "cercle-brugge"
+      },
+      {
+        "id": "WIPDJ0hb",
+        "name": "Charleroi",
+        "slug": "charleroi"
+      },
+      {
+        "id": "rgTHIK74",
+        "name": "Club Brugge",
+        "slug": "club-brugge"
+      },
+      {
+        "id": "xGSLHvNA",
+        "name": "Dender",
+        "slug": "dender"
+      },
+      {
+        "id": "r3jWUIiN",
+        "name": "Genk",
+        "slug": "genk"
+      },
+      {
+        "id": "MgkzUx7T",
+        "name": "Gent",
+        "slug": "gent"
+      },
+      {
+        "id": "ULVIb27i",
+        "name": "KV Mechelen",
+        "slug": "kv-mechelen"
+      },
+      {
+        "id": "dYlTycNN",
+        "name": "Leuven",
+        "slug": "leuven"
+      },
+      {
+        "id": "8EyXqyoo",
+        "name": "Lommel SK",
+        "slug": "lommel-sk"
+      },
+      {
+        "id": "nPGA80Sn",
+        "name": "Patro Eisden",
+        "slug": "patro-eisden"
+      },
+      {
+        "id": "K0H6jm7P",
+        "name": "RAAL La Louviere",
+        "slug": "raal-la-louviere"
+      },
+      {
+        "id": "llsHlZZh",
+        "name": "RFC Liege",
+        "slug": "rfc-liege"
+      },
+      {
+        "id": "407h8Ird",
+        "name": "Royale Union SG",
+        "slug": "royale-union-sg"
+      },
+      {
+        "id": "vsnvCI6G",
+        "name": "St. Liege",
+        "slug": "st-liege"
+      },
+      {
+        "id": "d2EjBxMM",
+        "name": "St. Truiden",
+        "slug": "st-truiden"
+      },
+      {
+        "id": "jPDfAdyT",
+        "name": "Waregem",
+        "slug": "waregem"
+      },
+      {
+        "id": "hYaM5Gqp",
+        "name": "Westerlo",
+        "slug": "westerlo"
+      }
+    ]
+  },
   "France": {
     "Ligue 1": [
       {
