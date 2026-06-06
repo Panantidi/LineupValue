@@ -126,6 +126,18 @@ def get_flag_html(country_name):
     
     return f'<img src="https://flagcdn.com/w20/{code}.png" alt="{country_name.strip()}" style="height:14px;width:auto;vertical-align:middle;border-radius:1px;margin:0 1px;">'
 
+
+def get_nat_html(p):
+    """Return flag (club teams) or club badge (national teams)"""
+    club = p.get("club", "")
+    if club:
+        club_logo = p.get("club_logo", "")
+        if club_logo:
+            return f'<span class="club-badge" data-tooltip="{club}"><img src="{club_logo}" alt="{club}" style="width:14px;height:14px;vertical-align:middle;"></span>'
+        else:
+            return f'<span class="club-badge" data-tooltip="{club}">{club[:3]}</span>'
+    return get_flag_html(p.get("national", "–"))
+
 def _parse_mv(value):
     s = str(value or "").strip()
     if not s or s in {"-", "—", "?", "N/A", "n/a"}:
@@ -461,7 +473,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
         player_row = f"""
             <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}" data-player-number="{p.get("number", "–")}">
                 <td style="text-align:center;padding:4px 2px;">{p.get("number", "–")}</td>
-                <td style="text-align:center;">{get_flag_html(p.get("national", "–"))}</td>
+                <td style="text-align:center;">{get_nat_html(p)}</td>
                 <td class="player-name" style="white-space:nowrap;"><strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}{' ⚽️' if unique_goal_leader and player_display_name == unique_goal_leader else ''}{' 👟' if unique_assist_leader and player_display_name == unique_assist_leader else ''}</strong></td>
                 <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
                 <td style="text-align:center;padding:4px 2px;">{p.get("age", "–")}</td>
@@ -994,6 +1006,36 @@ def render_team_view(team_id: str) -> HTMLResponse:
             transition: opacity .18s ease .65s, visibility 0s linear .65s;
         }}
         .last3-tooltip:hover::after {{
+            opacity: 1;
+            visibility: visible;
+        }}
+        .club-badge {{
+            position: relative;
+        }}
+        .club-badge::after {{
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 8px);
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.96);
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.25;
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 1000;
+            transition: opacity .18s ease .65s, visibility 0s linear .65s;
+        }}
+        .club-badge:hover::after {{
             opacity: 1;
             visibility: visible;
         }}

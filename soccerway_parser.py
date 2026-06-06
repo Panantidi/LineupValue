@@ -39,6 +39,8 @@ class Player:
     player_url: str = ""
     last3: List[str] = None  # ["START", "SUB", "—"] for 3 matches
     national: str = ""
+    club: str = ""  # club name for national teams (stored in flag title on squad page)
+    club_logo: str = ""  # club logo URL for national teams (img src in flag cell)
 
     def __post_init__(self):
         if self.last3 is None:
@@ -264,9 +266,19 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
             player_url = link.get('href', '') if link else ""
 
             national = ""
+            club = ""
+            club_logo = ""
             flag = player_cell.select_one('div.lineupTable__cell--flag')
             if flag:
-                national = flag.get('title', '') or ''
+                flag_title = flag.get('title', '') or ''
+                # For national teams (World Championship): flag title = club name
+                # For club teams: flag title = country name (used as national)
+                national = flag_title
+                club = flag_title
+                # Extract club logo URL from img inside flag div
+                flag_img = flag.select_one('img')
+                if flag_img:
+                    club_logo = flag_img.get('src', '') or ''
 
             def _cell_text(cls):
                 cell = row.select_one(f'div.lineupTable__cell--{cls}')
@@ -307,6 +319,8 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
                 red_cards=red,
                 player_url=player_url,
                 national=national,
+                club=club,
+                club_logo=club_logo,
             ))
 
     print(f"    Players from Total (overall-all-table): {len(players)}")
@@ -988,6 +1002,8 @@ def to_lineup_format(team_data: TeamData) -> dict:
             "yellow_card": p.yellow_cards,
             "red_card": p.red_cards,
             "profile_path": p.player_url,
+            "club": p.club,
+            "club_logo": p.club_logo,
             "market_value": p.market_value,
             "last3": p.last3[:3] if p.last3 else ["—", "—", "—"],
             "last3_missing": p.last3_missing[:3] if hasattr(p, 'last3_missing') and p.last3_missing else [None, None, None],
