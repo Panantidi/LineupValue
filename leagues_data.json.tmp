@@ -1,0 +1,1244 @@
+{
+  "Australia": {
+    "A-League": [
+      {
+        "id": "EaZ5xZo0",
+        "name": "Newcastle Jets",
+        "slug": "newcastle-jets"
+      },
+      {
+        "id": "4AZ2ueHm",
+        "name": "Adelaide United",
+        "slug": "adelaide-utd"
+      },
+      {
+        "id": "2J7jacL6",
+        "name": "Auckland FC",
+        "slug": "auckland-fc"
+      },
+      {
+        "id": "Qql6CzOP",
+        "name": "Melbourne Victory",
+        "slug": "melbourne-victory"
+      },
+      {
+        "id": "6JsBlXVI",
+        "name": "Sydney FC",
+        "slug": "sydney-fc"
+      },
+      {
+        "id": "OKfoGJBe",
+        "name": "Melbourne City",
+        "slug": "melbourne-city"
+      },
+      {
+        "id": "bL3ChiWQ",
+        "name": "Macarthur FC",
+        "slug": "macarthur-fc"
+      },
+      {
+        "id": "Ctp2DG8J",
+        "name": "Wellington Phoenix",
+        "slug": "wellington-phoenix"
+      },
+      {
+        "id": "Wzp1wFWg",
+        "name": "Central Coast Mariners",
+        "slug": "central-coast"
+      },
+      {
+        "id": "hjY9yg16",
+        "name": "Perth Glory",
+        "slug": "perth-glory"
+      },
+      {
+        "id": "SSr7kDGC",
+        "name": "Brisbane Roar",
+        "slug": "brisbane-roar"
+      },
+      {
+        "id": "l00pXxBN",
+        "name": "WS Wanderers",
+        "slug": "western-sydney-wanderers"
+      }
+    ]
+  },
+  "Belarus": {
+    "Vysshaya Liga": [
+      {
+        "id": "UkzXzc1n",
+        "name": "ML Vitebsk",
+        "slug": "ml-vitebsk"
+      },
+      {
+        "id": "Wtzu8xF1",
+        "name": "Din. Minsk",
+        "slug": "din-minsk"
+      },
+      {
+        "id": "As405FJb",
+        "name": "FC Gomel",
+        "slug": "fc-gomel"
+      },
+      {
+        "id": "4GTnTwiR",
+        "name": "Neman",
+        "slug": "neman"
+      },
+      {
+        "id": "dAlJ9nqA",
+        "name": "FC Minsk",
+        "slug": "fc-minsk"
+      },
+      {
+        "id": "djQvVaME",
+        "name": "Zhodino",
+        "slug": "zhodino"
+      },
+      {
+        "id": "tzxamCjB",
+        "name": "Isloch",
+        "slug": "isloch-minsk"
+      },
+      {
+        "id": "IaRzWu78",
+        "name": "Dynamo Brest",
+        "slug": "dynamo-brest"
+      },
+      {
+        "id": "nuJA13Zc",
+        "name": "Slavia Mozyr",
+        "slug": "slavia-mozyr"
+      },
+      {
+        "id": "2TVOKuTs",
+        "name": "Arsenal Dzerzhinsk",
+        "slug": "arsenal-dzerzhinsk"
+      },
+      {
+        "id": "xKzy9Iae",
+        "name": "Vitebsk",
+        "slug": "vitebsk"
+      },
+      {
+        "id": "M7jlaLYM",
+        "name": "Belshina",
+        "slug": "belshina"
+      },
+      {
+        "id": "GnDSyToM",
+        "name": "BATE",
+        "slug": "bate"
+      },
+      {
+        "id": "Ac6FOcar",
+        "name": "Dnepr Mogilev",
+        "slug": "dnepr-mogilev"
+      },
+      {
+        "id": "n1pAZ1iB",
+        "name": "Baranovici",
+        "slug": "fk-baranovici"
+      },
+      {
+        "id": "OGWW9bpk",
+        "name": "Naftan",
+        "slug": "naftan"
+      }
+    ]
+  },
+  "Belgium": {
+    "Jupiler Pro League": [
+      {
+        "id": "vslqAKNo",
+        "name": "Anderlecht",
+        "slug": "anderlecht"
+      },
+      {
+        "id": "rVpPxw8H",
+        "name": "Antwerp",
+        "slug": "antwerp"
+      },
+      {
+        "id": "IXnm9vwh",
+        "name": "Cercle Brugge",
+        "slug": "cercle-brugge"
+      },
+      {
+        "id": "WIPDJ0hb",
+        "name": "Charleroi",
+        "slug": "charleroi"
+      },
+      {
+        "id": "rgTHIK74",
+        "name": "Club Brugge",
+        "slug": "club-brugge"
+      },
+      {
+        "id": "xGSLHvNA",
+        "name": "Dender",
+        "slug": "dender"
+      },
+      {
+        "id": "r3jWUIiN",
+        "name": "Genk",
+        "slug": "genk"
+      },
+      {
+        "id": "MgkzUx7T",
+        "name": "Gent",
+        "slug": "gent"
+      },
+      {
+        "id": "ULVIb27i",
+        "name": "KV Mechelen",
+        "slug": "kv-mechelen"
+      },
+      {
+        "id": "dYlTycNN",
+        "name": "Leuven",
+        "slug": "leuven"
+      },
+      {
+        "id": "K0H6jm7P",
+        "name": "RAAL La Louviere",
+        "slug": "raal-la-louviere"
+      },
+      {
+        "id": "407h8Ird",
+        "name": "Royale Union SG",
+        "slug": "royale-union-sg"
+      },
+      {
+        "id": "vsnvCI6G",
+        "name": "St. Liege",
+        "slug": "st-liege"
+      },
+      {
+        "id": "d2EjBxMM",
+        "name": "St. Truiden",
+        "slug": "st-truiden"
+      },
+      {
+        "id": "jPDfAdyT",
+        "name": "Waregem",
+        "slug": "waregem"
+      },
+      {
+        "id": "hYaM5Gqp",
+        "name": "Westerlo",
+        "slug": "westerlo"
+      }
+    ]
+  },
+  "France": {
+    "Ligue 1": [
+      {
+        "id": "SAlF91iL",
+        "name": "Angers",
+        "slug": "angers"
+      },
+      {
+        "id": "MTLr36WA",
+        "name": "Auxerre",
+        "slug": "auxerre"
+      },
+      {
+        "id": "Cr4VGaUl",
+        "name": "Brest",
+        "slug": "brest"
+      },
+      {
+        "id": "CIEe04GT",
+        "name": "Le Havre",
+        "slug": "le-havre"
+      },
+      {
+        "id": "IBmris38",
+        "name": "Lens",
+        "slug": "lens"
+      },
+      {
+        "id": "pfDZL71o",
+        "name": "Lille",
+        "slug": "lille"
+      },
+      {
+        "id": "jgNAYRGi",
+        "name": "Lorient",
+        "slug": "lorient"
+      },
+      {
+        "id": "2akflumR",
+        "name": "Lyon",
+        "slug": "lyon"
+      },
+      {
+        "id": "SblU3Hee",
+        "name": "Marseille",
+        "slug": "marseille"
+      },
+      {
+        "id": "4v0yqlWc",
+        "name": "Metz",
+        "slug": "metz"
+      },
+      {
+        "id": "2PIvr8o4",
+        "name": "Monaco",
+        "slug": "monaco"
+      },
+      {
+        "id": "veuetnGG",
+        "name": "Nantes",
+        "slug": "nantes"
+      },
+      {
+        "id": "YagoQJpq",
+        "name": "Nice",
+        "slug": "nice"
+      },
+      {
+        "id": "CjhkPw0k",
+        "name": "PSG",
+        "slug": "psg"
+      },
+      {
+        "id": "0OEHEprs",
+        "name": "Paris FC",
+        "slug": "paris-fc"
+      },
+      {
+        "id": "d2nnj1IE",
+        "name": "Rennes",
+        "slug": "rennes"
+      },
+      {
+        "id": "nP6UzIU1",
+        "name": "Strasbourg",
+        "slug": "strasbourg"
+      },
+      {
+        "id": "MLmY2yB1",
+        "name": "Toulouse",
+        "slug": "toulouse"
+      }
+    ]
+  },
+  "Italy": {
+    "Serie A": [
+      {
+        "id": "Iw7eKK25",
+        "name": "Inter",
+        "slug": "inter"
+      },
+      {
+        "id": "69Dxbc61",
+        "name": "Napoli",
+        "slug": "napoli"
+      },
+      {
+        "id": "8Sa8HInO",
+        "name": "AC Milan",
+        "slug": "ac-milan"
+      },
+      {
+        "id": "zVqqL0ma",
+        "name": "AS Roma",
+        "slug": "as-roma"
+      },
+      {
+        "id": "ttyLthOA",
+        "name": "Como",
+        "slug": "como"
+      },
+      {
+        "id": "C06aJvIB",
+        "name": "Juventus",
+        "slug": "juventus"
+      },
+      {
+        "id": "8C9JjMXu",
+        "name": "Atalanta",
+        "slug": "atalanta"
+      },
+      {
+        "id": "0M9xNN8N",
+        "name": "Bologna",
+        "slug": "bologna"
+      },
+      {
+        "id": "URcSl02h",
+        "name": "Lazio",
+        "slug": "lazio"
+      },
+      {
+        "id": "rXw8YKDE",
+        "name": "Udinese",
+        "slug": "udinese"
+      },
+      {
+        "id": "QDdvI0zl",
+        "name": "Sassuolo",
+        "slug": "sassuolo"
+      },
+      {
+        "id": "MZFZnvX4",
+        "name": "Torino",
+        "slug": "torino"
+      },
+      {
+        "id": "6DxlaxHN",
+        "name": "Parma",
+        "slug": "parma"
+      },
+      {
+        "id": "d0PJxeie",
+        "name": "Genoa",
+        "slug": "genoa"
+      },
+      {
+        "id": "Q3A3IbXH",
+        "name": "Fiorentina",
+        "slug": "fiorentina"
+      },
+      {
+        "id": "SCGVmKHb",
+        "name": "Cagliari",
+        "slug": "cagliari"
+      },
+      {
+        "id": "G8lYsMgU",
+        "name": "Lecce",
+        "slug": "lecce"
+      },
+      {
+        "id": "KUzfp5N3",
+        "name": "Cremonese",
+        "slug": "cremonese"
+      },
+      {
+        "id": "rJVAIaHo",
+        "name": "Verona",
+        "slug": "verona"
+      },
+      {
+        "id": "roasMsOT",
+        "name": "Pisa",
+        "slug": "pisa"
+      }
+    ]
+  },
+  "Netherlands": {
+    "Eredivisie": [
+      {
+        "id": "M9UEHJWi",
+        "name": "PSV",
+        "slug": "psv"
+      },
+      {
+        "id": "8zjySeoN",
+        "name": "Feyenoord",
+        "slug": "feyenoord"
+      },
+      {
+        "id": "nRluRF0T",
+        "name": "Nijmegen",
+        "slug": "nijmegen"
+      },
+      {
+        "id": "dhOKTHGA",
+        "name": "Twente",
+        "slug": "twente"
+      },
+      {
+        "id": "8UOvIwnb",
+        "name": "Ajax",
+        "slug": "ajax"
+      },
+      {
+        "id": "p6QXMgOj",
+        "name": "Utrecht",
+        "slug": "utrecht"
+      },
+      {
+        "id": "2RxOow1i",
+        "name": "AZ Alkmaar",
+        "slug": "az-alkmaar"
+      },
+      {
+        "id": "EDjXSyWG",
+        "name": "Heerenveen",
+        "slug": "heerenveen"
+      },
+      {
+        "id": "MBUGcjb9",
+        "name": "Groningen",
+        "slug": "groningen"
+      },
+      {
+        "id": "KK4FaFV3",
+        "name": "Sparta Rotterdam",
+        "slug": "sparta-rotterdam"
+      },
+      {
+        "id": "YH8HX5iP",
+        "name": "Sittard",
+        "slug": "sittard"
+      },
+      {
+        "id": "hG8POBb8",
+        "name": "G.A. Eagles",
+        "slug": "g-a-eagles"
+      },
+      {
+        "id": "nNlLsRUr",
+        "name": "Excelsior",
+        "slug": "excelsior"
+      },
+      {
+        "id": "Aw0qTPat",
+        "name": "Telstar",
+        "slug": "telstar"
+      },
+      {
+        "id": "r1L5w2EB",
+        "name": "Zwolle",
+        "slug": "zwolle"
+      },
+      {
+        "id": "6VbkuOqa",
+        "name": "FC Volendam",
+        "slug": "fc-volendam"
+      },
+      {
+        "id": "nLNrHc14",
+        "name": "NAC Breda",
+        "slug": "nac-breda"
+      },
+      {
+        "id": "bB3JbZpA",
+        "name": "Heracles",
+        "slug": "heracles"
+      }
+    ]
+  },
+  "Portugal": {
+    "Liga Portugal": [
+      {
+        "id": "S2NmScGp",
+        "name": "FC Porto",
+        "slug": "fc-porto"
+      },
+      {
+        "id": "tljXuHBC",
+        "name": "Sporting CP",
+        "slug": "sporting-cp"
+      },
+      {
+        "id": "zBkyuyRI",
+        "name": "Benfica",
+        "slug": "benfica"
+      },
+      {
+        "id": "dpUer7ht",
+        "name": "Braga",
+        "slug": "braga"
+      },
+      {
+        "id": "ABBgitC3",
+        "name": "Famalicao",
+        "slug": "famalicao"
+      },
+      {
+        "id": "CS0fFFd8",
+        "name": "Gil Vicente",
+        "slug": "gil-vicente"
+      },
+      {
+        "id": "8d9NGt9H",
+        "name": "Moreirense",
+        "slug": "moreirense"
+      },
+      {
+        "id": "fJqfm7CG",
+        "name": "Arouca",
+        "slug": "arouca"
+      },
+      {
+        "id": "pQYVZyD2",
+        "name": "Vitoria Guimaraes",
+        "slug": "vitoria-guimaraes"
+      },
+      {
+        "id": "htoKuYZl",
+        "name": "Estoril",
+        "slug": "estoril"
+      },
+      {
+        "id": "roaMksQg",
+        "name": "Alverca",
+        "slug": "alverca"
+      },
+      {
+        "id": "jPzXLi4l",
+        "name": "Rio Ave",
+        "slug": "rio-ave"
+      },
+      {
+        "id": "YmQyLBJf",
+        "name": "Santa Clara",
+        "slug": "santa-clara"
+      },
+      {
+        "id": "4ETLrR7n",
+        "name": "Nacional",
+        "slug": "nacional"
+      },
+      {
+        "id": "hrYABE5k",
+        "name": "Estrela",
+        "slug": "estrela-da-amadora"
+      },
+      {
+        "id": "QFHt9Zgs",
+        "name": "Casa Pia",
+        "slug": "casa-pia"
+      },
+      {
+        "id": "nFFgCnVo",
+        "name": "Tondela",
+        "slug": "tondela"
+      },
+      {
+        "id": "IZPeUwtM",
+        "name": "AFS",
+        "slug": "afs"
+      }
+    ]
+  },
+  "Russia": {
+    "Premier League": [
+      {
+        "id": "vsXou9m7",
+        "name": "Zenit",
+        "slug": "zenit-st-petersburg"
+      },
+      {
+        "id": "dz6KeNj3",
+        "name": "Krasnodar",
+        "slug": "krasnodar"
+      },
+      {
+        "id": "Sjs63WfK",
+        "name": "Lokomotiv Moscow",
+        "slug": "lokomotiv-moscow"
+      },
+      {
+        "id": "IXVkvT2D",
+        "name": "Spartak Moscow",
+        "slug": "spartak-moscow"
+      },
+      {
+        "id": "l0r24CuE",
+        "name": "CSKA Moscow",
+        "slug": "cska-moscow"
+      },
+      {
+        "id": "2cJYOpxn",
+        "name": "Baltika",
+        "slug": "baltika"
+      },
+      {
+        "id": "AFWA2jAQ",
+        "name": "Dynamo Moscow",
+        "slug": "dynamo-moscow"
+      },
+      {
+        "id": "t482C620",
+        "name": "Rubin Kazan",
+        "slug": "rubin-kazan"
+      },
+      {
+        "id": "bJGqkoet",
+        "name": "Akhmat Grozny",
+        "slug": "akhmat-grozny"
+      },
+      {
+        "id": "GbznhOLi",
+        "name": "FK Rostov",
+        "slug": "fk-rostov"
+      },
+      {
+        "id": "SKAE94nJ",
+        "name": "Krylya Sovetov",
+        "slug": "krylya-sovetov-samara"
+      },
+      {
+        "id": "Q19CngBE",
+        "name": "Orenburg",
+        "slug": "orenburg"
+      },
+      {
+        "id": "6qPFRkGT",
+        "name": "Akron Togliatti",
+        "slug": "akron-togliatti"
+      },
+      {
+        "id": "6T0lbAmI",
+        "name": "Dynamo Makhachkala",
+        "slug": "dynamo-makhachkala"
+      },
+      {
+        "id": "IFM1GxUm",
+        "name": "Pari NN",
+        "slug": "pari-nizhny-novgorod"
+      },
+      {
+        "id": "OAtyZ41T",
+        "name": "Sochi",
+        "slug": "pfc-sochi"
+      }
+    ]
+  },
+  "Kazakhstan": {
+    "Premier League": [
+      {
+        "id": "SvGYfE0m",
+        "name": "Ordabasy",
+        "slug": "ordabasy"
+      },
+      {
+        "id": "CrO7xXpJ",
+        "name": "Kairat Almaty",
+        "slug": "kairat-almaty"
+      },
+      {
+        "id": "llHUefos",
+        "name": "Okzhetpes",
+        "slug": "okzhetpes"
+      },
+      {
+        "id": "GEwrHVl3",
+        "name": "Yelimay Semey",
+        "slug": "yelimay-semey"
+      },
+      {
+        "id": "M34GD2Gt",
+        "name": "FC Astana",
+        "slug": "fc-astana"
+      },
+      {
+        "id": "K6zaDmlS",
+        "name": "Ulytau",
+        "slug": "ulytau"
+      },
+      {
+        "id": "xAiob3nF",
+        "name": "Aktobe",
+        "slug": "aktobe"
+      },
+      {
+        "id": "nXUwwgG6",
+        "name": "Zhenis",
+        "slug": "zhenis"
+      },
+      {
+        "id": "8tWZwZ00",
+        "name": "Kyzylzhar",
+        "slug": "kyzylzhar"
+      },
+      {
+        "id": "8dEIueWm",
+        "name": "Atyrau",
+        "slug": "atyrau"
+      },
+      {
+        "id": "6JSBfhVa",
+        "name": "Zhetysu Taldykorgan",
+        "slug": "zhetysu-taldykorgan"
+      },
+      {
+        "id": "I5Qb1GNJ",
+        "name": "Kaisar Kyzylorda",
+        "slug": "kaisar-kyzylorda"
+      },
+      {
+        "id": "YiP3wDVC",
+        "name": "Ertis Pavlodar",
+        "slug": "ertis-pavlodar"
+      },
+      {
+        "id": "0KPqUk69",
+        "name": "Altai",
+        "slug": "altai"
+      },
+      {
+        "id": "C2dM0UAp",
+        "name": "Tobol",
+        "slug": "tobol"
+      },
+      {
+        "id": "KhVEI8B5",
+        "name": "Kaspij Aktau",
+        "slug": "kaspij-aktau"
+      }
+    ]
+  },
+  "Spain": {
+    "LaLiga": [
+      {
+        "id": "SKbpVP5K",
+        "name": "Barcelona",
+        "slug": "barcelona"
+      },
+      {
+        "id": "W8mj7MDD",
+        "name": "Real Madrid",
+        "slug": "real-madrid"
+      },
+      {
+        "id": "lUatW5jE",
+        "name": "Villarreal",
+        "slug": "villarreal"
+      },
+      {
+        "id": "jaarqpLQ",
+        "name": "Atl. Madrid",
+        "slug": "atl-madrid"
+      },
+      {
+        "id": "vJbTeCGP",
+        "name": "Betis",
+        "slug": "betis"
+      },
+      {
+        "id": "8pvUZFhf",
+        "name": "Celta Vigo",
+        "slug": "celta-vigo"
+      },
+      {
+        "id": "dboeiWOt",
+        "name": "Getafe",
+        "slug": "getafe"
+      },
+      {
+        "id": "8bcjFy6O",
+        "name": "Rayo Vallecano",
+        "slug": "rayo-vallecano"
+      },
+      {
+        "id": "CQeaytrD",
+        "name": "Valencia",
+        "slug": "valencia"
+      },
+      {
+        "id": "jNvak2f3",
+        "name": "Real Sociedad",
+        "slug": "real-sociedad"
+      },
+      {
+        "id": "QFfPdh1J",
+        "name": "Espanyol",
+        "slug": "espanyol"
+      },
+      {
+        "id": "IP5zl0cJ",
+        "name": "Ath Bilbao",
+        "slug": "ath-bilbao"
+      },
+      {
+        "id": "h8oAv4Ts",
+        "name": "Sevilla",
+        "slug": "sevilla"
+      },
+      {
+        "id": "hxt57t2q",
+        "name": "Alaves",
+        "slug": "alaves"
+      },
+      {
+        "id": "G8FL0ShI",
+        "name": "Levante",
+        "slug": "levante"
+      },
+      {
+        "id": "ETdxjU8a",
+        "name": "Osasuna",
+        "slug": "osasuna"
+      },
+      {
+        "id": "4jl02tPF",
+        "name": "Elche",
+        "slug": "elche"
+      },
+      {
+        "id": "nNNpcUSL",
+        "name": "Girona",
+        "slug": "girona"
+      },
+      {
+        "id": "4jDQxrbf",
+        "name": "Mallorca",
+        "slug": "mallorca"
+      },
+      {
+        "id": "SzYzw34K",
+        "name": "Oviedo",
+        "slug": "oviedo"
+      }
+    ]
+  },
+  "Germany": {
+    "Bundesliga": [
+      {
+        "id": "nVp0wiqd",
+        "name": "Bayern Munich",
+        "slug": "bayern-munich"
+      },
+      {
+        "id": "nP1i5US1",
+        "name": "Dortmund",
+        "slug": "dortmund"
+      },
+      {
+        "id": "KbS1suSm",
+        "name": "RB Leipzig",
+        "slug": "rb-leipzig"
+      },
+      {
+        "id": "nJQmYp1B",
+        "name": "Stuttgart",
+        "slug": "vfb-stuttgart"
+      },
+      {
+        "id": "hQAtP9Sl",
+        "name": "Hoffenheim",
+        "slug": "hoffenheim"
+      },
+      {
+        "id": "4jcj2zMd",
+        "name": "Bayer Leverkusen",
+        "slug": "bayer-leverkusen"
+      },
+      {
+        "id": "fiEQZ7C7",
+        "name": "Freiburg",
+        "slug": "freiburg"
+      },
+      {
+        "id": "8vndvXTk",
+        "name": "Eintracht Frankfurt",
+        "slug": "eintracht-frankfurt"
+      },
+      {
+        "id": "fTVNku3I",
+        "name": "Augsburg",
+        "slug": "augsburg"
+      },
+      {
+        "id": "EuakNmc1",
+        "name": "Mainz",
+        "slug": "mainz"
+      },
+      {
+        "id": "pzHW4oaE",
+        "name": "Union Berlin",
+        "slug": "union-berlin"
+      },
+      {
+        "id": "88HSzjDr",
+        "name": "B. Monchengladbach",
+        "slug": "b-monchengladbach"
+      },
+      {
+        "id": "v9k3aY5F",
+        "name": "Hamburger SV",
+        "slug": "hamburger"
+      },
+      {
+        "id": "WG9pOTse",
+        "name": "FC Koln",
+        "slug": "1-fc-koln"
+      },
+      {
+        "id": "Ig1f1fy3",
+        "name": "Werder Bremen",
+        "slug": "werder-bremen"
+      },
+      {
+        "id": "nwkTahLL",
+        "name": "Wolfsburg",
+        "slug": "wolfsburg"
+      },
+      {
+        "id": "KWixEVWi",
+        "name": "Heidenheim",
+        "slug": "heidenheim"
+      },
+      {
+        "id": "ILyJuN3g",
+        "name": "St. Pauli",
+        "slug": "st-pauli"
+      }
+    ]
+  },
+  "England": {
+    "Premier League": [
+      {
+        "id": "j3Azpf5d",
+        "name": "Wolves",
+        "slug": "wolves"
+      },
+      {
+        "id": "hA1Zm19f",
+        "name": "Arsenal",
+        "slug": "arsenal"
+      },
+      {
+        "id": "p6ahwuwJ",
+        "name": "Newcastle",
+        "slug": "newcastle-utd"
+      },
+      {
+        "id": "xYe7DwID",
+        "name": "Brentford",
+        "slug": "brentford"
+      },
+      {
+        "id": "OtpNdwrc",
+        "name": "Bournemouth",
+        "slug": "bournemouth"
+      },
+      {
+        "id": "4fGZN2oK",
+        "name": "Chelsea",
+        "slug": "chelsea"
+      },
+      {
+        "id": "KluSTr9s",
+        "name": "Everton",
+        "slug": "everton"
+      },
+      {
+        "id": "tUxUbLR2",
+        "name": "Leeds",
+        "slug": "leeds"
+      },
+      {
+        "id": "UDg08Ohm",
+        "name": "Tottenham",
+        "slug": "tottenham"
+      },
+      {
+        "id": "Wtn9Stg0",
+        "name": "Manchester City",
+        "slug": "manchester-city"
+      },
+      {
+        "id": "Cxq57r8g",
+        "name": "West Ham",
+        "slug": "west-ham"
+      },
+      {
+        "id": "AovF1Mia",
+        "name": "Crystal Palace",
+        "slug": "crystal-palace"
+      },
+      {
+        "id": "WSzc94ws",
+        "name": "Sunderland",
+        "slug": "sunderland"
+      },
+      {
+        "id": "2XrRecc3",
+        "name": "Brighton",
+        "slug": "brighton"
+      },
+      {
+        "id": "69ZiU2Om",
+        "name": "Fulham",
+        "slug": "fulham"
+      },
+      {
+        "id": "UsushcZr",
+        "name": "Nottingham",
+        "slug": "nottingham"
+      },
+      {
+        "id": "ppjDR086",
+        "name": "Manchester Utd",
+        "slug": "manchester-united"
+      },
+      {
+        "id": "W00wmLO0",
+        "name": "Aston Villa",
+        "slug": "aston-villa"
+      },
+      {
+        "id": "z3dmTMMO",
+        "name": "Burnley",
+        "slug": "burnley"
+      },
+      {
+        "id": "lId4TMwf",
+        "name": "Liverpool",
+        "slug": "liverpool"
+      }
+    ]
+  },
+  "USA": {
+    "MLS": [
+      {
+        "id": "K2dlua5N",
+        "name": "Vancouver Whitecaps",
+        "slug": "vancouver-whitecaps"
+      },
+      {
+        "id": "x05z14ue",
+        "name": "San Jose Earthquakes",
+        "slug": "san-jose-earthquakes"
+      },
+      {
+        "id": "W0ealpQl",
+        "name": "Real Salt Lake",
+        "slug": "real-salt-lake"
+      },
+      {
+        "id": "4GtbI4Q1",
+        "name": "FC Dallas",
+        "slug": "fc-dallas"
+      },
+      {
+        "id": "txUJt9AR",
+        "name": "Los Angeles FC",
+        "slug": "los-angeles-fc"
+      },
+      {
+        "id": "6P5S63Ah",
+        "name": "Seattle Sounders",
+        "slug": "seattle-sounders"
+      },
+      {
+        "id": "2i4sdl32",
+        "name": "Houston Dynamo",
+        "slug": "houston-dynamo"
+      },
+      {
+        "id": "zXFxsw2a",
+        "name": "Minnesota United",
+        "slug": "minnesota-united"
+      },
+      {
+        "id": "U3ebh62R",
+        "name": "Los Angeles Galaxy",
+        "slug": "los-angeles-galaxy"
+      },
+      {
+        "id": "EuGkBf33",
+        "name": "San Diego FC",
+        "slug": "san-diego-fc"
+      },
+      {
+        "id": "jmBZNRn8",
+        "name": "Colorado Rapids",
+        "slug": "colorado-rapids"
+      },
+      {
+        "id": "4r4sKQud",
+        "name": "St. Louis City",
+        "slug": "st-louis-city"
+      },
+      {
+        "id": "bm8usLzB",
+        "name": "Portland Timbers",
+        "slug": "portland-timbers"
+      },
+      {
+        "id": "IeT6JBE3",
+        "name": "Austin FC",
+        "slug": "austin-fc"
+      },
+      {
+        "id": "CURGfJWt",
+        "name": "Sporting Kansas City",
+        "slug": "sporting-kansas-city"
+      },
+      {
+        "id": "84yIDQMe",
+        "name": "Nashville SC",
+        "slug": "nashville-sc"
+      },
+      {
+        "id": "0AheRyBg",
+        "name": "Inter Miami",
+        "slug": "inter-miami"
+      },
+      {
+        "id": "UwAwNo2E",
+        "name": "Chicago Fire",
+        "slug": "chicago-fire"
+      },
+      {
+        "id": "tr3oe8I8",
+        "name": "New England Revolution",
+        "slug": "new-england-revolution"
+      },
+      {
+        "id": "zV5YmQAr",
+        "name": "New York Red Bulls",
+        "slug": "new-york-red-bulls"
+      },
+      {
+        "id": "QJF7WTFB",
+        "name": "Charlotte",
+        "slug": "charlotte-fc"
+      },
+      {
+        "id": "8btog05R",
+        "name": "FC Cincinnati",
+        "slug": "fc-cincinnati"
+      },
+      {
+        "id": "vZraQYnO",
+        "name": "New York City",
+        "slug": "new-york-city"
+      },
+      {
+        "id": "O6hjfSXE",
+        "name": "DC United",
+        "slug": "dc-united"
+      },
+      {
+        "id": "pQ8rarA7",
+        "name": "Columbus Crew",
+        "slug": "columbus-crew"
+      },
+      {
+        "id": "j9cigLCr",
+        "name": "CF Montreal",
+        "slug": "cf-montreal"
+      },
+      {
+        "id": "rsHkUNCo",
+        "name": "Orlando City",
+        "slug": "orlando-city"
+      },
+      {
+        "id": "zsdfgnmL",
+        "name": "Toronto FC",
+        "slug": "toronto-fc"
+      },
+      {
+        "id": "EPngUvhk",
+        "name": "Atlanta Utd",
+        "slug": "atlanta-united"
+      },
+      {
+        "id": "Szrwix67",
+        "name": "Philadelphia Union",
+        "slug": "philadelphia-union"
+      }
+    ]
+  }
+}
