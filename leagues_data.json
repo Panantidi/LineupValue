@@ -1299,6 +1299,90 @@
       }
     ]
   },
+  "Sweden": {
+    "Allsvenskan": [
+      {
+        "id": "lzqk4S68",
+        "name": "AIK",
+        "slug": "aik"
+      },
+      {
+        "id": "ELVAW0WQ",
+        "name": "Brommapojkarna",
+        "slug": "brommapojkarna"
+      },
+      {
+        "id": "zNSwBuue",
+        "name": "Degerfors",
+        "slug": "degerfors"
+      },
+      {
+        "id": "4Kh5hPE1",
+        "name": "Djurgarden",
+        "slug": "djurgarden"
+      },
+      {
+        "id": "rBi9iqU7",
+        "name": "Elfsborg",
+        "slug": "elfsborg"
+      },
+      {
+        "id": "bJewAOTf",
+        "name": "GAIS",
+        "slug": "gais"
+      },
+      {
+        "id": "UovQtopk",
+        "name": "Goteborg",
+        "slug": "ifk-goteborg"
+      },
+      {
+        "id": "W6u0d7B3",
+        "name": "Hacken",
+        "slug": "hacken"
+      },
+      {
+        "id": "Mmsc26yL",
+        "name": "Halmstad",
+        "slug": "halmstad"
+      },
+      {
+        "id": "SQsg3nME",
+        "name": "Hammarby",
+        "slug": "hammarby"
+      },
+      {
+        "id": "rkrUu5ae",
+        "name": "Kalmar",
+        "slug": "kalmar"
+      },
+      {
+        "id": "tYNTdpar",
+        "name": "Malmo FF",
+        "slug": "malmo-ff"
+      },
+      {
+        "id": "S0XtXM1E",
+        "name": "Mjallby",
+        "slug": "mjallby"
+      },
+      {
+        "id": "CGT7Kq4j",
+        "name": "Orgryte",
+        "slug": "orgryte"
+      },
+      {
+        "id": "vXr8fotG",
+        "name": "Sirius",
+        "slug": "sirius"
+      },
+      {
+        "id": "l8oLwJhB",
+        "name": "Vasteras SK",
+        "slug": "vasteras-sk"
+      }
+    ]
+  },
   "Switzerland": {
     "Super League": [
       {
