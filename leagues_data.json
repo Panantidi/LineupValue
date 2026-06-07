@@ -933,6 +933,90 @@
       }
     ]
   },
+  "Norway": {
+    "Eliteserien": [
+      {
+        "id": "nyrL8gfh",
+        "name": "Aalesund",
+        "slug": "aalesund"
+      },
+      {
+        "id": "S0WZMUNG",
+        "name": "Bodo/Glimt",
+        "slug": "bodo-glimt"
+      },
+      {
+        "id": "QBbt6ivB",
+        "name": "Brann",
+        "slug": "brann"
+      },
+      {
+        "id": "bPdl4V8N",
+        "name": "Fredrikstad",
+        "slug": "fredrikstad"
+      },
+      {
+        "id": "pp5f19Wp",
+        "name": "HamKam",
+        "slug": "ham-kam"
+      },
+      {
+        "id": "K4YaWRyM",
+        "name": "KFUM Oslo",
+        "slug": "kfum-oslo"
+      },
+      {
+        "id": "IDDWgzKt",
+        "name": "Kristiansund",
+        "slug": "kristiansund"
+      },
+      {
+        "id": "xYWBZlwN",
+        "name": "Lillestrom",
+        "slug": "lillestrom"
+      },
+      {
+        "id": "KYcp5BgH",
+        "name": "Molde",
+        "slug": "molde"
+      },
+      {
+        "id": "G8LlPCOi",
+        "name": "Rosenborg",
+        "slug": "rosenborg"
+      },
+      {
+        "id": "IXyr4UxA",
+        "name": "Sandefjord",
+        "slug": "sandefjord"
+      },
+      {
+        "id": "UPrP2SMS",
+        "name": "Sarpsborg 08",
+        "slug": "sarpsborg-08"
+      },
+      {
+        "id": "CUoNY9xc",
+        "name": "Start",
+        "slug": "start"
+      },
+      {
+        "id": "25HpQh9o",
+        "name": "Tromso",
+        "slug": "tromso"
+      },
+      {
+        "id": "ph9NNA8A",
+        "name": "Valerenga",
+        "slug": "valerenga"
+      },
+      {
+        "id": "bXAgOWwb",
+        "name": "Viking",
+        "slug": "viking"
+      }
+    ]
+  },
   "Portugal": {
     "Liga Portugal": [
       {

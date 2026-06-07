@@ -28,6 +28,7 @@ def load_complete_hierarchy():
         "austria_bundesliga": ("Austria", "Bundesliga"),
         "belarus_pershaya-liga": ("Belarus", "First League"),
         "belarus_vysshaya-liga": ("Belarus", "Premier League"),
+        "norway_eliteserien": ("Norway", "Eliteserien"),
         "finland_veikkausliiga": ("Finland", "Veikkausliiga"),
         "belgium_challenger-pro-league": ("Belgium", "Challenger Pro League"),
         "belgium_jupiler-pro-league": ("Belgium", "Jupiler Pro League"),
