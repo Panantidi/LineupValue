@@ -1299,6 +1299,70 @@
       }
     ]
   },
+  "Switzerland": {
+    "Super League": [
+      {
+        "id": "S8MBgwuo",
+        "name": "Basel",
+        "slug": "basel"
+      },
+      {
+        "id": "6oCa40nb",
+        "name": "Grasshoppers",
+        "slug": "grasshoppers"
+      },
+      {
+        "id": "Wd10iFbk",
+        "name": "Lausanne",
+        "slug": "lausanne"
+      },
+      {
+        "id": "IHaUjgT1",
+        "name": "Lugano",
+        "slug": "lugano"
+      },
+      {
+        "id": "CUwhFbWG",
+        "name": "Luzern",
+        "slug": "luzern"
+      },
+      {
+        "id": "Ov2LFx62",
+        "name": "Servette",
+        "slug": "servette"
+      },
+      {
+        "id": "KbwIFIoN",
+        "name": "Sion",
+        "slug": "sion"
+      },
+      {
+        "id": "bkxMEx1T",
+        "name": "St. Gallen",
+        "slug": "st-gallen"
+      },
+      {
+        "id": "4WElAd9p",
+        "name": "Thun",
+        "slug": "thun"
+      },
+      {
+        "id": "vRvKpKGc",
+        "name": "Winterthur",
+        "slug": "winterthur"
+      },
+      {
+        "id": "YXDi6MHo",
+        "name": "Young Boys",
+        "slug": "young-boys"
+      },
+      {
+        "id": "COCe5tXi",
+        "name": "Zurich",
+        "slug": "zurich"
+      }
+    ]
+  },
   "USA": {
     "MLS": [
       {
