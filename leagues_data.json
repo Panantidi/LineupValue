@@ -295,6 +295,70 @@
       }
     ]
   },
+  "Denmark": {
+    "Superliga": [
+      {
+        "id": "OOXnKGbO",
+        "name": "Aarhus",
+        "slug": "aarhus"
+      },
+      {
+        "id": "67R5vKqt",
+        "name": "Brondby",
+        "slug": "brondby"
+      },
+      {
+        "id": "hSPZwbEh",
+        "name": "FC Copenhagen",
+        "slug": "***"
+      },
+      {
+        "id": "WIOwwITb",
+        "name": "Horsens",
+        "slug": "horsens"
+      },
+      {
+        "id": "tjPFkxq5",
+        "name": "Lyngby",
+        "slug": "lyngby"
+      },
+      {
+        "id": "8GZDmdbB",
+        "name": "Midtjylland",
+        "slug": "midtjylland"
+      },
+      {
+        "id": "2wZHnGDH",
+        "name": "Nordsjaelland",
+        "slug": "nordsjaelland"
+      },
+      {
+        "id": "tUXLozTN",
+        "name": "Odense",
+        "slug": "odense"
+      },
+      {
+        "id": "x0NnnfrU",
+        "name": "Randers FC",
+        "slug": "randers-fc"
+      },
+      {
+        "id": "4dCl8IE5",
+        "name": "Silkeborg",
+        "slug": "silkeborg"
+      },
+      {
+        "id": "42ectuVa",
+        "name": "Sonderjyske",
+        "slug": "sonderjyske"
+      },
+      {
+        "id": "v99EsEjo",
+        "name": "Viborg",
+        "slug": "viborg"
+      }
+    ]
+  },
   "England": {
     "Premier League": [
       {
