@@ -357,7 +357,7 @@ def build_signal(
     market_effect = "Ожидается движение линии/коэффициентов из-за новости. Проверь рынки составов, игрока/команды и лайв-лимиты."
 
     parts = [
-        f"⚡️ ALERT • {time_msk} МСК",
+        f"🌀 ALERT • {time_msk} МСК",
         "",
         (team or "").strip(),
         "",
@@ -1280,7 +1280,7 @@ def _validate_classification(obj: dict) -> dict:
         pb = ""
 
         formatted_signal = (
-            f"⚡️ ALERT • {time_line} (МСК)\n\n"
+            f"🌀 ALERT • {time_line} (МСК)\n\n"
             f"<b>{html_escape(priority)}</b>\n\n"
             f"{header_line + '\n\n' if header_line else ''}"
             f"🔗 • {html_escape(original_link)}\n\n"

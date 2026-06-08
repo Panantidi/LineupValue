@@ -513,6 +513,8 @@ async def run_last3_only(team_id, team_name, team_slug=''):
     cache_path = f'{CACHE_DIR}/_live_cache_{team_id}.json'
     with open(cache_path, 'r') as f: cache = json.load(f)
     players = cache['players']
+    # Preserve club/club_logo data (for national teams) across cache overwrites
+    old_club_data = {p.get('name', ''): (p.get('club'), p.get('club_logo')) for p in players}
     if not team_slug:
         team_slug = cache.get('team', {}).get('slug', '')
     known_surnames = set(get_surname(p['name']) for p in players if p.get('name'))
@@ -543,6 +545,12 @@ async def run_last3_only(team_id, team_name, team_slug=''):
         return
 
     cache['players'] = players
+    # Restore club/club_logo data (for national teams) preserved from old cache
+    for p in cache['players']:
+        old = old_club_data.get(p.get('name', ''))
+        if old and old[0] is not None:
+            p['club'] = old[0]
+            p['club_logo'] = old[1]
     cache['matches'] = [{'date': m.date, 'tournament': m.tournament, 'url': m.url, 'mid': m.mid,
                          'score': ld.get('score',''), 'home_team': ld.get('home_team',''), 'away_team': ld.get('away_team','')}
                         for m, ld in zip(matches, lineups_data)]

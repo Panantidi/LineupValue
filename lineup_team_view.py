@@ -134,10 +134,24 @@ def get_nat_html(p):
         club_logo = p.get("club_logo", "")
         if club_logo:
             return f'<span class="club-badge" data-tooltip="{club}"><img src="{club_logo}" alt="{club}" style="width:14px;height:14px;vertical-align:middle;"></span>'
-        else:
-            return f'<span class="club-badge" data-tooltip="{club}">{club[:3]}</span>'
-    return get_flag_html(p.get("national", "–"))
-
+        # No club_logo -- club might be a country name (club team)
+        flag_html = get_flag_html(club)
+        if flag_html != "–" and "flagcdn" in flag_html:
+            return flag_html
+        # Real club name without logo
+        return f'<span class="club-badge" data-tooltip="{club}">{club[:3]}</span>'
+    # Fallback: use national field
+    national = p.get("national", "")
+    if national and national != "–":
+        flag_html = get_flag_html(national)
+        if flag_html != "–" and "flagcdn" in flag_html:
+            return flag_html
+        # Club name in national field
+        club_logo = p.get("club_logo", "")
+        if club_logo:
+            return f'<span class="club-badge" data-tooltip="{national}"><img src="{club_logo}" alt="{national}" style="width:14px;height:14px;vertical-align:middle;"></span>'
+        return f'<span class="club-badge" data-tooltip="{national}">{national[:3]}</span>'
+    return "–"
 def _parse_mv(value):
     s = str(value or "").strip()
     if not s or s in {"-", "—", "?", "N/A", "n/a"}:
@@ -466,8 +480,8 @@ def render_team_view(team_id: str) -> HTMLResponse:
         pos_code = str(p.get("position", "") or "").upper()
         df_aliases = {"DF", "D", "DEF", "DEFENDER", "CB", "LB", "RB", "LWB", "RWB"}
         mf_aliases = {"MF", "M", "MID", "MIDFIELDER", "CM", "DM", "AM", "LM", "RM"}
-        df_fire = " 🔥" if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
-        mf_lightning = " ⚡️" if pos_code in mf_aliases and 5 <= player_impact <= 6.99 and player_minutes >= 900 else ""
+        df_fire = " 🦾" if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
+        mf_lightning = " 🌀" if pos_code in mf_aliases and 5 <= player_impact <= 6.99 and player_minutes >= 900 else ""
         star_impact = " ⭐️" if 7 <= player_impact <= 8.99 and player_minutes >= 900 else ""
         top_impact = " 🔝" if player_impact >= 9 and player_minutes >= 900 else ""
         player_row = f"""
@@ -1511,7 +1525,7 @@ def render_team_view(team_id: str) -> HTMLResponse:
             return Array.from(document.querySelectorAll('.main-table tbody tr[data-player-name]')).map(row => {{
                 const rawName = row.getAttribute('data-player-name') || '';
                 const cells = row.querySelectorAll('td');
-                const displayName = cells[2] ? cells[2].textContent.replace(/[🔥⚡⭐🔝⚽👟️]/g, ' ') : rawName;
+                const displayName = cells[2] ? cells[2].textContent.replace(/[🦾🌀⭐🔝⚽👟️]/g, ' ') : rawName;
                 const number = String(row.getAttribute('data-player-number') || (cells[0] ? cells[0].textContent : '') || '').trim();
                 const norm = bulkNormalizeText(rawName + ' ' + displayName);
                 const parts = bulkNameParts(rawName + ' ' + displayName);
