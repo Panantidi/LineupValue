@@ -455,8 +455,8 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     players = []
     for p in players_raw:
         d = dict(p) if isinstance(p, dict) else vars(p)
-        for old, new in {'minutes':'min','goals':'goal','assists':'assist','yellow_cards':'yellow_card','red_cards':'red_card','player_url':'profile_path'}.items():
-            if old in d and new not in d: d[new] = d.pop(old)
+        for old, new in {'minutes':'min','goals':'goal','assists':'assist','yellow_cards':'yellow_card','red_cards':'red_card','player_url':'profile_path','position':'pos'}.items():
+            if old in d and (new not in d or not d.get(new)): d[new] = d.pop(old)
         players.append(d)
     players = _copy_existing_last3_fields(players, existing_cache)
     enriched = sum(1 for p in players if p.get('market_value') or p.get('position'))
