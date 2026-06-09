@@ -1682,7 +1682,7 @@ async def lineup_compare(team_id: str, mid: str = ""):
     my_html = ""
     if my_team:
         my_html += f'<div class="stat-row"><span class="stat-label">Players</span><span class="stat-value">{len(my_players)}</span></div>'
-        my_html += f'<div class="stat-row"><span class="stat-label">Coach</span><span class="stat-value">{my_team.get("coach_name", my_team.get("coach", "—"))}</span></div>'
+        my_html += f'<div class="stat-row"><span class="stat-label">Coach</span><span class="stat-value">{(my_team.get("coach_name") or (my_team.get("coach") or {}).get("name") or "—")}</span></div>'
         my_html += f'<div class="stat-row"><span class="stat-label">Stadium</span><span class="stat-value">{my_team.get("stadium", "—")}</span></div>'
         my_html += f'<p><a href="/lineup_ai/{team_id}" style="color:#667eea;">Open full team view</a></p>'
     else:
@@ -1691,7 +1691,7 @@ async def lineup_compare(team_id: str, mid: str = ""):
     opp_html = ""
     if opp_data:
         opp_html += f'<div class="stat-row"><span class="stat-label">Players</span><span class="stat-value">{len(opp_players)}</span></div>'
-        opp_html += f'<div class="stat-row"><span class="stat-label">Coach</span><span class="stat-value">{opp_data.get("coach_name", opp_data.get("coach", "—"))}</span></div>'
+        opp_html += f'<div class="stat-row"><span class="stat-label">Coach</span><span class="stat-value">{(opp_data.get("coach_name") or (opp_data.get("coach") or {}).get("name") or "—")}</span></div>'
         opp_html += f'<div class="stat-row"><span class="stat-label">Stadium</span><span class="stat-value">{opp_data.get("stadium", "—")}</span></div>'
         opp_html += f'<p><a href="/lineup_ai/{opponent_id}" style="color:#dc3545;">Open full team view</a></p>'
     else:
