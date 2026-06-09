@@ -323,10 +323,43 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug, limit=6):
     from soccerway_parser import Match
     from playwright.async_api import async_playwright
     comp_map = {
-        'bundesliga': 'BL', '2. bundesliga': 'B2', 'dfb pokal': 'DFB', 'league cup': 'LC',
-        'ligue 1': 'L1', 'serie a': 'SA', 'la liga': 'LL', 'laliga': 'LL', 'premier league': 'PL',
-        'conference league': 'ECL', 'europa league': 'EL', 'champions league': 'CL',
-        'fa cup': 'FA', 'efl cup': 'LC', 'club friendlies': 'FR', 'friendlies': 'FR', 'friendly': 'FR',
+        'premier league': 'PL',
+        'bundesliga': 'BL', '2. bundesliga': 'B2',
+        'ligue 1': 'L1',
+        'serie a': 'SA',
+        'laliga': 'LL', 'la liga': 'LL',
+        'eredivisie': 'ERE',
+        'eliteserien': 'ELT',
+        'allsvenskan': 'ALL',
+        'superliga': 'SUP', 'superligaen': 'SUP',
+        'jupiler pro league': 'JPL',
+        'liga portugal': 'LGP',
+        'super league': 'SL',
+        'major league soccer': 'MLS',
+        'vysshaya liga': 'VYS',
+        'veikkausliiga': 'VEI',
+        'a-league': 'ALE',
+        'champions league': 'CL', 'champions league - qualification': 'CLQ',
+        'europa league': 'EL', 'conference league': 'ECL',
+        'dfb pokal': 'DFB',
+        'fa cup': 'FA',
+        'coupe de france': 'CDF',
+        'copa del rey': 'CDR',
+        'coppa italia': 'COI',
+        'knvb beker': 'KNVB',
+        'belgian cup': 'BCP',
+        'nm cup': 'NMC',
+        'landspokal cup': 'LPC',
+        'swiss cup': 'SWC',
+        'taca de portugal': 'TDP',
+        'belarusian cup': 'BLC',
+        'liiga cup': 'LIC',
+        'suomen cup': 'SUC',
+        'league cup': 'LC', 'efl cup': 'LC',
+        'club friendlies': 'FR', 'friendlies': 'FR', 'friendly': 'FR', 'club friendly': 'FR',
+        'atlantic cup': 'FR',
+        'fifa intercontinental cup': 'FIC',
+        'super cup': 'SCP',
     }
     url = f'{BASE}/team/{team_slug}/{team_id}/results/'
     print(f'  [Playwright] Loading configured results {url}')
@@ -449,6 +482,9 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     if not stadium:
         stadium = stadium_from_page
     print(f'  {len(players_raw)} players, stadium: {stadium}')
+    if len(players_raw) == 0:
+        print('  ABORT: 0 players parsed; keeping existing cache')
+        return
 
     print('[2/5] Enriching...')
     players_raw = await enrich_players_async(players_raw, concurrency=1)

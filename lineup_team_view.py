@@ -518,11 +518,17 @@ def render_team_view(team_id: str) -> HTMLResponse:
         mapping = {
             "L1": "Ligue 1", "L2": "Ligue 2", "PL": "Premier League", "CH": "Championship",
             "LL": "La Liga", "SA": "Serie A", "BL": "Bundesliga", "B2": "2. Bundesliga",
-            "ER": "Eredivisie", "LP": "Liga Portugal", "JPL": "Jupiler Pro League",
-            "SL": "Süper Lig", "SUL": "Super League", "SUP": "Superliga", "ALL": "Allsvenskan",
-            "ELI": "Eliteserien", "FA": "FA Cup", "CDF": "Coupe de France", "CL": "Champions League",
+            "ERE": "Eredivisie", "LGP": "Liga Portugal", "JPL": "Jupiler Pro League",
+            "SL": "Super League", "SUP": "Superliga", "ALL": "Allsvenskan",
+            "ELT": "Eliteserien", "MLS": "Major League Soccer",
+            "VYS": "Vysshaya Liga", "VEI": "Veikkausliiga", "ALE": "A-League",
+            "FA": "FA Cup", "CDF": "Coupe de France", "CL": "Champions League", "CLQ": "Champions League Qual.",
             "EL": "Europa League", "ECL": "Conference League", "DFB": "DFB Pokal", "CDR": "Copa del Rey",
-            "CI": "Coppa Italia", "LC": "League Cup", "CUP": "National Cup",
+            "COI": "Coppa Italia", "KNVB": "KNVB Beker", "BCP": "Belgian Cup",
+            "NMC": "NM Cup", "LPC": "Landspokal Cup", "SWC": "Swiss Cup",
+            "TDP": "Taca de Portugal", "BLC": "Belarusian Cup", "LIC": "Liiga Cup", "SUC": "Suomen Cup",
+            "LC": "League Cup", "CUP": "National Cup",
+            "FIC": "FIFA Intercontinental Cup", "SCP": "Super Cup",
             "FR": "Friendly", "UNK": "Other Competition",
         }
         return mapping.get(key, raw or "Match")
