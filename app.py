@@ -1421,6 +1421,299 @@ async def lineup_api_fetch(team_id: str):
     })
 
 
+
+# --- FIXTURES: fetch upcoming matches for a team ---
+@app.get("/lineup_ai/api/fixtures/{team_id}")
+async def lineup_api_fixtures(team_id: str):
+    """Fetch upcoming fixtures from Soccerway and return as JSON."""
+    import asyncio, re, json
+    from bs4 import BeautifulSoup
+    from playwright.async_api import async_playwright
+
+    BASE = "https://www.soccerway.com"
+    
+    # Look up team slug from leagues_data.json
+    slug = team_id.lower()
+    try:
+        with open("/home/openclaw/FormAlert/leagues_data.json", "r") as fh:
+            ld = json.load(fh)
+        for country, leagues in ld.items():
+            for _league_name, teams in leagues.items():
+                for t in teams:
+                    if t["id"] == team_id:
+                        slug = t.get("slug", slug)
+                        break
+    except Exception:
+        pass
+
+    async def _fetch():
+        url = f"{BASE}/team/{slug}/{team_id}/fixtures/"
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox','--disable-setuid-sandbox',
+                      '--disable-dev-shm-usage','--disable-blink-features=AutomationControlled']
+            )
+            ctx = await browser.new_context(
+                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36',
+                viewport={'width':1920,'height':1080}, locale='en-US'
+            )
+            await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            page = await ctx.new_page()
+            await page.goto(url, wait_until='load', timeout=45000)
+            await page.wait_for_timeout(5000)
+            for _ in range(8):
+                await page.evaluate("window.scrollBy(0, 800)")
+                await page.wait_for_timeout(400)
+            html = await page.content()
+            await browser.close()
+        return html
+
+    try:
+        html = await _fetch()
+    except Exception as e:
+        return JSONResponse(content={"error": str(e), "fixtures": []}, status_code=500)
+
+    soup = BeautifulSoup(html, 'html.parser')
+    fixtures = []
+    seen_mids = set()
+
+    # Parse match links from fixtures page
+    for a in soup.select('a[href*="/match/"]'):
+        href = a.get('href', '')
+        mid_m = re.search(r'[?&]mid=([A-Za-z0-9]+)', href)
+        mid = mid_m.group(1) if mid_m else ''
+        if not mid or mid in seen_mids:
+            continue
+        seen_mids.add(mid)
+
+        parent = a.find_parent('tr') or a.find_parent('div')
+        row_text = parent.get_text(' ', strip=True) if parent else a.get_text(strip=True)
+
+        # Extract date (MM.DD. or DD.MM. pattern with optional time)
+        date = ''
+        dm = re.search(r'(\d{1,2})\.(\d{2})\.\s+(\d{2}:\d{2})?', row_text)
+        if dm:
+            date = f'{dm.group(1).zfill(2)}.{dm.group(2)}'
+            if dm.group(3):
+                date += f' {dm.group(3)}'
+
+        # Extract team names from URL: /match/{home-slug}-{home-id}/{away-slug}-{away-id}/
+        teams_m = re.search(r'/match/([^/]+)/([^/]+)/', href)
+        home_name = ''
+        away_name = ''
+        is_home = True
+        if teams_m:
+            home_slug = teams_m.group(1)
+            away_slug = teams_m.group(2)
+            home_name = home_slug.rsplit('-', 1)[0].replace('-', ' ').title()
+            away_name = away_slug.rsplit('-', 1)[0].replace('-', ' ').title()
+            is_home = team_id == home_slug.rsplit('-', 1)[-1]
+
+        # Competition from header
+        comp = ''
+        league_div = a.find_parent('div', class_=re.compile(r'leagues'))
+        if league_div:
+            header = league_div.find_previous('div', class_=re.compile(r'headerLeague'))
+            if header:
+                comp = header.get_text(' ', strip=True)
+
+        full_url = href if href.startswith('http') else f'{BASE}{href}'
+        fixtures.append({
+            'mid': mid,
+            'date': date,
+            'home': home_name,
+            'away': away_name,
+            'is_home': is_home,
+            'comp': comp,
+            'url': full_url
+        })
+        if len(fixtures) >= 6:
+            break
+
+    return JSONResponse(content={"fixtures": fixtures, "team_id": team_id})
+
+
+# --- COMPARE: side-by-side team comparison for a match ---
+@app.get("/lineup_ai/compare/{team_id}")
+async def lineup_compare(team_id: str, mid: str = ""):
+    """Render side-by-side comparison of two teams for an upcoming match."""
+    import re, os, json
+    from bs4 import BeautifulSoup
+    from playwright.async_api import async_playwright
+
+    BASE = "https://www.soccerway.com"
+    
+    if not mid:
+        return HTMLResponse(content="<h2>Missing match ID (mid parameter)</h2>", status_code=400)
+
+    cache_dir = "/home/openclaw/.openclaw/workspace"
+    my_cache_path = os.path.join(cache_dir, f"_live_cache_{team_id}.json")
+    my_team = None
+    my_name = team_id
+    if os.path.exists(my_cache_path):
+        with open(my_cache_path) as fh:
+            my_team = json.load(fh)
+        my_name = my_team.get("team_name", team_id)
+
+    # Try to find match URL from fixtures page
+    # First, check if we have the opponent in our data
+    # For now, parse the match page directly
+    match_html = ""
+    opponent_id = ""
+    opponent_name = "Opponent"
+    score = ""
+
+    async def _fetch_match():
+        # We need to find the actual match URL - try results page of our team
+        # Look up slug
+        slug = team_id.lower()
+        try:
+            with open("/home/openclaw/FormAlert/leagues_data.json") as fh:
+                ld = json.load(fh)
+            for country, leagues in ld.items():
+                for _ln, teams in leagues.items():
+                    for t in teams:
+                        if t["id"] == team_id:
+                            slug = t.get("slug", slug)
+                            break
+        except Exception:
+            pass
+
+        # Try fixtures page to find match URL
+        fixtures_url = f"{BASE}/team/{slug}/{team_id}/fixtures/"
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox','--disable-setuid-sandbox',
+                      '--disable-dev-shm-usage','--disable-blink-features=AutomationControlled']
+            )
+            ctx = await browser.new_context(
+                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36',
+                viewport={'width':1920,'height':1080}, locale='en-US'
+            )
+            await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            page = await ctx.new_page()
+            await page.goto(fixtures_url, wait_until='load', timeout=45000)
+            await page.wait_for_timeout(5000)
+            for _ in range(6):
+                await page.evaluate("window.scrollBy(0, 600)")
+                await page.wait_for_timeout(300)
+            html = await page.content()
+            await browser.close()
+        return html
+
+    try:
+        html = await _fetch_match()
+    except Exception as e:
+        return HTMLResponse(content=f"<h2>Failed to load fixtures: {e}</h2>", status_code=500)
+
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Find the specific match by mid
+    match_link = soup.select_one(f'a[href*="mid={mid}"]')
+    if not match_link:
+        return HTMLResponse(content=f"<h2>Match {mid} not found on fixtures page</h2>", status_code=404)
+
+    href = match_link.get('href', '')
+    match_url = href if href.startswith('http') else f'{BASE}{href}'
+    
+    # Extract opponent from URL
+    tm = re.search(r'/match/([^/]+)/([^/]+)/', match_url)
+    home_slug_raw = ''
+    away_slug_raw = ''
+    if tm:
+        home_slug_raw = tm.group(1)
+        away_slug_raw = tm.group(2)
+        # Split slug-id (e.g. "inter-miami-0AheRyBg" -> "inter-miami", "0AheRyBg")
+        home_parts = home_slug_raw.rsplit('-', 1)
+        away_parts = away_slug_raw.rsplit('-', 1)
+        home_name = home_parts[0].replace('-', ' ').title()
+        away_name = away_parts[0].replace('-', ' ').title()
+        home_tid = home_parts[1] if len(home_parts) > 1 else ''
+        away_tid = away_parts[1] if len(away_parts) > 1 else ''
+        
+        if home_tid == team_id:
+            opponent_id = away_tid
+            opponent_name = away_name
+            is_home = True
+        else:
+            opponent_id = home_tid
+            opponent_name = home_name
+            is_home = False
+    
+    # Get lineups from the match page
+    lineups_html = ""
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox','--disable-setuid-sandbox',
+                      '--disable-dev-shm-usage','--disable-blink-features=AutomationControlled']
+            )
+            ctx = await browser.new_context(
+                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36',
+                viewport={'width':1920,'height':1080}, locale='en-US'
+            )
+            await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            page = await ctx.new_page()
+            lineups_url = match_url.replace('/?mid=', '/summary/lineups/?mid=')
+            await page.goto(lineups_url, wait_until='load', timeout=45000)
+            await page.wait_for_timeout(6000)
+            lineups_html = await page.content()
+            await browser.close()
+    except Exception:
+        pass
+
+    # Render simple comparison
+    with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
+        template = f.read()
+
+    # Build opponent stats
+    opp_cache_path = os.path.join(cache_dir, f"_live_cache_{opponent_id}.json")
+    opp_data = None
+    if os.path.exists(opp_cache_path):
+        with open(opp_cache_path) as fh:
+            opp_data = json.load(fh)
+
+    my_players = my_team.get("players", []) if my_team else []
+    opp_players = opp_data.get("players", []) if opp_data else []
+    
+    my_html = ""
+    if my_team:
+        my_html += f'<div class="stat-row"><span class="stat-label">Players</span><span class="stat-value">{len(my_players)}</span></div>'
+        my_html += f'<div class="stat-row"><span class="stat-label">Coach</span><span class="stat-value">{my_team.get("coach_name", my_team.get("coach", "—"))}</span></div>'
+        my_html += f'<div class="stat-row"><span class="stat-label">Stadium</span><span class="stat-value">{my_team.get("stadium", "—")}</span></div>'
+        my_html += f'<p><a href="/lineup_ai/{team_id}" style="color:#667eea;">Open full team view</a></p>'
+    else:
+        my_html += f'<p style="color:#888;">Team data not loaded. <a href="/lineup_ai/{team_id}" style="color:#667eea;">Load team first</a></p>'
+
+    opp_html = ""
+    if opp_data:
+        opp_html += f'<div class="stat-row"><span class="stat-label">Players</span><span class="stat-value">{len(opp_players)}</span></div>'
+        opp_html += f'<div class="stat-row"><span class="stat-label">Coach</span><span class="stat-value">{opp_data.get("coach_name", opp_data.get("coach", "—"))}</span></div>'
+        opp_html += f'<div class="stat-row"><span class="stat-label">Stadium</span><span class="stat-value">{opp_data.get("stadium", "—")}</span></div>'
+        opp_html += f'<p><a href="/lineup_ai/{opponent_id}" style="color:#dc3545;">Open full team view</a></p>'
+    else:
+        opp_html += f'<p style="color:#888;">Opponent data not loaded. <a href="/lineup_ai/{opponent_id}" style="color:#dc3545;">Load opponent first</a></p>'
+
+    home_class = "home" if is_home else "away"
+    away_class = "away" if is_home else "home"
+    home_panel = my_html if is_home else opp_html
+    away_panel = opp_html if is_home else my_html
+    home_label = my_name if is_home else opponent_name
+    away_label = opponent_name if is_home else my_name
+
+    result = template.replace("{{home_label}}", home_label).replace("{{away_label}}", away_label)
+    result = result.replace("{{home_panel}}", home_panel).replace("{{away_panel}}", away_panel)
+    result = result.replace("{{home_class}}", home_class).replace("{{away_class}}", away_class)
+    result = result.replace("{{my_name}}", my_name).replace("{{opponent_name}}", opponent_name)
+    result = result.replace("{{mid}}", mid)
+    result = result.replace("{{team_id}}", team_id)
+    result = result.replace("{{opponent_id}}", opponent_id)
+
+    return HTMLResponse(content=result)
+
 @app.get("/lineup_ai/save/{team_id}")
 async def lineup_get_save(team_id: str, request: Request):
     ensure_db()

@@ -132,6 +132,19 @@
             </select>
         </div>
 
+        <div class="form-group" id="match-group" style="display:none;">
+            <label for="match">Match</label>
+            <select id="match" onchange="onMatchChange()">
+                <option value="">-- Select a match --</option>
+            </select>
+        </div>
+
+        <div id="match-actions" style="display:none; text-align: center; margin-top: 20px;">
+            <button id="btn-team-analysis" onclick="openTeamAnalysis()" style="background: #667eea; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; margin: 0 8px;">
+                Team Analysis
+            </button>
+        </div>
+
         <div id="spinner" class="spinner">
             <div class="spinner-circle"></div>
             <div class="spinner-text">Loading squad...</div>
@@ -214,20 +227,67 @@
             teamSelect.disabled = false;
         }
         
+        let fixturesData = null;
+
         async function onTeamChange() {
+            const teamSelect = document.getElementById('team');
+            const teamId = teamSelect.value;
+            const matchSelect = document.getElementById('match');
+            const matchGroup = document.getElementById('match-group');
+            const matchActions = document.getElementById('match-actions');
+            
+            if (!teamId) {
+                matchGroup.style.display = 'none';
+                matchActions.style.display = 'none';
+                return;
+            }
+
+            // Show match dropdown and Team Analysis button
+            matchGroup.style.display = 'block';
+            matchActions.style.display = 'block';
+            
+            // Load fixtures
+            document.getElementById('spinner').classList.add('active');
+            matchSelect.innerHTML = '<option value="">Loading fixtures...</option>';
+            matchSelect.disabled = true;
+            
+            try {
+                const resp = await fetch('/lineup_ai/api/fixtures/' + teamId);
+                const data = await resp.json();
+                fixturesData = data.fixtures || [];
+                
+                matchSelect.innerHTML = '<option value="">-- Select a match --</option>';
+                fixturesData.forEach((f, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = f.date + '  ' + f.home + ' vs ' + f.away;
+                    matchSelect.appendChild(opt);
+                });
+                matchSelect.disabled = false;
+            } catch (e) {
+                console.error('Failed to load fixtures:', e);
+                matchSelect.innerHTML = '<option value="">Failed to load</option>';
+            }
+            document.getElementById('spinner').classList.remove('active');
+        }
+
+        function onMatchChange() {
+            const teamId = document.getElementById('team').value;
+            const idx = document.getElementById('match').value;
+            if (!teamId || idx === '') return;
+            
+            const fixture = fixturesData[parseInt(idx)];
+            if (fixture) {
+                document.getElementById('spinner').classList.add('active');
+                window.location.href = '/lineup_ai/compare/' + teamId + '?mid=' + fixture.mid;
+            }
+        }
+
+        function openTeamAnalysis() {
             const teamId = document.getElementById('team').value;
             if (!teamId) return;
-
-            // Показать спиннер
             document.getElementById('spinner').classList.add('active');
-            
-            // Перейти на страницу команды — спиннер остановится при unload
             window.location.href = '/lineup_ai/' + teamId;
-            
-            // Остановить спиннер через 3с если переход задерживается
-            setTimeout(() => {
-                document.getElementById('spinner').classList.remove('active');
-            }, 3000);
         }
         
         function showError(message) {
