@@ -1655,13 +1655,91 @@ async def lineup_compare(team_id: str, mid: str = ""):
     with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
         template = f.read()
 
+
+    # --- Get match stadium from match page ---
+    match_stadium = ""
+    try:
+        match_url = ""
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox','--disable-setuid-sandbox',
+                      '--disable-dev-shm-usage','--disable-blink-features=AutomationControlled']
+            )
+            ctx = await browser.new_context(
+                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36',
+                viewport={'width':1920,'height':1080}, locale='en-US'
+            )
+            await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            page = await ctx.new_page()
+            # Try match page
+            match_page_url = f"https://www.soccerway.com/match/fixture/{mid}/"
+            await page.goto(match_page_url, wait_until='load', timeout=30000)
+            await page.wait_for_timeout(4000)
+            html = await page.content()
+            await browser.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        # Look for stadium text
+        for el in soup.select('[class*=venue], [class*=stadium], [class*=location]'):
+            txt = el.get_text(strip=True)
+            if txt and len(txt) > 2 and not txt.startswith('http'):
+                match_stadium = txt
+                break
+        if not match_stadium:
+            # Try meta description
+            meta = soup.select_one('meta[name="description"]')
+            if meta:
+                desc = meta.get('content', '')
+                sm = re.search(r'at\s+([^,.]+(?:Stadium|Arena|Field|Park|Ground|Centre|Center|Dome)[^,.]*)', desc, re.I)
+                if sm:
+                    match_stadium = sm.group(1).strip()
+        if not match_stadium:
+            # Fallback: generic text search
+            for span in soup.select('span, div'):
+                txt = span.get_text(strip=True)
+                if any(w in txt.lower() for w in ['stadium', 'arena', 'field', 'park', 'ground', 'centre', 'center', 'dome']):
+                    if len(txt) < 60:
+                        match_stadium = txt
+                        break
+    except Exception:
+        pass
+
+    # --- Determine stadium display: neutral or home? ---
+    home_stadium = ""
+    away_stadium = ""
+    home_cache_path = os.path.join(cache_dir, f"_live_cache_{home_team_id}.json")
+    away_cache_path = os.path.join(cache_dir, f"_live_cache_{away_team_id}.json")
+    if os.path.exists(home_cache_path):
+        with open(home_cache_path) as fh:
+            home_data = json.load(fh)
+        home_stadium = (home_data.get("stadium") or "").strip()
+    if os.path.exists(away_cache_path):
+        with open(away_cache_path) as fh:
+            away_data = json.load(fh)
+        away_stadium = (away_data.get("stadium") or "").strip()
+
+    stadium_text = ""
+    stadium_class = ""
+    if match_stadium:
+        stadium_text = f"({match_stadium})"
+        # Check neutral
+        match_stadium_lower = match_stadium.lower().strip()
+        home_match = home_stadium and match_stadium_lower == home_stadium.lower().strip()
+        away_match = away_stadium and match_stadium_lower == away_stadium.lower().strip()
+        if not home_match and not away_match:
+            stadium_text = f"({match_stadium}) — Neutral Stadium"
+            stadium_class = "neutral"
+
+    # --- Render template ---
     result = template.replace("{{home_team_id}}", home_team_id or team_id)
     result = result.replace("{{away_team_id}}", away_team_id or opponent_id)
     result = result.replace("{{home_name}}", home_team_name)
     result = result.replace("{{away_name}}", away_team_name)
     result = result.replace("{{my_name}}", my_name)
     result = result.replace("{{opponent_name}}", opponent_name)
-    result = result.replace("{{mid}}", mid)
+    result = result.replace("{{middle}}", mid)
+    result = result.replace("{{stadium_text}}", stadium_text)
+    result = result.replace("{{stadium_class}}", stadium_class)
 
     return HTMLResponse(content=result)
 
