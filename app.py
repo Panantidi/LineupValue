@@ -1559,10 +1559,27 @@ async def lineup_compare(team_id: str, mid: str = ""):
     cache_dir = "/home/openclaw/.openclaw/workspace"
     my_cache_path = os.path.join(cache_dir, f"_live_cache_{team_id}.json")
     my_name = team_id
+
+    # Try to find name in leagues_data.json first
+    try:
+        with open("/home/openclaw/FormAlert/leagues_data.json") as fh:
+            ld = json.load(fh)
+        for country, leagues in ld.items():
+            for _ln, teams in leagues.items():
+                for t in teams:
+                    if t["id"] == team_id:
+                        my_name = t.get("name", team_id)
+                        break
+    except Exception:
+        pass
+
+    # Override with cache team_name if available
     if os.path.exists(my_cache_path):
         with open(my_cache_path) as fh:
             my_team = json.load(fh)
-        my_name = my_team.get("team_name", team_id)
+        cache_name = my_team.get("team_name", "")
+        if cache_name:
+            my_name = cache_name
 
     # Find opponent from match URL
     slug = team_id.lower()
