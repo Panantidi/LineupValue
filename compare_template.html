@@ -2,43 +2,56 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Compare: {{my_name}} vs {{opponent_name}}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match: {{home_name}} vs {{away_name}}</title>
 <style>
-* { box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; }
-.header { text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 20px; }
-.header h2 { margin: 0; font-size: 24px; }
-.header p { margin: 8px 0 0; opacity: 0.8; }
-.compare-container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; }
-.team-panel { flex: 1; background: #16213e; border-radius: 12px; padding: 20px; min-width: 0; }
-.team-panel h3 { margin: 0 0 12px; font-size: 20px; text-align: center; }
-.team-panel.home { border-left: 4px solid #667eea; }
-.team-panel.away { border-left: 4px solid #dc3545; }
-.stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a2a4a; }
-.stat-label { color: #888; }
-.stat-value { font-weight: 600; }
-.back-link { display: inline-block; margin-top: 20px; color: #667eea; text-decoration: none; }
-.vs-divider { display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #764ba2; min-width: 60px; }
-@media (max-width: 800px) { .compare-container { flex-direction: column; } .vs-divider { min-width: auto; padding: 10px 0; } }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; overflow-x: auto; }
+.compare-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 12px 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    white-space: nowrap;
+}
+.compare-header h2 { font-size: 22px; margin: 0; }
+.compare-header a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 13px; }
+.compare-header a:hover { text-decoration: underline; }
+.compare-container {
+    display: flex;
+    gap: 0;
+    min-width: max-content;
+    overflow-x: auto;
+    height: calc(100vh - 52px);
+}
+.team-frame {
+    flex: 0 0 auto;
+    width: 50vw;
+    min-width: 700px;
+    border: none;
+}
+.team-divider {
+    width: 2px;
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    flex-shrink: 0;
+}
+@media (max-width: 1440px) {
+    .team-frame { min-width: 600px; }
+}
 </style>
 </head>
 <body>
-<div class="header">
-  <h2>{{my_name}} vs {{opponent_name}}</h2>
-  <p>Match ID: {{mid}}</p>
-  <p><a href="/lineup_ai/select" class="back-link">Back to team selection</a></p>
+<div class="compare-header">
+    <h2>{{home_name}} vs {{away_name}}</h2>
+    <a href="/lineup_ai/select">← Back to team selection</a>
 </div>
-
 <div class="compare-container">
-  <div class="team-panel {{home_class}}">
-    <h3>{{home_label}}</h3>
-    {{home_panel}}
-  </div>
-  <div class="vs-divider">VS</div>
-  <div class="team-panel {{away_class}}">
-    <h3>{{away_label}}</h3>
-    {{away_panel}}
-  </div>
+    <iframe class="team-frame" src="/lineup_ai/{{home_team_id}}" title="{{home_name}}"></iframe>
+    <div class="team-divider"></div>
+    <iframe class="team-frame" src="/lineup_ai/{{away_team_id}}" title="{{away_name}}"></iframe>
 </div>
 </body>
 </html>

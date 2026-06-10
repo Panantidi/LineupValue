@@ -260,7 +260,7 @@
                 fixturesData.forEach((f, i) => {
                     const opt = document.createElement('option');
                     opt.value = i;
-                    opt.textContent = f.date + '  ' + f.home + ' vs ' + f.away;
+                    opt.textContent = f.date + '  ' + f.home + ' - ' + f.away;
                     matchSelect.appendChild(opt);
                 });
                 matchSelect.disabled = false;
