@@ -1680,11 +1680,11 @@ async def lineup_compare(team_id: str, mid: str = ""):
             stadium_class = "neutral"
 
     # --- Render template ---
-    # My team always LEFT, opponent RIGHT
-    result = template.replace("{{my_team_id}}", team_id)
-    result = result.replace("{{opp_team_id}}", opponent_id or "")
-    result = result.replace("{{my_name}}", my_name)
-    result = result.replace("{{opponent_name}}", opponent_name)
+    # Selected team goes where it is in the fixture: home=LEFT, away=RIGHT
+    result = template.replace("{{my_team_id}}", home_team_id)
+    result = result.replace("{{opp_team_id}}", away_team_id or "")
+    result = result.replace("{{my_name}}", home_team_name)
+    result = result.replace("{{opponent_name}}", away_team_name)
     result = result.replace("{{mid}}", mid)
     result = result.replace("{{stadium_text}}", stadium_text)
     result = result.replace("{{stadium_class}}", stadium_class)
