@@ -1656,61 +1656,7 @@ async def lineup_compare(team_id: str, mid: str = ""):
         template = f.read()
 
 
-    # --- Get match stadium from match page ---
-    match_stadium = ""
-    try:
-        match_url = ""
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                args=['--no-sandbox','--disable-setuid-sandbox',
-                      '--disable-dev-shm-usage','--disable-blink-features=AutomationControlled']
-            )
-            ctx = await browser.new_context(
-                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36',
-                viewport={'width':1920,'height':1080}, locale='en-US'
-            )
-            await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            page = await ctx.new_page()
-            # Try match page
-            # Use the actual match URL from fixtures (extracted earlier)
-            match_url_for_stadium = f"https://www.soccerway.com/match/fixture/{mid}/"
-            if opponent_id:
-                # Construct real match URL: /match/{home-slug}-{home-id}/{away-slug}-{away-id}/
-                home_part = f"{home_team_name.lower().replace(' ', '-')}-{home_team_id}" if home_team_id else "home"
-                away_part = f"{away_team_name.lower().replace(' ', '-')}-{away_team_id}" if away_team_id else "away"
-                match_url_for_stadium = f"https://www.soccerway.com/match/{home_part}/{away_part}/?mid={mid}"
-            await page.goto(match_url_for_stadium, wait_until='load', timeout=30000)
-            await page.wait_for_timeout(4000)
-            html = await page.content()
-            await browser.close()
-        soup = BeautifulSoup(html, 'html.parser')
-        # Look for stadium text
-        # Method 1: find "Venue: XXX" text
-        body_text = soup.get_text(' ', strip=True)
-        vm = re.search(r'Venue:\s*([^,]+)', body_text, re.I)
-        if vm:
-            match_stadium = vm.group(1).strip()
-        # Method 2: class-based
-        if not match_stadium:
-            for el in soup.select('[class*=venue], [class*=stadium], [class*=location]'):
-                txt = el.get_text(strip=True)
-                if txt and len(txt) > 2 and not txt.startswith('http'):
-                    match_stadium = txt
-                    break
-        if not match_stadium:
-            # Try meta description
-            meta = soup.select_one('meta[name="description"]')
-            if meta:
-                desc = meta.get('content', '')
-                sm = re.search(r'Venue:\s*([^(]+)', desc, re.I)
-                if sm:
-                    match_stadium = sm.group(1).strip()
-
-    except Exception:
-        pass
-
-    # --- Determine stadium display: neutral or home? ---
+    # --- Stadium: from home team cache, neutral if differs from away ---
     home_stadium = ""
     away_stadium = ""
     home_cache_path = os.path.join(cache_dir, f"_live_cache_{home_team_id}.json")
@@ -1726,16 +1672,14 @@ async def lineup_compare(team_id: str, mid: str = ""):
 
     stadium_text = ""
     stadium_class = ""
-    if match_stadium:
-        stadium_text = f"({match_stadium})"
-        # Check neutral
-        match_stadium_lower = match_stadium.lower().strip()
-        home_match = home_stadium and match_stadium_lower == home_stadium.lower().strip()
-        away_match = away_stadium and match_stadium_lower == away_stadium.lower().strip()
-        if not home_match and not away_match:
-            stadium_text = f"({match_stadium}) — Neutral Stadium"
+    if home_stadium:
+        stadium_text = f"({home_stadium})"
+        # Check if neutral: away stadium differs from home
+        if away_stadium and home_stadium.lower().strip() != away_stadium.lower().strip():
+            stadium_text = f"({home_stadium}) — Neutral Stadium"
             stadium_class = "neutral"
 
+    # --- Render template ---
     # --- Render template ---
     result = template.replace("{{home_team_id}}", home_team_id or team_id)
     result = result.replace("{{away_team_id}}", away_team_id or opponent_id)
