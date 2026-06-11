@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Match: {{home_name}} vs {{away_name}}</title>
+<title>Match: {{my_name}} vs {{opponent_name}}</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: auto; overflow-y: auto; overflow-x: hidden; }
@@ -39,7 +39,7 @@ body {
     min-width: 700px;
     border: none;
     display: block;
-    overflow: hidden;
+    height: 2000px;
 }
 .team-divider {
     width: 2px;
@@ -53,22 +53,22 @@ body {
 </head>
 <body>
 <div class="compare-header">
-    <h2>{{home_name}} vs {{away_name}}</h2>
+    <h2>{{my_name}} vs {{opponent_name}}</h2>
     <div class="stadium {{stadium_class}}">{{stadium_text}}</div>
     <a href="/lineup_ai/select">← Back to team selection</a>
 </div>
 <div class="compare-wrapper">
 <div class="compare-container">
-    <iframe id="home-frame" class="team-frame" src="/lineup_ai/{{home_team_id}}" title="{{home_name}}"></iframe>
+    <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}" title="{{my_name}}"></iframe>
     <div class="team-divider"></div>
-    <iframe id="away-frame" class="team-frame" src="/lineup_ai/{{away_team_id}}" title="{{away_name}}"></iframe>
+    <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}" title="{{opponent_name}}"></iframe>
 </div>
 </div>
 
 <script>
 (function() {
-    var homeFrame = document.getElementById('home-frame');
-    var awayFrame = document.getElementById('away-frame');
+    var myFrame = document.getElementById('my-frame');
+    var oppFrame = document.getElementById('opp-frame');
     var maxChecks = 30;
     var checkCount = 0;
 
@@ -85,42 +85,37 @@ body {
         try {
             var doc = frame.contentDocument || frame.contentWindow.document;
             if (!doc) return;
-            // Hide save-related elements by common text/class patterns
             var all = doc.querySelectorAll('button, a, div, span, form');
             all.forEach(function(el) {
                 var txt = (el.textContent || '').trim();
                 var cls = (el.className || '').toString();
                 var id = (el.id || '').toString();
-                // Save buttons
                 if (el.tagName === 'BUTTON' && (txt.includes('Save') || txt.includes('Сохранить'))) {
                     el.style.display = 'none';
                 }
-                // My Squads block
                 if (cls.includes('my-squads') || cls.includes('save-panel') || cls.includes('save-block') ||
                     id.includes('save') || id.includes('my-squads') || id.includes('squad-save')) {
                     el.style.display = 'none';
                 }
-                // Elements containing "My Squads" text
                 if (txt === 'My Squads' || txt === 'Мои составы' || txt.includes('My Squads')) {
                     el.style.display = 'none';
                 }
             });
-            // Also hide the save form if present
             var saveForms = doc.querySelectorAll('form[action*="save"]');
             saveForms.forEach(function(f) { f.style.display = 'none'; });
         } catch(e) {}
     }
 
     var interval = setInterval(function() {
-        resizeFrame(homeFrame);
-        resizeFrame(awayFrame);
-        hideSaveInGuest(awayFrame);
+        resizeFrame(myFrame);
+        resizeFrame(oppFrame);
+        hideSaveInGuest(oppFrame);
         checkCount++;
         if (checkCount >= maxChecks) clearInterval(interval);
     }, 1500);
 
-    homeFrame.onload = function() { resizeFrame(homeFrame); };
-    awayFrame.onload = function() { resizeFrame(awayFrame); hideSaveInGuest(awayFrame); };
+    myFrame.onload = function() { resizeFrame(myFrame); };
+    oppFrame.onload = function() { resizeFrame(oppFrame); hideSaveInGuest(oppFrame); };
 })();
 </script>
 </body>
