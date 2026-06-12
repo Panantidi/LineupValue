@@ -1526,11 +1526,19 @@ async def lineup_api_fixtures(team_id: str):
             is_home = team_id in home_slug
 
         full_url = href if href.startswith('http') else f'{BASE}{href}'
+        # Extract team IDs from URL slug: /match/home-slug-homeID/away-slug-awayID/
+        home_id = ''
+        away_id = ''
+        if teams_m:
+            home_id = home_slug.rsplit('-', 1)[-1] if '-' in home_slug else ''
+            away_id = away_slug.rsplit('-', 1)[-1] if '-' in away_slug else ''
         fixtures.append({
             'mid': mid,
             'date': date_str,
             'home': home_name,
             'away': away_name,
+            'home_id': home_id,
+            'away_id': away_id,
             'is_home': is_home,
             'url': full_url
         })

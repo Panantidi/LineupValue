@@ -279,17 +279,11 @@
             const fixture = fixturesData[parseInt(idx)];
             if (fixture) {
                 document.getElementById('spinner').classList.add('active');
-                // Extract opponent ID from fixture URL
-                let oppId = '';
-                const urlMatch = fixture.url && fixture.url.match(/\/match\/([^/]+)-([A-Za-z0-9]+)\/([^/]+)-([A-Za-z0-9]+)\//);
-                if (urlMatch) {
-                    const homeId = urlMatch[2], awayId = urlMatch[4];
-                    oppId = (homeId === teamId) ? awayId : homeId;
-                }
-                const homeId = fixture.is_home ? teamId : oppId;
-                const awayId = fixture.is_home ? oppId : teamId;
-                const homeNm = fixture.is_home ? fixture.home : fixture.away;
-                const awayNm = fixture.is_home ? fixture.away : fixture.home;
+                // Use IDs from fixtures API directly
+                const homeId = fixture.home_id || '';
+                const awayId = fixture.away_id || '';
+                const homeNm = fixture.home || '';
+                const awayNm = fixture.away || '';
                 const params = new URLSearchParams({
                     mid: fixture.mid,
                     home_id: homeId,
