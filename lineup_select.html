@@ -281,9 +281,9 @@
                 document.getElementById('spinner').classList.add('active');
                 // Extract opponent ID from fixture URL
                 let oppId = '';
-                const m = fixture.url && fixture.url.match(/\/match\/([^/]+)-([A-Za-z0-9]+)\/([^/]+)-([A-Za-z0-9]+)\//);-([A-Za-z0-9]+)\/([^/]+)-([A-Za-z0-9]+)\//);
-                if (m) {
-                    const homeId = m[2], awayId = m[4];
+                const urlMatch = fixture.url && fixture.url.match(/\/match\/([^/]+)-([A-Za-z0-9]+)\/([^/]+)-([A-Za-z0-9]+)\//);
+                if (urlMatch) {
+                    const homeId = urlMatch[2], awayId = urlMatch[4];
                     oppId = (homeId === teamId) ? awayId : homeId;
                 }
                 const homeId = fixture.is_home ? teamId : oppId;
