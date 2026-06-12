@@ -279,7 +279,25 @@
             const fixture = fixturesData[parseInt(idx)];
             if (fixture) {
                 document.getElementById('spinner').classList.add('active');
-                window.location.href = '/lineup_ai/compare/' + teamId + '?mid=' + fixture.mid;
+                // Extract opponent ID from fixture URL
+                let oppId = '';
+                const m = fixture.url && fixture.url.match(/\/match\/([^/]+)-([A-Za-z0-9]+)\/([^/]+)-([A-Za-z0-9]+)\//);-([A-Za-z0-9]+)\/([^/]+)-([A-Za-z0-9]+)\//);
+                if (m) {
+                    const homeId = m[2], awayId = m[4];
+                    oppId = (homeId === teamId) ? awayId : homeId;
+                }
+                const homeId = fixture.is_home ? teamId : oppId;
+                const awayId = fixture.is_home ? oppId : teamId;
+                const homeNm = fixture.is_home ? fixture.home : fixture.away;
+                const awayNm = fixture.is_home ? fixture.away : fixture.home;
+                const params = new URLSearchParams({
+                    mid: fixture.mid,
+                    home_id: homeId,
+                    away_id: awayId,
+                    home_name: homeNm,
+                    away_name: awayNm
+                });
+                window.location.href = '/lineup_ai/compare/' + teamId + '?' + params.toString();
             }
         }
 

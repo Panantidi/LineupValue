@@ -1544,117 +1544,35 @@ async def lineup_api_fixtures(team_id: str):
 # --- COMPARE: side-by-side team comparison for a match ---
 # --- COMPARE: side-by-side match comparison with full team views ---
 @app.get("/lineup_ai/compare/{team_id}")
-async def lineup_compare(team_id: str, mid: str = ""):
-    """Render two full team views side-by-side for an upcoming match."""
-    import re, os, json
-    from bs4 import BeautifulSoup
-    from playwright.async_api import async_playwright
+async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id: str = "", home_name: str = "", away_name: str = ""):
+    """Render two full team views side-by-side for an upcoming match.
+    All match data (home_id, away_id, names) is passed from the select page
+    which already has it from the fixtures API — no Playwright needed here."""
+    import os, json
 
-    BASE = "https://www.soccerway.com"
-    
     if not mid:
         return HTMLResponse(content="<h2>Missing match ID (mid parameter)</h2>", status_code=400)
 
-    # Get our team name
     cache_dir = "/home/openclaw/.openclaw/workspace"
-    my_cache_path = os.path.join(cache_dir, f"_live_cache_{team_id}.json")
-    my_name = team_id
 
-    # Try to find name in leagues_data.json first
-    try:
-        with open("/home/openclaw/FormAlert/leagues_data.json") as fh:
-            ld = json.load(fh)
-        for country, leagues in ld.items():
-            for _ln, teams in leagues.items():
-                for t in teams:
-                    if t["id"] == team_id:
-                        my_name = t.get("name", team_id)
-                        break
-    except Exception:
-        pass
+    # Use passed names, fall back to team_id
+    if not home_name:
+        home_name = home_id or team_id
+    if not away_name:
+        away_name = away_id or "Opponent"
 
-    # Override with cache team_name if available
-    if os.path.exists(my_cache_path):
-        with open(my_cache_path) as fh:
-            my_team = json.load(fh)
-        cache_name = my_team.get("team_name", "")
-        if cache_name:
-            my_name = cache_name
+    home_team_id = home_id or team_id
+    away_team_id = away_id or ""
 
-    # Find opponent from match URL
-    slug = team_id.lower()
-    try:
-        with open("/home/openclaw/FormAlert/leagues_data.json") as fh:
-            ld = json.load(fh)
-        for country, leagues in ld.items():
-            for _ln, teams in leagues.items():
-                for t in teams:
-                    if t["id"] == team_id:
-                        slug = t.get("slug", slug)
-                        break
-    except Exception:
-        pass
-
-    opponent_id = ""
-    opponent_name = "Opponent"
-    is_home = True
-
-    # Go to fixtures page to find the match URL
-    fixtures_url = f"{BASE}/team/{slug}/{team_id}/fixtures/"
-    try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                args=['--no-sandbox','--disable-setuid-sandbox',
-                      '--disable-dev-shm-usage','--disable-blink-features=AutomationControlled']
-            )
-            ctx = await browser.new_context(
-                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36',
-                viewport={'width':1920,'height':1080}, locale='en-US'
-            )
-            await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            page = await ctx.new_page()
-            await page.goto(fixtures_url, wait_until='load', timeout=45000)
-            await page.wait_for_timeout(5000)
-            for _ in range(6):
-                await page.evaluate("window.scrollBy(0, 600)")
-                await page.wait_for_timeout(300)
-            html = await page.content()
-            await browser.close()
-
-        soup = BeautifulSoup(html, 'html.parser')
-        match_link = soup.select_one(f'a[href*="mid={mid}"]')
-        if match_link:
-            href = match_link.get('href', '')
-            match_url = href if href.startswith('http') else f'{BASE}{href}'
-            tm = re.search(r'/match/([^/]+)/([^/]+)/', match_url)
-            if tm:
-                home_parts = tm.group(1).rsplit('-', 1)
-                away_parts = tm.group(2).rsplit('-', 1)
-                home_name = home_parts[0].replace('-', ' ').title()
-                away_name = away_parts[0].replace('-', ' ').title()
-                home_tid = home_parts[1] if len(home_parts) > 1 else ''
-                away_tid = away_parts[1] if len(away_parts) > 1 else ''
-                if home_tid == team_id:
-                    opponent_id = away_tid
-                    opponent_name = away_name
-                    is_home = True
-                else:
-                    opponent_id = home_tid
-                    opponent_name = home_name
-                    is_home = False
-    except Exception:
-        pass
-
-    home_team_id = team_id if is_home else opponent_id
-    away_team_id = opponent_id if is_home else team_id
-    home_team_name = my_name if is_home else opponent_name
-    away_team_name = opponent_name if is_home else my_name
-
-    # Read template
-    with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
-        template = f.read()
-
+    # If no away_id provided, try to determine from cache
+    if not away_team_id:
+        my_cache_path = os.path.join(cache_dir, f"_live_cache_{team_id}.json")
+        if os.path.exists(my_cache_path):
+            with open(my_cache_path) as fh:
+                my_team = json.load(fh)
+            cache_name = my_team.get("team_name", "")
+            if cache_name:
+                home_name = cache_name
 
     # --- Stadium: from home team cache, neutral if differs from away ---
     home_stadium = ""
@@ -1674,22 +1592,25 @@ async def lineup_compare(team_id: str, mid: str = ""):
     stadium_class = ""
     if home_stadium:
         stadium_text = f"({home_stadium})"
-        # Check if neutral: away stadium differs from home
         if away_stadium and home_stadium.lower().strip() != away_stadium.lower().strip():
             stadium_text = f"({home_stadium}) — Neutral Stadium"
             stadium_class = "neutral"
 
     # --- Render template ---
+    with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
+        template = f.read()
+
     # Selected team goes where it is in the fixture: home=LEFT, away=RIGHT
     result = template.replace("{{my_team_id}}", home_team_id)
     result = result.replace("{{opp_team_id}}", away_team_id or "")
-    result = result.replace("{{my_name}}", home_team_name)
-    result = result.replace("{{opponent_name}}", away_team_name)
+    result = result.replace("{{my_name}}", home_name)
+    result = result.replace("{{opponent_name}}", away_name)
     result = result.replace("{{mid}}", mid)
     result = result.replace("{{stadium_text}}", stadium_text)
     result = result.replace("{{stadium_class}}", stadium_class)
 
     return HTMLResponse(content=result)
+
 
 # Legacy redirect: /team/{team_id}/compare?mid=... -> /lineup_ai/compare/{team_id}?mid=...
 @app.get("/team/{team_id}/compare")
