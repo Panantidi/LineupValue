@@ -189,7 +189,7 @@ def _safe_num(value, default=0.0, cast=float):
         return cast(default)
 
 
-def render_team_view(team_id: str) -> HTMLResponse:
+def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     """Render team squad page"""
     DATA_DIR = "/home/openclaw/.openclaw/workspace"
     
@@ -2239,20 +2239,23 @@ def render_team_view(team_id: str) -> HTMLResponse:
             }}
         }}
 
-        // === Background live-data sync: no visible popup/bar ===
-        (function() {{
-            var teamId = window.location.pathname.split('/').pop();
-            fetch('/lineup_ai/api/fetch/' + teamId)
-                .then(function(r) {{ return r.json(); }})
-                .then(function(data) {{
-                    if (data && data.changed) {{
-                        window.location.reload();
-                    }}
-                }})
-                .catch(function(err) {{
-                    console.log('Background live-data sync failed:', err);
-                }});
-        }})();
+        // === Background live-data sync: disabled in embed mode ===
+        var IS_EMBED = window.location.search.indexOf('embed=1') !== -1;
+        if (!IS_EMBED) {{
+            (function() {{
+                var teamId = window.location.pathname.split('/').pop();
+                fetch('/lineup_ai/api/fetch/' + teamId)
+                    .then(function(r) {{ return r.json(); }})
+                    .then(function(data) {{
+                        if (data && data.changed) {{
+                            window.location.reload();
+                        }}
+                    }})
+                    .catch(function(err) {{
+                        console.log('Background live-data sync failed:', err);
+                    }});
+            }})();
+        }}
 
     
 </script>
