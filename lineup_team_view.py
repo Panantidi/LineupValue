@@ -2250,10 +2250,23 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const infoBar = document.getElementById('info-bar-squad');
                 const compTable = document.getElementById('comparison-table');
                 const mainTable = document.querySelector('.table-container');
+                const realTable = mainTable ? mainTable.querySelector('table') : null;
 
-                // Use the full table scroll width, not the clipped container width
-                const fullW = mainTable ? mainTable.scrollWidth : document.querySelector('.container').offsetWidth;
+                // Measure the NATURAL width of the table (sum of all column widths)
+                let fullW = 1200;
+                if (realTable) {{
+                    // Clone just the table, set width to auto, measure natural width
+                    const probe = realTable.cloneNode(true);
+                    probe.style.width = 'auto';
+                    probe.style.position = 'absolute';
+                    probe.style.visibility = 'hidden';
+                    probe.style.left = '-9999px';
+                    document.body.appendChild(probe);
+                    fullW = Math.max(probe.offsetWidth, mainTable.scrollWidth, 1200);
+                    document.body.removeChild(probe);
+                }}
 
+                // Build capture container at natural table width
                 const capture = document.createElement('div');
                 capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + fullW + 'px;';
 
@@ -2266,8 +2279,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (compTable) capture.appendChild(compTable.cloneNode(true));
                 if (mainTable) {{
                     const mtClone = mainTable.cloneNode(true);
+                    // Force the clone and its table to expand fully
                     mtClone.style.overflow = 'visible';
                     mtClone.style.width = fullW + 'px';
+                    const innerTable = mtClone.querySelector('table');
+                    if (innerTable) innerTable.style.width = fullW + 'px';
                     capture.appendChild(mtClone);
                 }}
 
@@ -2279,8 +2295,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     scale: 2,
                     useCORS: true,
                     logging: false,
-                    width: fullW + 32,
-                    windowWidth: fullW + 400
+                    width: capture.scrollWidth,
+                    height: capture.scrollHeight,
+                    windowWidth: capture.scrollWidth + 200
                 }});
 
                 document.body.removeChild(capture);
