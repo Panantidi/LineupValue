@@ -1182,10 +1182,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
 
         <!-- Comparison Tables: P-XI left, S-XI right — full width (Squad mode) -->
-        <div id="comparison-table" style="display:flex;gap:12px;margin-bottom:16px;">
+        <div id="comparison-table" style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch;">
             <!-- Possible XI -->
-            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;display:flex;flex-direction:column;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;height:100%;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
@@ -1217,12 +1217,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </table>
             </div>
             <!-- Value S-XI: STARTING XI vs POSSIBLE XI Δ (%) only -->
-            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;display:flex;flex-direction:column;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;height:100%;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">STARTING XI vs POSSIBLE XI Δ (%)</th>
+                        <th colspan="3" style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">STARTING XI vs POSSIBLE XI Δ (%)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1242,8 +1242,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </table>
             </div>
             <!-- Starting XI -->
-            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;display:flex;flex-direction:column;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;height:100%;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
