@@ -2243,6 +2243,44 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
         }}
 
+        // Returns a Promise<canvas> for use by parent (Match mode)
+        async function getScreenshotCanvas() {{
+            try {{
+                const teamName = document.querySelector('.header h1').textContent.trim();
+                const infoBar = document.getElementById('info-bar-squad');
+                const compTable = document.getElementById('comparison-table');
+                const mainTable = document.querySelector('.table-container');
+
+                const capture = document.createElement('div');
+                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + document.querySelector('.container').offsetWidth + 'px;';
+
+                const hdr = document.createElement('div');
+                hdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
+                hdr.textContent = teamName;
+                capture.appendChild(hdr);
+
+                if (infoBar) capture.appendChild(infoBar.cloneNode(true));
+                if (compTable) capture.appendChild(compTable.cloneNode(true));
+                if (mainTable) capture.appendChild(mainTable.cloneNode(true));
+
+                _replaceCheckboxesWithCircles(capture);
+                document.body.appendChild(capture);
+
+                const canvas = await html2canvas(capture, {{
+                    backgroundColor: '#f4f6f9',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                }});
+
+                document.body.removeChild(capture);
+                return canvas;
+            }} catch(e) {{
+                console.error('Capture failed:', e);
+                return null;
+            }}
+        }}
+
         // === Background live-data sync: disabled in embed mode ===
         var IS_EMBED = window.location.search.indexOf('embed=1') !== -1;
         if (!IS_EMBED) {{
