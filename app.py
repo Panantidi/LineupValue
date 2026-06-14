@@ -1582,7 +1582,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
             if cache_name:
                 home_name = cache_name
 
-    # --- Stadium: show home team's stadium; neutral if it matches neither team ---
+    # --- Stadium: try to get actual match venue from Soccerway match page ---
     home_stadium = ""
     away_stadium = ""
     home_cache_path = os.path.join(cache_dir, f"_live_cache_{home_team_id}.json")
@@ -1596,16 +1596,35 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
             away_data = json.load(fh)
         away_stadium = (away_data.get("stadium") or "").strip()
 
-    # Match is played at home team's stadium by default.
-    # Neutral only if match venue differs from BOTH home and away team stadiums.
-    stadium_text = home_stadium or ""
+    # Try to fetch actual match venue from Soccerway match page
+    import httpx as _httpx
+    match_venue = ""
+    try:
+        match_url = f"https://www.soccerway.com/match/{home_name.lower().replace(' ', '-')}-{home_team_id}/{away_name.lower().replace(' ', '-')}-{away_team_id}/?mid={mid}"
+        resp = _httpx.get(match_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, follow_redirects=True)
+        # Soccerway embeds venue in JSON: {"DM":"Neutral location - Red Bull Arena."}
+        import re as _re
+        dm_match = _re.search(r'"DM":"([^"]*Neutral location[^"]*)"', resp.text)
+        if dm_match:
+            # Extract venue name after "Neutral location - "
+            dm_text = dm_match.group(1)
+            venue_m = _re.search(r'Neutral location\s*-?\s*(.+)', dm_text, _re.IGNORECASE)
+            if venue_m:
+                match_venue = venue_m.group(1).strip().rstrip(".")
+    except Exception:
+        pass
+
+    stadium_text = ""
     stadium_class = ""
     neutral_suffix = ""
-    if stadium_text and away_stadium:
-        v = stadium_text.lower().strip()
-        if v != home_stadium.lower().strip() and v != away_stadium.lower().strip():
-            stadium_class = "neutral"
-            neutral_suffix = " — Neutral Stadium"
+    if match_venue:
+        # Match is at a neutral venue
+        stadium_text = match_venue
+        stadium_class = "neutral"
+        neutral_suffix = " — Neutral Stadium"
+    else:
+        # Normal: match at home team's stadium
+        stadium_text = home_stadium or ""
 
     # --- Render template ---
     with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
