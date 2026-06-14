@@ -1582,7 +1582,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
             if cache_name:
                 home_name = cache_name
 
-    # --- Stadium: from home team cache, neutral if differs from away ---
+    # --- Stadium: show home team's stadium; neutral if it matches neither team ---
     home_stadium = ""
     away_stadium = ""
     home_cache_path = os.path.join(cache_dir, f"_live_cache_{home_team_id}.json")
@@ -1596,13 +1596,16 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
             away_data = json.load(fh)
         away_stadium = (away_data.get("stadium") or "").strip()
 
-    stadium_text = ""
+    # Match is played at home team's stadium by default.
+    # Neutral only if match venue differs from BOTH home and away team stadiums.
+    stadium_text = home_stadium or ""
     stadium_class = ""
-    if home_stadium:
-        stadium_text = f"({home_stadium})"
-        if away_stadium and home_stadium.lower().strip() != away_stadium.lower().strip():
-            stadium_text = f"({home_stadium}) — Neutral Stadium"
+    neutral_suffix = ""
+    if stadium_text and away_stadium:
+        v = stadium_text.lower().strip()
+        if v != home_stadium.lower().strip() and v != away_stadium.lower().strip():
             stadium_class = "neutral"
+            neutral_suffix = " — Neutral Stadium"
 
     # --- Render template ---
     with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
@@ -1616,6 +1619,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     result = result.replace("{{mid}}", mid)
     result = result.replace("{{stadium_text}}", stadium_text)
     result = result.replace("{{stadium_class}}", stadium_class)
+    result = result.replace("{{neutral_suffix}}", neutral_suffix)
 
     return HTMLResponse(content=result)
 

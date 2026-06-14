@@ -23,8 +23,8 @@ body {
     box-shadow: 0 2px 12px rgba(0,0,0,0.4);
 }
 .compare-header h2 { font-size: 20px; margin: 0; }
-.compare-header .stadium { font-size: 13px; opacity: 0.85; margin-top: 4px; }
-.compare-header .stadium.neutral { color: #ff9800; font-weight: 600; }
+.compare-header .stadium { font-size: 14px; opacity: 0.85; margin-top: 6px; text-align: center; }
+.compare-header .stadium.neutral { color: #ffc107; font-weight: 700; opacity: 1; }
 .compare-header-controls {
     position: absolute;
     right: 20px;
@@ -87,7 +87,7 @@ body {
 <body>
 <div class="compare-header">
     <h2>{{my_name}} vs {{opponent_name}}</h2>
-    <div class="stadium {{stadium_class}}">{{stadium_text}}</div>
+    <div class="stadium {{stadium_class}}">{{stadium_text}}{{neutral_suffix}}</div>
     <div class="compare-header-controls">
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
         <button onclick="exportMatchScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
