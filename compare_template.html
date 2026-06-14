@@ -90,7 +90,7 @@ body {
     <div class="stadium {{stadium_class}}">{{stadium_text}}</div>
     <div class="compare-header-controls">
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
-        <button onclick="exportLeftScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
+        <button onclick="exportMatchScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
     </div>
 </div>
 <div class="compare-wrapper" id="scroll-wrapper">
@@ -161,13 +161,125 @@ body {
         resizeFrame(oppFrame);
     };
 
-    window.exportLeftScreenshot = function() {
+    window.exportMatchScreenshot = function() {
+        var btn = event.target.closest('button');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
         try {
-            myFrame.contentWindow.exportScreenshot();
+            captureBoth();
         } catch(e) {
             alert('Screenshot failed: ' + e.message);
+            if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
         }
     };
+
+    function captureBoth() {
+        // Load html2canvas into the parent document
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onload = function() { doCapture(); };
+        script.onerror = function() { alert('Failed to load html2canvas'); };
+        document.head.appendChild(script);
+    }
+
+    function doCapture() {
+        var myDoc = myFrame.contentDocument || myFrame.contentWindow.document;
+        var oppDoc = oppFrame.contentDocument || oppFrame.contentWindow.document;
+
+        var myName = (myDoc.querySelector('.header h1') || {}).textContent || 'Home';
+        var oppName = (oppDoc.querySelector('.header h1') || {}).textContent || 'Away';
+
+        var myInfoBar = myDoc.getElementById('info-bar-squad');
+        var myCompTable = myDoc.getElementById('comparison-table');
+        var myMainTable = myDoc.querySelector('.table-container');
+        var oppInfoBar = oppDoc.getElementById('info-bar-squad');
+        var oppCompTable = oppDoc.getElementById('comparison-table');
+        var oppMainTable = oppDoc.querySelector('.table-container');
+
+        // Build off-screen container
+        var capture = document.createElement('div');
+        capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:20px;display:flex;gap:20px;align-items:flex-start;width:auto;';
+
+        // Build left column (my team)
+        var leftCol = document.createElement('div');
+        leftCol.style.cssText = 'flex:0 0 auto;';
+        var leftHdr = document.createElement('div');
+        leftHdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
+        leftHdr.textContent = myName;
+        leftCol.appendChild(leftHdr);
+        if (myInfoBar) leftCol.appendChild(myInfoBar.cloneNode(true));
+        if (myCompTable) leftCol.appendChild(myCompTable.cloneNode(true));
+        if (myMainTable) leftCol.appendChild(myMainTable.cloneNode(true));
+
+        // Build right column (opponent)
+        var rightCol = document.createElement('div');
+        rightCol.style.cssText = 'flex:0 0 auto;';
+        var rightHdr = document.createElement('div');
+        rightHdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
+        rightHdr.textContent = oppName;
+        rightCol.appendChild(rightHdr);
+        if (oppInfoBar) rightCol.appendChild(oppInfoBar.cloneNode(true));
+        if (oppCompTable) rightCol.appendChild(oppCompTable.cloneNode(true));
+        if (oppMainTable) rightCol.appendChild(oppMainTable.cloneNode(true));
+
+        capture.appendChild(leftCol);
+        capture.appendChild(rightCol);
+        document.body.appendChild(capture);
+
+        // Replace checkboxes with circles in both columns
+        replaceCheckboxes(capture);
+
+        html2canvas(capture, {
+            backgroundColor: '#f4f6f9',
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            width: capture.offsetWidth,
+            height: capture.offsetHeight
+        }).then(function(canvas) {
+            document.body.removeChild(capture);
+            var link = document.createElement('a');
+            link.download = myName.replace(/\s+/g,'_') + '_vs_' + oppName.replace(/\s+/g,'_') + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            var btn = document.querySelector('.compare-header-controls button');
+            if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        }).catch(function(err) {
+            document.body.removeChild(capture);
+            console.error('Export failed:', err);
+            alert('Export failed: ' + err.message);
+            var btn = document.querySelector('.compare-header-controls button');
+            if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        });
+    }
+
+    function replaceCheckboxes(root) {
+        var inputs = root.querySelectorAll('input[type=checkbox]');
+        inputs.forEach(function(inp) {
+            var div = document.createElement('div');
+            div.style.cssText = 'width:20px;height:20px;border-radius:50%;display:inline-block;vertical-align:middle;';
+            var cls = inp.className || '';
+            if (cls.indexOf('squad-checkbox') !== -1) {
+                div.style.background = inp.checked ? '#000' : '#e0e0e0';
+                if (!inp.checked) div.style.border = '2px solid #333';
+            } else if (cls.indexOf('xi-checkbox') !== -1) {
+                div.style.background = inp.checked ? '#667eea' : '#e0e0e0';
+                if (!inp.checked) div.style.border = '2px solid #667eea';
+            } else if (cls.indexOf('starting-checkbox') !== -1) {
+                div.style.background = inp.checked ? '#dc3545' : '#e0e0e0';
+                if (!inp.checked) div.style.border = '2px solid #dc3545';
+            } else {
+                div.style.background = inp.checked ? '#000' : '#e0e0e0';
+                if (!inp.checked) div.style.border = '2px solid #333';
+            }
+            if (inp.checked) {
+                div.style.display = 'inline-flex';
+                div.style.alignItems = 'center';
+                div.style.justifyContent = 'center';
+                div.innerHTML = '<span style="color:white;font-size:13px;line-height:1;">✓</span>';
+            }
+            inp.parentNode.replaceChild(div, inp);
+        });
+    }
 })();
 </script>
 </body>
