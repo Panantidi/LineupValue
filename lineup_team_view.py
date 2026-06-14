@@ -2251,8 +2251,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const compTable = document.getElementById('comparison-table');
                 const mainTable = document.querySelector('.table-container');
 
+                // Use the full table scroll width, not the clipped container width
+                const fullW = mainTable ? mainTable.scrollWidth : document.querySelector('.container').offsetWidth;
+
                 const capture = document.createElement('div');
-                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + document.querySelector('.container').offsetWidth + 'px;';
+                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + fullW + 'px;';
 
                 const hdr = document.createElement('div');
                 hdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
@@ -2261,7 +2264,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
                 if (infoBar) capture.appendChild(infoBar.cloneNode(true));
                 if (compTable) capture.appendChild(compTable.cloneNode(true));
-                if (mainTable) capture.appendChild(mainTable.cloneNode(true));
+                if (mainTable) {{
+                    const mtClone = mainTable.cloneNode(true);
+                    mtClone.style.overflow = 'visible';
+                    mtClone.style.width = fullW + 'px';
+                    capture.appendChild(mtClone);
+                }}
 
                 _replaceCheckboxesWithCircles(capture);
                 document.body.appendChild(capture);
@@ -2270,7 +2278,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     backgroundColor: '#f4f6f9',
                     scale: 2,
                     useCORS: true,
-                    logging: false
+                    logging: false,
+                    width: fullW + 32,
+                    windowWidth: fullW + 400
                 }});
 
                 document.body.removeChild(capture);
