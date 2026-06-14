@@ -1061,7 +1061,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
         /* Embed mode: remove inner scroll, parent handles it */
-        body.embed-mode {{ overflow: hidden; }}
+        body.embed-mode {{ overflow: visible; }}
         body.embed-mode .table-container {{ overflow: visible; }}
         body.embed-mode .main-table {{ overflow: visible; }}
     </style>

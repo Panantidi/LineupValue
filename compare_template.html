@@ -59,15 +59,15 @@ body {
 .compare-wrapper {
     flex: 1 1 auto;
     display: flex;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .compare-container {
     display: flex;
     flex: 1 0 auto;
     gap: 0;
     min-width: min-content;
-    height: 100%;
-    overflow-y: auto;
+    align-items: flex-start;
 }
 .team-frame {
     flex: 1 1 0;
@@ -75,13 +75,12 @@ body {
     width: 50%;
     border: none;
     display: block;
-    height: 100%;
-    overflow: hidden;
 }
 .team-divider {
     width: 2px;
     background: linear-gradient(180deg, #667eea, #764ba2);
     flex-shrink: 0;
+    align-self: stretch;
 }
 </style>
 </head>
@@ -94,8 +93,8 @@ body {
         <button onclick="exportLeftScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
     </div>
 </div>
-<div class="compare-wrapper">
-<div class="compare-container">
+<div class="compare-wrapper" id="scroll-wrapper">
+<div class="compare-container" id="frames-container">
     <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1" title="{{my_name}}"></iframe>
     <div class="team-divider"></div>
     <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}?embed=1" title="{{opponent_name}}"></iframe>
@@ -106,6 +105,7 @@ body {
 (function() {
     var myFrame = document.getElementById('my-frame');
     var oppFrame = document.getElementById('opp-frame');
+    var scrollWrapper = document.getElementById('scroll-wrapper');
 
     function hideHeaderElements(frame) {
         try {
@@ -119,8 +119,6 @@ body {
                 if (parent && parent !== doc.body) parent.style.display = 'none';
                 else btn.style.display = 'none';
             }
-            // Only target leaf elements (no children) for textContent checks
-            // to avoid hiding container divs that merely contain the target text.
             var all = doc.querySelectorAll("button, a, div, span, form, aside");
             all.forEach(function(el) {
                 var txt = (el.textContent || '').trim();
@@ -144,8 +142,25 @@ body {
         } catch(e) {}
     }
 
-    myFrame.onload = function() { hideHeaderElements(myFrame); };
-    oppFrame.onload = function() { hideHeaderElements(oppFrame); };
+    function resizeFrame(frame) {
+        try {
+            var doc = frame.contentDocument || frame.contentWindow.document;
+            if (!doc) return;
+            var height = doc.documentElement.scrollHeight || doc.body.scrollHeight || 800;
+            frame.style.height = height + 'px';
+        } catch(e) {}
+    }
+
+    myFrame.onload = function() { 
+        hideHeaderElements(myFrame); 
+        resizeFrame(myFrame);
+        resizeFrame(oppFrame);
+    };
+    oppFrame.onload = function() { 
+        hideHeaderElements(oppFrame); 
+        resizeFrame(myFrame);
+        resizeFrame(oppFrame);
+    };
 
     window.exportLeftScreenshot = function() {
         try {
