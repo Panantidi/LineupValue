@@ -15,6 +15,7 @@ body {
     flex-direction: column;
 }
 .compare-header {
+    position: relative;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 10px 20px;
     text-align: center;
@@ -34,17 +35,26 @@ body {
     gap: 12px;
 }
 .compare-header-controls a {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
     color: rgba(255,255,255,0.9);
     text-decoration: none;
     font-size: 13px;
 }
 .compare-header-controls button {
-    background: none;
-    border: none;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
     cursor: pointer;
-    font-size: 24px;
     color: white;
-    padding: 4px 8px;
+    font-size: 18px;
+    transition: background 0.2s;
 }
 .compare-wrapper {
     flex: 1 1 auto;
