@@ -1185,7 +1185,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="comparison-table" style="display:flex;gap:12px;margin-bottom:16px;">
             <!-- Possible XI -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
@@ -1196,29 +1196,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-impact">0.00</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-impact">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-impact">{last_match_impact:.2f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">IS</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-impact">0.00</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-pct-impact">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-last-impact">{last_match_impact:.2f}</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-mv">0.0m</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-mv">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-mv">{last_match_mv:.1f}m</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">MV</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-mv">0.0m</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-pct-mv">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-last-mv">{last_match_mv:.1f}m</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-age">0.0</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-age">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-age">{last_match_age:.1f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">Av.Age</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-age">0.0</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-pct-age">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-last-age">{last_match_age:.1f}</td>
                     </tr>
                 </tbody>
             </table>
             </div>
             <!-- Value S-XI: STARTING XI vs POSSIBLE XI Δ (%) only -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
@@ -1227,23 +1227,23 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-impact">–</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">IS</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-val-pct-impact">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-mv">–</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">MV</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-val-pct-mv">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-age">–</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">Av.Age</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-val-pct-age">–</td>
                     </tr>
                 </tbody>
             </table>
             </div>
             <!-- Starting XI -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
@@ -1254,22 +1254,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-impact">0.00</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-impact">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-impact">{last_match_impact:.2f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">IS</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-sxi-impact">0.00</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pct-impact">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-last-impact">{last_match_impact:.2f}</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-mv">0.0m</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-mv">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">MV</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-sxi-mv">0.0m</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pct-mv">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-age">0.0</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-age">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-age">{last_match_age:.1f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">Av.Age</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-sxi-age">0.0</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pct-age">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-last-age">{last_match_age:.1f}</td>
                     </tr>
                 </tbody>
             </table>
