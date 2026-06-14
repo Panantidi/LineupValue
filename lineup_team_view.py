@@ -1189,13 +1189,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Impact Score</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-impact">0.00</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-impact">–</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-impact">{last_match_impact:.2f}</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Market Value</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-mv">0.0m</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-mv">–</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-mv">{last_match_mv:.1f}m</td>
@@ -1220,11 +1220,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Impact Score</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-impact">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Market Value</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-mv">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
@@ -1247,13 +1247,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Impact Score</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-impact">0.00</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-impact">–</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-impact">{last_match_impact:.2f}</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Market Value</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-mv">0.0m</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-mv">–</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
