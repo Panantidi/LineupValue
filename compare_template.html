@@ -110,7 +110,7 @@ body {
             }
             // Only target leaf elements (no children) for textContent checks
             // to avoid hiding container divs that merely contain the target text.
-            var all = doc.querySelectorAll('button, a, div, span, form');
+            var all = doc.querySelectorAll("button, a, div, span, form, aside");
             all.forEach(function(el) {
                 var txt = (el.textContent || '').trim();
                 var cls = (el.className || '').toString();
