@@ -957,6 +957,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         .vision-lineup-row {{
             display: flex;
+            flex: 1;
             gap: 8px;
             align-items: center;
             font-size: 12px;
@@ -1109,10 +1110,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <option value="squad">⚫️ List Squad</option>
                 </select>
                 <textarea id="bulk-lineup-text" placeholder="Paste players"></textarea>
+            </div>
+            <div class="bulk-lineup-controls" style="margin-top:8px;">
                 <button type="button" onclick="applyBulkLineup()">Apply</button>
                 <div class="vision-lineup-row">
                     <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Choose image</button>
+                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
                     <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
                     <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">🤖 AI Vision</button>
                     <span id="vision-lineup-status" class="vision-lineup-status"></span>
@@ -1692,7 +1695,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const modeEl = document.getElementById('bulk-lineup-mode');
             const statusEl = document.getElementById('vision-lineup-status');
             const file = fileEl && fileEl.files && fileEl.files[0];
-            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Choose image'; }} return; }}
+            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Upload Image'; }} return; }}
             if (statusEl) {{ statusEl.style.color = '#667eea'; statusEl.textContent = 'Vision reading...'; }}
             try {{
                 const imageDataUrl = await new Promise((resolve, reject) => {{
