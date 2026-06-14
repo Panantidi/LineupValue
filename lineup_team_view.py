@@ -252,7 +252,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             pass
         html = f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>{team_name_hint} - loading</title></head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;margin:0;padding:32px;">
   <div style="max-width:760px;margin:60px auto;background:white;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
     <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
     <p style="color:#666;line-height:1.5;">Team data has not been loaded yet</p>
@@ -1060,6 +1059,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             opacity: 1;
             visibility: visible;
         }}
+
+        /* Embed mode: remove inner scroll, parent handles it */
+        body.embed-mode { overflow: hidden; }
+        body.embed-mode .table-container { overflow: visible; }
+        body.embed-mode .main-table { overflow: visible; }
     </style>
 
 
@@ -1067,7 +1071,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <script src="/icons/status-icons.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
-<body>
+<body class="{{"embed-mode" if embed else ""}}">
     <div class="header">
         <div class="team-title">
             <h1>{team_name}</h1>
