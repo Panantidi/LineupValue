@@ -34,7 +34,8 @@ body {
     align-items: center;
     gap: 12px;
 }
-.compare-header-controls a {
+.compare-header-controls a,
+.compare-header-controls button {
     background: rgba(255,255,255,0.15);
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 6px;
@@ -45,16 +46,14 @@ body {
     color: rgba(255,255,255,0.9);
     text-decoration: none;
     font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
 }
 .compare-header-controls button {
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
     color: white;
     font-size: 18px;
-    transition: background 0.2s;
 }
 .compare-wrapper {
     flex: 1 1 auto;

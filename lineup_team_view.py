@@ -1104,15 +1104,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
                 <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
-                    <option value="possible">🔵 Possible</option>
-                    <option value="start">🔴 Start</option>
-                    <option value="squad">⚫️ List Squad</option>
+                    <option value="possible">🔵 P-XI</option>
+                    <option value="start">🔴 S-XI</option>
+                    <option value="squad">⚫️ List</option>
                 </select>
-                <textarea id="bulk-lineup-text" placeholder="Paste players"></textarea>
+                <textarea id="bulk-lineup-text" placeholder="Paste players" style="width:100%;min-height:60px;"></textarea>
                 <button type="button" onclick="applyBulkLineup()">Apply</button>
                 <div class="vision-lineup-row">
                     <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Choose image</button>
+                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
                     <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
                     <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">🤖 AI Vision</button>
                     <span id="vision-lineup-status" class="vision-lineup-status"></span>
@@ -1135,7 +1135,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1144,7 +1144,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-doubtful" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1153,7 +1153,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-returning" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1164,7 +1164,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-transfer-in" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1173,7 +1173,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-transfer-out" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1186,7 +1186,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Possible XI</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">P-XI</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
@@ -1244,7 +1244,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Starting XI</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">S-XI</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Δ (%)</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
@@ -1692,7 +1692,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const modeEl = document.getElementById('bulk-lineup-mode');
             const statusEl = document.getElementById('vision-lineup-status');
             const file = fileEl && fileEl.files && fileEl.files[0];
-            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Choose image'; }} return; }}
+            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Upload Image'; }} return; }}
             if (statusEl) {{ statusEl.style.color = '#667eea'; statusEl.textContent = 'Vision reading...'; }}
             try {{
                 const imageDataUrl = await new Promise((resolve, reject) => {{
