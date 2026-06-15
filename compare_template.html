@@ -87,9 +87,11 @@ body {
 <body>
 <div class="compare-header">
     <h2>{{my_name}} vs {{opponent_name}}</h2>
+    <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="stadium {{stadium_class}}">{{stadium_text}}{{neutral_suffix}}</div>
     <div class="compare-header-controls">
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
+        <button id="match-save-btn" onclick="saveMatchData()" title="Save Match Data">💾 Save</button>
         <button onclick="exportMatchScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
     </div>
 </div>
@@ -159,6 +161,86 @@ body {
         resizeFrame(myFrame);
         resizeFrame(oppFrame);
     };
+
+
+    // Match Save functionality
+    var matchSavedAt = null;
+    
+    async function saveMatchData() {
+        const mid = document.getElementById("match-id").dataset.mid;
+        const btn = document.getElementById("match-save-btn");
+        const myFrame = document.getElementById("my-frame");
+        const oppFrame = document.getElementById("opp-frame");
+        
+        if (!myFrame.contentWindow || !oppFrame.contentWindow) {
+            alert("Frames not ready");
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+        
+        try {
+            const myData = myFrame.contentWindow.getCurrentTeamData ? myFrame.contentWindow.getCurrentTeamData() : null;
+            const oppData = oppFrame.contentWindow.getCurrentTeamData ? oppFrame.contentWindow.getCurrentTeamData() : null;
+            
+            const payload = {
+                home_data: myData,
+                away_data: oppData,
+                saved_at: new Date().toISOString()
+            };
+            
+            const resp = await fetch("/lineup_ai/match_save/" + mid, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const result = await resp.json();
+            
+            if (result.ok) {
+                matchSavedAt = result.saved_at;
+                btn.textContent = "Saved";
+                setTimeout(() => { btn.textContent = "Save"; }, 2000);
+            } else {
+                throw new Error("Save failed");
+            }
+        } catch (e) {
+            console.error("Save error:", e);
+            btn.textContent = "Error";
+            setTimeout(() => { btn.textContent = "Save"; }, 2000);
+        }
+        btn.disabled = false;
+    }
+    
+    async function loadMatchData() {
+        const mid = document.getElementById("match-id").dataset.mid;
+        if (!mid) return;
+        
+        try {
+            const resp = await fetch("/lineup_ai/match_save/" + mid);
+            const result = await resp.json();
+            
+            if (result.ok && result.home_data) {
+                const myFrame = document.getElementById("my-frame");
+                if (myFrame.contentWindow && myFrame.contentWindow.applySavedState) {
+                    myFrame.contentWindow.applySavedState(result.home_data);
+                }
+            }
+            if (result.ok && result.away_data) {
+                const oppFrame = document.getElementById("opp-frame");
+                if (oppFrame.contentWindow && oppFrame.contentWindow.applySavedState) {
+                    oppFrame.contentWindow.applySavedState(result.away_data);
+                }
+            }
+            matchSavedAt = result.saved_at;
+        } catch (e) {
+            console.error("Load error:", e);
+        }
+    }
+    
+    myFrame.addEventListener("load", function() {
+        setTimeout(loadMatchData, 300);
+    });
 
     window.exportMatchScreenshot = async function() {
         var btn = document.querySelector('.compare-header-controls button');

@@ -1596,17 +1596,40 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
             away_data = json.load(fh)
         away_stadium = (away_data.get("stadium") or "").strip()
 
-    # Try to fetch actual match venue from Soccerway match page
+    # Try to fetch actual match venue AND correct team order from Soccerway match page
     import httpx as _httpx
+    import re as _re
+    import html as _html
     match_venue = ""
     try:
         match_url = f"https://www.soccerway.com/match/{home_name.lower().replace(' ', '-')}-{home_team_id}/{away_name.lower().replace(' ', '-')}-{away_team_id}/?mid={mid}"
         resp = _httpx.get(match_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10, follow_redirects=True)
-        # Soccerway embeds venue in JSON: {"DM":"Neutral location - Red Bull Arena."}
-        import re as _re
-        dm_match = _re.search(r'"DM":"([^"]*Neutral location[^"]*)"', resp.text)
+        page_text = resp.text
+
+        # 1. Parse correct team order from <title>: "PSG v Aston Villa live scores & match info | Soccerway"
+        title_m = _re.search(r'<title>(.+?) live scores', page_text)
+        if title_m:
+            title_clean = _html.unescape(title_m.group(1)).strip()
+            # Split by " v " or " vs " — left is real home, right is real away
+            parts = _re.split(r'\s+v(?:s)?\s+', title_clean, flags=_re.IGNORECASE)
+            if len(parts) == 2:
+                real_home_name = parts[0].strip()
+                real_away_name = parts[1].strip()
+                # Match to team IDs by checking which name is closer
+                # If real home matches away_name (from URL), swap
+                if real_home_name.lower() in away_name.lower() or away_name.lower() in real_home_name.lower():
+                    # Swap: away team is actually home
+                    home_team_id, away_team_id = away_team_id, home_team_id
+                    home_name, away_name = away_name, home_name
+                    home_stadium, away_stadium = away_stadium, home_stadium
+                elif real_home_name.lower() not in home_name.lower() and home_name.lower() not in real_home_name.lower():
+                    # Names don't match at all, use title names directly
+                    home_name = real_home_name
+                    away_name = real_away_name
+
+        # 2. Parse neutral venue from JSON: {"DM":"Neutral location - Red Bull Arena."}
+        dm_match = _re.search(r'"DM":"([^"]*Neutral location[^"]*)"', page_text)
         if dm_match:
-            # Extract venue name after "Neutral location - "
             dm_text = dm_match.group(1)
             venue_m = _re.search(r'Neutral location\s*-?\s*(.+)', dm_text, _re.IGNORECASE)
             if venue_m:
@@ -1621,7 +1644,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
         # Match is at a neutral venue
         stadium_text = match_venue
         stadium_class = "neutral"
-        neutral_suffix = " — Neutral Stadium"
+        neutral_suffix = " \u2014 Neutral Stadium"
     else:
         # Normal: match at home team's stadium
         stadium_text = home_stadium or ""
@@ -1641,6 +1664,46 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     result = result.replace("{{neutral_suffix}}", neutral_suffix)
 
     return HTMLResponse(content=result)
+
+
+
+
+# Match save endpoints - save data for both teams in a match
+@app.get("/lineup_ai/match_save/{mid}")
+async def match_get_save(mid: str, request: Request):
+    """Get saved match data for both teams."""
+    ensure_db()
+    username = _lineup_account(request)
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute(
+        "SELECT save_data, saved_at FROM user_match_saves WHERE username=? AND mid=?",
+        (username, mid),
+    ).fetchone()
+    con.close()
+    if not row:
+        return JSONResponse(content={"ok": True, "home_data": None, "away_data": None, "saved_at": None})
+    try:
+        data = json.loads(row[0])
+    except Exception:
+        data = {"home_data": None, "away_data": None}
+    return JSONResponse(content={"ok": True, "home_data": data.get("home_data"), "away_data": data.get("away_data"), "saved_at": row[1]})
+
+
+@app.post("/lineup_ai/match_save/{mid}")
+async def match_save_post(mid: str, request: Request, payload: dict = Body(default_factory=dict)):
+    """Save match data for both teams."""
+    ensure_db()
+    username = _lineup_account(request)
+    saved_at = datetime.now(timezone.utc).isoformat()
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        "INSERT INTO user_match_saves(username, mid, save_data, saved_at) VALUES(?,?,?,?) "
+        "ON CONFLICT(username, mid) DO UPDATE SET save_data=excluded.save_data, saved_at=excluded.saved_at",
+        (username, mid, json.dumps(payload, ensure_ascii=False), saved_at),
+    )
+    con.commit()
+    con.close()
+    return JSONResponse(content={"ok": True, "saved_at": saved_at})
 
 
 # Legacy redirect: /team/{team_id}/compare?mid=... -> /lineup_ai/compare/{team_id}?mid=...
