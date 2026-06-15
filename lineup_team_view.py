@@ -2327,8 +2327,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
     // Export for iframe communication (Match mode)
+    // Store reference to inner function before exporting to avoid recursion
+    var _applySavedStateInner = applySavedState;
     window.getCurrentTeamData = function() {{ return collectTeamState(); }};
-    window.applySavedState = function(data) {{ if (data && Array.isArray(data.players)) applySavedState(data); }};
+    window.applySavedState = function(data) {{ if (data && Array.isArray(data.players)) _applySavedStateInner(data); }};
 
 </script>
 </body>
