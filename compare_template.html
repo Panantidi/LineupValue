@@ -224,22 +224,32 @@ body {
     
     window.loadMatchData = async function() {
         const mid = document.getElementById("match-id").dataset.mid;
+        console.log("loadMatchData called, mid:", mid);
         if (!mid) return;
         
         try {
             const resp = await fetch("/lineup_ai/match_save/" + mid);
             const result = await resp.json();
+            console.log("Loaded match data:", result);
             
             if (result.ok && result.home_data) {
                 const myFrame = document.getElementById("my-frame");
+                console.log("Applying home_data to myFrame:", result.home_data.players ? result.home_data.players.length : "no players");
                 if (myFrame.contentWindow && myFrame.contentWindow.applySavedState) {
                     myFrame.contentWindow.applySavedState(result.home_data);
+                    console.log("applySavedState called for home team");
+                } else {
+                    console.log("ERROR: applySavedState not found in myFrame");
                 }
             }
             if (result.ok && result.away_data) {
                 const oppFrame = document.getElementById("opp-frame");
+                console.log("Applying away_data to oppFrame:", result.away_data.players ? result.away_data.players.length : "no players");
                 if (oppFrame.contentWindow && oppFrame.contentWindow.applySavedState) {
                     oppFrame.contentWindow.applySavedState(result.away_data);
+                    console.log("applySavedState called for away team");
+                } else {
+                    console.log("ERROR: applySavedState not found in oppFrame");
                 }
             }
             matchSavedAt = result.saved_at;
