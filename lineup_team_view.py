@@ -1385,12 +1385,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }};
         }}
 
-        function applySavedState(data) {{
-            console.log("applySavedState called with", data ? data.players ? data.players.length : "no players" : "null");
-            if (!data || !Array.isArray(data.players)) {{
-                console.log("applySavedState: invalid data, returning");
-                return;
-            }}
+        function restoreTeamState(data) {{
+            if (!data || !Array.isArray(data.players)) return;
             const byName = new Map(data.players.map(p => [p.name, p]));
             document.querySelectorAll('.main-table tbody tr[data-player-name]').forEach(row => {{
                 const st = byName.get(row.getAttribute('data-player-name'));
@@ -1458,7 +1454,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const json = await res.json();
             if (!res.ok || !json.ok) {{ alert(json.error || 'snapshot not found'); return; }}
             document.querySelectorAll('.snapshot-list-item').forEach(el => el.classList.toggle('active', el.getAttribute('data-snapshot-id') == String(id)));
-            applySavedState(json.snapshot.data);
+            restoreTeamState(json.snapshot.data);
             setSnapshotMode(json.snapshot.name);
         }}
 
@@ -2332,7 +2328,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     // Export for iframe communication (Match mode)
     // Store reference to inner function before exporting to avoid recursion
-    var _applySavedStateInner = applySavedState;
+    var _applySavedStateInner = restoreTeamState;
     window.getCurrentTeamData = function() {{ return collectTeamState(); }};
     window.applySavedState = function(data) {{ if (data && Array.isArray(data.players)) _applySavedStateInner(data); }};
 
