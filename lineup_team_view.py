@@ -918,9 +918,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         .bulk-lineup-controls {{
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }}
+        .bulk-lineup-row {{
+            display: flex;
             gap: 8px;
             align-items: center;
-            flex-wrap: nowrap;
         }}
         .bulk-lineup-controls select {{
             border: 1px solid #d5d9e8;
@@ -1107,13 +1111,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
-                <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
-                    <option value="possible">🔵 P-XI</option>
-                    <option value="start">🔴 S-XI</option>
-                    <option value="squad">⚫️ List</option>
-                </select>
+                <div class="bulk-lineup-row">
+                    <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
+                        <option value="possible">🔵 P-XI</option>
+                        <option value="start">🔴 S-XI</option>
+                        <option value="squad">⚫️ List</option>
+                    </select>
+                    <button type="button" onclick="applyBulkLineup()">Apply</button>
+                </div>
                 <textarea id="bulk-lineup-text" placeholder="Paste players" style="width:100%;min-height:60px;"></textarea>
-                <button type="button" onclick="applyBulkLineup()">Apply</button>
                 <div class="vision-lineup-row">
                     <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
                     <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
