@@ -757,12 +757,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border: 1px solid #ddd;
+            border-bottom: 2px solid #e0e0e0;
             white-space: nowrap;
         }}
         td {{
             padding: 12px 16px;
-            border: 1px solid #e8e8e8;
+            border-bottom: 1px solid #f0f0f0;
             color: #333;
         }}
         tr:hover {{
@@ -957,7 +957,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         .vision-lineup-row {{
             display: flex;
-            flex: 1;
             gap: 8px;
             align-items: center;
             font-size: 12px;
@@ -1105,17 +1104,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
                 <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
-                    <option value="possible">🔵 P-XI</option>
-                    <option value="start">🔴 S-XI</option>
-                    <option value="squad">⚫️ List</option>
+                    <option value="possible">🔵 Possible</option>
+                    <option value="start">🔴 Start</option>
+                    <option value="squad">⚫️ List Squad</option>
                 </select>
                 <textarea id="bulk-lineup-text" placeholder="Paste players"></textarea>
-            </div>
-            <div class="bulk-lineup-controls" style="margin-top:8px;">
                 <button type="button" onclick="applyBulkLineup()">Apply</button>
                 <div class="vision-lineup-row">
                     <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
+                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Choose image</button>
                     <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
                     <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">🤖 AI Vision</button>
                     <span id="vision-lineup-status" class="vision-lineup-status"></span>
@@ -1138,7 +1135,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1147,7 +1144,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-doubtful" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#5F5D58;font-size:20px;" id="doubtful-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1156,7 +1153,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-returning" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="returning-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1167,7 +1164,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-transfer-in" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#17843f;font-size:20px;" id="transfer-in-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1176,7 +1173,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="info-bar-transfer-out" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-value">€0.0m</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-impact">0.00</span><br><span style="color:#888;font-size:11px;">IS</span></div>
+            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-impact">0.00</span><br><span style="color:#888;font-size:11px;">Impact Score</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-goals">0</span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="transfer-out-assists">0</span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
@@ -1185,7 +1182,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="comparison-table" style="display:flex;gap:12px;margin-bottom:16px;">
             <!-- Possible XI -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
@@ -1196,29 +1193,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-impact">0.00</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-pct-impact">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-last-impact">{last_match_impact:.2f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-impact">0.00</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-impact">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-impact">{last_match_impact:.2f}</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-mv">0.0m</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-pct-mv">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-last-mv">{last_match_mv:.1f}m</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-mv">0.0m</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-mv">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-mv">{last_match_mv:.1f}m</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-age">0.0</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-pct-age">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pxi-last-age">{last_match_age:.1f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-age">0.0</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-age">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-age">{last_match_age:.1f}</td>
                     </tr>
                 </tbody>
             </table>
             </div>
             <!-- Value S-XI: STARTING XI vs POSSIBLE XI Δ (%) only -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
@@ -1227,23 +1224,23 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-val-pct-impact">–</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-impact">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-val-pct-mv">–</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-mv">–</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-val-pct-age">–</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-age">–</td>
                     </tr>
                 </tbody>
             </table>
             </div>
             <!-- Starting XI -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
@@ -1254,22 +1251,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-sxi-impact">0.00</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pct-impact">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-last-impact">{last_match_impact:.2f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">IS</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-impact">0.00</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-impact">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-impact">{last_match_impact:.2f}</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-sxi-mv">0.0m</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pct-mv">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">MV</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-mv">0.0m</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-mv">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
                     </tr>
                     <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;height:22px;overflow:hidden;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-sxi-age">0.0</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-pct-age">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;height:22px;white-space:nowrap;overflow:hidden;" id="cmp-last-age">{last_match_age:.1f}</td>
+                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-age">0.0</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-age">–</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-age">{last_match_age:.1f}</td>
                     </tr>
                 </tbody>
             </table>
@@ -1306,8 +1303,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;">MV</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Pos</th>
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;font-size:11px;">Squad<br>Role</th>
-                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;">IS</th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">List</th>
+                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;">Impact<br>Score</th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">Squad<br>List</th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></th>
                         {last3_header_row1}
@@ -1695,7 +1692,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const modeEl = document.getElementById('bulk-lineup-mode');
             const statusEl = document.getElementById('vision-lineup-status');
             const file = fileEl && fileEl.files && fileEl.files[0];
-            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Upload Image'; }} return; }}
+            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Choose image'; }} return; }}
             if (statusEl) {{ statusEl.style.color = '#667eea'; statusEl.textContent = 'Vision reading...'; }}
             try {{
                 const imageDataUrl = await new Promise((resolve, reject) => {{
@@ -2329,7 +2326,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }})();
         }}
 
-    
+    // Export for iframe communication (Match mode)
+    window.getCurrentTeamData = function() {{ return collectTeamState(); }};
+    window.applySavedState = function(data) {{ if (data && Array.isArray(data.players)) applySavedState(data); }};
+
 </script>
 </body>
 </html>"""
