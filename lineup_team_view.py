@@ -1386,7 +1386,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
         function applySavedState(data) {{
-            if (!data || !Array.isArray(data.players)) return;
+            console.log("applySavedState called with", data ? data.players ? data.players.length : "no players" : "null");
+            if (!data || !Array.isArray(data.players)) {{
+                console.log("applySavedState: invalid data, returning");
+                return;
+            }}
             const byName = new Map(data.players.map(p => [p.name, p]));
             document.querySelectorAll('.main-table tbody tr[data-player-name]').forEach(row => {{
                 const st = byName.get(row.getAttribute('data-player-name'));
