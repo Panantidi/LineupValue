@@ -1313,8 +1313,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;">MV</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Pos</th>
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;font-size:11px;">Squad<br>Role</th>
-                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;">Impact<br>Score</th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">Squad<br>List</th>
+                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;">IS</th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">List</th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></th>
                         {last3_header_row1}
