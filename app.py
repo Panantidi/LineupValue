@@ -852,6 +852,7 @@ async def auth_middleware(request: Request, call_next):
 
 from fastapi.staticfiles import StaticFiles
 app.mount("/icons", StaticFiles(directory="/home/openclaw/FormAlert/icons"), name="icons")
+app.mount("/static", StaticFiles(directory="/home/openclaw/FormAlert/static"), name="static")
 os.makedirs("/home/openclaw/FormAlert/vision_uploads", exist_ok=True)
 app.mount("/vision_uploads", StaticFiles(directory="/home/openclaw/FormAlert/vision_uploads"), name="vision_uploads")
 
