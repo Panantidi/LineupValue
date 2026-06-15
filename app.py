@@ -1671,13 +1671,12 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
 # Match save endpoints - save data for both teams in a match
 @app.get("/lineup_ai/match_save/{mid}")
 async def match_get_save(mid: str, request: Request):
-    """Get saved match data for both teams."""
+    """Get saved match data for both teams. Uses mid only (no username)."""
     ensure_db()
-    username = _lineup_account(request)
     con = sqlite3.connect(DB_PATH)
     row = con.execute(
-        "SELECT save_data, saved_at FROM user_match_saves WHERE username=? AND mid=?",
-        (username, mid),
+        "SELECT save_data, saved_at FROM user_match_saves WHERE mid=?",
+        (mid,),
     ).fetchone()
     con.close()
     if not row:
@@ -1691,15 +1690,14 @@ async def match_get_save(mid: str, request: Request):
 
 @app.post("/lineup_ai/match_save/{mid}")
 async def match_save_post(mid: str, request: Request, payload: dict = Body(default_factory=dict)):
-    """Save match data for both teams."""
+    """Save match data for both teams. Uses mid only (no username)."""
     ensure_db()
-    username = _lineup_account(request)
     saved_at = datetime.now(timezone.utc).isoformat()
     con = sqlite3.connect(DB_PATH)
     con.execute(
         "INSERT INTO user_match_saves(username, mid, save_data, saved_at) VALUES(?,?,?,?) "
-        "ON CONFLICT(username, mid) DO UPDATE SET save_data=excluded.save_data, saved_at=excluded.saved_at",
-        (username, mid, json.dumps(payload, ensure_ascii=False), saved_at),
+        "ON CONFLICT(mid) DO UPDATE SET save_data=excluded.save_data, saved_at=excluded.saved_at",
+        ("match", mid, json.dumps(payload, ensure_ascii=False), saved_at),
     )
     con.commit()
     con.close()
