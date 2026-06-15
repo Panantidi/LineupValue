@@ -151,15 +151,25 @@ body {
         } catch(e) {}
     }
 
+    var framesLoaded = 0;
+    function checkFramesLoaded() {
+        framesLoaded++;
+        if (framesLoaded === 2) {
+            setTimeout(window.loadMatchData, 500);
+        }
+    }
+    
     myFrame.onload = function() {
         hideHeaderElements(myFrame);
         resizeFrame(myFrame);
         resizeFrame(oppFrame);
+        checkFramesLoaded();
     };
     oppFrame.onload = function() {
         hideHeaderElements(oppFrame);
         resizeFrame(myFrame);
         resizeFrame(oppFrame);
+        checkFramesLoaded();
     };
 
 
@@ -238,8 +248,11 @@ body {
         }
     }
     
+
     myFrame.addEventListener("load", function() {
-        setTimeout(window.loadMatchData, 300);
+        hideHeaderElements(myFrame);
+        resizeFrame(myFrame);
+        resizeFrame(oppFrame);
     });
 
     window.exportMatchScreenshot = async function() {

@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match: {{my_name}} vs {{opponent_name}}</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: auto; overflow-y: auto; overflow-x: hidden; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+}
+.compare-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 10px 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.compare-header h2 { font-size: 20px; margin: 0; }
+.compare-header .stadium { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+.compare-header .stadium.neutral { color: #ff9800; font-weight: 600; }
+.compare-header a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 12px; margin-top: 4px; display: inline-block; }
+.compare-header a:hover { text-decoration: underline; }
+.compare-wrapper { overflow-x: auto; }
+.compare-container {
+    display: flex;
+    gap: 0;
+    min-width: max-content;
+}
+.team-frame {
+    flex: 0 0 auto;
+    width: 50vw;
+    min-width: 700px;
+    border: none;
+    display: block;
+    height: 2000px;
+}
+.team-divider {
+    width: 2px;
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    flex-shrink: 0;
+}
+@media (max-width: 1440px) {
+    .team-frame { min-width: 600px; }
+}
+</style>
+</head>
+<body>
+<div class="compare-header">
+    <h2>{{my_name}} vs {{opponent_name}}</h2>
+    <div class="stadium {{stadium_class}}">{{stadium_text}}</div>
+    <a href="/lineup_ai/select">← Back to team selection</a>
+</div>
+<div class="compare-wrapper">
+<div class="compare-container">
+    <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1" title="{{my_name}}"></iframe>
+    <div class="team-divider"></div>
+    <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}?embed=1" title="{{opponent_name}}"></iframe>
+</div>
+</div>
+
+<script>
+(function() {
+    var myFrame = document.getElementById('my-frame');
+    var oppFrame = document.getElementById('opp-frame');
+    var maxChecks = 30;
+    var checkCount = 0;
+
+    function resizeFrame(frame) {
+        try {
+            var doc = frame.contentDocument || frame.contentWindow.document;
+            if (!doc || !doc.body) return;
+            var h = doc.body.scrollHeight;
+            if (h > 100) frame.style.height = h + 'px';
+        } catch(e) {}
+    }
+
+    function hideSaveInGuest(frame) {
+        try {
+            var doc = frame.contentDocument || frame.contentWindow.document;
+            if (!doc) return;
+            var all = doc.querySelectorAll('button, a, div, span, form');
+            all.forEach(function(el) {
+                var txt = (el.textContent || '').trim();
+                var cls = (el.className || '').toString();
+                var id = (el.id || '').toString();
+                if (el.tagName === 'BUTTON' && (txt.includes('Save') || txt.includes('Сохранить'))) {
+                    el.style.display = 'none';
+                }
+                if (cls.includes('my-squads') || cls.includes('save-panel') || cls.includes('save-block') ||
+                    id.includes('save') || id.includes('my-squads') || id.includes('squad-save')) {
+                    el.style.display = 'none';
+                }
+                if (txt === 'My Squads' || txt === 'Мои составы' || txt.includes('My Squads')) {
+                    el.style.display = 'none';
+                }
+            });
+            var saveForms = doc.querySelectorAll('form[action*="save"]');
+            saveForms.forEach(function(f) { f.style.display = 'none'; });
+        } catch(e) {}
+    }
+
+    var interval = setInterval(function() {
+        resizeFrame(myFrame);
+        resizeFrame(oppFrame);
+        hideSaveInGuest(oppFrame);
+        checkCount++;
+        if (checkCount >= maxChecks) clearInterval(interval);
+    }, 1500);
+
+    myFrame.onload = function() { resizeFrame(myFrame); };
+    oppFrame.onload = function() { resizeFrame(oppFrame); hideSaveInGuest(oppFrame); };
+})();
+</script>
+</body>
+</html>
