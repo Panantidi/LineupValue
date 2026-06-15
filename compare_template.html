@@ -166,7 +166,7 @@ body {
     // Match Save functionality
     var matchSavedAt = null;
     
-    async function saveMatchData() {
+    window.saveMatchData = async function() {
         const mid = document.getElementById("match-id").dataset.mid;
         const btn = document.getElementById("match-save-btn");
         const myFrame = document.getElementById("my-frame");
@@ -212,7 +212,7 @@ body {
         btn.disabled = false;
     }
     
-    async function loadMatchData() {
+    window.loadMatchData = async function() {
         const mid = document.getElementById("match-id").dataset.mid;
         if (!mid) return;
         
@@ -239,7 +239,7 @@ body {
     }
     
     myFrame.addEventListener("load", function() {
-        setTimeout(loadMatchData, 300);
+        setTimeout(window.loadMatchData, 300);
     });
 
     window.exportMatchScreenshot = async function() {
