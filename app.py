@@ -1941,13 +1941,6 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
     ext = "jpg" if mime in ("image/jpeg", "image/jpg") else "png" if mime == "image/png" else "webp" if mime == "image/webp" else "bin"
     if ext == "bin":
         return JSONResponse(content={"ok": False, "error": "Unsupported image type"}, status_code=400)
-    upload_dir = "/home/openclaw/FormAlert/vision_uploads"
-    os.makedirs(upload_dir, exist_ok=True)
-    image_name = f"{uuid.uuid4().hex}.{ext}"
-    image_path = os.path.join(upload_dir, image_name)
-    with open(image_path, "wb") as f:
-        f.write(image_bytes)
-    image_url = f"{BASE_URL}/vision_uploads/{image_name}"
 
     roster = []
     try:
@@ -1966,13 +1959,14 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
         "If a roster list is provided, prefer matching names/surnames from that roster.\n\n"
         "Current team roster candidates:\n" + "\n".join(roster[:60])
     )
+    # Send base64 image data directly (Wormsoft API expects base64)
     payload_api = {
         "model": model,
         "messages": [{
             "role": "user",
             "content": [
                 {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": image_url}},
+                {"type": "image_url", "image_url": {"url": image}},
             ],
         }],
         "stream": False,
