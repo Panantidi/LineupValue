@@ -544,48 +544,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         tooltip_html = html_lib.escape(tooltip_text, quote=True)
         last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
-    # Team logo in header (France Ligue 1). Replaces old freshness badge near team name.
-    def _team_logo_slug(name):
-        n = str(name or "").strip().lower()
-        aliases = {
-            "psg": "psg",
-            "paris saint-germain": "psg",
-            "paris sg": "psg",
-            "paris fc": "paris-fc",
-            "le havre": "le-havre",
-            "stade rennais": "rennes",
-            "rennes": "rennes",
-            "olympique lyonnais": "lyon",
-            "lyon": "lyon",
-            "olympique marseille": "marseille",
-            "marseille": "marseille",
-            "as monaco": "monaco",
-            "monaco": "monaco",
-            "rc lens": "lens",
-            "lens": "lens",
-            "losc lille": "lille",
-            "lille": "lille",
-            "strasbourg": "strasbourg",
-            "toulouse": "toulouse",
-            "brest": "brest",
-            "angers": "angers",
-            "auxerre": "auxerre",
-            "lorient": "lorient",
-            "nice": "nice",
-            "nantes": "nantes",
-            "metz": "metz",
-        }
-        return aliases.get(n)
-
-    logo_slug = _team_logo_slug(team_name)
-    logo_rel = f"icons/team-logos/france-ligue-1/{logo_slug}.svg" if logo_slug else ""
-    logo_candidates = [
-        os.path.join(os.path.dirname(__file__), logo_rel) if logo_rel else "",
-        f"/home/openclaw/FormAlert/{logo_rel}" if logo_rel else "",
-    ]
+    # Team logo removed per user request
     team_logo_html = ""
-    if logo_slug and any(path and os.path.exists(path) for path in logo_candidates):
-        team_logo_html = f'<img class="team-logo" src="/icons/team-logos/france-ligue-1/{logo_slug}.svg" alt="{html_lib.escape(team_name, quote=True)} logo">'
 
     html = f"""<!doctype html>
 <html>
@@ -619,17 +579,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             align-items: center;
             gap: 10px;
             min-width: 0;
-        }}
-        .team-logo {{
-            width: 34px;
-            height: 34px;
-            object-fit: contain;
-            display: block;
-            flex: 0 0 34px;
-            background: rgba(255,255,255,0.92);
-            border-radius: 8px;
-            padding: 3px;
-            box-shadow: 0 1px 4px rgba(0,0,0,.18);
         }}
         .header-tabs {{
             display: flex;
@@ -1083,7 +1032,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div class="header">
         <div class="team-title">
             <h1>{team_name}</h1>
-            {team_logo_html}
         </div>
         <div class="header-tabs">
             <div class="tab active">Squad</div>
