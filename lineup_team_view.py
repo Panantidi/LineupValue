@@ -1625,10 +1625,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         function bulkRenderReport(total, found, notFound, ambiguous) {{
             const el = document.getElementById('bulk-lineup-report');
             if (!el) return;
-            let html = 'Total: ' + total + ' players\\n' +
-                       '<span class="found">Found: ' + found + ' players</span>\\n' +
-                       '<span class="not-found">Not found: ' + notFound.length + ' player' + (notFound.length === 1 ? '' : 's') + '</span>';
-            if (notFound.length) html += '\\n' + notFound.map(x => x.raw || x).join('\\n');
+            let html = '';
             if (ambiguous && ambiguous.length) html += '\\nAmbiguous: ' + ambiguous.length + ' — choose below';
             el.innerHTML = html;
         }}
