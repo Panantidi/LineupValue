@@ -1965,11 +1965,11 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
     )
     payload_api = {
         "model": model,
-        "input": [{
+        "messages": [{
             "role": "user",
             "content": [
-                {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": image_url},
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": image_url}},
             ],
         }],
         "stream": False,
