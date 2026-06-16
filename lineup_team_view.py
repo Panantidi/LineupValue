@@ -1126,7 +1126,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <span id="vision-lineup-status" class="vision-lineup-status"></span>
                     </div>
                 </div>
-                <textarea id="bulk-lineup-text" placeholder="Paste players" style="width:100%;min-height:60px;"></textarea>
+                <div class="bulk-lineup-text-row" style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;">
+                    <label style="font-weight:700;color:#333;font-size:13px;min-width:40px;">Team</label>
+                    <textarea id="bulk-lineup-text" placeholder="Paste players" style="flex:1;min-height:60px;resize:vertical;"></textarea>
+                    <div id="vision-lineup-stats" class="vision-lineup-stats" style="display:none;min-width:120px;font-size:12px;color:#555;line-height:1.6;">
+                        <div>Total: <span id="vision-total-count">0</span> players</div>
+                        <div style="color:#17843f;">Found: <span id="vision-found-count">0</span> players</div>
+                        <div style="color:#dc3545;">Not found: <span id="vision-notfound-count">0</span> players</div>
+                    </div>
+                </div>
             </div>
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
@@ -1725,6 +1733,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     statusEl.style.color = result.found ? '#17843f' : '#dc3545';
                     statusEl.textContent = 'Vision: ' + names.length + ' names, marked ' + result.found;
                 }}
+                // Show stats
+                const statsEl = document.getElementById('vision-lineup-stats');
+                const totalEl = document.getElementById('vision-total-count');
+                const foundEl = document.getElementById('vision-found-count');
+                const notfoundEl = document.getElementById('vision-notfound-count');
+                if (statsEl) statsEl.style.display = 'block';
+                if (totalEl) totalEl.textContent = names.length;
+                if (foundEl) foundEl.textContent = result.found;
+                if (notfoundEl) notfoundEl.textContent = Math.max(0, names.length - result.found);
             }} catch (e) {{
                 if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Vision error: ' + e.message; }}
             }}
