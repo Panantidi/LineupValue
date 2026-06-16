@@ -1075,7 +1075,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     </div>
                 </div>
                 <div class="bulk-lineup-text-row" style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;">
-                    <label style="font-weight:700;color:#333;font-size:13px;min-width:40px;">Team</label>
                     <textarea id="bulk-lineup-text" placeholder="Paste players" style="flex:1;min-height:60px;resize:vertical;"></textarea>
                     <div id="vision-lineup-stats" class="vision-lineup-stats" style="display:none;min-width:120px;font-size:12px;color:#555;line-height:1.6;">
                         <div>Total: <span id="vision-total-count">0</span> players</div>
