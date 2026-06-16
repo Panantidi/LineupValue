@@ -1,5 +1,8 @@
 import os
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 import asyncio
 import sqlite3
 import urllib.parse
