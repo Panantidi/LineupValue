@@ -1118,15 +1118,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <option value="squad">⚫️ List</option>
                     </select>
                     <button type="button" onclick="applyBulkLineup()">Apply</button>
+                    <div class="vision-lineup-row" style="margin-left:auto;">
+                        <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
+                        <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
+                        <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
+                        <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">🤖 AI Vision</button>
+                        <span id="vision-lineup-status" class="vision-lineup-status"></span>
+                    </div>
                 </div>
                 <textarea id="bulk-lineup-text" placeholder="Paste players" style="width:100%;min-height:60px;"></textarea>
-                <div class="vision-lineup-row">
-                    <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                    <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
-                    <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
-                    <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">🤖 AI Vision</button>
-                    <span id="vision-lineup-status" class="vision-lineup-status"></span>
-                </div>
             </div>
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
