@@ -1269,9 +1269,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Pos</th>
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;font-size:11px;">Squad<br>Role</th>
                         <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;">IS</th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">List</th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">P-XI<br><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;">S-XI<br><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;"><button onclick="clearColumn(\"squad\");return false;" style="background:none;border:none;cursor:pointer;font-size:11px;padding:0;margin:0;display:block;width:100%;text-align:center;" title="Clear List">🔄</button><span style="font-size:10px;">List</span></th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;"><button onclick="clearColumn(\"possible\");return false;" style="background:none;border:none;cursor:pointer;font-size:11px;padding:0;margin:0;display:block;width:100%;text-align:center;" title="Clear P-XI">🔄</button><span style="font-size:10px;">P-XI</span><br><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;"><button onclick="clearColumn(\"start\");return false;" style="background:none;border:none;cursor:pointer;font-size:11px;padding:0;margin:0;display:block;width:100%;text-align:center;" title="Clear S-XI">🔄</button><span style="font-size:10px;">S-XI</span><br><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></th>
                         {last3_header_row1}
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Apps</th>
                         <th rowspan="2" style="text-align:center;width:40px;padding:0;">Min</th>
@@ -1915,6 +1915,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
         }}
         
+        // Clear column function - uncheck all players in a column
+        function clearColumn(colType) {{
+            const colIndex = {{'squad': 0, 'possible': 1, 'start': 2}}[colType];
+            const table = document.querySelector('table.player-table');
+            if (!table) return false;
+            
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {{
+                const checkboxes = row.querySelectorAll('input[type="checkbox"].player-checkbox');
+                if (checkboxes[colIndex]) {{
+                    if (checkboxes[colIndex].checked) {{
+                        checkboxes[colIndex].checked = false;
+                        checkboxes[colIndex].dispatchEvent(new Event('change'));
+                    }}
+                }}
+            }});
+            return false;
+        }}
+
         // Add event listeners
         document.querySelectorAll('.xi-checkbox').forEach(checkbox => {{
             checkbox.addEventListener('change', function() {{
