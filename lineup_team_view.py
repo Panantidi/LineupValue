@@ -1021,6 +1021,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         body.embed-mode .squad-table-wrapper {{ overflow: visible; height: auto; }}
         body.embed-mode .comparison-tables {{ overflow: visible; }}
         body.embed-mode .table-scroll-wrapper {{ overflow: visible; }}
+        body.embed-mode .header {{ flex-wrap: nowrap; }}
+        body.embed-mode .header-tabs {{ margin-left: auto; }}
     </style>
 
 
