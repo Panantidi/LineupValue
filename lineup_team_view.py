@@ -1917,18 +1917,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         
         // Clear column function - uncheck all players in a column
         function clearColumn(colType) {{
-            const colIndex = {{'squad': 0, 'possible': 1, 'start': 2}}[colType];
-            const table = document.querySelector('table.player-table');
-            if (!table) return false;
+            const checkboxClass = {{'squad': 'squad-checkbox', 'possible': 'xi-checkbox', 'start': 'starting-checkbox'}}[colType];
+            if (!checkboxClass) return false;
             
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {{
-                const checkboxes = row.querySelectorAll('input[type="checkbox"].player-checkbox');
-                if (checkboxes[colIndex]) {{
-                    if (checkboxes[colIndex].checked) {{
-                        checkboxes[colIndex].checked = false;
-                        checkboxes[colIndex].dispatchEvent(new Event('change'));
+            const checkboxes = document.querySelectorAll('input[type="checkbox"].' + checkboxClass);
+            checkboxes.forEach(cb => {{
+                if (cb.checked) {{
+                    cb.checked = false;
+                    // Reset style
+                    cb.style.background = '#e0e0e0';
+                    if (colType === 'squad') {{
+                        cb.style.border = '2px solid #333';
+                    }} else if (colType === 'possible') {{
+                        cb.style.border = '2px solid #667eea';
+                    }} else {{
+                        cb.style.border = '2px solid #dc3545';
                     }}
+                    cb.dispatchEvent(new Event('change'));
+                }}
+            }});
+            return false;
+        }}
                 }}
             }});
             return false;
