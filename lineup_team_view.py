@@ -1938,10 +1938,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }});
             return false;
         }}
-                }}
-            }});
-            return false;
-        }}
 
         // Add event listeners
         document.querySelectorAll('.xi-checkbox').forEach(checkbox => {{
