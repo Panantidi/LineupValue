@@ -1908,5 +1908,109 @@
         "slug": "uzbekistan"
       }
     ]
+  },
+  "Japan": {
+    "J1 League": [
+      {
+        "id": "GliRsh4P",
+        "name": "Mito",
+        "slug": "mito"
+      },
+      {
+        "id": "SdMQZTB5",
+        "name": "Avispa Fukuoka",
+        "slug": "avispa-fukuoka"
+      },
+      {
+        "id": "rJJl6Vtt",
+        "name": "Cerezo Osaka",
+        "slug": "cerezo-osaka"
+      },
+      {
+        "id": "ppNYGTQb",
+        "name": "Verdy",
+        "slug": "verdy"
+      },
+      {
+        "id": "fZS33RAH",
+        "name": "Kyoto",
+        "slug": "kyoto"
+      },
+      {
+        "id": "6BeXoaup",
+        "name": "Nagoya Grampus",
+        "slug": "nagoya-grampus"
+      },
+      {
+        "id": "vPgupwAd",
+        "name": "Shimizu S-Pulse",
+        "slug": "shimizu-s-pulse"
+      },
+      {
+        "id": "4h6TMt23",
+        "name": "Yokohama F. Marinos",
+        "slug": "yokohama-f-marinos"
+      },
+      {
+        "id": "bF5XL0H9",
+        "name": "Kawasaki Frontale",
+        "slug": "kawasaki-frontale"
+      },
+      {
+        "id": "hEbtKvnM",
+        "name": "Kashiwa Reysol",
+        "slug": "kashiwa-reysol"
+      },
+      {
+        "id": "zNLhJb1S",
+        "name": "Chiba",
+        "slug": "chiba"
+      },
+      {
+        "id": "698tGI9q",
+        "name": "Vissel Kobe",
+        "slug": "vissel-kobe"
+      },
+      {
+        "id": "C8IHSxPk",
+        "name": "Urawa Reds",
+        "slug": "urawa-reds"
+      },
+      {
+        "id": "fX7MRdvd",
+        "name": "Sanfrecce Hiroshima",
+        "slug": "sanfrecce-hiroshima"
+      },
+      {
+        "id": "8zCQQGg2",
+        "name": "FC Tokyo",
+        "slug": "fc-tokyo"
+      },
+      {
+        "id": "4nNKlKo9",
+        "name": "Kashima Antlers",
+        "slug": "kashima-antlers"
+      },
+      {
+        "id": "zLQAGOBK",
+        "name": "Gamba Osaka",
+        "slug": "gamba-osaka"
+      },
+      {
+        "id": "vDpqgnYn",
+        "name": "Okayama",
+        "slug": "okayama"
+      },
+      {
+        "id": "CUSC1dab",
+        "name": "Machida",
+        "slug": "machida-zelvia"
+      },
+      {
+        "id": "hl74HAcF",
+        "name": "V-Varen Nagasaki",
+        "slug": "v-varen-nagasaki"
+      }
+    ]
   }
 }
