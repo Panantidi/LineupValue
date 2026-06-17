@@ -1785,6 +1785,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             document.getElementById(prefix + '-impact').textContent = totalImpact.toFixed(2);
             document.getElementById(prefix + '-goals').textContent = totalGoals;
             document.getElementById(prefix + '-assists').textContent = totalAssists;
+            // Calculate and display percentages
+            const goalsPct = TOTAL_GOALS > 0 ? Math.round((totalGoals / TOTAL_GOALS) * 100) : 0;
+            const assistsPct = TOTAL_ASSISTS > 0 ? Math.round((totalAssists / TOTAL_ASSISTS) * 100) : 0;
+            document.getElementById(prefix + '-goals-pct').textContent = goalsPct;
+            document.getElementById(prefix + '-assists-pct').textContent = assistsPct;
         }}
 
         document.querySelectorAll('.tab').forEach(tab => {{
