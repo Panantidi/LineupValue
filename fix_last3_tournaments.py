@@ -59,6 +59,9 @@ def log(msg):
 
 def comp_from_header(header_text: str) -> str:
     lt = (header_text or "").lower()
+    # Check 'world championship' before 'championship' (word boundary matters)
+    if 'world championship' in lt:
+        return 'WC'
     for key, val in COMP_MAP.items():
         if key in lt:
             return val
