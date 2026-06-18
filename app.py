@@ -1464,11 +1464,10 @@ async def lineup_api_fixtures(team_id: str):
             )
             await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
             page = await ctx.new_page()
-            await page.goto(url, wait_until='domcontentloaded', timeout=20000)
-            await page.wait_for_timeout(1500)
-            for _ in range(3):
-                await page.evaluate("window.scrollBy(0, 500)")
-                await page.wait_for_timeout(200)
+            await page.goto(url, wait_until='networkidle', timeout=25000)
+            for _ in range(5):
+                await page.evaluate("window.scrollBy(0, 800)")
+                await page.wait_for_timeout(300)
             html = await page.content()
             await browser.close()
         return html
