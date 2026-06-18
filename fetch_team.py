@@ -358,7 +358,7 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug, limit=6):
         'liiga cup': 'LIC',
         'suomen cup': 'SUC',
         'league cup': 'LC', 'efl cup': 'LC',
-        'club friendlies': 'FR', 'friendlies': 'FR', 'friendly': 'FR', 'club friendly': 'FR',
+        'club friendlies': 'FR', 'friendlies': 'FR', 'friendly': 'FR', 'club friendly': 'FR', 'world championship': 'WC',
         'atlantic cup': 'FR',
         'fifa intercontinental cup': 'FIC',
         'super cup': 'SCP',

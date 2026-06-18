@@ -40,7 +40,7 @@ COMP_MAP = {
     "dfb pokal": "DFB", "fa cup": "FA", "efl cup": "LC", "league cup": "LC",
     "coupe de france": "CDF", "copa del rey": "CDR", "coppa italia": "CI",
     "club friendlies": "FR", "friendlies": "FR", "friendly": "FR",
-    "national cup": "CUP",
+    "national cup": "CUP", "world championship": "WC",
 }
 FULL_NAMES = {
     "L1": "Ligue 1", "L2": "Ligue 2", "PL": "Premier League", "CH": "Championship",
@@ -49,7 +49,7 @@ FULL_NAMES = {
     "SL": "Süper Lig", "SUL": "Super League", "SUP": "Superliga", "ALL": "Allsvenskan",
     "ELI": "Eliteserien", "CL": "Champions League", "EL": "Europa League", "ECL": "Conference League",
     "DFB": "DFB Pokal", "FA": "FA Cup", "LC": "League Cup", "CDF": "Coupe de France",
-    "CDR": "Copa del Rey", "CI": "Coppa Italia", "CUP": "National Cup", "FR": "Friendly", "UNK": "Other Competition",
+    "CDR": "Copa del Rey", "CI": "Coppa Italia", "CUP": "National Cup", "FR": "Friendly", "UNK": "Other Competition", "WC": "World Championship",
 }
 
 

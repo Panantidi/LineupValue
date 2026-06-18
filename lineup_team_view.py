@@ -529,7 +529,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             "TDP": "Taca de Portugal", "BLC": "Belarusian Cup", "LIC": "Liiga Cup", "SUC": "Suomen Cup",
             "LC": "League Cup", "CUP": "National Cup",
             "FIC": "FIFA Intercontinental Cup", "SCP": "Super Cup",
-            "FR": "Friendly", "UNK": "Other Competition",
+            "FR": "Friendly", "UNK": "Other Competition", "WC": "World Championship",
         }
         return mapping.get(key, raw or "Match")
 

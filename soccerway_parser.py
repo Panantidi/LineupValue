@@ -483,7 +483,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         "fa-cup": "FA", "coupe-de-france": "CDF",
         "champions-league": "CL", "europa-league": "EL", "conference-league": "ECL",
         "dfb-pokal": "DFB", "copa-del-rey": "CDR", "coppa-italia": "CI",
-        "league-cup": "LC",
+        "league-cup": "LC", "world-championship": "WC",
     }
 
     # Soccerway results: each game in a div.event__match, parent div.leagues--static has league name
@@ -502,7 +502,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         'fa cup': 'FA', 'coupe de france': 'CDF',
         'champions league': 'CL', 'europa league': 'EL', 'conference league': 'ECL',
         'dfb pokal': 'DFB', 'copa del rey': 'CDR', 'coppa italia': 'CI',
-        'league cup': 'LC', 'national cup': 'CUP',
+        'league cup': 'LC', 'national cup': 'CUP', 'world championship': 'WC',
     }
 
     for link in game_links:
