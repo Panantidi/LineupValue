@@ -1908,5 +1908,79 @@
         "slug": "uzbekistan"
       }
     ]
+  },
+  "Bulgaria": {
+    "efbet League": [
+      {
+        "id": "xzz3KroU",
+        "name": "Botev Plovdiv",
+        "slug": "botev-plovdiv"
+      },
+      {
+        "id": "EeRUF2go",
+        "name": "Cherno More",
+        "slug": "cherno-more"
+      },
+      {
+        "id": "0xFNNECi",
+        "name": "CSKA Sofia",
+        "slug": "cska-sofia"
+      },
+      {
+        "id": "zFPKyZRc",
+        "name": "Lok. Plovdiv",
+        "slug": "lok-plovdiv"
+      },
+      {
+        "id": "E5OOzgs4",
+        "name": "Levski Sofia",
+        "slug": "levski-sofia"
+      },
+      {
+        "id": "xp9SXWBG",
+        "name": "Lok. Sofia",
+        "slug": "lok-sofia"
+      },
+      {
+        "id": "UopPSUlp",
+        "name": "Slavia Sofia",
+        "slug": "slavia-sofia"
+      },
+      {
+        "id": "zof0uk4j",
+        "name": "Spartak Varna",
+        "slug": "spartak-varna"
+      },
+      {
+        "id": "dhGu1AeM",
+        "name": "Dunav Ruse",
+        "slug": "dunav-ruse"
+      },
+      {
+        "id": "revfhoot",
+        "name": "Botev Vratsa",
+        "slug": "botev-vratsa"
+      },
+      {
+        "id": "GrLjfV3M",
+        "name": "Ludogorets",
+        "slug": "ludogorets"
+      },
+      {
+        "id": "G4CP0a82",
+        "name": "Arda",
+        "slug": "arda"
+      },
+      {
+        "id": "8nkL4WbD",
+        "name": "Septemvri Sofia",
+        "slug": "septemvri-sofia"
+      },
+      {
+        "id": "fgaHZGUb",
+        "name": "CSKA 1948 Sofia",
+        "slug": "cska-1948-sofia"
+      }
+    ]
   }
 }
