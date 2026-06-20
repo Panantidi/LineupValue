@@ -481,7 +481,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         "super-lig": "SL", "super-league": "SUL", "superliga": "SUP",
         "allsvenskan": "ALL", "eliteserien": "ELI",
         "fa-cup": "FA", "coupe-de-france": "CDF",
-        "champions-league": "CL", "europa-league": "EL", "conference-league": "ECL", "efbet-league": "EBL",
+        "champions-league": "CL", "europa-league": "EL", "conference-league": "ECL", "efbet-league": "EBL", "j1-league": "J1L",
         "dfb-pokal": "DFB", "copa-del-rey": "CDR", "coppa-italia": "CI",
         "league-cup": "LC", "world-championship": "WC",
     }
@@ -500,7 +500,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         'super lig': 'SL', 'super league': 'SUL', 'superliga': 'SUP',
         'allsvenskan': 'ALL', 'eliteserien': 'ELI',
         'fa cup': 'FA', 'coupe de france': 'CDF',
-        'champions league': 'CL', 'europa league': 'EL', 'conference league': 'ECL', 'efbet league': 'EBL',
+        'champions league': 'CL', 'europa league': 'EL', 'conference league': 'ECL', 'efbet league': 'EBL', 'j1 league': 'J1L',
         'dfb pokal': 'DFB', 'copa del rey': 'CDR', 'coppa italia': 'CI',
         'league cup': 'LC', 'national cup': 'CUP', 'world championship': 'WC',
     }

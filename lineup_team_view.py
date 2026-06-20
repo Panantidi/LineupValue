@@ -522,7 +522,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             "ELT": "Eliteserien", "MLS": "Major League Soccer",
             "VYS": "Vysshaya Liga", "VEI": "Veikkausliiga", "ALE": "A-League",
             "FA": "FA Cup", "CDF": "Coupe de France", "CL": "Champions League", "CLQ": "Champions League Qual.",
-            "EL": "Europa League", "ECL": "Conference League", "EBL": "efbet League", "CCL": "CONCACAF Champions Cup", "LGC": "Leagues Cup",
+            "EL": "Europa League", "ECL": "Conference League", "EBL": "efbet League", "J1L": "J1 League", "CCL": "CONCACAF Champions Cup", "LGC": "Leagues Cup",
             "DFB": "DFB Pokal", "CDR": "Copa del Rey",
             "COI": "Coppa Italia", "KNVB": "KNVB Beker", "BCP": "Belgian Cup",
             "NMC": "NM Cup", "LPC": "Landspokal Cup", "SWC": "Swiss Cup",
