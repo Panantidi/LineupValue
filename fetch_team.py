@@ -340,7 +340,7 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug, limit=6):
         'veikkausliiga': 'VEI',
         'a-league': 'ALE',
         'champions league': 'CL', 'champions league - qualification': 'CLQ',
-        'europa league': 'EL', 'conference league': 'ECL',
+        'europa league': 'EL', 'conference league': 'ECL', 'efbet league': 'EBL',
         'concacaf champions cup': 'CCL',
         'leagues cup': 'LGC',
         'dfb pokal': 'DFB',

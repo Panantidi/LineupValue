@@ -36,7 +36,7 @@ COMP_MAP = {
     "eredivisie": "ER", "liga portugal": "LP", "jupiler pro league": "JPL",
     "super lig": "SL", "super league": "SUL", "superliga": "SUP",
     "allsvenskan": "ALL", "eliteserien": "ELI",
-    "champions league": "CL", "europa league": "EL", "conference league": "ECL",
+    "champions league": "CL", "europa league": "EL", "conference league": "ECL", "efbet league": "EBL",
     "dfb pokal": "DFB", "fa cup": "FA", "efl cup": "LC", "league cup": "LC",
     "coupe de france": "CDF", "copa del rey": "CDR", "coppa italia": "CI",
     "club friendlies": "FR", "friendlies": "FR", "friendly": "FR",
@@ -47,7 +47,7 @@ FULL_NAMES = {
     "BL": "Bundesliga", "B2": "2. Bundesliga", "SA": "Serie A", "LL": "La Liga",
     "ER": "Eredivisie", "LP": "Liga Portugal", "JPL": "Jupiler Pro League",
     "SL": "Süper Lig", "SUL": "Super League", "SUP": "Superliga", "ALL": "Allsvenskan",
-    "ELI": "Eliteserien", "CL": "Champions League", "EL": "Europa League", "ECL": "Conference League",
+    "ELI": "Eliteserien", "CL": "Champions League", "EL": "Europa League", "ECL": "Conference League", "EBL": "efbet League",
     "DFB": "DFB Pokal", "FA": "FA Cup", "LC": "League Cup", "CDF": "Coupe de France",
     "CDR": "Copa del Rey", "CI": "Coppa Italia", "CUP": "National Cup", "FR": "Friendly", "UNK": "Other Competition", "WC": "World Championship",
 }
