@@ -221,7 +221,7 @@
                         <th>Age</th>
                         <th>MV</th>
                         <th>Pos</th>
-                        <th>Squad Role</th>
+                        <th>Squad<br>Role</th>
                         <th>IS</th>
                         <th>Apps</th>
                         <th>Min</th>
@@ -320,7 +320,7 @@
                     <td>${formatMV(p.mv)}</td>
                     <td class="pos-${(p.position || "").toLowerCase()}">${p.position || "–"}</td>
                     <td>
-                        ${p.squad_role ? `<span class="squad-role ${p.squad_role.toLowerCase()}">${p.squad_role}</span>` : "–"}
+                        ${p.squad_role ? `<span class="squad-role ${p.squad_role.toLowerCase()}">${p.squad_role.split(" ")[0]}<br>${p.squad_role.split(" ").slice(1).join(" ") || ""}</span>` : "–"}
                     </td>
                     <td class="impact-${(p.impact || "").toLowerCase()}">${p.impact || "–"}</td>
                     <td>${p.apps || "–"}</td>
