@@ -1,25 +1,5 @@
 // Favorites functionality for LineupValue
-const FAV_STORAGE_KEY = 'favorites_players';
-
-function getFavorites() {
-    try {
-        const data = localStorage.getItem(FAV_STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-    } catch (e) {
-        return [];
-    }
-}
-
-function saveFavorites(favs) {
-    try {
-        localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(favs));
-    } catch (e) {}
-}
-
-function findFavoriteIndex(playerId) {
-    const favs = getFavorites();
-    return favs.findIndex(f => f.id === playerId);
-}
+// Uses server-side storage for each user
 
 function getPlayerDataFromRow(row) {
     const cells = row.querySelectorAll('td');
@@ -43,7 +23,7 @@ function getPlayerDataFromRow(row) {
     // 15 = Apps, 16 = Min, 17 = G, 18 = A, 19 = YC, 20 = RC
     
     return {
-        id: (row.dataset.playerNumber || '') + '_' + (row.dataset.playerName || ''),
+        player_id: (row.dataset.playerNumber || '') + '_' + (row.dataset.playerName || ''),
         number: cells[0]?.textContent?.trim() || '?',
         name: name,
         club: club,
@@ -62,28 +42,58 @@ function getPlayerDataFromRow(row) {
     };
 }
 
-function toggleFavorite(el) {
+// Cache favorites in memory
+let _favoritesCache = null;
+let _favoritesSet = new Set();
+
+async function loadFavoritesFromServer() {
+    try {
+        const res = await fetch('/api/favorites');
+        const data = await res.json();
+        const favorites = data.favorites || [];
+        _favoritesSet = new Set(favorites.map(f => f.player_id));
+        return favorites;
+    } catch (e) {
+        console.error('Failed to load favorites:', e);
+        return [];
+    }
+}
+
+async function toggleFavorite(el) {
     const row = el.closest('tr');
     if (!row) return;
     
     const playerData = getPlayerDataFromRow(row);
-    const playerId = playerData.id;
+    const playerId = playerData.player_id;
     const playerName = playerData.name;
     
-    let favs = getFavorites();
-    const idx = findFavoriteIndex(playerId);
+    const isFavorite = _favoritesSet.has(playerId);
     
-    if (idx >= 0) {
-        favs.splice(idx, 1);
-        el.classList.remove('favorite');
-        showToast(playerName + ' removed from favorites', 'error');
-    } else {
-        favs.push(playerData);
-        el.classList.add('favorite');
-        showToast(playerName + ' added to favorites', 'success');
+    try {
+        if (isFavorite) {
+            // Remove from favorites
+            await fetch(`/api/favorites/${encodeURIComponent(playerId)}`, { method: 'DELETE' });
+            _favoritesSet.delete(playerId);
+            el.classList.remove('favorite');
+            showToast(playerName + ' removed from favorites', 'error');
+        } else {
+            // Add to favorites
+            await fetch('/api/favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    player_id: playerId,
+                    player_data: playerData
+                })
+            });
+            _favoritesSet.add(playerId);
+            el.classList.add('favorite');
+            showToast(playerName + ' added to favorites', 'success');
+        }
+    } catch (e) {
+        console.error('Failed to update favorite:', e);
+        showToast('Failed to update favorites', 'error');
     }
-    
-    saveFavorites(favs);
 }
 
 function showToast(message, type) {
@@ -98,13 +108,13 @@ function showToast(message, type) {
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
 }
 
-function initFavorites() {
-    const favs = getFavorites();
+async function initFavorites() {
+    await loadFavoritesFromServer();
     document.querySelectorAll('.player-number-circle').forEach(el => {
         const row = el.closest('tr');
         if (!row) return;
         const playerId = (row.dataset.playerNumber || '') + '_' + (row.dataset.playerName || '');
-        if (findFavoriteIndex(playerId) >= 0) {
+        if (_favoritesSet.has(playerId)) {
             el.classList.add('favorite');
         }
     });

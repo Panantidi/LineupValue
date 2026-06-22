@@ -139,6 +139,9 @@
             border-radius: 4px;
             font-size: 11px;
             font-weight: 600;
+            line-height: 1.4;
+            display: inline-block;
+            text-align: center;
         }
         .squad-role.key { background: #d4edda; color: #155724; }
         .squad-role.main { background: #d4edda; color: #155724; }
@@ -195,7 +198,7 @@
         th:nth-child(16) {
             text-align: center;
         }
-</style>
+    </style>
 </head>
 <body>
     <div class="header">
@@ -241,22 +244,8 @@
     <div id="favorites-toast"></div>
 
     <script>
-        const STORAGE_KEY = "favorites_players";
-        
-        function getFavorites() {
-            try {
-                const data = localStorage.getItem(STORAGE_KEY);
-                return data ? JSON.parse(data) : [];
-            } catch (e) {
-                return [];
-            }
-        }
-        
-        function saveFavorites(favs) {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
-            } catch (e) {}
-        }
+        // User is set by server
+        let CURRENT_USER = window.CURRENT_USER || "owner";
         
         function formatMV(value) {
             if (!value || value === "-" || value === "?") return "–";
@@ -280,14 +269,41 @@
             return codes[national] || null;
         }
         
-        function renderFavorites() {
-            let favorites = getFavorites();
-            
-            // Sort by club name by default
-            favorites.sort((a, b) => (a.club || "").localeCompare(b.club || ""));
-            
-            
-            
+        async function loadFavorites() {
+            try {
+                const res = await fetch("/api/favorites");
+                const data = await res.json();
+                return data.favorites || [];
+            } catch (e) {
+                console.error("Failed to load favorites:", e);
+                return [];
+            }
+        }
+        
+        async function saveFavorites(favorites) {
+            // Note: This is now handled via individual add/remove API calls
+            // This function kept for compatibility
+        }
+        
+        async function removeFavorite(playerId, playerName) {
+            try {
+                await fetch(`/api/favorites/${encodeURIComponent(playerId)}`, { method: "DELETE" });
+                showToast(`Removed ${playerName || "player"} from favorites`);
+                renderFavorites();
+            } catch (e) {
+                showToast("Failed to remove favorite", "error");
+            }
+        }
+        
+        function showToast(message, type = "success") {
+            const toast = document.getElementById("favorites-toast");
+            toast.textContent = message;
+            toast.className = "show " + type;
+            setTimeout(() => { toast.classList.remove("show"); }, 3000);
+        }
+        
+        async function renderFavorites() {
+            const favorites = await loadFavorites();
             const emptyState = document.getElementById("empty-state");
             const tableContainer = document.getElementById("table-container");
             const tbody = document.getElementById("favorites-tbody");
@@ -298,20 +314,28 @@
                 return;
             }
             
+            // Sort by club name
+            favorites.sort((a, b) => (a.club || "").localeCompare(b.club || ""));
+            
             emptyState.style.display = "none";
             tableContainer.style.display = "block";
             
-            // Render table
             tbody.innerHTML = favorites.map((p, idx) => {
                 const flagCode = getFlagCode(p.national);
                 const flagHtml = flagCode 
                     ? `<img src="https://flagcdn.com/w20/${flagCode}.png" alt="${p.national}" class="flag">`
                     : (p.national || "–");
                 
+                const squadRole = p.squad_role || "";
+                const squadRoleParts = squadRole.split(" ");
+                const squadRoleHtml = squadRole 
+                    ? `<span class="squad-role ${squadRole.toLowerCase()}">${squadRoleParts[0]}<br>${squadRoleParts.slice(1).join(" ") || ""}</span>`
+                    : "–";
+                
                 return `
                 <tr data-idx="${idx}">
                     <td>
-                        <span class="player-number" title="Click to remove from favorites" onclick="removeFavorite(${idx})">${p.number || "?"}</span>
+                        <span class="player-number" title="Click to remove from favorites" onclick="removeFavorite('${p.player_id}', '${p.name || ""}')">${p.number || "?"}</span>
                     </td>
                     <td>${p.club || "–"}</td>
                     <td>${flagHtml}</td>
@@ -319,9 +343,7 @@
                     <td>${p.age || "–"}</td>
                     <td>${formatMV(p.mv)}</td>
                     <td class="pos-${(p.position || "").toLowerCase()}">${p.position || "–"}</td>
-                    <td>
-                        ${p.squad_role ? `<span class="squad-role ${p.squad_role.toLowerCase()}">${p.squad_role.split(" ")[0]}<br>${p.squad_role.split(" ").slice(1).join(" ") || ""}</span>` : "–"}
-                    </td>
+                    <td>${squadRoleHtml}</td>
                     <td class="impact-${(p.impact || "").toLowerCase()}">${p.impact || "–"}</td>
                     <td>${p.apps || "–"}</td>
                     <td>${p.minutes || "–"}</td>
@@ -330,25 +352,10 @@
                     <td>${p.yellows || "–"}</td>
                     <td>${p.reds || "–"}</td>
                     <td>
-                        <button class="btn-remove" onclick="removeFavorite(${idx})">Remove</button>
+                        <button class="btn-remove" onclick="removeFavorite('${p.player_id}', '${p.name || ""}')">Remove</button>
                     </td>
                 </tr>
             `}).join("");
-        }
-        
-        function removeFavorite(idx) {
-            let favorites = getFavorites();
-            const removed = favorites.splice(idx, 1)[0];
-            saveFavorites(favorites);
-            renderFavorites();
-            showToast(`Removed ${removed.name || "player"} from favorites`);
-        }
-        
-        function showToast(message) {
-            const toast = document.getElementById("favorites-toast");
-            toast.textContent = message;
-            toast.className = "show success";
-            setTimeout(() => { toast.classList.remove("show"); }, 3000);
         }
         
         // Initialize

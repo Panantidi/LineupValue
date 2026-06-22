@@ -465,6 +465,18 @@ def ensure_db():
         )
     """)
     con.execute("CREATE INDEX IF NOT EXISTS idx_lineup_snapshots_user_team ON user_lineup_snapshots(username, team_id, created_at DESC)")
+    # User favorites table
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS user_favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            player_id TEXT NOT NULL,
+            player_data TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(username, player_id)
+        )
+    """)
+    con.execute("CREATE INDEX IF NOT EXISTS idx_user_favorites_username ON user_favorites(username)")
 
 
     con.execute("""
@@ -1372,10 +1384,67 @@ async def lineup_select_html():
         return HTMLResponse(content=f.read())
 
 @app.get("/lineup_ai/favorites")
-async def favorites_page():
-    """My Favorites page - shows favorited players."""
+async def favorites_page(request: Request):
+    """My Favorites page - shows favorited players for logged-in user."""
+    username = getattr(request.state, "username", "owner")
     with open("/home/openclaw/FormAlert/favorites.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+        html = f.read()
+    # Inject username into HTML
+    html = html.replace("</body>", f'<script>window.CURRENT_USER = "{username}";</script></body>')
+    return HTMLResponse(content=html)
+
+
+@app.get("/api/favorites")
+async def get_favorites(request: Request):
+    """Get user's favorite players."""
+    username = getattr(request.state, "username", "owner")
+    with sqlite3.connect(DB_PATH) as con:
+        rows = con.execute(
+            "SELECT player_id, player_data, created_at FROM user_favorites WHERE username = ? ORDER BY created_at",
+            (username,)
+        ).fetchall()
+    favorites = []
+    for row in rows:
+        try:
+            player_data = json.loads(row[1])
+            favorites.append({
+                "player_id": row[0],
+                **player_data
+            })
+        except:
+            pass
+    return {"favorites": favorites}
+
+
+@app.post("/api/favorites")
+async def add_favorite(request: Request):
+    """Add player to favorites."""
+    username = getattr(request.state, "username", "owner")
+    data = await request.json()
+    player_id = data.get("player_id")
+    player_data = data.get("player_data", {})
+    
+    if not player_id:
+        return {"error": "player_id required"}, 400
+    
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute(
+            "INSERT OR REPLACE INTO user_favorites (username, player_id, player_data, created_at) VALUES (?, ?, ?, ?)",
+            (username, player_id, json.dumps(player_data), datetime.now(timezone.utc).isoformat())
+        )
+    return {"success": True, "player_id": player_id}
+
+
+@app.delete("/api/favorites/{player_id}")
+async def remove_favorite(request: Request, player_id: str):
+    """Remove player from favorites."""
+    username = getattr(request.state, "username", "owner")
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute(
+            "DELETE FROM user_favorites WHERE username = ? AND player_id = ?",
+            (username, player_id)
+        )
+    return {"success": True}
 
 
 @app.get("/lineup_ai")
