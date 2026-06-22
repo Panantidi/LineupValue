@@ -1427,12 +1427,22 @@ async def lineup_api_fetch(team_id: str):
 
 
 # --- FIXTURES: fetch upcoming matches for a team ---
+
 @app.get("/lineup_ai/api/fixtures/{team_id}")
 async def lineup_api_fixtures(team_id: str):
-    """Fetch upcoming fixtures from Soccerway and return as JSON."""
+    """Fetch upcoming fixtures from Soccerway and return as JSON.
+    
+    Returns:
+        - 1 match happening today (if any)
+        - 2 upcoming matches after today
+        - Total: max 3 matches
+        - Excludes all past/completed matches
+        - Order: Home vs Away exactly as on Soccerway
+    """
     import asyncio, re, json
     from bs4 import BeautifulSoup
     from playwright.async_api import async_playwright
+    from datetime import datetime, timedelta
 
     BASE = "https://www.soccerway.com"
     
@@ -1455,16 +1465,16 @@ async def lineup_api_fixtures(team_id: str):
         async with async_playwright() as p:
             browser = await p.chromium.launch(
                 headless=True,
-                args=['--no-sandbox','--disable-setuid-sandbox',
-                      '--disable-dev-shm-usage','--disable-blink-features=AutomationControlled']
+                args=["--no-sandbox","--disable-setuid-sandbox",
+                      "--disable-dev-shm-usage","--disable-blink-features=AutomationControlled"]
             )
             ctx = await browser.new_context(
-                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36',
-                viewport={'width':1920,'height':1080}, locale='en-US'
+                user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/137.0.0.0 Safari/537.36",
+                viewport={"width":1920,"height":1080}, locale="en-US"
             )
             await ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
             page = await ctx.new_page()
-            await page.goto(url, wait_until='networkidle', timeout=25000)
+            await page.goto(url, wait_until="networkidle", timeout=25000)
             for _ in range(5):
                 await page.evaluate("window.scrollBy(0, 800)")
                 await page.wait_for_timeout(300)
@@ -1477,79 +1487,130 @@ async def lineup_api_fixtures(team_id: str):
     except Exception as e:
         return JSONResponse(content={"error": str(e), "fixtures": []}, status_code=500)
 
-    soup = BeautifulSoup(html, 'html.parser')
-    fixtures = []
+    soup = BeautifulSoup(html, "html.parser")
+    all_matches = []
     seen_mids = set()
-    from datetime import datetime, timedelta
 
+    # Current time (UTC)
     now = datetime.utcnow()
+    today_start = datetime(now.year, now.month, now.day, 0, 0, 0)
+    today_end = datetime(now.year, now.month, now.day, 23, 59, 59)
 
     # Parse match links from fixtures page
     for a in soup.select('a[href*="/match/"]'):
-        href = a.get('href', '')
-        mid_m = re.search(r'[?&]mid=([A-Za-z0-9]+)', href)
-        mid = mid_m.group(1) if mid_m else ''
+        href = a.get("href", "")
+        mid_m = re.search(r"[?&]mid=([A-Za-z0-9]+)", href)
+        mid = mid_m.group(1) if mid_m else ""
         if not mid or mid in seen_mids:
             continue
         seen_mids.add(mid)
 
-        parent = a.find_parent('tr') or a.find_parent('div')
-        row_text = parent.get_text(' ', strip=True) if parent else a.get_text(strip=True)
+        parent = a.find_parent("tr") or a.find_parent("div")
+        row_text = parent.get_text(" ", strip=True) if parent else a.get_text(strip=True)
 
-        # Extract date and time: "23.07. 01:30" or "23.07. 01:30 ..." or "23.07"
-        date_str = ''
-        dm = re.search(r'(\d{1,2})\.(\d{2})\.\s+(\d{2}:\d{2})', row_text)
+        # Extract date and time
+        date_str = ""
+        match_datetime = None
+        
+        # Try full datetime first: "23.07. 01:30"
+        dm = re.search(r"(\d{1,2})\.(\d{2})\.\s+(\d{2}):(\d{2})", row_text)
         if dm:
             day = int(dm.group(1))
             month = int(dm.group(2))
-            time_str = dm.group(3)
-            date_str = f'{dm.group(1).zfill(2)}.{dm.group(2)} {time_str}'
-            # Parse as UTC date to filter future matches
+            hour = int(dm.group(3))
+            minute = int(dm.group(4))
+            date_str = f"{dm.group(1).zfill(2)}.{dm.group(2)} {dm.group(3)}:{dm.group(4)}"
+            
+            # Determine year: if month < current month, it is next year
+            year = now.year
+            if month < now.month:
+                year = now.year + 1
+            elif month == now.month and day < now.day:
+                year = now.year + 1
+            
             try:
-                match_date = datetime(2026, month, day)
+                match_datetime = datetime(year, month, day, hour, minute)
             except ValueError:
-                match_date = datetime(2026, month, day)
+                continue
         else:
-            continue  # skip matches without date/time
+            # Try date only without time: "23.07."
+            dm = re.search(r"(\d{1,2})\.(\d{2})\.", row_text)
+            if dm:
+                day = int(dm.group(1))
+                month = int(dm.group(2))
+                date_str = f"{dm.group(1).zfill(2)}.{dm.group(2)}"
+                
+                year = now.year
+                if month < now.month:
+                    year = now.year + 1
+                elif month == now.month and day < now.day:
+                    year = now.year + 1
+                
+                try:
+                    match_datetime = datetime(year, month, day, 12, 0)  # noon placeholder
+                except ValueError:
+                    continue
+            else:
+                continue  # skip matches without date
 
-        # Only future matches
-        if match_date < now - timedelta(hours=12):
+        if not match_datetime:
             continue
 
-        # Extract team names from URL
-        teams_m = re.search(r'/match/([^/]+)/([^/]+)/', href)
-        home_name = ''
-        away_name = ''
+        # Skip past matches (before today)
+        if match_datetime < today_start:
+            continue
+
+        # Extract team names from URL - preserve exact Soccerway order
+        teams_m = re.search(r"/match/([^/]+)/([^/]+)/", href)
+        home_name = ""
+        away_name = ""
         is_home = True
         if teams_m:
             home_slug = teams_m.group(1)
             away_slug = teams_m.group(2)
-            home_name = home_slug.rsplit('-', 1)[0].replace('-', ' ').title()
-            away_name = away_slug.rsplit('-', 1)[0].replace('-', ' ').title()
+            home_name = home_slug.rsplit("-", 1)[0].replace("-", " ").title()
+            away_name = away_slug.rsplit("-", 1)[0].replace("-", " ").title()
             is_home = team_id in home_slug
 
-        full_url = href if href.startswith('http') else f'{BASE}{href}'
-        # Extract team IDs from URL slug: /match/home-slug-homeID/away-slug-awayID/
-        home_id = ''
-        away_id = ''
+        full_url = href if href.startswith("http") else f"{BASE}{href}"
+        
+        # Extract team IDs from URL slug
+        home_id = ""
+        away_id = ""
         if teams_m:
-            home_id = home_slug.rsplit('-', 1)[-1] if '-' in home_slug else ''
-            away_id = away_slug.rsplit('-', 1)[-1] if '-' in away_slug else ''
-        fixtures.append({
-            'mid': mid,
-            'date': date_str,
-            'home': home_name,
-            'away': away_name,
-            'home_id': home_id,
-            'away_id': away_id,
-            'is_home': is_home,
-            'url': full_url
+            home_id = home_slug.rsplit("-", 1)[-1] if "-" in home_slug else ""
+            away_id = away_slug.rsplit("-", 1)[-1] if "-" in away_slug else ""
+
+        all_matches.append({
+            "mid": mid,
+            "date": date_str,
+            "match_datetime": match_datetime,
+            "home": home_name,
+            "away": away_name,
+            "home_id": home_id,
+            "away_id": away_id,
+            "is_home": is_home,
+            "url": full_url
         })
 
-    # Sort by date (assumes chronological order from Soccerway; reverse if needed)
-    # Soccerway fixtures are already sorted, but ensure only 2
-    fixtures = fixtures[:2]  # exactly 2 matches
-    return JSONResponse(content={"fixtures": fixtures, "team_id": team_id})
+    # Sort by datetime ascending
+    all_matches.sort(key=lambda x: x["match_datetime"])
+
+    # Separate matches into today and future
+    today_matches = [m for m in all_matches if today_start <= m["match_datetime"] <= today_end]
+    future_matches = [m for m in all_matches if m["match_datetime"] > today_end]
+
+    # Take: 1 today (if any) + 2 future
+    result = []
+    if today_matches:
+        result.append(today_matches[0])
+    result.extend(future_matches[:2])
+
+    # Remove internal match_datetime field before returning
+    for m in result:
+        del m["match_datetime"]
+
+    return JSONResponse(content={"fixtures": result, "team_id": team_id})
 
 
 # --- COMPARE: side-by-side team comparison for a match ---
