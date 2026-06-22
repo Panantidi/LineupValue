@@ -1052,7 +1052,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
 
     <div class="container">
-        <div class="tabs" style="display:none;">
+        <div class="tabs">
             <div class="tab active">Squad</div>
             <div class="tab">Missing Players</div>
             <div class="tab">Doubtful Players</div>
