@@ -270,7 +270,13 @@
         }
         
         function renderFavorites() {
-            const favorites = getFavorites();
+            let favorites = getFavorites();
+            
+            // Sort by club name by default
+            favorites.sort((a, b) => (a.club || "").localeCompare(b.club || ""));
+            
+            
+            
             const emptyState = document.getElementById("empty-state");
             const tableContainer = document.getElementById("table-container");
             const tbody = document.getElementById("favorites-tbody");
