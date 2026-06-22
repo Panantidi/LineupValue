@@ -25,23 +25,35 @@ function getPlayerDataFromRow(row) {
     const cells = row.querySelectorAll('td');
     const nameCell = row.querySelector('.player-name');
     
+    // Get national from flag image alt attribute
+    const flagImg = cells[1]?.querySelector('img');
+    const national = flagImg?.getAttribute('alt') || flagImg?.alt || '';
+    
+    // Get club from team title
+    const club = document.querySelector('.team-title h1')?.textContent?.trim() || '';
+    
+    // Clean name - remove emoji
+    let name = nameCell?.textContent?.trim() || '';
+    name = name.replace(/[⚽️👟🦾🌀⭐️🔝]/g, '').trim();
+    
     return {
-        id: row.dataset.playerNumber + '_' + (row.dataset.playerName || ''),
+        id: (row.dataset.playerNumber || '') + '_' + (row.dataset.playerName || ''),
         number: cells[0]?.textContent?.trim() || '?',
-        name: nameCell?.textContent?.replace(/[⚽️👟🦾🌀⭐️🔝]/g, '').trim() || '',
-        club: document.querySelector('.team-title h1')?.textContent?.trim() || '',
-        national: cells[1]?.querySelector('img')?.alt || cells[1]?.textContent?.trim() || '',
+        name: name,
+        club: club,
+        national: national,
         age: cells[4]?.textContent?.trim() || '',
         mv: cells[5]?.textContent?.trim() || '',
         position: cells[6]?.textContent?.trim() || '',
         squad_role: cells[7]?.textContent?.trim() || '',
         impact: cells[8]?.textContent?.trim() || '',
-        apps: cells[11]?.textContent?.trim() || '',
-        minutes: cells[12]?.textContent?.trim() || '',
-        goals: cells[13]?.textContent?.trim() || '',
-        assists: cells[14]?.textContent?.trim() || '',
-        yellows: cells[15]?.textContent?.trim() || '',
-        reds: cells[16]?.textContent?.trim() || ''
+        // Skip cells 9, 10, 11 (checkboxes) and 12 (Last 3 circles)
+        apps: cells[13]?.textContent?.trim() || '',
+        minutes: cells[14]?.textContent?.trim() || '',
+        goals: cells[15]?.textContent?.trim() || '',
+        assists: cells[16]?.textContent?.trim() || '',
+        yellows: cells[17]?.textContent?.trim() || '',
+        reds: cells[18]?.textContent?.trim() || ''
     };
 }
 

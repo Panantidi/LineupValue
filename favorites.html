@@ -72,6 +72,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow-x: auto;
         }
         table {
             width: 100%;
@@ -106,25 +107,24 @@
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #e9ecef;
+            background: #28a745;
+            color: white;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             font-weight: 700;
-            color: #495057;
-        }
-        .player-number.favorite {
-            background: #dc3545;
-            color: white;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+        .player-number:hover {
+            background: #218838;
         }
         .flag {
-            width: 20px;
             height: 14px;
-            border-radius: 2px;
-            display: inline-block;
+            width: auto;
             vertical-align: middle;
+            border-radius: 1px;
         }
         .pos-gk { color: #28a745; font-weight: bold; }
         .pos-def { color: #17a2b8; font-weight: bold; }
@@ -137,7 +137,9 @@
             font-size: 11px;
             font-weight: 600;
         }
+        .squad-role.key { background: #d4edda; color: #155724; }
         .squad-role.main { background: #d4edda; color: #155724; }
+        .squad-role.important { background: #fff3cd; color: #856404; }
         .squad-role.reserve { background: #fff3cd; color: #856404; }
         .impact-high { color: #28a745; font-weight: bold; }
         .impact-med { color: #ffc107; font-weight: bold; }
@@ -159,6 +161,7 @@
             display: flex;
             gap: 16px;
             margin-bottom: 24px;
+            flex-wrap: wrap;
         }
         .stat-card {
             background: white;
@@ -167,6 +170,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             text-align: center;
             flex: 1;
+            min-width: 150px;
         }
         .stat-value {
             font-size: 28px;
@@ -179,7 +183,7 @@
             text-transform: uppercase;
             margin-top: 4px;
         }
-        .toast {
+        #favorites-toast {
             position: fixed;
             bottom: 24px;
             right: 24px;
@@ -191,16 +195,16 @@
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.3s, transform 0.3s;
-            z-index: 1000;
+            z-index: 10000;
         }
-        .toast.show {
+        #favorites-toast.show {
             opacity: 1;
             transform: translateY(0);
         }
-        .toast.success {
+        #favorites-toast.success {
             background: #28a745;
         }
-        .toast.error {
+        #favorites-toast.error {
             background: #dc3545;
         }
     </style>
@@ -261,7 +265,7 @@
         </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div id="favorites-toast"></div>
 
     <script>
         const STORAGE_KEY = 'favorites_players';
@@ -279,15 +283,6 @@
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
             } catch (e) {}
-        }
-        
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = 'toast ' + type + ' show';
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
         }
         
         function formatMV(value) {
@@ -335,6 +330,23 @@
             return count > 0 ? (total / count).toFixed(1) : '-';
         }
         
+        function getFlagCode(national) {
+            const codes = {
+                'Spain': 'es', 'Netherlands': 'nl', 'Brazil': 'br', 'England': 'gb-eng',
+                'France': 'fr', 'Germany': 'de', 'Italy': 'it', 'Portugal': 'pt',
+                'Argentina': 'ar', 'Belgium': 'be', 'Croatia': 'hr', 'Uruguay': 'uy',
+                'Colombia': 'co', 'Senegal': 'sn', 'Morocco': 'ma', 'Poland': 'pl',
+                'Japan': 'jp', 'South Korea': 'kr', 'USA': 'us', 'Mexico': 'mx',
+                'Denmark': 'dk', 'Sweden': 'se', 'Norway': 'no', 'Austria': 'at',
+                'Switzerland': 'ch', 'Czech Republic': 'cz', 'Serbia': 'rs',
+                'Turkey': 'tr', 'Ukraine': 'ua', 'Romania': 'ro', 'Greece': 'gr',
+                'Scotland': 'gb-sct', 'Wales': 'gb-wls', 'Ireland': 'ie',
+                'Russia': 'ru', 'Algeria': 'dz', 'Nigeria': 'ng', 'Ghana': 'gh',
+                'Cameroon': 'cm', 'Ivory Coast': 'ci', 'Egypt': 'eg', 'Tunisia': 'tn'
+            };
+            return codes[national] || null;
+        }
+        
         function renderFavorites() {
             const favorites = getFavorites();
             const emptyState = document.getElementById('empty-state');
@@ -359,19 +371,25 @@
             document.getElementById('avg-age').textContent = calculateAvgAge(favorites);
             
             // Render table
-            tbody.innerHTML = favorites.map((p, idx) => `
+            tbody.innerHTML = favorites.map((p, idx) => {
+                const flagCode = getFlagCode(p.national);
+                const flagHtml = flagCode 
+                    ? `<img src="https://flagcdn.com/w20/${flagCode}.png" alt="${p.national}" class="flag">`
+                    : (p.national || '–');
+                
+                return `
                 <tr data-idx="${idx}">
                     <td>
-                        <span class="player-number favorite" title="Click to remove from favorites" onclick="removeFavorite(${idx})">${p.number || '?'}</span>
+                        <span class="player-number" title="Click to remove from favorites" onclick="removeFavorite(${idx})">${p.number || '?'}</span>
                     </td>
                     <td>${p.club || '–'}</td>
-                    <td>${p.national || '–'}</td>
+                    <td>${flagHtml}</td>
                     <td><span class="player-name">${p.name || '–'}</span></td>
                     <td>${p.age || '–'}</td>
                     <td>${formatMV(p.mv)}</td>
                     <td class="pos-${(p.position || '').toLowerCase()}">${p.position || '–'}</td>
                     <td>
-                        ${p.squad_role ? `<span class="squad-role ${p.squad_role === 'main' ? 'main' : 'reserve'}">${p.squad_role}</span>` : '–'}
+                        ${p.squad_role ? `<span class="squad-role ${p.squad_role.toLowerCase()}">${p.squad_role}</span>` : '–'}
                     </td>
                     <td class="impact-${(p.impact || '').toLowerCase()}">${p.impact || '–'}</td>
                     <td>${p.apps || '–'}</td>
@@ -384,7 +402,7 @@
                         <button class="btn-remove" onclick="removeFavorite(${idx})">Remove</button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
         
         function removeFavorite(idx) {
@@ -393,6 +411,13 @@
             saveFavorites(favorites);
             renderFavorites();
             showToast(`Removed ${removed.name || 'player'} from favorites`);
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('favorites-toast');
+            toast.textContent = message;
+            toast.className = 'show success';
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
         
         // Initialize
