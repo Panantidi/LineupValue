@@ -36,6 +36,12 @@ function getPlayerDataFromRow(row) {
     let name = nameCell?.textContent?.trim() || '';
     name = name.replace(/[⚽️👟🦾🌀⭐️🔝]/g, '').trim();
     
+    // Cell indices (after fixing for Last 3 being 3 separate <td>s):
+    // 0 = number, 1 = flag, 2 = name, 3 = status, 4 = age, 5 = mv, 6 = pos, 7 = squad_role, 8 = impact
+    // 9 = squad checkbox, 10 = possible XI checkbox, 11 = starting XI checkbox
+    // 12 = Last 3 match 1, 13 = Last 3 match 2, 14 = Last 3 match 3
+    // 15 = Apps, 16 = Min, 17 = G, 18 = A, 19 = YC, 20 = RC
+    
     return {
         id: (row.dataset.playerNumber || '') + '_' + (row.dataset.playerName || ''),
         number: cells[0]?.textContent?.trim() || '?',
@@ -47,13 +53,12 @@ function getPlayerDataFromRow(row) {
         position: cells[6]?.textContent?.trim() || '',
         squad_role: cells[7]?.textContent?.trim() || '',
         impact: cells[8]?.textContent?.trim() || '',
-        // Skip cells 9, 10, 11 (checkboxes) and 12 (Last 3 circles)
-        apps: cells[13]?.textContent?.trim() || '',
-        minutes: cells[14]?.textContent?.trim() || '',
-        goals: cells[15]?.textContent?.trim() || '',
-        assists: cells[16]?.textContent?.trim() || '',
-        yellows: cells[17]?.textContent?.trim() || '',
-        reds: cells[18]?.textContent?.trim() || ''
+        apps: cells[15]?.textContent?.trim() || '',
+        minutes: cells[16]?.textContent?.trim() || '',
+        goals: cells[17]?.textContent?.trim() || '',
+        assists: cells[18]?.textContent?.trim() || '',
+        yellows: cells[19]?.textContent?.trim() || '',
+        reds: cells[20]?.textContent?.trim() || ''
     };
 }
 
