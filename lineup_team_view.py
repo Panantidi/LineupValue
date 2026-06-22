@@ -256,6 +256,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
     <p style="color:#666;line-height:1.5;">Team data has not been loaded yet</p>
     <a href="/lineup_ai/select" style="display:inline-block;text-decoration:none;border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">← Back to teams</a>
+            <a href="/lineup_ai/favorites" style="display:inline-block;text-decoration:none;border:0;border-radius:8px;background:#28a745;color:white;font-weight:700;padding:10px 16px;cursor:pointer;margin-left:8px;">⭐ My Favorites</a>
   </div>
 </body></html>"""
         return HTMLResponse(html)
@@ -485,7 +486,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         top_impact = " 🔝" if player_impact >= 9 and player_minutes >= 900 else ""
         player_row = f"""
             <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}" data-player-number="{p.get("number", "–")}">
-                <td style="text-align:center;padding:4px 2px;">{p.get("number", "–")}</td>
+                <td style="text-align:center;padding:4px 2px;"><span class="player-number-circle" data-player-name="{player_display_name}" data-player-number="{p.get('number', '?')}" data-player-club="{team_name}" onclick="toggleFavorite(this)" title="Click to add/remove from favorites" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#e9ecef;color:#495057;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">{p.get('number', '?')}</span></td>
                 <td style="text-align:center;">{get_nat_html(p)}</td>
                 <td class="player-name" style="white-space:nowrap;"><strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}{' ⚽️' if unique_goal_leader and player_display_name == unique_goal_leader else ''}{' 👟' if unique_assist_leader and player_display_name == unique_assist_leader else ''}</strong></td>
                 <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
@@ -1024,11 +1025,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         body.embed-mode .header {{ flex-wrap: nowrap; }}
         body.embed-mode .header-tabs {{ margin-left: auto; }}
     </style>
+<link rel="stylesheet" href="/static/favorites.css">
 
 
 
 <script src="/icons/status-icons.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="/static/favorites.js"></script>
 </head>
 <body class="{{"embed-mode" if embed else ""}}">
     <div class="header">
@@ -1044,6 +1047,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div class="tab">Transfer Out</div>
         </div>
         <a href="/lineup_ai/select" style="margin-left:auto;">← Back to teams</a>
+        <a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:600;margin-left:12px;">⭐ My Favorites</a>
         <div style="position:relative;display:inline-block;vertical-align:middle;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><button onclick="exportScreenshot()" id="btn-export" style="background:none;border:none;cursor:pointer;font-size:24px;padding:4px 8px;">&#x1F4F8;</button><span class="tooltip-delay" style="visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:12px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;transition:opacity 0.3s ease;">Save Screenshot</span></div>
     </div>
 

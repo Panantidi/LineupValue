@@ -1,0 +1,402 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>My Favorites - LineupValue</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .header a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        .empty-state a {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .empty-state a:hover {
+            background: #5a6fd6;
+        }
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #444;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e0e0e0;
+            white-space: nowrap;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #333;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .player-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .player-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #495057;
+        }
+        .player-number.favorite {
+            background: #dc3545;
+            color: white;
+            cursor: pointer;
+        }
+        .flag {
+            width: 20px;
+            height: 14px;
+            border-radius: 2px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .pos-gk { color: #28a745; font-weight: bold; }
+        .pos-def { color: #17a2b8; font-weight: bold; }
+        .pos-mid { color: #ffc107; font-weight: bold; }
+        .pos-att { color: #dc3545; font-weight: bold; }
+        .squad-role {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .squad-role.main { background: #d4edda; color: #155724; }
+        .squad-role.reserve { background: #fff3cd; color: #856404; }
+        .impact-high { color: #28a745; font-weight: bold; }
+        .impact-med { color: #ffc107; font-weight: bold; }
+        .impact-low { color: #6c757d; font-weight: bold; }
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+            flex: 1;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #333;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.success {
+            background: #28a745;
+        }
+        .toast.error {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⭐ My Favorites</h1>
+        <a href="/lineup_ai/select">← Back to teams</a>
+    </div>
+
+    <div class="container">
+        <div class="stats" id="stats" style="display:none;">
+            <div class="stat-card">
+                <div class="stat-value" id="total-count">0</div>
+                <div class="stat-label">Total Players</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-mv">€0</div>
+                <div class="stat-label">Total Market Value</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-age">-</div>
+                <div class="stat-label">Average Age</div>
+            </div>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display:none;">
+            <h2>No favorite players yet</h2>
+            <p>Click on player numbers in team view to add them to your favorites.</p>
+            <a href="/lineup_ai/select">Browse Teams</a>
+        </div>
+
+        <div id="table-container" class="table-container" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Club</th>
+                        <th>Nat</th>
+                        <th>Player</th>
+                        <th>Age</th>
+                        <th>MV</th>
+                        <th>Pos</th>
+                        <th>Squad Role</th>
+                        <th>IS</th>
+                        <th>Apps</th>
+                        <th>Min</th>
+                        <th>G</th>
+                        <th>A</th>
+                        <th>YC</th>
+                        <th>RC</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="favorites-tbody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const STORAGE_KEY = 'favorites_players';
+        
+        function getFavorites() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        
+        function saveFavorites(favs) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
+            } catch (e) {}
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function formatMV(value) {
+            if (!value || value === '-' || value === '?') return '–';
+            return value;
+        }
+        
+        function calculateTotalMV(favorites) {
+            let total = 0;
+            favorites.forEach(p => {
+                const mv = p.mv || '';
+                let val = 0;
+                if (mv.includes('m')) {
+                    val = parseFloat(mv.replace('€', '').replace('m', '')) * 1000000;
+                } else if (mv.includes('k')) {
+                    val = parseFloat(mv.replace('€', '').replace('k', '')) * 1000;
+                } else {
+                    val = parseFloat(mv.replace('€', '').replace(',', '')) || 0;
+                }
+                total += val;
+            });
+            return total;
+        }
+        
+        function formatTotalMV(total) {
+            if (total >= 1000000) {
+                return '€' + (total / 1000000).toFixed(1) + 'm';
+            } else if (total >= 1000) {
+                return '€' + (total / 1000).toFixed(0) + 'k';
+            }
+            return '€' + total;
+        }
+        
+        function calculateAvgAge(favorites) {
+            if (!favorites.length) return '-';
+            let total = 0;
+            let count = 0;
+            favorites.forEach(p => {
+                const age = parseInt(p.age) || 0;
+                if (age > 0) {
+                    total += age;
+                    count++;
+                }
+            });
+            return count > 0 ? (total / count).toFixed(1) : '-';
+        }
+        
+        function renderFavorites() {
+            const favorites = getFavorites();
+            const emptyState = document.getElementById('empty-state');
+            const tableContainer = document.getElementById('table-container');
+            const stats = document.getElementById('stats');
+            const tbody = document.getElementById('favorites-tbody');
+            
+            if (favorites.length === 0) {
+                emptyState.style.display = 'block';
+                tableContainer.style.display = 'none';
+                stats.style.display = 'none';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            tableContainer.style.display = 'block';
+            stats.style.display = 'flex';
+            
+            // Update stats
+            document.getElementById('total-count').textContent = favorites.length;
+            document.getElementById('total-mv').textContent = formatTotalMV(calculateTotalMV(favorites));
+            document.getElementById('avg-age').textContent = calculateAvgAge(favorites);
+            
+            // Render table
+            tbody.innerHTML = favorites.map((p, idx) => `
+                <tr data-idx="${idx}">
+                    <td>
+                        <span class="player-number favorite" title="Click to remove from favorites" onclick="removeFavorite(${idx})">${p.number || '?'}</span>
+                    </td>
+                    <td>${p.club || '–'}</td>
+                    <td>${p.national || '–'}</td>
+                    <td><span class="player-name">${p.name || '–'}</span></td>
+                    <td>${p.age || '–'}</td>
+                    <td>${formatMV(p.mv)}</td>
+                    <td class="pos-${(p.position || '').toLowerCase()}">${p.position || '–'}</td>
+                    <td>
+                        ${p.squad_role ? `<span class="squad-role ${p.squad_role === 'main' ? 'main' : 'reserve'}">${p.squad_role}</span>` : '–'}
+                    </td>
+                    <td class="impact-${(p.impact || '').toLowerCase()}">${p.impact || '–'}</td>
+                    <td>${p.apps || '–'}</td>
+                    <td>${p.minutes || '–'}</td>
+                    <td>${p.goals || '–'}</td>
+                    <td>${p.assists || '–'}</td>
+                    <td>${p.yellows || '–'}</td>
+                    <td>${p.reds || '–'}</td>
+                    <td>
+                        <button class="btn-remove" onclick="removeFavorite(${idx})">Remove</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function removeFavorite(idx) {
+            let favorites = getFavorites();
+            const removed = favorites.splice(idx, 1)[0];
+            saveFavorites(favorites);
+            renderFavorites();
+            showToast(`Removed ${removed.name || 'player'} from favorites`);
+        }
+        
+        // Initialize
+        renderFavorites();
+    </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+.player-number-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #495057;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid #dee2e6;
+}
+.player-number-circle:hover {
+    transform: scale(1.1);
+    border-color: #28a745;
+}
+.player-number-circle.favorite {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+.player-number-circle.favorite:hover {
+    background: #218838;
+    border-color: #1e7e34;
+}
+
+#favorites-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #333;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 10000;
+}
+#favorites-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+#favorites-toast.success {
+    background: #28a745;
+}
+#favorites-toast.error {
+    background: #dc3545;
+}
+
+.favorites-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, transform 0.1s;
+}
+.favorites-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}

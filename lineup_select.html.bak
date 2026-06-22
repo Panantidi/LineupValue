@@ -22,29 +22,6 @@
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            position: relative;
-        }
-        .favorites-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s, transform 0.1s;
-        }
-        .favorites-btn:hover {
-            background: #218838;
-            transform: translateY(-1px);
         }
         h1 {
             color: #333;
@@ -132,9 +109,6 @@
 </head>
 <body>
     <div class="container">
-        <a href="/lineup_ai/favorites" class="favorites-btn">
-            <span>⭐</span> My Favorites
-        </a>
         <h1>📊 LineupValue</h1>
         <p style="text-align: center; color: #666; margin-bottom: 32px;">
             Select a team to view squad
