@@ -724,6 +724,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             border-collapse: collapse;
             font-size: 14px;
         }}
+        .hide-watermark .table-container::before {{
+            display: none;
+        }}
+        .hide-watermark .table-container {{
+            overflow-y: hidden;
+        }}
         .player-name {{
             white-space: nowrap !important;
         }}
@@ -1791,25 +1797,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 squadBar.style.display = 'flex';
                 compTable.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'flex';
+                document.body.classList.remove('hide-watermark');
             }} else if (tabName === 'Missing Players') {{
                 missingBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
+                document.body.classList.add('hide-watermark');
                 calcGroupStats('missing', MISSING_STATUSES);
             }} else if (tabName === 'Doubtful Players') {{
                 doubtfulBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
+                document.body.classList.add('hide-watermark');
                 calcGroupStats('doubtful', DOUBTFUL_STATUSES);
             }} else if (tabName === 'Returning Players') {{
                 returningBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
+                document.body.classList.add('hide-watermark');
                 calcGroupStats('returning', RETURNING_STATUSES);
             }} else if (tabName === 'Transfer In') {{
                 transferInBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
+                document.body.classList.add('hide-watermark');
                 calcGroupStats('transfer-in', TRANSFER_IN_STATUSES);
             }} else if (tabName === 'Transfer Out') {{
                 transferOutBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
+                document.body.classList.add('hide-watermark');
                 calcGroupStats('transfer-out', TRANSFER_OUT_STATUSES);
             }}
 
