@@ -2107,32 +2107,21 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
         }],
         "stream": False,
     }
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "HTTP-Referer": "https://x11radar.ru", "X-Title": "FormAlert Vision"}
     try:
-        async with httpx.AsyncClient(timeout=timeout_s) as client:
+        t = httpx.Timeout(timeout_s, connect=15.0)
+        async with httpx.AsyncClient(timeout=t) as client:
             r = await client.post(api_url, headers=headers, json=payload_api)
             r.raise_for_status()
             data = r.json()
     except httpx.HTTPStatusError as e:
         detail = (e.response.text or "")[:500] if e.response is not None else ""
-        try:
-            os.remove(image_path)
-        except Exception:
-            pass
         return JSONResponse(content={"ok": False, "error": f"Vision API HTTP {e.response.status_code if e.response is not None else ''}: {detail}"}, status_code=502)
     except Exception as e:
-        try:
-            os.remove(image_path)
-        except Exception:
-            pass
         return JSONResponse(content={"ok": False, "error": f"Vision API error: {type(e).__name__}"}, status_code=502)
 
     out_text = _extract_response_text(data)
     players = _parse_vision_players_text(out_text)
-    try:
-        os.remove(image_path)
-    except Exception:
-        pass
     return JSONResponse(content={"ok": True, "players": players, "raw": out_text[:1000]})
 
 
@@ -2963,7 +2952,7 @@ async def llm_gate_relevance(tweet_text: str, tweet_url: str) -> bool:
         "stream": False,
     }
 
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "HTTP-Referer": "https://x11radar.ru", "X-Title": "FormAlert Vision"}
 
     try:
         async with httpx.AsyncClient(timeout=GATE_TIMEOUT_SECONDS) as client:
@@ -3066,7 +3055,8 @@ async def llm_classify(tweet_text: str, tweet_url: str, source_username: str = "
     }
 
     try:
-        async with httpx.AsyncClient(timeout=timeout_s) as client:
+        t = httpx.Timeout(timeout_s, connect=15.0)
+        async with httpx.AsyncClient(timeout=t) as client:
             r = await client.post(api_url, headers=headers, json=payload)
             r.raise_for_status()
             data = r.json()

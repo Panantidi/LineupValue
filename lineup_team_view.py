@@ -269,6 +269,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     
     team_name = data.get("team", {}).get("name", "Unknown")
     players = data.get("players", [])
+    matches = data.get("matches", [])
+    is_world_championship = any(m.get("tournament") == "WC" for m in matches)
 
     cache_age_seconds = None
     cache_badge_text = ""
@@ -328,6 +330,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     assist_leaders = [swap_name_order(p.get("name", "–")) for p in players if str(p.get("assist", 0)).isdigit() and int(p.get("assist", 0)) == max_assists and max_assists > 0]
     unique_assist_leader = assist_leaders[0] if len(assist_leaders) == 1 else None
     
+    fav_css = "" if is_world_championship else '<link rel="stylesheet" href="/static/favorites.css">'
+    fav_js = "" if is_world_championship else '<script src="/static/favorites.js"></script>'
+    fav_link = "" if is_world_championship else '<a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:600;margin-left:12px;">⭐ My Favorites</a>'
+    fav_attrs = "" if is_world_championship else 'onclick="toggleFavorite(this)" title="Click to add/remove from favorites"'
+
     # Sort players by minutes played (descending)
     sorted_players = sorted(players, key=lambda x: int(x.get('min', '0')) if x.get('min', '0') and str(x['min']).isdigit() else 0, reverse=True)
     
@@ -1025,13 +1032,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         body.embed-mode .header {{ flex-wrap: nowrap; }}
         body.embed-mode .header-tabs {{ margin-left: auto; }}
     </style>
-<link rel="stylesheet" href="/static/favorites.css">
+{fav_css}
 
 
 
 <script src="/icons/status-icons.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="/static/favorites.js"></script>
+{fav_js}
 </head>
 <body class="{{"embed-mode" if embed else ""}}">
     <div class="header">
@@ -1514,8 +1521,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const norm = bulkNormalizeText(rawName + ' ' + displayName);
                 const parts = bulkNameParts(rawName + ' ' + displayName);
                 const rawParts = bulkNameParts(rawName);
-                const surname = rawParts.length ? rawParts[0] : (parts[0] || '');
-                return {{ row: row, rawName: rawName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, surname: surname }};
+                const firstName = rawParts[0] || '';
+                const lastName = rawParts.length ? rawParts[rawParts.length - 1] : '';
+                const fullName = bulkNormalizeText(rawName);
+                const fullNameReversed = rawParts.length > 1 ? rawParts.slice().reverse().join(' ') : fullName;
+                return {{ row: row, rawName: rawName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, firstName: firstName, lastName: lastName, fullName: fullName, fullNameReversed: fullNameReversed }};
             }});
         }}
 
@@ -1527,27 +1537,43 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         function bulkFindMatches(parsed, rows) {{
             const hasName = !!parsed.norm;
             const hasNum = !!parsed.number;
-            const surnameCandidates = hasName ? rows.filter(r =>
-                r.surname === parsed.norm ||
-                r.parts.includes(parsed.norm) ||
-                parsed.parts.some(p => r.surname === p)
-            ) : [];
-            const numberCandidates = hasNum ? rows.filter(r => r.number === parsed.number) : [];
-            const nameNumberCandidates = (hasName && hasNum) ? rows.filter(r => r.number === parsed.number && (r.norm.includes(parsed.norm) || parsed.parts.some(p => r.parts.includes(p)))) : [];
 
-            // Priority: surname+number, surname, number, name+number. More exact matches first.
+            // 1) Фамилия + номер
             if (hasName && hasNum) {{
-                let exact = rows.filter(r => r.number === parsed.number && (r.surname === parsed.norm || parsed.parts.some(p => r.surname === p)));
+                let exact = rows.filter(r => r.number === parsed.number && (r.lastName === parsed.norm || parsed.parts.some(p => r.lastName === p)));
                 exact = bulkUnique(exact);
                 if (exact.length) return exact;
             }}
-            if (surnameCandidates.length) return bulkUnique(surnameCandidates);
-            if (numberCandidates.length) return bulkUnique(numberCandidates);
-            if (nameNumberCandidates.length) return bulkUnique(nameNumberCandidates);
+
+            // 2) Имя + Фамилия (точное совпадение)
             if (hasName) {{
-                const full = rows.filter(r => r.norm.includes(parsed.norm) || parsed.parts.every(p => r.parts.includes(p)));
-                return bulkUnique(full);
+                const exactFull = rows.filter(r => r.fullName === parsed.norm);
+                if (exactFull.length) return bulkUnique(exactFull);
             }}
+
+            // 3) Фамилия + Имя (обратный порядок)
+            if (hasName) {{
+                const exactRev = rows.filter(r => r.fullNameReversed === parsed.norm);
+                if (exactRev.length) return bulkUnique(exactRev);
+            }}
+
+            // 4) Номер
+            if (hasNum) {{
+                const numOnly = rows.filter(r => r.number === parsed.number);
+                if (numOnly.length) return bulkUnique(numOnly);
+            }}
+
+            // 5) Частичное совпадение
+            if (hasName) {{
+                const partial = rows.filter(r =>
+                    r.norm.includes(parsed.norm) ||
+                    parsed.parts.every(p => r.parts.includes(p)) ||
+                    r.parts.includes(parsed.norm) ||
+                    parsed.parts.some(p => r.parts.includes(p))
+                );
+                if (partial.length) return bulkUnique(partial);
+            }}
+
             return [];
         }}
 
