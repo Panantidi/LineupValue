@@ -1076,7 +1076,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
                         <option value="possible">🔵 P-XI</option>
                         <option value="start">🔴 S-XI</option>
-                        <option value="squad">⚫️ List</option>
+                        <option value="squad">⚫️ List (all found)</option>
                     </select>
                     <button type="button" onclick="applyBulkLineup()">Apply</button>
                     <div class="vision-lineup-row" style="margin-left:auto;">
@@ -1697,19 +1697,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     reader.onerror = () => reject(new Error('image read failed'));
                     reader.readAsDataURL(file);
                 }});
+                const currentMode = modeEl ? (modeEl.value || 'possible') : 'possible';
                 const res = await fetch('/lineup_ai/vision_lineup/' + encodeURIComponent(TEAM_ID), {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
-                    body: JSON.stringify({{ image: imageDataUrl, mode: modeEl ? (modeEl.value || 'possible') : 'possible' }})
+                    body: JSON.stringify({{ image: imageDataUrl, mode: currentMode }})
                 }});
                 const json = await res.json();
                 if (!res.ok || !json.ok) throw new Error(json.error || 'vision failed');
                 const names = Array.isArray(json.players) ? json.players : [];
                 if (textEl) textEl.value = names.join('\\n');
-                const result = applyBulkLineupFromTokens(names, modeEl ? modeEl.value : 'possible');
+                const currentMode2 = modeEl ? modeEl.value : 'possible';
+                const result = applyBulkLineupFromTokens(names, currentMode2);
                 if (statusEl) {{
                     statusEl.style.color = result.found ? '#17843f' : '#dc3545';
-                    statusEl.textContent = 'Vision: ' + names.length + ' names, marked ' + result.found;
+                    if (currentMode2 === 'squad') {{
+                        statusEl.textContent = 'Vision: ' + names.length + ' names found in image, added to List';
+                    }} else {{
+                        statusEl.textContent = 'Vision: ' + names.length + ' names, marked ' + result.found;
+                    }}
                 }}
                 // Show stats
                 const statsEl = document.getElementById('vision-lineup-stats');

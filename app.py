@@ -2056,6 +2056,7 @@ def _parse_vision_players_text(text: str) -> list[str]:
 
 @app.post("/lineup_ai/vision_lineup/{team_id}")
 async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factory=dict)):
+    mode = str((payload or {}).get("mode") or "").strip()
     api_url = os.environ.get("VISION_API_URL") or os.environ.get("LLM_API_URL")
     api_key = os.environ.get("VISION_API_KEY") or os.environ.get("LLM_API_KEY")
     model = os.environ.get("VISION_MODEL") or os.environ.get("LLM_MODEL") or os.environ.get("GATE_MODEL")
@@ -2092,9 +2093,11 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
         "Return ONLY strict JSON with this schema: {\"players\":[\"Name\",\"Name\"]}. "
         "Do not add markdown or explanations. Preserve accents when visible. "
         "If the image contains abbreviated surnames, return the surname as visible. "
-        "If a roster list is provided, prefer matching names/surnames from that roster.\n\n"
-        "Current team roster candidates:\n" + "\n".join(roster[:60])
+        "If a roster list is provided, prefer matching names/surnames from that roster."
     )
+    if mode == "squad":
+        prompt += " Extract ALL player names visible in the image (entire squad), not just starting XI."
+    prompt += "\n\nCurrent team roster candidates:\n" + "\n".join(roster[:60])
     # Send base64 image data directly (Wormsoft API expects base64)
     payload_api = {
         "model": model,
