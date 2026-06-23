@@ -1072,8 +1072,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div class="tab">Transfer In</div>
             <div class="tab">Transfer Out</div>
         </div>
-        <a href="/lineup_ai/select" style="margin-left:auto;">← Back to teams</a>
         <div style="position:relative;display:inline-block;vertical-align:middle;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><button onclick="exportScreenshot()" id="btn-export" style="background:none;border:none;cursor:pointer;font-size:24px;padding:4px 8px;">&#x1F4F8;</button><span class="tooltip-delay" style="visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:12px;padding:5px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;transition:opacity 0.3s ease;">Save Screenshot</span></div>
+        <a href="/lineup_ai/select" style="margin-left:auto;">← Back to teams</a>
     </div>
 
     <div class="container">
