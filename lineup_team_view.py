@@ -1858,10 +1858,20 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (!statuses.includes(status)) return;
                 count++;
                 const cells = row.querySelectorAll('td');
-                // MV cell[5]: text like "€5.7m" or "–"
+                // MV cell[5]: text like "€5.7m", "€500k" or "–"
                 const mvText = cells[5] ? cells[5].textContent.trim() : '';
-                const mvMatch = mvText.match(/([\\d.]+)/);
-                if (mvMatch) totalMV += parseFloat(mvMatch[1]);
+                let mvVal = 0;
+                if (mvText.includes('m')) {{
+                    const m = mvText.match(/([\d.]+)/);
+                    if (m) mvVal = parseFloat(m[1]);
+                }} else if (mvText.includes('k')) {{
+                    const k = mvText.match(/([\d.]+)/);
+                    if (k) mvVal = parseFloat(k[1]) / 1000;
+                }} else if (mvText !== '–' && mvText !== '-') {{
+                    const n = mvText.match(/([\d.]+)/);
+                    if (n) mvVal = parseFloat(n[1]);
+                }}
+                totalMV += mvVal;
                 // Impact cell[8]
                 const impactText = cells[8] ? cells[8].textContent.trim() : '';
                 const impMatch = impactText.match(/([\\d.]+)/);
