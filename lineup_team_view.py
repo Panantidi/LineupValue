@@ -705,14 +705,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }}
         .table-container::before {{
-            content: "LineupValue";
+            content: "@LineupValue";
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 120px;
             font-weight: bold;
-            color: rgba(200, 200, 200, 0.15);
+            color: rgba(150, 150, 150, 0.3);
             pointer-events: none;
             white-space: nowrap;
             z-index: -1;
