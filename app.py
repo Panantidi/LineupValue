@@ -1298,19 +1298,10 @@ def prepare_team_data_version(team_id: str) -> dict:
     canonical fields and creates a new version only if data changed.
     """
     current = _get_current_team_version(team_id)
-    now = datetime.now(timezone.utc)
     if current:
-        stale = True
-        try:
-            last_checked = datetime.fromisoformat(current["last_checked_at"])
-            if last_checked.tzinfo is None:
-                last_checked = last_checked.replace(tzinfo=timezone.utc)
-            stale = (now - last_checked).total_seconds() >= TEAM_VERSION_CHECK_TTL
-        except Exception:
-            stale = True
         _write_team_cache(team_id, current["data"])
-        if stale:
-            _start_team_version_refresh(team_id)
+        # Always refresh in background (no TTL check)
+        _start_team_version_refresh(team_id)
         return current["data"]
 
     # Bootstrap from existing cache first so first open is fast and creates Version 1.
@@ -1508,15 +1499,14 @@ def _fixtures_cache_path(team_id: str) -> str:
     return os.path.join("/home/openclaw/.openclaw/workspace", f"_fixtures_{team_id}.json")
 
 def _read_fixtures_cache(team_id: str):
+    """Read fixtures cache (no TTL - always return if exists)"""
     path = _fixtures_cache_path(team_id)
     if not os.path.exists(path):
         return None
     try:
         with open(path, 'r') as f:
             data = json.load(f)
-        cached_at = datetime.fromisoformat(data.get('cached_at', '2000-01-01'))
-        if datetime.utcnow() - cached_at < timedelta(hours=4):
-            return data.get('fixtures', [])
+        return data.get('fixtures', [])
     except:
         pass
     return None
@@ -1545,12 +1535,12 @@ async def lineup_api_fixtures(team_id: str):
     from playwright.async_api import async_playwright
     from datetime import datetime, timedelta
 
-    # Return cached fixtures immediately
+    # Return cached fixtures immediately (no TTL)
     cached = _read_fixtures_cache(team_id)
     if cached:
         return JSONResponse(content={"fixtures": cached, "team_id": team_id, "cached": True})
 
-    # Fallback: try to get fixtures from team cache (instant)
+    # Fallback: get fixtures from team cache (instant)
     try:
         team_cache = _read_team_cache(team_id)
         if team_cache and team_cache.get("matches"):
@@ -1567,7 +1557,7 @@ async def lineup_api_fixtures(team_id: str):
                     "url": m.get("url", "")
                 })
             if fixtures:
-                return JSONResponse(content={"fixtures": fixtures, "team_id": team_id, "from_cache": True})
+                return JSONResponse(content={"fixtures": fixtures, "team_id": team_id, "from_team_cache": True})
     except:
         pass
 
