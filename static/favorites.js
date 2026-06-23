@@ -62,17 +62,25 @@ async function loadFavoritesFromServer() {
 async function toggleFavorite(el) {
     // Check if this is a World Championship team - disable favorites for WC
     const isWC = el.getAttribute('data-is-wc');
+    console.log('toggleFavorite: data-is-wc =', isWC, typeof isWC);
+    
     if (isWC === 'wc') {
+        console.log('BLOCKED: World Championship team');
         showToast('Favorites not available for national teams', 'error');
         return;
     }
     
     const row = el.closest('tr');
-    if (!row) return;
+    if (!row) {
+        console.error('toggleFavorite: row not found');
+        return;
+    }
     
     const playerData = getPlayerDataFromRow(row);
     const playerId = playerData.player_id;
     const playerName = playerData.name;
+    
+    console.log('toggleFavorite: player', playerName, playerId);
     
     const isFavorite = _favoritesSet.has(playerId);
     

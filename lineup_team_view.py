@@ -1051,7 +1051,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
 <script src="/icons/status-icons.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="/static/favorites.js?v=1"></script>
+<script src="/static/favorites.js?v=3"></script>
 
 </head>
 <body class="{{"embed-mode" if embed else ""}}">
