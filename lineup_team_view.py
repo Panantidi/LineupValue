@@ -1775,6 +1775,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const transferInBar = document.getElementById('info-bar-transfer-in');
             const transferOutBar = document.getElementById('info-bar-transfer-out');
             const compTable = document.getElementById('comparison-table');
+            const bulkPanel = document.querySelector('.bulk-lineup-panel');
 
             // Hide all bars
             squadBar.style.display = 'none';
@@ -1789,20 +1790,26 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (tabName === 'Squad') {{
                 squadBar.style.display = 'flex';
                 compTable.style.display = 'flex';
+                if (bulkPanel) bulkPanel.style.display = 'flex';
             }} else if (tabName === 'Missing Players') {{
                 missingBar.style.display = 'flex';
+                if (bulkPanel) bulkPanel.style.display = 'none';
                 calcGroupStats('missing', MISSING_STATUSES);
             }} else if (tabName === 'Doubtful Players') {{
                 doubtfulBar.style.display = 'flex';
+                if (bulkPanel) bulkPanel.style.display = 'none';
                 calcGroupStats('doubtful', DOUBTFUL_STATUSES);
             }} else if (tabName === 'Returning Players') {{
                 returningBar.style.display = 'flex';
+                if (bulkPanel) bulkPanel.style.display = 'none';
                 calcGroupStats('returning', RETURNING_STATUSES);
             }} else if (tabName === 'Transfer In') {{
                 transferInBar.style.display = 'flex';
+                if (bulkPanel) bulkPanel.style.display = 'none';
                 calcGroupStats('transfer-in', TRANSFER_IN_STATUSES);
             }} else if (tabName === 'Transfer Out') {{
                 transferOutBar.style.display = 'flex';
+                if (bulkPanel) bulkPanel.style.display = 'none';
                 calcGroupStats('transfer-out', TRANSFER_OUT_STATUSES);
             }}
 
