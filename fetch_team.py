@@ -416,7 +416,15 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug, limit=6):
         for key,val in comp_map.items():
             if key in lt:
                 tournament=val; break
-        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0))
+        # Parse kickoff time
+        kickoff = ''
+        time_match = re.search(r'(\d{1,2}):(\d{2})', parent_text)
+        if time_match and date:
+            hour, minute = time_match.group(1), time_match.group(2)
+            year = datetime.now().year
+            day_part, month_part = date.split('.')
+            kickoff = f"{year}-{month_part}-{day_part.zfill(2)}T{hour.zfill(2)}:{minute}"
+        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0, kickoff=kickoff))
         if len(matches) >= limit:
             break
     for m in matches:
