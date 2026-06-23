@@ -464,7 +464,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             is_capt = captains[i] if i < len(captains) else False
             if val == "START":
                 if is_capt:
-                    cells += '<td style="text-align:center;vertical-align:middle;"><span class="header-tooltip" data-tooltip="Captain"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;"><span style="color:white;font-size:12px;line-height:1;">✓</span></div></span></td>'
+                    cells += '<td style="text-align:center;vertical-align:middle;"><span title="Captain"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;"><span style="color:white;font-size:12px;line-height:1;">✓</span></div></span></td>'
                 else:
                     cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
             elif val == "SUB":
@@ -1006,34 +1006,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             bottom: calc(100% + 8px);
             transform: translateX(-50%);
         /* Tooltip with delay for headers */
-        .header-tooltip {{
-            position: relative;
-            cursor: help;
-        }}
-        .header-tooltip::after {{
-            content: attr(data-tooltip);
-            position: absolute;
-            left: 50%;
-            bottom: calc(100% + 8px);
-            transform: translateX(-50%);
-            background: rgba(30, 30, 30, 0.96);
-            color: #fff;
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 11px;
-            font-weight: 500;
-            line-height: 1.4;
-            white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.22);
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            z-index: 1000;
-            transition: opacity 0.2s ease 0.8s, visibility 0s linear 0.8s;
-        }}
-        .header-tooltip:hover::after {{
-            opacity: 1;
-            visibility: visible;
         }}
             background: rgba(30, 30, 30, 0.96);
             color: #fff;
@@ -1212,8 +1184,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span class="header-tooltip" data-tooltip="Possible XI">P-XI</span></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span class="header-tooltip" data-tooltip="Difference in %">Δ (%)</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span title="Possible XI">P-XI</span></th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span title="Difference in %">Δ (%)</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
                 </thead>
@@ -1270,8 +1242,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span class="header-tooltip" data-tooltip="Starting XI">S-XI</span></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span class="header-tooltip" data-tooltip="Difference in %">Δ (%)</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span title="Starting XI">S-XI</span></th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"><span title="Difference in %">Δ (%)</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
                 </thead>
@@ -1326,13 +1298,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="width:200px;padding:0 2px;white-space:nowrap;">Player</th>
                         <th rowspan="2" style="text-align:left;width:40px;padding:0;">Status</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Age</th>
-                        <th rowspan="2" style="text-align:center;width:60px;padding:0;"><span class="header-tooltip" data-tooltip="Market Value">MV</span></th>
+                        <th rowspan="2" style="text-align:center;width:60px;padding:0;"><span title="Market Value">MV</span></th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Pos</th>
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;font-size:11px;">Squad<br>Role</th>
-                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;"><span class="header-tooltip" data-tooltip="Impact Score">IS</span></th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('squad');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear List">🔄</button><span class="header-tooltip" data-tooltip="Squad List" style="font-size:10px;margin-top:2px;">List</span></div></th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('possible');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear P-XI">🔄</button><span class="header-tooltip" data-tooltip="Possible XI" style="font-size:10px;margin-top:2px;">P-XI</span><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></div></th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('start');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear S-XI">🔄</button><span class="header-tooltip" data-tooltip="Starting XI" style="font-size:10px;margin-top:2px;">S-XI</span><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></div></th>
+                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;"><span title="Impact Score">IS</span></th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('squad');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear List">🔄</button><span title="Squad List" style="font-size:10px;margin-top:2px;">List</span></div></th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('possible');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear P-XI">🔄</button><span title="Possible XI" style="font-size:10px;margin-top:2px;">P-XI</span><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></div></th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('start');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear S-XI">🔄</button><span title="Starting XI" style="font-size:10px;margin-top:2px;">S-XI</span><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></div></th>
                         {last3_header_row1}
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Apps</th>
                         <th rowspan="2" style="text-align:center;width:40px;padding:0;">Min</th>
