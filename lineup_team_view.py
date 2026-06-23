@@ -712,7 +712,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 120px;
             font-weight: bold;
-            color: rgba(150, 150, 150, 0.6);
+            color: rgba(150, 150, 150, 0.3);
             pointer-events: none;
             white-space: nowrap;
             z-index: -1;
