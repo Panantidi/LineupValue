@@ -59,6 +59,7 @@ class Match:
     away_team: str = ""
     home_score: int = 0
     away_score: int = 0
+    kickoff: str = ""  # ISO datetime "2024-05-17T21:00"
 
 
 @dataclass
@@ -538,6 +539,16 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
                 if mm:
                     date = f"{day}.{mm}"
 
+        # Parse kickoff time (format: "17.05. 21:00" or "21:00")
+        kickoff = ""
+        time_match = re.search(r'(\d{1,2}):(\d{2})', parent_text)
+        if time_match and date:
+            hour, minute = time_match.group(1), time_match.group(2)
+            # Assume current year
+            year = datetime.now().year
+            day_part, month_part = date.split('.')
+            kickoff = f"{year}-{month_part}-{day_part.zfill(2)}T{hour.zfill(2)}:{minute}"
+
         # Tournament from parent league container
         tournament = ""
         league_div = link.find_parent('div', class_=re.compile(r'leagues'))
@@ -554,7 +565,7 @@ async def get_last3_matches(team_id: str, team_name: str = "") -> List[Match]:
         match_url = f"https://www.soccerway.com{href}" if href.startswith('/') else href
         # Keep /match/ URLs — Soccerway native format
 
-        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0))
+        matches.append(Match(date=date, tournament=tournament, mid=mid, url=match_url, score='', home_team='', away_team='', home_score=0, away_score=0, kickoff=kickoff))
 
         if len(matches) >= 3:
             break
