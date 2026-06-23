@@ -269,9 +269,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     team_name = data.get("team", {}).get("name", "Unknown")
     players = data.get("players", [])
     matches = data.get("matches", [])
-    # International tournaments (national teams) - favorites disabled
-    INTERNATIONAL_TOURNAMENTS = {"WC", "EURO", "COPA", "NAT", "CON", "AAC", "AFC", "OF", "FIFA", "WCQ", "EQ"}
-    is_international_tournament = any(m.get("tournament") in INTERNATIONAL_TOURNAMENTS for m in matches)
+    # World Championship (national teams) - favorites disabled
+    is_world_championship = any(m.get("tournament") == "WC" for m in matches)
 
     cache_age_seconds = None
     cache_badge_text = ""
@@ -491,7 +490,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         df_fire = " 🦾" if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
         mf_lightning = " 🌀" if pos_code in mf_aliases and 5 <= player_impact <= 6.99 and player_minutes >= 900 else ""
         star_impact = " ⭐️" if 7 <= player_impact <= 8.99 and player_minutes >= 900 else ""
-        wc_attr = "wc" if is_international_tournament else ""
+        wc_attr = "wc" if is_world_championship else ""
         top_impact = " 🔝" if player_impact >= 9 and player_minutes >= 900 else ""
         player_row = f"""
             <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}" data-player-number="{p.get("number", "–")}">
