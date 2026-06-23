@@ -1504,31 +1504,6 @@ async def lineup_api_fetch(team_id: str):
 
 # --- FIXTURES: fetch upcoming matches for a team ---
 
-def _fixtures_cache_path(team_id: str) -> str:
-    return os.path.join("/home/openclaw/.openclaw/workspace", f"_fixtures_{team_id}.json")
-
-def _read_fixtures_cache(team_id: str):
-    path = _fixtures_cache_path(team_id)
-    if not os.path.exists(path):
-        return None
-    try:
-        with open(path, 'r') as f:
-            data = json.load(f)
-        cached_at = datetime.fromisoformat(data.get('cached_at', '2000-01-01'))
-        if datetime.utcnow() - cached_at < timedelta(hours=4):
-            return data.get('fixtures', [])
-    except:
-        pass
-    return None
-
-def _write_fixtures_cache(team_id: str, fixtures: list):
-    path = _fixtures_cache_path(team_id)
-    try:
-        with open(path, 'w') as f:
-            json.dump({'cached_at': datetime.utcnow().isoformat(), 'fixtures': fixtures}, f)
-    except:
-        pass
-
 @app.get("/lineup_ai/api/fixtures/{team_id}")
 async def lineup_api_fixtures(team_id: str):
     """Fetch upcoming fixtures from Soccerway and return as JSON.
@@ -1544,32 +1519,6 @@ async def lineup_api_fixtures(team_id: str):
     from bs4 import BeautifulSoup
     from playwright.async_api import async_playwright
     from datetime import datetime, timedelta
-
-    # Return cached fixtures immediately
-    cached = _read_fixtures_cache(team_id)
-    if cached:
-        return JSONResponse(content={"fixtures": cached, "team_id": team_id, "cached": True})
-
-    # Fallback: try to get fixtures from team cache (instant)
-    try:
-        team_cache = _read_team_cache(team_id)
-        if team_cache and team_cache.get("matches"):
-            fixtures = []
-            for m in team_cache.get("matches", [])[:3]:
-                fixtures.append({
-                    "mid": m.get("mid", ""),
-                    "date": m.get("date", ""),
-                    "home": m.get("home_team", ""),
-                    "away": m.get("away_team", ""),
-                    "home_id": "",
-                    "away_id": "",
-                    "is_home": team_id.lower() in m.get("home_team", "").lower(),
-                    "url": m.get("url", "")
-                })
-            if fixtures:
-                return JSONResponse(content={"fixtures": fixtures, "team_id": team_id, "from_cache": True})
-    except:
-        pass
 
     BASE = "https://www.soccerway.com"
     
@@ -1736,9 +1685,6 @@ async def lineup_api_fixtures(team_id: str):
     # Remove internal match_datetime field before returning
     for m in result:
         del m["match_datetime"]
-
-    # Cache the result
-    _write_fixtures_cache(team_id, result)
 
     return JSONResponse(content={"fixtures": result, "team_id": team_id})
 
