@@ -60,6 +60,13 @@ async function loadFavoritesFromServer() {
 }
 
 async function toggleFavorite(el) {
+    // Check if this is a World Championship team - disable favorites for WC
+    const isWC = el.getAttribute('data-is-wc');
+    if (isWC === 'wc') {
+        showToast('Favorites not available for national teams', 'error');
+        return;
+    }
+    
     const row = el.closest('tr');
     if (!row) return;
     
@@ -72,7 +79,7 @@ async function toggleFavorite(el) {
     try {
         if (isFavorite) {
             // Remove from favorites
-            await fetch(`/api/favorites/${encodeURIComponent(playerId)}`, { method: 'DELETE' });
+            await fetch('/api/favorites/' + encodeURIComponent(playerId), { method: 'DELETE' });
             _favoritesSet.delete(playerId);
             el.classList.remove('favorite');
             showToast(playerName + ' removed from favorites', 'error');
