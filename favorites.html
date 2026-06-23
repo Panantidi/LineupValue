@@ -253,20 +253,72 @@
         }
         
         function getFlagCode(national) {
+            if (!national || national === "–") return null;
             const codes = {
-                "Spain": "es", "Netherlands": "nl", "Brazil": "br", "England": "gb-eng",
-                "France": "fr", "Germany": "de", "Italy": "it", "Portugal": "pt",
-                "Argentina": "ar", "Belgium": "be", "Croatia": "hr", "Uruguay": "uy",
-                "Colombia": "co", "Senegal": "sn", "Morocco": "ma", "Poland": "pl",
-                "Japan": "jp", "South Korea": "kr", "USA": "us", "Mexico": "mx",
-                "Denmark": "dk", "Sweden": "se", "Norway": "no", "Austria": "at",
-                "Switzerland": "ch", "Czech Republic": "cz", "Serbia": "rs",
-                "Turkey": "tr", "Ukraine": "ua", "Romania": "ro", "Greece": "gr",
-                "Scotland": "gb-sct", "Wales": "gb-wls", "Ireland": "ie",
-                "Russia": "ru", "Algeria": "dz", "Nigeria": "ng", "Ghana": "gh",
-                "Cameroon": "cm", "Ivory Coast": "ci", "Egypt": "eg", "Tunisia": "tn"
+                "Afghanistan": "af", "Albania": "al", "Algeria": "dz", "Andorra": "ad",
+                "Angola": "ao", "Antigua and Barbuda": "ag", "Argentina": "ar", "Armenia": "am",
+                "Australia": "au", "Austria": "at", "Azerbaijan": "az", "Bahamas": "bs",
+                "Bahrain": "bh", "Bangladesh": "bd", "Barbados": "bb", "Belarus": "by",
+                "Belgium": "be", "Belize": "bz", "Benin": "bj", "Bhutan": "bt",
+                "Bolivia": "bo", "Bosnia and Herzegovina": "ba", "Bosnia": "ba",
+                "Botswana": "bw", "Brazil": "br", "Brunei": "bn", "Bulgaria": "bg",
+                "Burkina Faso": "bf", "Burundi": "bi", "Cambodia": "kh", "Cameroon": "cm",
+                "Canada": "ca", "Cape Verde": "cv", "Cabo Verde": "cv",
+                "Central African Republic": "cf", "Chad": "td", "Chile": "cl", "China": "cn",
+                "Colombia": "co", "Comoros": "km", "Congo": "cg", "Republic of the Congo": "cg",
+                "DR Congo": "cd", "Congo DR": "cd", "Democratic Republic of the Congo": "cd",
+                "Costa Rica": "cr", "Croatia": "hr", "Cuba": "cu", "Curaçao": "cw", "Cyprus": "cy",
+                "Czech Republic": "cz", "Czechia": "cz", "Denmark": "dk", "Djibouti": "dj",
+                "Dominica": "dm", "Dominican Republic": "do", "Ecuador": "ec", "Egypt": "eg",
+                "El Salvador": "sv", "Equatorial Guinea": "gq", "Eritrea": "er", "Estonia": "ee",
+                "Eswatini": "sz", "Swaziland": "sz", "Ethiopia": "et", "Fiji": "fj",
+                "Faroe Islands": "fo", "Finland": "fi", "France": "fr", "French Guiana": "gf",
+                "French Polynesia": "pf", "Gabon": "ga", "Gambia": "gm", "Guadeloupe": "gp",
+                "Guam": "gu", "Georgia": "ge", "Germany": "de", "Ghana": "gh", "Greece": "gr",
+                "Grenada": "gd", "Guatemala": "gt", "Guinea": "gn", "Guinea-Bissau": "gw",
+                "Guyana": "gy", "Haiti": "ht", "Honduras": "hn", "Hungary": "hu",
+                "Iceland": "is", "India": "in", "Indonesia": "id", "Iran": "ir",
+                "Iraq": "iq", "Ireland": "ie", "Israel": "il", "Italy": "it",
+                "Ivory Coast": "ci", "Côte d'Ivoire": "ci", "Jamaica": "jm", "Japan": "jp",
+                "Jordan": "jo", "Kazakhstan": "kz", "Kenya": "ke", "Kiribati": "ki",
+                "Kosovo": "xk", "Kuwait": "kw", "Kyrgyzstan": "kg", "Laos": "la",
+                "Latvia": "lv", "Lebanon": "lb", "Lesotho": "ls", "Liberia": "lr",
+                "Libya": "ly", "Liechtenstein": "li", "Lithuania": "lt", "Luxembourg": "lu",
+                "Madagascar": "mg", "Malawi": "mw", "Malaysia": "my", "Maldives": "mv",
+                "Mali": "ml", "Malta": "mt", "Marshall Islands": "mh", "Mauritania": "mr",
+                "Mauritius": "mu", "Mexico": "mx", "Micronesia": "fm", "Moldova": "md",
+                "Monaco": "mc", "Mongolia": "mn", "Montenegro": "me", "Morocco": "ma",
+                "Mozambique": "mz", "Myanmar": "mm", "Namibia": "na", "Nauru": "nr",
+                "Nepal": "np", "Netherlands": "nl", "New Zealand": "nz", "Nicaragua": "ni",
+                "Niger": "ne", "Nigeria": "ng", "North Korea": "kp", "North Macedonia": "mk",
+                "Norway": "no", "Oman": "om", "Pakistan": "pk", "Palau": "pw",
+                "Palestine": "ps", "Panama": "pa", "Papua New Guinea": "pg", "Paraguay": "py",
+                "Peru": "pe", "Philippines": "ph", "Poland": "pl", "Portugal": "pt",
+                "Qatar": "qa", "Romania": "ro", "Russia": "ru", "Rwanda": "rw",
+                "Saint Kitts and Nevis": "kn", "Saint Lucia": "lc",
+                "Saint Vincent and the Grenadines": "vc", "Samoa": "ws", "San Marino": "sm",
+                "Sao Tome and Principe": "st", "Saudi Arabia": "sa", "Senegal": "sn",
+                "Serbia": "rs", "Seychelles": "sc", "Sierra Leone": "sl", "Singapore": "sg",
+                "Slovakia": "sk", "Slovenia": "si", "Solomon Islands": "sb", "Somalia": "so",
+                "South Africa": "za", "South Korea": "kr", "South Sudan": "ss", "Spain": "es",
+                "Sri Lanka": "lk", "Sudan": "sd", "Suriname": "sr", "Sweden": "se",
+                "Switzerland": "ch", "Syria": "sy", "Taiwan": "tw", "Tajikistan": "tj",
+                "Tanzania": "tz", "Thailand": "th", "Togo": "tg", "Tonga": "to",
+                "Trinidad and Tobago": "tt", "Tunisia": "tn", "Turkey": "tr",
+                "Turkmenistan": "tm", "Tuvalu": "tv", "Uganda": "ug", "Ukraine": "ua",
+                "United Arab Emirates": "ae", "United Kingdom": "gb", "England": "gb",
+                "Scotland": "gb-sct", "Wales": "gb-wls", "Northern Ireland": "gb-nir",
+                "USA": "us", "United States": "us", "Uruguay": "uy", "Uzbekistan": "uz",
+                "Vanuatu": "vu", "Vatican City": "va", "Venezuela": "ve", "Vietnam": "vn",
+                "Yemen": "ye", "Zambia": "zm", "Zimbabwe": "zw"
             };
-            return codes[national] || null;
+            let code = codes[national.trim()];
+            if (!code) {
+                for (const [cn, cd] of Object.entries(codes)) {
+                    if (cn.toLowerCase() === national.trim().toLowerCase()) { code = cd; break; }
+                }
+            }
+            return code || null;
         }
         
         async function loadFavorites() {
@@ -323,8 +375,8 @@
             tbody.innerHTML = favorites.map((p, idx) => {
                 const flagCode = getFlagCode(p.national);
                 const flagHtml = flagCode 
-                    ? `<img src="https://flagcdn.com/w20/${flagCode}.png" alt="${p.national}" class="flag">`
-                    : (p.national || "–");
+                    ? `<img src="https://flagcdn.com/w20/${flagCode}.png" alt="${p.national || ''}" class="flag">`
+                    : "–";
                 
                 const squadRole = p.squad_role || "";
                 const squadRoleParts = squadRole.split(" ");
