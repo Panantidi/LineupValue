@@ -715,7 +715,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             color: rgba(180, 180, 180, 0.35);
             pointer-events: none;
             white-space: nowrap;
-            z-index: -1;
+            z-index: 1;
         }}
         table {{
             position: relative;
