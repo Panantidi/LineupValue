@@ -1290,31 +1290,37 @@ def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict 
 
 
 def prepare_team_data_version(team_id: str) -> dict:
-    """Return page data immediately; schedule stale refresh in background.
-
-    Opening a team must never block on Soccerway/Playwright. If the current version
-    was checked less than 3h ago, use it. If older than 3h, serve the existing
-    version/cache and start one detached refresh process. That process compares
-    canonical fields and creates a new version only if data changed.
+    """Fetch fresh data from Soccerway and return it.
+    
+    Waits for Soccerway update to complete before returning.
+    This ensures data always matches Soccerway when page loads.
     """
-    current = _get_current_team_version(team_id)
-    if current:
-        _write_team_cache(team_id, current["data"])
-        # Always refresh in background (no TTL check)
-        _start_team_version_refresh(team_id)
-        return current["data"]
-
-    # Bootstrap from existing cache first so first open is fast and creates Version 1.
+    import subprocess
+    import sys
+    
+    # Run refresh synchronously and wait for it
+    script = os.path.join(os.path.dirname(__file__), "refresh_team_version.py")
+    if os.path.exists(script):
+        try:
+            result = subprocess.run(
+                [sys.executable, script, team_id],
+                capture_output=True,
+                text=True,
+                timeout=60  # Wait up to 60 seconds
+            )
+        except subprocess.TimeoutExpired:
+            pass
+        except Exception:
+            pass
+    
+    # Return the updated data from cache
     try:
         cached = _read_team_cache(team_id)
         if cached.get("players"):
-            _save_team_version(team_id, cached)
             return cached
     except Exception:
         pass
-
-    # No cache/version exists: start background fetch and render the lightweight page.
-    _start_team_version_refresh(team_id)
+    
     return {}
 
 
