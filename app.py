@@ -1290,32 +1290,32 @@ def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict 
 
 
 def prepare_team_data_version(team_id: str) -> dict:
-    """Fetch fresh data from Soccerway and return it.
+    """Return cached data immediately, refresh in background.
     
-    Waits for Soccerway update to complete before returning.
-    This ensures data always matches Soccerway when page loads.
+    User sees data instantly. Soccerway update happens asynchronously.
+    Next visit shows fresh data.
     """
-    # Fetch fresh data directly (no subprocess, no global lock)
-    try:
-        current = _get_current_team_version(team_id)
-        base = current["data"] if current else None
-        fresh = _fetch_fresh_team_data(team_id, base)
-        if fresh and fresh.get("players"):
-            _save_team_version(team_id, fresh)
-            _write_team_cache(team_id, fresh)
-            return fresh
-    except Exception as e:
-        # Log error but don't crash
-        print(f"Error fetching fresh data for {team_id}: {e}")
+    # Try to return existing version immediately
+    current = _get_current_team_version(team_id)
+    if current and current.get("data"):
+        _write_team_cache(team_id, current["data"])
+        # Start background refresh (don't wait)
+        _start_team_version_refresh(team_id)
+        return current["data"]
     
-    # Fallback to existing cache
+    # No version: try cache
     try:
         cached = _read_team_cache(team_id)
         if cached.get("players"):
+            _save_team_version(team_id, cached)
+            # Start background fetch
+            _start_team_version_refresh(team_id)
             return cached
     except Exception:
         pass
     
+    # No cache: start background fetch, return empty
+    _start_team_version_refresh(team_id)
     return {}
 
 
