@@ -1295,25 +1295,20 @@ def prepare_team_data_version(team_id: str) -> dict:
     Waits for Soccerway update to complete before returning.
     This ensures data always matches Soccerway when page loads.
     """
-    import subprocess
-    import sys
+    # Fetch fresh data directly (no subprocess, no global lock)
+    try:
+        current = _get_current_team_version(team_id)
+        base = current["data"] if current else None
+        fresh = _fetch_fresh_team_data(team_id, base)
+        if fresh and fresh.get("players"):
+            _save_team_version(team_id, fresh)
+            _write_team_cache(team_id, fresh)
+            return fresh
+    except Exception as e:
+        # Log error but don't crash
+        print(f"Error fetching fresh data for {team_id}: {e}")
     
-    # Run refresh synchronously and wait for it
-    script = os.path.join(os.path.dirname(__file__), "refresh_team_version.py")
-    if os.path.exists(script):
-        try:
-            result = subprocess.run(
-                [sys.executable, script, team_id],
-                capture_output=True,
-                text=True,
-                timeout=60  # Wait up to 60 seconds
-            )
-        except subprocess.TimeoutExpired:
-            pass
-        except Exception:
-            pass
-    
-    # Return the updated data from cache
+    # Fallback to existing cache
     try:
         cached = _read_team_cache(team_id)
         if cached.get("players"):
