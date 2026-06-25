@@ -1508,39 +1508,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const btn = document.getElementById('update-data-btn');
             const msgEl = document.getElementById('save-message');
             if (!btn || btn.disabled) return;
-            const origText = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '⏳ Updating...';
-            if (msgEl) {{ msgEl.textContent = ''; msgEl.style.color = ''; }}
-            console.log('[UpdateData] start, TEAM_ID=', TEAM_ID);
+            if (msgEl) {{ msgEl.textContent = '⏳ Fetching from Soccerway...'; msgEl.style.color = '#667eea'; }}
             try {{
-                const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID, {{ cache: 'no-store' }});
-                console.log('[UpdateData] status:', r.status, 'content-type:', r.headers.get('content-type'));
-                const ct = r.headers.get('content-type') || '';
-                if (!ct.includes('application/json')) {{
-                    const txt = await r.text();
-                    console.error('[UpdateData] non-JSON response:', txt.substring(0, 200));
-                    throw new Error('Server returned HTML (status ' + r.status + '). API may be timing out.');
-                }}
+                const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID + '?_t=' + Date.now(), {{ cache: 'no-store' }});
+                console.log('[UpdateData] status=' + r.status);
+                if (!r.ok) throw new Error('HTTP ' + r.status);
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
-                if (data.error) {{
-                    if (msgEl) {{ msgEl.textContent = '❌ ' + data.error; msgEl.style.color = '#dc3545'; }}
-                    btn.disabled = false;
-                    btn.innerHTML = origText;
-                }} else {{
-                    const msg = data.changed ? '✅ Updated! Reloading...' : '✓ Up to date — reloading page...';
-                    if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
-                    const url = location.pathname + '?_t=' + Date.now();
-                    console.log('[UpdateData] navigating to', url);
-                    // Немедленная навигация — без setTimeout
-                    window.location.replace(url);
-                }}
+                const msg = data.changed ? '✅ Data updated! Reloading page...' : '✓ Cache refreshed! Reloading page...';
+                if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                // Force full reload — bypass cache completely
+                const url = location.pathname + '?_v=' + Date.now();
+                setTimeout(function() {{ window.location.href = url; }}, 500);
             }} catch (e) {{
                 console.error('[UpdateData] error:', e);
-                if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Network error'); msgEl.style.color = '#dc3545'; }}
+                if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Error'); msgEl.style.color = '#dc3545'; }}
                 btn.disabled = false;
-                btn.innerHTML = origText;
+                btn.innerHTML = '♻️ Update data';
             }}
         }}
 
