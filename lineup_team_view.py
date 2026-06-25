@@ -1518,16 +1518,21 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
                 if (data.refreshing) {{
-                    // Background fetch запущен — ждём 5 секунд чтобы он обновил кэш
-                    if (msgEl) {{ msgEl.textContent = '🔄 Refreshing in background... (5s)'; msgEl.style.color = '#667eea'; }}
-                    setTimeout(function() {{
-                        if (msgEl) {{ msgEl.textContent = '🔄 Refreshing in background... (3s)'; msgEl.style.color = '#667eea'; }}
-                    }}, 2000);
-                    setTimeout(function() {{
-                        const url = location.pathname + '?_v=' + Date.now();
-                        console.log('[UpdateData] navigating to', url);
-                        window.location.href = url;
-                    }}, 5000);
+                    // Background fetch запущен — ждём 55с (Playwright занимает 50-55с для больших команд)
+                    // Показываем обратный отсчёт
+                    var remaining = 55;
+                    function tick() {{
+                        if (msgEl) {{ msgEl.textContent = '🔄 Refreshing data... ' + remaining + 's'; msgEl.style.color = '#667eea'; }}
+                        remaining--;
+                        if (remaining < 0) {{
+                            const url = location.pathname + '?_v=' + Date.now();
+                            console.log('[UpdateData] navigating to', url);
+                            window.location.href = url;
+                        }} else {{
+                            setTimeout(tick, 1000);
+                        }}
+                    }}
+                    tick();
                 }} else {{
                     const msg = data.changed ? '✅ Data updated! Reloading...' : '✓ Cache refreshed! Reloading...';
                     if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
