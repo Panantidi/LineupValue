@@ -1479,11 +1479,13 @@ async def lineup_api_fetch(team_id: str):
 
     # Не обновляем кэш если свежие данные пустые (парсер не смог)
     fresh_players = len(fresh_data.get("players", []))
-    if changed and fresh_players > 0:
-        # Данные изменились — обновляем кэш
+    if fresh_players > 0:
+        # force_refresh прошёл успешно — ВСЕГДА сохраняем свежие данные в кэш
+        # (changed используется только для уведомления пользователя, не для решения сохранять)
         _save_live_cache(team_id, fresh_data)
-    elif changed and fresh_players == 0:
-        changed = False  # Не считаем "изменением" пустой результат
+    else:
+        # Парсер не смог получить данные — не считаем это изменением
+        changed = False
 
     cached_at = fresh_data.get("_cached_at", 0)
     return JSONResponse(content={
