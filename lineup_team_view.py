@@ -565,6 +565,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <html>
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>{team_name} - Squad | LineUp AI</title>
     <style>
         * {{ box-sizing: border-box; }}
@@ -1518,10 +1521,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     btn.innerHTML = origText;
                 }} else if (data.changed) {{
                     if (msgEl) {{ msgEl.textContent = '✅ Updated! Reloading...'; msgEl.style.color = '#17843f'; }}
-                    setTimeout(() => location.reload(), 1200);
+                    setTimeout(() => {{ location.href = location.pathname + '?_t=' + Date.now(); }}, 1200);
                 }} else {{
                     if (msgEl) {{ msgEl.textContent = '✓ Up to date — reloading page...'; msgEl.style.color = '#17843f'; }}
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => {{ location.href = location.pathname + '?_t=' + Date.now(); }}, 1000);
                 }}
             }} catch (e) {{
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Network error'); msgEl.style.color = '#dc3545'; }}
