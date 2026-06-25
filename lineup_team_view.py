@@ -1520,10 +1520,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     if (msgEl) {{ msgEl.textContent = '✅ Updated! Reloading...'; msgEl.style.color = '#17843f'; }}
                     setTimeout(() => location.reload(), 1200);
                 }} else {{
-                    if (msgEl) {{ msgEl.textContent = '✓ Already up to date'; msgEl.style.color = '#6c757d'; }}
-                    setTimeout(() => {{ if (msgEl) msgEl.textContent = ''; }}, 2500);
-                    btn.disabled = false;
-                    btn.innerHTML = origText;
+                    if (msgEl) {{ msgEl.textContent = '✓ Up to date — reloading page...'; msgEl.style.color = '#17843f'; }}
+                    setTimeout(() => location.reload(), 1000);
                 }}
             }} catch (e) {{
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Network error'); msgEl.style.color = '#dc3545'; }}
