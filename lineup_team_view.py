@@ -1512,21 +1512,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             btn.disabled = true;
             btn.innerHTML = '⏳ Updating...';
             if (msgEl) {{ msgEl.textContent = ''; msgEl.style.color = ''; }}
+            console.log('[UpdateData] start, TEAM_ID=', TEAM_ID);
             try {{
-                const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID);
+                const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID, {{ cache: 'no-store' }});
                 const data = await r.json();
+                console.log('[UpdateData] response:', data);
                 if (data.error) {{
                     if (msgEl) {{ msgEl.textContent = '❌ ' + data.error; msgEl.style.color = '#dc3545'; }}
                     btn.disabled = false;
                     btn.innerHTML = origText;
-                }} else if (data.changed) {{
-                    if (msgEl) {{ msgEl.textContent = '✅ Updated! Reloading...'; msgEl.style.color = '#17843f'; }}
-                    setTimeout(() => {{ location.href = location.pathname + '?_t=' + Date.now(); }}, 1200);
                 }} else {{
-                    if (msgEl) {{ msgEl.textContent = '✓ Up to date — reloading page...'; msgEl.style.color = '#17843f'; }}
-                    setTimeout(() => {{ location.href = location.pathname + '?_t=' + Date.now(); }}, 1000);
+                    const msg = data.changed ? '✅ Updated! Reloading...' : '✓ Up to date — reloading page...';
+                    if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                    const url = location.pathname + '?_t=' + Date.now();
+                    console.log('[UpdateData] navigating to', url);
+                    // Немедленная навигация — без setTimeout
+                    window.location.replace(url);
                 }}
             }} catch (e) {{
+                console.error('[UpdateData] error:', e);
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Network error'); msgEl.style.color = '#dc3545'; }}
                 btn.disabled = false;
                 btn.innerHTML = origText;
