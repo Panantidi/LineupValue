@@ -1517,11 +1517,23 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
-                const msg = data.changed ? '✅ Data updated! Reloading page...' : '✓ Cache refreshed! Reloading page...';
-                if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
-                // Force full reload — bypass cache completely
-                const url = location.pathname + '?_v=' + Date.now();
-                setTimeout(function() {{ window.location.href = url; }}, 500);
+                if (data.refreshing) {{
+                    // Background fetch запущен — ждём 5 секунд чтобы он обновил кэш
+                    if (msgEl) {{ msgEl.textContent = '🔄 Refreshing in background... (5s)'; msgEl.style.color = '#667eea'; }}
+                    setTimeout(function() {{
+                        if (msgEl) {{ msgEl.textContent = '🔄 Refreshing in background... (3s)'; msgEl.style.color = '#667eea'; }}
+                    }}, 2000);
+                    setTimeout(function() {{
+                        const url = location.pathname + '?_v=' + Date.now();
+                        console.log('[UpdateData] navigating to', url);
+                        window.location.href = url;
+                    }}, 5000);
+                }} else {{
+                    const msg = data.changed ? '✅ Data updated! Reloading...' : '✓ Cache refreshed! Reloading...';
+                    if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                    const url = location.pathname + '?_v=' + Date.now();
+                    setTimeout(function() {{ window.location.href = url; }}, 500);
+                }}
             }} catch (e) {{
                 console.error('[UpdateData] error:', e);
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Error'); msgEl.style.color = '#dc3545'; }}
