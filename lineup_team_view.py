@@ -1515,6 +1515,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             console.log('[UpdateData] start, TEAM_ID=', TEAM_ID);
             try {{
                 const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID, {{ cache: 'no-store' }});
+                console.log('[UpdateData] status:', r.status, 'content-type:', r.headers.get('content-type'));
+                const ct = r.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) {{
+                    const txt = await r.text();
+                    console.error('[UpdateData] non-JSON response:', txt.substring(0, 200));
+                    throw new Error('Server returned HTML (status ' + r.status + '). API may be timing out.');
+                }}
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
                 if (data.error) {{
