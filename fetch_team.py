@@ -627,7 +627,21 @@ if __name__ == '__main__':
 
     if full_mode:
         if not team_name: print('ERROR: --full requires --team-name'); sys.exit(1)
-        asyncio.run(run_full(team_id, team_name, team_slug, coach_nat, stadium))
+        if team_slug:
+            from parse_team_fast import fetch_team_fast
+            from fetch_team import run_full as _rf
+            async def _fwf():
+                try:
+                    print('[fast mode] HTTP squad+enrichment, Playwright lineups')
+                    await fetch_team_fast(team_id, team_name, team_slug, coach_nat, stadium)
+                except Exception as e:
+                    import traceback
+                    print(f'[fast mode FAILED: {type(e).__name__}: {e}] falling back to Playwright --full')
+                    traceback.print_exc()
+                    await _rf(team_id, team_name, team_slug, coach_nat, stadium)
+            asyncio.run(_fwf())
+        else:
+            asyncio.run(run_full(team_id, team_name, team_slug, coach_nat, stadium))
     else:
         if not team_name:
             try:
