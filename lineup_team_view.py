@@ -1302,6 +1302,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <aside class="my-squads-sidebar" id="my-squads-sidebar">
                 <div class="actions-bar" style="margin:0 0 10px 0;align-items:flex-start;flex-direction:column;gap:6px;">
                     <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
+                    <button type="button" class="action-btn update-btn" id="update-data-btn" onclick="updateData()" title="Fetch latest data from Soccerway">♻️ Update data</button>
                     <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text or 'Cache status unknown'}</span>
                     <span id="save-message"></span>
                 </div>
@@ -1498,6 +1499,37 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const json = await res.json();
             if (!res.ok || !json.ok) {{ alert(json.error || 'delete failed'); return; }}
             await loadSnapshotsList();
+        }}
+
+        async function updateData() {{
+            const btn = document.getElementById('update-data-btn');
+            const msgEl = document.getElementById('save-message');
+            if (!btn || btn.disabled) return;
+            const origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Updating...';
+            if (msgEl) {{ msgEl.textContent = ''; msgEl.style.color = ''; }}
+            try {{
+                const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID);
+                const data = await r.json();
+                if (data.error) {{
+                    if (msgEl) {{ msgEl.textContent = '❌ ' + data.error; msgEl.style.color = '#dc3545'; }}
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                }} else if (data.changed) {{
+                    if (msgEl) {{ msgEl.textContent = '✅ Updated! Reloading...'; msgEl.style.color = '#17843f'; }}
+                    setTimeout(() => location.reload(), 1200);
+                }} else {{
+                    if (msgEl) {{ msgEl.textContent = '✓ Already up to date'; msgEl.style.color = '#6c757d'; }}
+                    setTimeout(() => {{ if (msgEl) msgEl.textContent = ''; }}, 2500);
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                }}
+            }} catch (e) {{
+                if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Network error'); msgEl.style.color = '#dc3545'; }}
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }}
         }}
 
         async function saveTeamState() {{
