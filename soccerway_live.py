@@ -19,16 +19,25 @@ CACHE_HOURS = 6
 
 
 def _find_team_meta(team_id: str) -> dict:
-    """Найти имя команды из существующего JSON-файла"""
-    import glob
-    for f in sorted(glob.glob(os.path.join(DATA_DIR, "lineup_ai_*.json"))):
-        if team_id in f and '_api' not in f:
-            try:
-                with open(f, 'r', encoding='utf-8') as fh:
-                    data = json.load(fh)
-                return data.get("team", {})
-            except Exception:
-                pass
+    """Найти имя и slug команды из leagues_data.json"""
+    import json
+    leagues_path = "/home/openclaw/FormAlert/leagues_data.json"
+    try:
+        with open(leagues_path, 'r', encoding='utf-8') as f:
+            leagues = json.load(f)
+        for country, leagues_dict in leagues.items():
+            for league_name, teams in leagues_dict.items():
+                for team in teams:
+                    if team.get("id") == team_id:
+                        return {
+                            "id": team_id,
+                            "name": team.get("name", team_id),
+                            "slug": team.get("slug", team.get("name", team_id).lower().replace(" ", "-"))
+                        }
+    except Exception as e:
+        print(f"  [_find_team_meta] Error loading leagues_data: {e}")
+    
+    # Fallback: вернуть team_id как имя
     return {"id": team_id, "name": team_id, "slug": team_id}
 
 
