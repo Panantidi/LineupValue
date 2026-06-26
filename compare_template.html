@@ -90,6 +90,8 @@ body {
     <div class="stadium {{stadium_class}}">{{stadium_text}}{{neutral_suffix}}</div>
     <div class="compare-header-controls">
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
+        <button onclick="updateTeamData('my')" title="Update Home Team">&#128260; Home</button>
+        <button onclick="updateTeamData('opp')" title="Update Away Team">&#128260; Away</button>
         <button id="match-save-btn" onclick="saveMatchData()" title="Save Match Data">💾 Save</button>
         <button onclick="exportMatchScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
     </div>
@@ -302,6 +304,54 @@ body {
             alert('Screenshot failed: ' + e.message);
         } finally {
             if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        }
+    };
+    
+    // Update team data functionality
+    window.updateTeamData = async function(teamType) {
+        const frame = teamType === 'my' ? myFrame : oppFrame;
+        const teamId = frame.src.match(/\/lineup_ai\/([^?]+)/)[1];
+        
+        const btn = document.querySelector(`button[onclick="updateTeamData('${teamType}')"]`);
+        if (!btn || btn.disabled) return;
+        
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ ' + (teamType === 'my' ? 'Home' : 'Away');
+        
+        let seconds = 0;
+        const counterInterval = setInterval(() => {
+            seconds++;
+            btn.textContent = '🔄 ' + seconds + 's';
+        }, 1000);
+        
+        const startTime = Date.now();
+        
+        try {
+            const r = await fetch('/lineup_ai/api/fetch/' + teamId + '?_t=' + Date.now(), { cache: 'no-store' });
+            clearInterval(counterInterval);
+            
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            
+            const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+            btn.textContent = '✅ ' + duration + 's';
+            
+            // Reload frame
+            frame.src = frame.src.replace(/[?&]v=[^&]*/, '') + '&v=' + Date.now();
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2000);
+        } catch (e) {
+            clearInterval(counterInterval);
+            console.error('[UpdateTeamData] error:', e);
+            btn.textContent = '❌ Error';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2000);
         }
     };
 })();
