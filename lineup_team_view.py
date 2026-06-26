@@ -484,16 +484,18 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         pos_code = str(p.get("position", "") or "").upper()
         df_aliases = {"DF", "D", "DEF", "DEFENDER", "CB", "LB", "RB", "LWB", "RWB"}
         mf_aliases = {"MF", "M", "MID", "MIDFIELDER", "CM", "DM", "AM", "LM", "RM"}
-        df_fire = " 🎯" if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
-        mf_lightning = " 🎨" if pos_code in mf_aliases and 5 <= player_impact <= 6.99 and player_minutes >= 900 else ""
-        star_impact = " ⭐️" if 7 <= player_impact <= 8.99 and player_minutes >= 900 else ""
+        df_fire = ' <span title="Attacking Defender">🎯</span>' if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
+        mf_lightning = ' <span title="Creative Midfielder">🎨</span>' if pos_code in mf_aliases and 5 <= player_impact <= 6.99 and player_minutes >= 900 else ""
+        star_impact = ' <span title="Very Strong Player">⭐️</span>' if 7 <= player_impact <= 8.99 and player_minutes >= 900 else ""
         wc_attr = "wc" if is_international_tournament else ""
-        top_impact = " 👑" if player_impact >= 9 and player_minutes >= 900 else ""
+        top_impact = ' <span title="World-Class Player">👑</span>' if player_impact >= 9 and player_minutes >= 900 else ""
+        top_scorer_badge = ' <span title="Top Scorer">⚽️</span>'
+        top_assist_badge = ' <span title="Top Assist">👟</span>'
         player_row = f"""
             <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}" data-player-number="{p.get("number", "–")}">
                 <td style="text-align:center;padding:4px 2px;"><span class="player-number-circle" data-player-name="{player_display_name}" data-player-number="{p.get('number', '?')}" data-player-club="{team_name}" data-is-wc="{wc_attr}" onclick="toggleFavorite(this)" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#e9ecef;color:#495057;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">{p.get('number', '?')}</span></td>
                 <td style="text-align:center;">{get_nat_html(p)}</td>
-                <td class="player-name" style="white-space:nowrap;">{f"<strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact} ⚽️</strong>" if unique_goal_leader and player_display_name == unique_goal_leader else (f"<strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact} 👟</strong>" if unique_assist_leader and player_display_name == unique_assist_leader else f"{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}")}</td>
+                <td class="player-name" style="white-space:nowrap;">{f"<strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}{top_scorer_badge}</strong>" if unique_goal_leader and player_display_name == unique_goal_leader else (f"<strong>{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}{top_assist_badge}</strong>" if unique_assist_leader and player_display_name == unique_assist_leader else f"{player_display_name}{df_fire}{mf_lightning}{star_impact}{top_impact}")}</td>
                 <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
                 <td style="text-align:center;padding:4px 2px;">{p.get("age", "–")}</td>
                 <td style="text-align:center;">{p.get("market_value", "–")}</td>
