@@ -1502,46 +1502,37 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (!btn || btn.disabled) return;
             btn.disabled = true;
             btn.innerHTML = '⏳ Updating...';
-            if (msgEl) {{ msgEl.textContent = '⏳ Fetching from Soccerway...'; msgEl.style.color = '#667eea'; }}
             const startTime = Date.now();
+            
+            // Запускаем счётчик вверх
+            let seconds = 0;
+            const counterInterval = setInterval(() => {{
+                seconds++;
+                if (msgEl) {{ msgEl.textContent = '🔄 ' + seconds + 's'; msgEl.style.color = '#667eea'; }}
+            }}, 1000);
+            
             try {{
                 const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID + '?_t=' + Date.now(), {{ cache: 'no-store' }});
+                clearInterval(counterInterval);
                 console.log('[UpdateData] status=' + r.status);
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
-                if (data.refreshing) {{
-                    // Background fetch запущен — показываем обратный отсчёт
-                    var remaining = 55;
-                    function tick() {{
-                        const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
-                        if (msgEl) {{ msgEl.textContent = '🔄 Refreshing... ' + remaining + 's'; msgEl.style.color = '#667eea'; }}
-                        remaining--;
-                        if (remaining < 0) {{
-                            const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-                            if (msgEl) {{ msgEl.textContent = '✅ Updated in ' + duration + 's'; msgEl.style.color = '#17843f'; }}
-                            const url = location.pathname + '?_v=' + Date.now();
-                            console.log('[UpdateData] navigating to', url);
-                            window.location.href = url;
-                        }} else {{
-                            setTimeout(tick, 1000);
-                        }}
-                    }}
-                    tick();
-                }} else {{
-                    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-                    const msg = data.changed 
-                        ? '✅ Data updated in ' + duration + 's' 
-                        : '✓ Cache refreshed in ' + duration + 's (no changes)';
-                    if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
-                    btn.innerHTML = '♻️ Update data';
-                    btn.disabled = false;
-                    setTimeout(function() {{ 
-                        const url = location.pathname + '?_v=' + Date.now();
-                        window.location.href = url;
-                    }}, 800);
-                }}
+                
+                const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+                const msg = data.changed 
+                    ? '✅ Updated in ' + duration + 's' 
+                    : '✓ Cache refreshed in ' + duration + 's';
+                if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                btn.innerHTML = '♻️ Update data';
+                btn.disabled = false;
+                
+                setTimeout(function() {{ 
+                    const url = location.pathname + '?_v=' + Date.now();
+                    window.location.href = url;
+                }}, 800);
             }} catch (e) {{
+                clearInterval(counterInterval);
                 console.error('[UpdateData] error:', e);
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Error'); msgEl.style.color = '#dc3545'; }}
                 btn.disabled = false;
