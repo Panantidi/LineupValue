@@ -484,11 +484,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         pos_code = str(p.get("position", "") or "").upper()
         df_aliases = {"DF", "D", "DEF", "DEFENDER", "CB", "LB", "RB", "LWB", "RWB"}
         mf_aliases = {"MF", "M", "MID", "MIDFIELDER", "CM", "DM", "AM", "LM", "RM"}
-        df_fire = " 🦾" if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
-        mf_lightning = " 🌀" if pos_code in mf_aliases and 5 <= player_impact <= 6.99 and player_minutes >= 900 else ""
+        df_fire = " 🎯" if pos_code in df_aliases and player_impact >= 6 and player_minutes >= 900 else ""
+        mf_lightning = " 🎨" if pos_code in mf_aliases and 5 <= player_impact <= 6.99 and player_minutes >= 900 else ""
         star_impact = " ⭐️" if 7 <= player_impact <= 8.99 and player_minutes >= 900 else ""
         wc_attr = "wc" if is_international_tournament else ""
-        top_impact = " 🔝" if player_impact >= 9 and player_minutes >= 900 else ""
+        top_impact = " 👑" if player_impact >= 9 and player_minutes >= 900 else ""
         player_row = f"""
             <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}" data-player-number="{p.get("number", "–")}">
                 <td style="text-align:center;padding:4px 2px;"><span class="player-number-circle" data-player-name="{player_display_name}" data-player-number="{p.get('number', '?')}" data-player-club="{team_name}" data-is-wc="{wc_attr}" onclick="toggleFavorite(this)" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#e9ecef;color:#495057;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">{p.get('number', '?')}</span></td>
@@ -1603,7 +1603,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             return Array.from(document.querySelectorAll('.main-table tbody tr[data-player-name]')).map(row => {{
                 const rawName = row.getAttribute('data-player-name') || '';
                 const cells = row.querySelectorAll('td');
-                const displayName = cells[2] ? cells[2].textContent.replace(/[🦾🌀⭐🔝⚽👟️]/g, ' ') : rawName;
+                const displayName = cells[2] ? cells[2].textContent.replace(/[🎯🎨⭐👑⚽👟️]/g, ' ') : rawName;
                 const number = String(row.getAttribute('data-player-number') || (cells[0] ? cells[0].textContent : '') || '').trim();
                 const norm = bulkNormalizeText(rawName + ' ' + displayName);
                 const parts = bulkNameParts(rawName + ' ' + displayName);
