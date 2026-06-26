@@ -890,7 +890,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             padding: 12px;
             margin: 0 0 12px 0;
-            border-left: 4px solid #667eea;
         }}
         .bulk-lineup-title {{
             font-size: 14px;
