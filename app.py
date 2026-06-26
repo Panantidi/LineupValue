@@ -1416,6 +1416,12 @@ async def add_favorite(request: Request):
     player_id = data.get("player_id")
     player_data = data.get("player_data", {})
     
+    # Clean player name - remove emojis and span tags
+    if "name" in player_data:
+        import re
+        player_data["name"] = re.sub(r"<span[^>]*>[^<]*</span>", "", player_data.get("name", "")).strip()
+        player_data["name"] = re.sub(r"[🎯🎨⭐👑⚽️👟]", "", player_data.get("name", "")).strip()
+    
     if not player_id:
         return {"error": "player_id required"}, 400
     
