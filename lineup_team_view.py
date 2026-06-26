@@ -1510,18 +1510,37 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
-                const duration = data.duration_seconds || ((Date.now() - startTime) / 1000).toFixed(1);
-                const msg = data.changed 
-                    ? '✅ Data updated in ' + duration + 's' 
-                    : '✓ Cache refreshed in ' + duration + 's (no changes)';
-                if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
-                btn.innerHTML = '♻️ Update data';
-                btn.disabled = false;
-                // Reload page after short delay to show updated data
-                setTimeout(function() {{ 
-                    const url = location.pathname + '?_v=' + Date.now();
-                    window.location.href = url;
-                }}, 800);
+                if (data.refreshing) {{
+                    // Background fetch запущен — показываем обратный отсчёт
+                    var remaining = 55;
+                    function tick() {{
+                        const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+                        if (msgEl) {{ msgEl.textContent = '🔄 Refreshing... ' + remaining + 's'; msgEl.style.color = '#667eea'; }}
+                        remaining--;
+                        if (remaining < 0) {{
+                            const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+                            if (msgEl) {{ msgEl.textContent = '✅ Updated in ' + duration + 's'; msgEl.style.color = '#17843f'; }}
+                            const url = location.pathname + '?_v=' + Date.now();
+                            console.log('[UpdateData] navigating to', url);
+                            window.location.href = url;
+                        }} else {{
+                            setTimeout(tick, 1000);
+                        }}
+                    }}
+                    tick();
+                }} else {{
+                    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+                    const msg = data.changed 
+                        ? '✅ Data updated in ' + duration + 's' 
+                        : '✓ Cache refreshed in ' + duration + 's (no changes)';
+                    if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                    btn.innerHTML = '♻️ Update data';
+                    btn.disabled = false;
+                    setTimeout(function() {{ 
+                        const url = location.pathname + '?_v=' + Date.now();
+                        window.location.href = url;
+                    }}, 800);
+                }}
             }} catch (e) {{
                 console.error('[UpdateData] error:', e);
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Error'); msgEl.style.color = '#dc3545'; }}

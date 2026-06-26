@@ -1443,79 +1443,57 @@ async def remove_favorite(request: Request, player_id: str):
 async def lineup_index():
     return RedirectResponse(url="/lineup_ai/select", status_code=307)
 
-_fetch_in_progress = set()
 
+_fetch_in_progress = set()
 
 @app.get("/lineup_ai/api/fetch/{team_id}")
 async def lineup_api_fetch(team_id: str):
-    """Sync fetch - waits for completion and returns result.
-    Returns {"changed": true/false, "cached_at": ..., "error": ..., "duration_seconds": ...}.
+    """Trigger background refresh + return current cache status (non-blocking).
+    Returns {"changed": true/false, "cached_at": ..., "error": ..., "refreshing": bool}.
     Сравнение по ключевым полям (players, matches, coach, stadium, team).
     """
-    import sys, json, hashlib, time
+    import sys, json, hashlib
     sys.path.insert(0, "/home/openclaw/FormAlert")
     from soccerway_live import _load_live_cache, _save_live_cache, fetch_team_live
 
     COMPARE_KEYS = ["team", "coach", "stadium", "players", "matches"]
 
-    # Если уже идёт обновление для этой команды — вернуть статус
-    if team_id in _fetch_in_progress:
-        cache_path = f"/home/openclaw/.openclaw/workspace/_live_cache_{team_id}.json"
-        cached_at = os.path.getmtime(cache_path) if os.path.exists(cache_path) else 0
-        return JSONResponse(content={
-            "changed": False,
-            "cached_at": cached_at,
-            "error": None,
-            "refreshing": True,
-            "duration_seconds": 0,
-        })
-
-    # Получить хэш текущего кэша (ДО обновления)
+    # 1. Получить хэш текущего кэша (ДО запуска фонового обновления)
     old_cache = _load_live_cache(team_id)
     old_hash = ""
     if old_cache:
         old_subset = {k: old_cache.get(k) for k in COMPARE_KEYS}
         old_hash = hashlib.md5(json.dumps(old_subset, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
-    _fetch_in_progress.add(team_id)
-    start_time = time.time()
-    
-    try:
-        # Синхронное обновление - ждём завершения
-        fresh = await fetch_team_live(team_id, force_refresh=True)
-        duration_seconds = round(time.time() - start_time, 1)
-        
-        if len(fresh.get("players", [])) > 0:
-            _save_live_cache(team_id, fresh)
-        
-        # Сравнить с предыдущим кэшем
-        new_cache = _load_live_cache(team_id)
-        new_hash = ""
-        if new_cache:
-            new_subset = {k: new_cache.get(k) for k in COMPARE_KEYS}
-            new_hash = hashlib.md5(json.dumps(new_subset, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-        
-        cache_path = f"/home/openclaw/.openclaw/workspace/_live_cache_{team_id}.json"
-        cached_at = os.path.getmtime(cache_path) if os.path.exists(cache_path) else 0
-        
-        return JSONResponse(content={
-            "changed": old_hash != new_hash,
-            "cached_at": cached_at,
-            "error": None,
-            "refreshing": False,
-            "duration_seconds": duration_seconds,
-        })
-    except Exception as e:
-        print(f"[fetch] {team_id} error: {e}")
-        return JSONResponse(content={
-            "changed": False,
-            "cached_at": 0,
-            "error": str(e),
-            "refreshing": False,
-            "duration_seconds": round(time.time() - start_time, 1),
-        }, status_code=500)
-    finally:
-        _fetch_in_progress.discard(team_id)
+    # 2. Запустить фоновое обновление (НЕ блокируем ответ)
+    # Если уже идёт для этой команды — пропускаем
+    started_now = False
+    if team_id not in _fetch_in_progress:
+        _fetch_in_progress.add(team_id)
+        started_now = True
+
+        async def _bg_fetch():
+            try:
+                fresh = await fetch_team_live(team_id, force_refresh=True)
+                if len(fresh.get("players", [])) > 0:
+                    _save_live_cache(team_id, fresh)
+            except Exception as e:
+                print(f"[bg_fetch] {team_id} error: {e}")
+            finally:
+                _fetch_in_progress.discard(team_id)
+
+        asyncio.create_task(_bg_fetch())
+
+    # 3. Сразу вернуть текущий кэш (без ожидания фоновой задачи)
+    cache_path = f"/home/openclaw/.openclaw/workspace/_live_cache_{team_id}.json"
+    cached_at = os.path.getmtime(cache_path) if os.path.exists(cache_path) else 0
+    return JSONResponse(content={
+        "changed": False,
+        "cached_at": cached_at,
+        "error": None,
+        "refreshing": True,
+        "started_now": started_now,
+    })
 
 
 
