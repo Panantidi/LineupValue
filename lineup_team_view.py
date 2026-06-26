@@ -1503,34 +1503,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             btn.disabled = true;
             btn.innerHTML = '⏳ Updating...';
             if (msgEl) {{ msgEl.textContent = '⏳ Fetching from Soccerway...'; msgEl.style.color = '#667eea'; }}
+            const startTime = Date.now();
             try {{
                 const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID + '?_t=' + Date.now(), {{ cache: 'no-store' }});
                 console.log('[UpdateData] status=' + r.status);
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
-                if (data.refreshing) {{
-                    // Background fetch запущен — ждём 55с (Playwright занимает 50-55с для больших команд)
-                    // Показываем обратный отсчёт
-                    var remaining = 55;
-                    function tick() {{
-                        if (msgEl) {{ msgEl.textContent = '🔄 Refreshing data... ' + remaining + 's'; msgEl.style.color = '#667eea'; }}
-                        remaining--;
-                        if (remaining < 0) {{
-                            const url = location.pathname + '?_v=' + Date.now();
-                            console.log('[UpdateData] navigating to', url);
-                            window.location.href = url;
-                        }} else {{
-                            setTimeout(tick, 1000);
-                        }}
-                    }}
-                    tick();
-                }} else {{
-                    const msg = data.changed ? '✅ Data updated! Reloading...' : '✓ Cache refreshed! Reloading...';
-                    if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                const duration = data.duration_seconds || ((Date.now() - startTime) / 1000).toFixed(1);
+                const msg = data.changed 
+                    ? '✅ Data updated in ' + duration + 's' 
+                    : '✓ Cache refreshed in ' + duration + 's (no changes)';
+                if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                btn.innerHTML = '♻️ Update data';
+                btn.disabled = false;
+                // Reload page after short delay to show updated data
+                setTimeout(function() {{ 
                     const url = location.pathname + '?_v=' + Date.now();
-                    setTimeout(function() {{ window.location.href = url; }}, 500);
-                }}
+                    window.location.href = url;
+                }}, 800);
             }} catch (e) {{
                 console.error('[UpdateData] error:', e);
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Error'); msgEl.style.color = '#dc3545'; }}
