@@ -1773,8 +1773,10 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     if not away_name:
         away_name = away_id or "Opponent"
 
-    home_team_id = home_id or team_id
-    away_team_id = away_id or ""
+    # First try to find team_ids by name from leagues_data.json
+    # Then fall back to passed IDs or team_id
+    home_team_id = home_id if home_id else ""
+    away_team_id = away_id if away_id else ""
 
     # If home_id is empty but home_name is provided, try to find team_id from leagues_data.json
     if not home_team_id and home_name:
@@ -1793,6 +1795,10 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                     break
         except Exception:
             pass
+
+    # If still no home_team_id, use team_id as fallback
+    if not home_team_id:
+        home_team_id = team_id
 
     # If away_id is empty but away_name is provided, try to find team_id from leagues_data.json
     if not away_team_id and away_name:
