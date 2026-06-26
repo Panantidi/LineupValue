@@ -1792,8 +1792,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     headers: {{ 'Content-Type': 'application/json' }},
                     body: JSON.stringify({{ image: imageDataUrl, mode: currentMode }})
                 }});
+                const ct = res.headers.get('content-type') || '';
+                if (!res.ok || !ct.includes('application/json')) throw new Error('Server returned HTML (' + res.status + '). Image may be too large or Vision API timed out.');
                 const json = await res.json();
-                if (!res.ok || !json.ok) throw new Error(json.error || 'vision failed');
+                if (!json.ok) throw new Error(json.error || 'vision failed');
                 const names = Array.isArray(json.players) ? json.players : [];
                 if (textEl) textEl.value = names.join('\\n');
                 const currentMode2 = modeEl ? modeEl.value : 'possible';
