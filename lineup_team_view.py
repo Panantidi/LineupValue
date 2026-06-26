@@ -1044,19 +1044,21 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             visibility: visible;
         }}
 
-        /* Embed mode: remove inner scroll, parent handles it */
-        body.embed-mode {{ overflow: visible; height: auto; }}
-        body.embed-mode .main-layout {{ overflow: visible; height: auto; }}
-        body.embed-mode .table-container {{ overflow: visible; height: auto; max-height: none; }}
-        body.embed-mode .main-table {{ overflow: visible; }}
-        body.embed-mode .content-wrapper {{ overflow: visible; height: auto; }}
-        body.embed-mode .squad-table-wrapper {{ overflow: visible; height: auto; max-height: none; }}
-        body.embed-mode .comparison-tables {{ overflow: visible; }}
-        body.embed-mode .table-scroll-wrapper {{ overflow: visible; }}
+        /* Embed mode: remove ALL inner scrolls, parent handles scrolling */
+        html.embed-mode, body.embed-mode {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
+        body.embed-mode .main-layout {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
+        body.embed-mode .table-container {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
+        body.embed-mode .main-table {{ overflow: visible !important; height: auto !important; }}
+        body.embed-mode .content-wrapper {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
+        body.embed-mode .squad-table-wrapper {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
+        body.embed-mode .comparison-tables {{ overflow: visible !important; height: auto !important; }}
+        body.embed-mode .table-scroll-wrapper {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
         body.embed-mode .header {{ flex-wrap: nowrap; }}
         body.embed-mode .header-tabs {{ margin-left: auto; }}
-        body.embed-mode aside.my-squads-sidebar {{ display: none; }}
-        body.embed-mode .actions-bar {{ display: none; }}
+        body.embed-mode aside.my-squads-sidebar {{ display: none !important; }}
+        body.embed-mode .actions-bar {{ display: none !important; }}
+        body.embed-mode .container {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
+        body.embed-mode .main-table {{ overflow-x: visible !important; }}
         /* Favorites: disabled for international tournaments */
         .player-number-circle[data-is-wc="wc"] {{
             opacity: 0.4;
