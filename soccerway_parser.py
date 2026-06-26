@@ -1053,6 +1053,13 @@ def to_lineup_format(team_data: TeamData) -> dict:
 
 async def fetch_team_data(team_id: str, team_name: str = "", force_refresh: bool = False) -> TeamData:
     """Main function: fetch complete team data with caching"""
+    # Clear cache on force_refresh to ensure fresh data
+    if force_refresh:
+        cache_path = get_cache_path(team_id)
+        if os.path.exists(cache_path):
+            os.remove(cache_path)
+            print(f"  Cache cleared for {team_id}")
+    
     # Check cache
     if not force_refresh:
         cached = load_from_cache(team_id)
