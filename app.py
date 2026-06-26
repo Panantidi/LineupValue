@@ -1770,15 +1770,46 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     home_team_id = home_id or team_id
     away_team_id = away_id or ""
 
-    # If no away_id provided, try to determine from cache
+    # If home_id is empty but home_name is provided, try to find team_id from leagues_data.json
+    if not home_team_id and home_name:
+        try:
+            with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+                leagues = json.load(f)
+            for country, leagues_dict in leagues.items():
+                for league_name, teams in leagues_dict.items():
+                    for team in teams:
+                        if team.get("name", "").lower() == home_name.lower():
+                            home_team_id = team.get("id", "")
+                            break
+                    if home_team_id:
+                        break
+                if home_team_id:
+                    break
+        except Exception:
+            pass
+
+    # If away_id is empty but away_name is provided, try to find team_id from leagues_data.json
+    if not away_team_id and away_name:
+        try:
+            with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+                leagues = json.load(f)
+            for country, leagues_dict in leagues.items():
+                for league_name, teams in leagues_dict.items():
+                    for team in teams:
+                        if team.get("name", "").lower() == away_name.lower():
+                            away_team_id = team.get("id", "")
+                            break
+                    if away_team_id:
+                        break
+                if away_team_id:
+                    break
+        except Exception:
+            pass
+
+    # If still no away_id, return error
     if not away_team_id:
-        my_cache_path = os.path.join(cache_dir, f"_live_cache_{team_id}.json")
-        if os.path.exists(my_cache_path):
-            with open(my_cache_path) as fh:
-                my_team = json.load(fh)
-            cache_name = my_team.get("team_name", "")
-            if cache_name:
-                home_name = cache_name
+        error_msg = "<h2>Missing away_id for match comparison</h2><p>Please provide both home_id and away_id parameters.</p>"
+        return HTMLResponse(content=error_msg, status_code=400)
 
     # --- Stadium: try to get actual match venue from Soccerway match page ---
     home_stadium = ""
@@ -2187,21 +2218,21 @@ async def lineup_vision_lineup(team_id: str, payload: dict = Body(default_factor
 
 
 @app.get("/team/{team_id}")
-async def team_get_alias(team_id: str):
+async def team_get_alias(team_id: str, embed: str = ""):
     try:
         prepare_team_data_version(team_id)
     except Exception:
         pass
-    return render_team_view(team_id)
+    return render_team_view(team_id, embed)
 
 
 @app.get("/lineup_ai/{team_id}")
-async def lineup_team(team_id: str):
+async def lineup_team(team_id: str, embed: str = ""):
     try:
         prepare_team_data_version(team_id)
     except Exception:
         pass
-    return render_team_view(team_id)
+    return render_team_view(team_id, embed)
 
 
 

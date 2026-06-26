@@ -1081,7 +1081,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <script src="/static/favorites.js?v=5"></script>
 
 </head>
-<body class="{{"embed-mode" if embed else ""}}">
+<body class="{('embed-mode' if embed else '')}">
     <div class="header">
         <div class="team-title">
             <h1>{team_name}</h1>
