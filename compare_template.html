@@ -88,13 +88,15 @@ body {
 </head>
 <body>
 <div class="compare-header">
-    <h2>{{my_name}} vs {{opponent_name}}</h2>
+    <h2 style="display:flex;align-items:center;justify-content:center;gap:12px;">
+        <button onclick="updateTeamData('my')" title="Update Home Team" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:4px 8px;cursor:pointer;color:white;font-size:14px;">&#128260; Home</button>
+        <span>{{my_name}} vs {{opponent_name}}</span>
+        <button onclick="updateTeamData('opp')" title="Update Away Team" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:4px 8px;cursor:pointer;color:white;font-size:14px;">&#128260; Away</button>
+    </h2>
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="stadium {{stadium_class}}">{{stadium_text}}{{neutral_suffix}}</div>
     <div class="compare-header-controls">
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
-        <button onclick="updateTeamData('my')" title="Update Home Team">&#128260; Home</button>
-        <button onclick="updateTeamData('opp')" title="Update Away Team">&#128260; Away</button>
         <button id="match-save-btn" onclick="saveMatchData()" title="Save Match Data">💾 Save</button>
         <button onclick="exportMatchScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
     </div>
