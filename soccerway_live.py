@@ -64,32 +64,25 @@ async def fetch_team_live(team_id: str, force_refresh: bool = False) -> dict:
     Главная функция: подгрузить актуальные данные команды с Soccerway.
     Возвращает dict в формате Player_Info.json.
     """
-    # 0. Очищаем кэш при force_refresh
-    if force_refresh:
-        live_cache_path = _live_cache_path(team_id)
-        if os.path.exists(live_cache_path):
-            os.remove(live_cache_path)
-            print(f"  Live cache cleared for {team_id}")
-    
-    # 1. Проверяем live-кеш
+    # Проверяем live-кеш (пропускаем при force_refresh)
     if not force_refresh:
         cached = _load_live_cache(team_id)
         if cached:
             return cached
 
-    # 2. Получаем имя команды
+    # Получаем имя команды
     meta = _find_team_meta(team_id)
     team_name = meta.get("name", team_id)
 
-    # 3. Вызываем парсер
+    # Вызываем парсер
     from soccerway_parser import fetch_team_data, to_lineup_format
 
     team_data = await fetch_team_data(team_id, team_name, force_refresh=force_refresh)
 
-    # 4. Конвертируем в формат lineup_team_view
+    # Конвертируем в формат lineup_team_view
     result = to_lineup_format(team_data)
 
-    # 5. Сохраняем в кеш
+    # Сохраняем в кеш (перезаписываем)
     _save_live_cache(team_id, result)
 
     return result
