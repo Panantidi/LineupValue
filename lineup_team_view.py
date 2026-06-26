@@ -1298,7 +1298,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div class="actions-bar" style="margin:0 0 10px 0;align-items:flex-start;flex-direction:column;gap:6px;">
                     <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
                     <button type="button" class="action-btn update-btn" id="update-data-btn" onclick="updateData()" title="Fetch latest data from Soccerway">♻️ Update data</button>
-                    <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text or 'Cache status unknown'}</span>
+                    <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text}</span>
                     <span id="save-message"></span>
                 </div>
                 <div class="my-squads-title">My Squads</div>
