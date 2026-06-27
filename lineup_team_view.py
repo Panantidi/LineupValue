@@ -283,9 +283,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     try:
         if team_file == live_cache_path and os.path.exists(live_cache_path):
             cache_age_seconds = max(0, int(time.time() - os.path.getmtime(live_cache_path)))
-            if cache_age_seconds >= 6 * 3600:
-                cache_badge_text = "🔴 Stale — click Refresh"
-                cache_badge_color = "#dc3545"
+            # Stale cache — no badge shown
     except Exception:
         cache_badge_text = ""
     
