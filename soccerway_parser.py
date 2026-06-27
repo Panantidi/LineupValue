@@ -1053,53 +1053,66 @@ def to_lineup_format(team_data: TeamData) -> dict:
 
 async def fetch_team_data(team_id: str, team_name: str = "", force_refresh: bool = False) -> TeamData:
     """Main function: fetch complete team data with caching"""
-    # Check cache (skip if force_refresh)
-    if not force_refresh:
-        cached = load_from_cache(team_id)
-        if cached:
-            print(f"  Using cached data for {team_name or team_id}")
-            return cached
+    import asyncio
+    
+    # Wrap entire fetch in timeout
+    async def _fetch():
+        # Check cache (skip if force_refresh)
+        if not force_refresh:
+            cached = load_from_cache(team_id)
+            if cached:
+                print(f"  Using cached data for {team_name or team_id}")
+                return cached
 
-    print(f"  Fetching fresh data for {team_name or team_id}...")
+        print(f"  Fetching fresh data for {team_name or team_id}...")
 
-    # Step 1: Get squad page
-    print("  Step 1/4: Parsing squad page...")
-    squad_html = await get_squad_page(team_id, team_name)
-    players, coach, stadium = parse_squad_html(squad_html, team_id)
-    print(f"    Found {len(players)} players, Coach: {coach}")
+        # Step 1: Get squad page
+        print("  Step 1/4: Parsing squad page...")
+        squad_html = await get_squad_page(team_id, team_name)
+        players, coach, stadium = parse_squad_html(squad_html, team_id)
+        print(f"    Found {len(players)} players, Coach: {coach}")
 
-    # Step 2: Enrich with Pos and MV (async Playwright)
-    print("  Step 2/4: Enriching player details (Pos, MV)...")
-    players = await enrich_players_async(players, concurrency=3)
+        # Step 2: Enrich with Pos and MV (async Playwright)
+        print("  Step 2/4: Enriching player details (Pos, MV)...")
+        players = await enrich_players_async(players, concurrency=3)
 
-    # Step 3: Get last 3 matches
-    print("  Step 3/4: Fetching last 3 matches...")
-    last3_matches = await get_last3_matches(team_id, team_name)
-    print(f"    Matches: {[(m.date, m.tournament) for m in last3_matches]}")
+        # Step 3: Get last 3 matches
+        print("  Step 3/4: Fetching last 3 matches...")
+        last3_matches = await get_last3_matches(team_id, team_name)
+        print(f"    Matches: {[(m.date, m.tournament) for m in last3_matches]}")
 
-    # Step 4: Get lineups for each match (parallel async)
-    print("  Step 4/4: Fetching lineups...")
-    lineups_data = await fetch_all_lineups(last3_matches, team_name)
+        # Step 4: Get lineups for each match (parallel async)
+        print("  Step 4/4: Fetching lineups...")
+        lineups_data = await fetch_all_lineups(last3_matches, team_name)
 
-    # Step 5: Apply Last 3 to players
-    players = apply_last3_to_players(players, lineups_data)
+        # Step 5: Apply Last 3 to players
+        players = apply_last3_to_players(players, lineups_data)
 
-    # Create result
-    result = TeamData(
-        team_name=team_name,
-        team_id=team_id,
-        coach=coach,
-        stadium=stadium,
-        players=players,
-        last3_matches=last3_matches,
-        updated_at=datetime.now().isoformat()
-    )
+        # Create result
+        result = TeamData(
+            team_name=team_name,
+            team_id=team_id,
+            coach=coach,
+            stadium=stadium,
+            players=players,
+            last3_matches=last3_matches,
+            updated_at=datetime.now().isoformat()
+        )
 
-    # Save to cache
-    save_to_cache(result)
-    print(f"  Data saved to cache (TTL: {CACHE_TTL_HOURS}h)")
+        # Save to cache
+        save_to_cache(result)
+        print(f"  Data saved to cache (TTL: {CACHE_TTL_HOURS}h)")
 
-    return result
+        return result
+    
+    try:
+        return await asyncio.wait_for(_fetch(), timeout=180)
+    except asyncio.TimeoutError:
+        print(f"  [fetch_team_data] Timeout after 180s for {team_id}")
+        raise
+    except Exception as e:
+        print(f"  [fetch_team_data] Error: {e}")
+        raise
 
 
 # ============================================================
