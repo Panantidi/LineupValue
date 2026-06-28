@@ -2308,5 +2308,94 @@
         "slug": "ulsan-hyundai"
       }
     ]
+  },
+  "Poland": {
+    "Ekstraklasa": [
+      {
+        "id": "KvXSf2A6",
+        "name": "Cracovia",
+        "slug": "cracovia"
+      },
+      {
+        "id": "2LH3Ywq4",
+        "name": "Gornik Zabrze",
+        "slug": "gornik-zabrze"
+      },
+      {
+        "id": "lIDaZJTc",
+        "name": "Jagiellonia",
+        "slug": "jagiellonia"
+      },
+      {
+        "id": "K4AgRmS1",
+        "name": "GKS Katowice",
+        "slug": "gks-katowice"
+      },
+      {
+        "id": "pp78XcbA",
+        "name": "Korona Kielce",
+        "slug": "korona-kielce"
+      },
+      {
+        "id": "OpNH7Ouf",
+        "name": "Lech Poznan",
+        "slug": "lech-poznan"
+      },
+      {
+        "id": "K6kUepBs",
+        "name": "Legia",
+        "slug": "legia"
+      },
+      {
+        "id": "IoLk2VlL",
+        "name": "Motor Lublin",
+        "slug": "motor-lublin"
+      },
+      {
+        "id": "ve2oT9ck",
+        "name": "Piast Gliwice",
+        "slug": "piast-gliwice"
+      },
+      {
+        "id": "Um9YwPQ0",
+        "name": "Pogon Szczecin",
+        "slug": "pogon-szczecin"
+      },
+      {
+        "id": "zD5nYhAT",
+        "name": "Radomiak Radom",
+        "slug": "radomiak-radom"
+      },
+      {
+        "id": "SQOrbYim",
+        "name": "Rakow",
+        "slug": "rakow"
+      },
+      {
+        "id": "E1Oxemse",
+        "name": "Slask Wroclaw",
+        "slug": "slask-wroclaw"
+      },
+      {
+        "id": "rNOIW3uC",
+        "name": "Widzew Lodz",
+        "slug": "widzew-lodz"
+      },
+      {
+        "id": "ImhQf1z6",
+        "name": "Wieczysta Krakow",
+        "slug": "wieczysta-krakow"
+      },
+      {
+        "id": "QoZYVU3E",
+        "name": "Wisla Plock",
+        "slug": "wisla-plock"
+      },
+      {
+        "id": "tlYOere0",
+        "name": "Zaglebie",
+        "slug": "zaglebie"
+      }
+    ]
   }
 }
