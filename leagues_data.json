@@ -2244,5 +2244,69 @@
         "slug": "rangers"
       }
     ]
+  },
+  "South Korea": {
+    "K League 1": [
+      {
+        "id": "QRK4aI4P",
+        "name": "Anyang",
+        "slug": "anyang"
+      },
+      {
+        "id": "WvuRTpSq",
+        "name": "Bucheon FC 1995",
+        "slug": "bucheon-fc-1995"
+      },
+      {
+        "id": "2NTiQXjI",
+        "name": "Daejeon",
+        "slug": "daejeon"
+      },
+      {
+        "id": "A144gewT",
+        "name": "Gangwon",
+        "slug": "gangwon"
+      },
+      {
+        "id": "IaoBca9i",
+        "name": "Gimcheon Sangmu",
+        "slug": "gimcheon-sangmu"
+      },
+      {
+        "id": "8SWdrMTR",
+        "name": "Gwangju FC",
+        "slug": "gwangju-fc"
+      },
+      {
+        "id": "prJ1QuXA",
+        "name": "Incheon",
+        "slug": "incheon"
+      },
+      {
+        "id": "vFZJewv4",
+        "name": "Jeju SK",
+        "slug": "jeju-sk"
+      },
+      {
+        "id": "x0hNfcgA",
+        "name": "Jeonbuk",
+        "slug": "jeonbuk"
+      },
+      {
+        "id": "KIIIipI5",
+        "name": "Pohang",
+        "slug": "pohang"
+      },
+      {
+        "id": "8tzeYeHp",
+        "name": "Seoul",
+        "slug": "seoul"
+      },
+      {
+        "id": "EVEwgyOM",
+        "name": "Ulsan HD",
+        "slug": "ulsan-hd"
+      }
+    ]
   }
 }
