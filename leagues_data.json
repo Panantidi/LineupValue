@@ -2180,5 +2180,69 @@
         "slug": "trabzonspor"
       }
     ]
+  },
+  "Scotland": {
+    "Premiership": [
+      {
+        "id": "AmdbMiWq",
+        "name": "Aberdeen",
+        "slug": "aberdeen"
+      },
+      {
+        "id": "QFKRRD8M",
+        "name": "Celtic",
+        "slug": "celtic"
+      },
+      {
+        "id": "hjIyrgaj",
+        "name": "Dundee FC",
+        "slug": "dundee-fc"
+      },
+      {
+        "id": "8QEB2FFp",
+        "name": "Dundee Utd",
+        "slug": "dundee-united"
+      },
+      {
+        "id": "nHDF1ZUj",
+        "name": "Falkirk",
+        "slug": "falkirk"
+      },
+      {
+        "id": "0rGrwwNc",
+        "name": "Hearts",
+        "slug": "hearts"
+      },
+      {
+        "id": "f5Fnxcx4",
+        "name": "Hibernian",
+        "slug": "hibernian"
+      },
+      {
+        "id": "ULK83EjM",
+        "name": "St Johnstone",
+        "slug": "st-johnstone"
+      },
+      {
+        "id": "jX8ezy7G",
+        "name": "Kilmarnock",
+        "slug": "kilmarnock"
+      },
+      {
+        "id": "tAVXZEyT",
+        "name": "St. Mirren",
+        "slug": "st-mirren"
+      },
+      {
+        "id": "YuW7ZfMM",
+        "name": "Motherwell",
+        "slug": "motherwell"
+      },
+      {
+        "id": "8vAWQXNS",
+        "name": "Rangers",
+        "slug": "rangers"
+      }
+    ]
   }
 }
