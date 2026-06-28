@@ -2086,5 +2086,99 @@
         "slug": "v-varen-nagasaki"
       }
     ]
+  },
+  "Turkey": {
+    "Super Lig": [
+      {
+        "id": "IcN8oPcJ",
+        "name": "Alanyaspor",
+        "slug": "alanyaspor"
+      },
+      {
+        "id": "GAtxDHF9",
+        "name": "Antalyaspor",
+        "slug": "antalyaspor"
+      },
+      {
+        "id": "YqP5NmC1",
+        "name": "Basaksehir",
+        "slug": "basaksehir"
+      },
+      {
+        "id": "IDmErJCR",
+        "name": "Besiktas",
+        "slug": "besiktas"
+      },
+      {
+        "id": "276zKCgt",
+        "name": "Eyupspor",
+        "slug": "eyupspor"
+      },
+      {
+        "id": "MsbmracL",
+        "name": "Fenerbahce",
+        "slug": "fenerbahce"
+      },
+      {
+        "id": "riaqqurF",
+        "name": "Galatasaray",
+        "slug": "galatasaray"
+      },
+      {
+        "id": "ITkIKZ7q",
+        "name": "Gaziantep",
+        "slug": "gaziantep"
+      },
+      {
+        "id": "GOPqBIRK",
+        "name": "Genclerbirligi",
+        "slug": "genclerbirligi"
+      },
+      {
+        "id": "0MJlDkrA",
+        "name": "Goztepe",
+        "slug": "goztepe"
+      },
+      {
+        "id": "Cv7CWW8n",
+        "name": "Karagumruk",
+        "slug": "f-karagumruk"
+      },
+      {
+        "id": "dOlaIG4l",
+        "name": "Kasimpasa",
+        "slug": "kasimpasa"
+      },
+      {
+        "id": "8pwUEwoc",
+        "name": "Kayserispor",
+        "slug": "kayserispor"
+      },
+      {
+        "id": "hfvQIzKf",
+        "name": "Kocaelispor",
+        "slug": "kocaelispor"
+      },
+      {
+        "id": "YazuCbCE",
+        "name": "Konyaspor",
+        "slug": "konyaspor"
+      },
+      {
+        "id": "EFRnJdkr",
+        "name": "Rizespor",
+        "slug": "rizespor"
+      },
+      {
+        "id": "pSc6z7bf",
+        "name": "Samsunspor",
+        "slug": "samsunspor"
+      },
+      {
+        "id": "MmsYDc03",
+        "name": "Trabzonspor",
+        "slug": "trabzonspor"
+      }
+    ]
   }
 }
