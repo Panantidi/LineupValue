@@ -838,7 +838,7 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
                 else:
                     score_str = f'{abbr1} {s1}-{s2} {abbr2}'
 
-            print(f"    {match.date} ({side_label}): starters={len(starters)}, subs={len(substitutes)}, missing={len(missing_players)}, captains={len(captains)}")
+            print(f"    {match.date}: starters={len(starters)}, subs={len(substitutes)}, missing={len(missing_players)}, captains={len(captains)}")
             results.append({
                 'date': match.date,
                 'tournament': match.tournament,
