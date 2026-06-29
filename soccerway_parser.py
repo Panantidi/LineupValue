@@ -1106,9 +1106,9 @@ async def fetch_team_data(team_id: str, team_name: str = "", force_refresh: bool
         return result
     
     try:
-        return await asyncio.wait_for(_fetch(), timeout=300)
+        return await asyncio.wait_for(_fetch(), timeout=180)
     except asyncio.TimeoutError:
-        print(f"  [fetch_team_data] Timeout after 300s for {team_id}")
+        print(f"  [fetch_team_data] Timeout after 180s for {team_id}")
         raise
     except Exception as e:
         print(f"  [fetch_team_data] Error: {e}")
