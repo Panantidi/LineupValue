@@ -540,7 +540,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }
         return mapping.get(key, raw or "Match")
 
-    last3_header_row1 = '<th colspan="3" style="text-align:center;font-size:11px;padding:6px 4px;border-bottom:none;">Last 3</th>'
+    last3_header_row1 = '<th colspan="3" style="text-align:center;font-size:11px;padding:6px 4px;border-bottom:1px solid #e0e0e0;">Last 3</th>'
     last3_header_cells = ""
     for m in last3_matches:
         date_str = m.get("date", "")
@@ -1325,7 +1325,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">№</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Nat</th>
                         <th rowspan="2" style="width:200px;padding:0 2px;white-space:nowrap;">Player</th>
-                        <th rowspan="2" style="text-align:left;width:40px;padding:0;">Status</th>
+                        <th rowspan="2" style="text-align:center;width:40px;padding:0;">Status</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Age</th>
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;" title="Market Value">MV</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Pos</th>
