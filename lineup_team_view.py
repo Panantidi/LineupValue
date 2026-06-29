@@ -332,7 +332,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     fav_attrs = "" 
 
     # Sort players by minutes played (descending)
-    sorted_players = sorted(players, key=lambda x: int(x.get('min', '0')) if x.get('min', '0') and str(x['min']).isdigit() else 0, reverse=True)
+    sorted_players = sorted(players, key=lambda x: int(x.get('min', '0')) if x.get('min', '0') and str(x.get('min', '0')).isdigit() else 0, reverse=True)
     
     # Verify all fields are present before rendering
     # Auto-calculate impact_score and squad_role using exact formulas
