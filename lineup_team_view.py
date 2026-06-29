@@ -1400,6 +1400,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         const TRANSFER_OUT_STATUSES = ['Left the team'];
 
         const TEAM_ID = "{team_id}";
+        const CACHE_AGE_SECONDS = {cache_age_seconds if cache_age_seconds else 'null'};
+        const CACHE_TTL_SECONDS = 6 * 3600; // 6 hours
         const TOTAL_GOALS = {total_goals};
         const TOTAL_ASSISTS = {total_assists};
 
@@ -2503,17 +2505,58 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var IS_EMBED = window.location.search.indexOf('embed=1') !== -1;
         if (!IS_EMBED) {{
             (function() {{
-                var teamId = window.location.pathname.split('/').pop();
-                fetch('/lineup_ai/api/fetch/' + teamId)
-                    .then(function(r) {{ return r.json(); }})
-                    .then(function(data) {{
-                        if (data && data.changed) {{
-                            window.location.reload();
-                        }}
-                    }})
-                    .catch(function(err) {{
-                        console.log('Background live-data sync failed:', err);
-                    }});
+                // Check if cache is stale (> 6 hours) and auto-update
+                if (CACHE_AGE_SECONDS !== null && CACHE_AGE_SECONDS > CACHE_TTL_SECONDS) {{
+                    console.log('[AutoUpdate] Cache is stale (' + Math.round(CACHE_AGE_SECONDS/3600) + 'h), updating...');
+                    var teamId = window.location.pathname.split('/').pop();
+                    var btn = document.getElementById('update-data-btn');
+                    var msgEl = document.getElementById('save-message');
+                    
+                    // Show updating indicator
+                    if (btn) {{
+                        btn.disabled = true;
+                        btn.innerHTML = '⏳ Auto-updating...';
+                    }}
+                    let seconds = 0;
+                    const counterInterval = setInterval(function() {{
+                        seconds++;
+                        if (msgEl) {{ msgEl.textContent = '🔄 ' + seconds + 's'; msgEl.style.color = '#667eea'; }}
+                    }}, 1000);
+                    
+                    fetch('/lineup_ai/api/fetch/' + teamId + '?_t=' + Date.now(), {{ cache: 'no-store' }})
+                        .then(function(r) {{ return r.json(); }})
+                        .then(function(data) {{
+                            clearInterval(counterInterval);
+                            const duration = Math.round(CACHE_AGE_SECONDS / 3600);
+                            const msg = data.changed 
+                                ? '✅ Auto-updated (was ' + duration + 'h old)'
+                                : '✓ Refreshed (was ' + duration + 'h old)';
+                            if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                            if (btn) {{ btn.innerHTML = '♻️ Update data'; btn.disabled = false; }}
+                            
+                            // Reload page with cache-bust
+                            window.location.href = window.location.pathname + '?_v=' + Date.now();
+                        }})
+                        .catch(function(err) {{
+                            clearInterval(counterInterval);
+                            console.log('[AutoUpdate] Failed:', err);
+                            if (msgEl) {{ msgEl.textContent = '⚠️ Update failed'; msgEl.style.color = '#dc3545'; }}
+                            if (btn) {{ btn.innerHTML = '♻️ Update data'; btn.disabled = false; }}
+                        }});
+                }} else {{
+                    // Background check for external updates (other users)
+                    var teamId = window.location.pathname.split('/').pop();
+                    fetch('/lineup_ai/api/fetch/' + teamId)
+                        .then(function(r) {{ return r.json(); }})
+                        .then(function(data) {{
+                            if (data && data.changed) {{
+                                window.location.reload();
+                            }}
+                        }})
+                        .catch(function(err) {{
+                            console.log('Background live-data sync failed:', err);
+                        }});
+                }}
             }})();
         }}
 
