@@ -712,12 +712,12 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             try:
                 print(f"    Loading lineups: {match.date} {match.tournament}")
                 await page.goto(url, wait_until='load', timeout=15000)
-                await page.wait_for_timeout(2000)
+                await page.wait_for_timeout(4000)
                 # Scroll to load lazy content
-                for _ in range(3):
+                for _ in range(5):
                     await page.evaluate("window.scrollBy(0, 500)")
-                    await page.wait_for_timeout(300)
-                await page.wait_for_timeout(1000)
+                    await page.wait_for_timeout(500)
+                await page.wait_for_timeout(2000)
                 html = await page.content()
             except Exception as e:
                 print(f"    Error loading lineups for {match.date}: {e}")
