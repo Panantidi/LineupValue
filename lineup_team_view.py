@@ -549,7 +549,41 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         full_comp = _full_comp_name(comp_str)
         tooltip_text = f"{full_comp}: {score_str}" if score_str else full_comp
         tooltip_html = html_lib.escape(tooltip_text, quote=True)
-        last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
+        
+        # Determine match result color for selected team
+        bg_color = ""
+        if score_str:
+            # Parse score: "Team1 1-0 Team2" or "ABR1 1-1 ABR2"
+            score_match = re.match(r'(.+?)\s+(\d+)\s*-\s*(\d+)\s+(.+)', score_str)
+            if score_match:
+                team1_name = score_match.group(1).strip()
+                goals1 = int(score_match.group(2))
+                goals2 = int(score_match.group(3))
+                team2_name = score_match.group(4).strip()
+                
+                # Check if our team is team1 or team2
+                team_name_lower = team_name.lower()
+                is_team1 = team_name_lower in team1_name.lower() or team1_name.lower() in team_name_lower
+                is_team2 = team_name_lower in team2_name.lower() or team2_name.lower() in team_name_lower
+                
+                if is_team1 and not is_team2:
+                    # Our team is HOME (team1)
+                    if goals1 > goals2:
+                        bg_color = "background:#d4edda;"  # Win - green
+                    elif goals1 < goals2:
+                        bg_color = "background:#f8d7da;"  # Loss - red
+                    else:
+                        bg_color = "background:#fff3cd;"  # Draw - orange
+                elif is_team2 and not is_team1:
+                    # Our team is AWAY (team2)
+                    if goals2 > goals1:
+                        bg_color = "background:#d4edda;"  # Win - green
+                    elif goals2 < goals1:
+                        bg_color = "background:#f8d7da;"  # Loss - red
+                    else:
+                        bg_color = "background:#fff3cd;"  # Draw - orange
+        
+        last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;{bg_color}" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
     # Team logo removed per user request
     team_logo_html = ""
