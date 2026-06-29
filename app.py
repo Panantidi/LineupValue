@@ -1606,19 +1606,41 @@ async def lineup_api_fixtures(team_id: str):
         team_cache = _read_team_cache(team_id)
         if team_cache and team_cache.get("matches"):
             fixtures = []
-            for m in team_cache.get("matches", [])[:3]:
-                fixtures.append({
-                    "mid": m.get("mid", ""),
-                    "date": m.get("date", ""),
-                    "home": m.get("home_team", ""),
-                    "away": m.get("away_team", ""),
-                    "home_id": "",
-                    "away_id": "",
-                    "is_home": team_id.lower() in m.get("home_team", "").lower(),
-                    "url": m.get("url", "")
-                })
+            now = datetime.utcnow()
+            today_start = datetime(now.year, now.month, now.day, 0, 0, 0)
+            
+            for m in team_cache.get("matches", []):
+                date_str = m.get("date", "")
+                # Parse date: "27.06" or "15.05"
+                dm = re.match(r'(\d{1,2})\.(\d{2})', date_str)
+                is_future = False
+                if dm:
+                    day = int(dm.group(1))
+                    month = int(dm.group(2))
+                    year = now.year
+                    if month < now.month:
+                        year = now.year + 1
+                    try:
+                        match_dt = datetime(year, month, day, 12, 0)
+                        if match_dt >= today_start:
+                            is_future = True
+                    except ValueError:
+                        pass
+                
+                if is_future:
+                    fixtures.append({
+                        "mid": m.get("mid", ""),
+                        "date": m.get("date", ""),
+                        "home": m.get("home_team", ""),
+                        "away": m.get("away_team", ""),
+                        "home_id": "",
+                        "away_id": "",
+                        "is_home": team_id.lower() in m.get("home_team", "").lower(),
+                        "url": m.get("url", "")
+                    })
+            
             if fixtures:
-                return JSONResponse(content={"fixtures": fixtures, "team_id": team_id, "from_team_cache": True})
+                return JSONResponse(content={"fixtures": fixtures[:3], "team_id": team_id, "from_team_cache": True})
     except:
         pass
 
