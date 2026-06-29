@@ -719,6 +719,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            border: 1px solid #e0e0e0;
         }}
         .hide-watermark .table-container::before {{
             display: none;
@@ -739,12 +740,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 2px solid #e0e0e0;
+            border-right: 1px solid #e8e8e8;
             white-space: nowrap;
         }}
         td {{
             padding: 12px 16px;
             border-bottom: 1px solid #f0f0f0;
+            border-right: 1px solid #f0f0f0;
             color: #333;
+        }}
+        th:last-child, td:last-child {{
+            border-right: none;
         }}
         tr:hover {{
             background: #f8f9fa;
