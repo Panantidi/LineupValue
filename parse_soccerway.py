@@ -70,6 +70,9 @@ LEAGUES = [
     ("Brazil", "Serie A", "https://us.soccerway.com/brazil/serie-a/"),
     ("Argentina", "Liga Profesional", "https://us.soccerway.com/argentina/liga-profesional/"),
     ("Japan", "J1 League", "https://us.soccerway.com/japan/j1-league/"),
+    
+    # China
+    ("China", "Super League", "https://www.soccerway.com/china/super-league/"),
 ]
 
 
