@@ -505,7 +505,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="possible_xi" value="{p.get("name", "–")}" class="xi-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #667eea;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateXICounter(this)"></td>
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="starting_xi" value="{p.get("name", "–")}" class="starting-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #dc3545;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateStartingCounter(this)"></td>
                 {_last3_cells(p)}
-                <td style="text-align:center;padding:4px 2px;">{p.get("apps", "–")}</td>
+                <td style="text-align:center;padding:4px 2px;border-left:1px solid #ddd;">{p.get("apps", "–")}</td>
                 <td style="text-align:center;">{p.get("min", "–")}</td>
                 <td style="text-align:center;padding:4px 2px;">{p.get("goal", "–")}</td>
                 <td style="text-align:center;padding:4px 2px;">{p.get("assist", "–")}</td>
@@ -1369,7 +1369,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('possible');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear P-XI">✖️</button><span title="Possible XI" style="font-size:10px;margin-top:2px;">P-XI</span><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></div></th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('start');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear S-XI">✖️</button><span title="Starting XI" style="font-size:10px;margin-top:2px;">S-XI</span><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></div></th>
                         {last3_header_row1}
-                        <th rowspan="2" style="text-align:center;width:30px;padding:0;">Apps</th>
+                        <th rowspan="2" style="text-align:center;width:30px;padding:0;border-left:1px solid #ddd;">Apps</th>
                         <th rowspan="2" style="text-align:center;width:40px;padding:0;">Min</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">G</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">A</th>
