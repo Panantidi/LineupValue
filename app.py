@@ -1540,11 +1540,15 @@ def _read_fixtures_cache(team_id: str):
             if dm:
                 day = int(dm.group(1))
                 month = int(dm.group(2))
+                
+                # Determine year: assume current year first
                 year = now.year
+                
+                # If month already passed this year, it's next year
                 if month < now.month:
                     year = now.year + 1
-                elif month == now.month and day < now.day:
-                    year = now.year + 1
+                # If same month but day passed, it's this year (past match)
+                # If same month and day >= today, it's this year
                 
                 if dm.group(3):
                     hour = int(dm.group(3))
