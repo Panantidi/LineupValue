@@ -729,114 +729,98 @@ async def fetch_all_lineups(matches: List[Match], team_name: str) -> List[Dict]:
             starters = []
             substitutes = []
 
-            # Determine home/away by checking which side has our players
-            # data-testid: wcl-lineupsParticipantGeneral-left = home, right = away
-            start_span = soup.find('span', string=re.compile(r'Starting Lineups', re.I))
-            if not start_span:
-                print(f"    {match.date}: No Starting Lineups found")
+            # NEW Soccerway HTML structure (June 2026):
+            # - lf__formation = HOME team (first formation without lf__formationAway class)
+            # - lf__formation lf__formationAway = AWAY team
+            # - lf__player contains individual player info
+            # - wcl-lineupsParticipantName_* contains player name
+            
+            # Find formations
+            home_formation = soup.find('div', class_='lf__formation')
+            # Check if it has lf__formationAway class (if so, find the other one)
+            if home_formation and 'lf__formationAway' in home_formation.get('class', []):
+                # This is actually AWAY, find HOME
+                formations = soup.find_all('div', class_='lf__formation')
+                for f in formations:
+                    if 'lf__formationAway' not in f.get('class', []):
+                        home_formation = f
+                        break
+            
+            away_formation = soup.find('div', class_='lf__formationAway')
+            
+            # Extract players from formations
+            def extract_players_from_formation(formation):
+                players = []
+                if formation:
+                    for pdiv in formation.find_all('div', class_='lf__player'):
+                        name_el = pdiv.find('div', attrs={'data-testid': re.compile(r'wcl-lineupsParticipantName')})
+                        if name_el:
+                            raw_name = name_el.get_text().strip()
+                            name = re.sub(r'^\d+', '', raw_name).strip()
+                            if name and len(name) > 1:
+                                players.append(name)
+                return players
+            
+            home_players = extract_players_from_formation(home_formation)
+            away_players = extract_players_from_formation(away_formation)
+            
+            if not home_players and not away_players:
+                print(f"    {match.date}: No players found in formations")
                 results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': []})
                 continue
 
-            start_sec = start_span.find_parent('div', class_='section')
-            if not start_sec:
-                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': []})
-                continue
+            # Determine HOME/AWAY from page title
+            title_el = soup.find('title')
+            is_home = True  # default
+            
+            if title_el:
+                title_text = title_el.get_text()
+                # Parse: "Team1 v Team2 date, Lineups - Soccerway.com"
+                names_match = re.search(r'\|\s*([^v]+)\s+v\s+', title_text)
+                if names_match:
+                    home_team_in_title = names_match.group(1).strip().lower()
+                    team_name_lower = team_name.lower()
+                    if team_name_lower in home_team_in_title or home_team_in_title in team_name_lower:
+                        is_home = True
+                    else:
+                        is_home = False
 
-            left_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-left"]')
-            right_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-right"]')
+            # Get starters from the correct formation
+            starters = home_players if is_home else away_players
+            substitutes = []  # TODO: extract from substitutes section
 
-            left_names = []
-            for x in left_parts:
-                b = x.select_one('span[class*="wcl-bold"]')
-                if b: left_names.append(b.text.strip())
-            right_names = []
-            for x in right_parts:
-                b = x.select_one('span[class*="wcl-bold"]')
-                if b: right_names.append(b.text.strip())
-
-            # Match our known player surnames against each side
-            known_surnames = [p.name.split()[0].lower() for p in []]  # will be filled below
-            # Use team_name-based heuristic: check common players
-            strasbourg_markers = ['Penders', 'Doue', 'Barco', 'Enciso', 'Godo', 'Nanasi',
-                                  'Doukoure', 'Ouattara', 'Moreira', 'El Mourabet']
-            team_markers_lower = team_name.lower().replace(' ', '-')
-            # Generic: count how many left/right names could be our team's players
-            # by checking if surnames from left or right match our squad
-            # For now: if slug contains our team name in parts[1] -> home
-            is_home = True
-            if slug:
-                parts = slug.split('/')
-                if len(parts) >= 2:
-                    team_slug = team_name.lower().replace(' ', '-')
-                    # parts[0] = first team slug, parts[1] = second team slug
-                    # In Soccerway: the team listed SECOND in URL is shown on LEFT (home)
-                    if team_slug not in parts[1].lower():
-                        # Our team is NOT in parts[1], check parts[0]
-                        if team_slug in parts[0].lower():
-                            is_home = False
-                        else:
-                            # Can't determine from slug, try content matching
-                            left_match = sum(1 for n in left_names if any(m.lower() in n.lower() for m in strasbourg_markers))
-                            right_match = sum(1 for n in right_names if any(m.lower() in n.lower() for m in strasbourg_markers))
-                            if right_match > left_match:
-                                is_home = False
-
-            testid_side = "wcl-lineupsParticipantGeneral-left" if is_home else "wcl-lineupsParticipantGeneral-right"
-            side_label = "HOME" if is_home else "AWAY"
-
-            # Parse Starting Lineups
-            participants = start_sec.select(f'[data-testid="{testid_side}"]')
-            for part in participants:
-                name_el = part.select_one('span[class*="wcl-bold"]')
-                if not name_el:
-                    continue
-                name = name_el.text.strip()
-                if name and not name.isdigit() and len(name) > 1:
-                    starters.append(name)
-
-            # Parse Substitutes section
-            sub_span = soup.find('span', string=re.compile(r'^Substitutes$', re.I))
-            if sub_span:
-                sub_sec = sub_span.find_parent('div', class_='section')
-                if sub_sec:
-                    participants = sub_sec.select(f'[data-testid="{testid_side}"]')
-                    for part in participants:
-                        name_el = part.select_one('span[class*="wcl-bold"]')
-                        if not name_el:
-                            continue
-                        name = name_el.text.strip()
-                        if name and not name.isdigit() and len(name) > 1:
-                            substitutes.append(name)
+            # Parse Captains from player divs
+            captains = set()
+            for pdiv in soup.find_all('div', class_='lf__player'):
+                if '(C)' in pdiv.get_text():
+                    name_el = pdiv.find('div', attrs={'data-testid': re.compile(r'wcl-lineupsParticipantName')})
+                    if name_el:
+                        raw_name = name_el.get_text().strip()
+                        name = re.sub(r'^\d+', '', raw_name).strip()
+                        if name:
+                            captains.add(name.split()[0].lower())
 
             # Parse Missing Players section
             missing_players = []
-            miss_span = soup.find('span', string=re.compile(r'Missing Players', re.I))
-            if miss_span:
-                miss_sec = miss_span.find_parent('div', class_='section')
-                if miss_sec:
-                    miss_side = "left" if is_home else "right"
-                    miss_testid = f'wcl-lineupsParticipantGeneral-{miss_side}'
-                    for part in miss_sec.select(f'[data-testid="{miss_testid}"]'):
-                        name_el = part.select_one('span[class*="wcl-bold"]')
-                        if not name_el:
-                            continue
-                        full_name = name_el.text.strip()
-                        reason = ''
-                        for span in part.select('span'):
-                            txt = span.get_text(strip=True)
-                            if txt and txt != full_name and len(txt) > 2 and not txt.startswith('('):
-                                reason = txt
-                                break
-                        if full_name:
-                            missing_players.append({'name': full_name, 'reason': reason})
-
-            # Parse Captains from Starting Lineups
-            captains = set()
-            for part in start_sec.select(f'[data-testid="{testid_side}"]'):
-                if '(C)' in part.get_text():
-                    name_el = part.select_one('span[class*="wcl-bold"]')
+            # Look for text containing "Missing Players" and find parent section
+            for pdiv in soup.find_all('div', class_='lf__player'):
+                text = pdiv.get_text()
+                # Check if this is in a missing players section
+                parent = pdiv.find_parent('div', class_='lf__lineUp')
+                if parent and 'missing' in parent.get_text().lower():
+                    name_el = pdiv.find('div', attrs={'data-testid': re.compile(r'wcl-lineupsParticipantName')})
                     if name_el:
-                        captains.add(name_el.text.strip().split()[0].lower())
+                        raw_name = name_el.get_text().strip()
+                        name = re.sub(r'^\d+', '', raw_name).strip()
+                        if name:
+                            # Try to find reason
+                            reason = ''
+                            all_text = pdiv.get_text()
+                            if 'injury' in all_text.lower():
+                                reason = 'Injury'
+                            elif 'suspension' in all_text.lower():
+                                reason = 'Suspension'
+                            missing_players.append({'name': name, 'reason': reason})
 
             # Parse score from page title
             title_el = soup.find('title')
