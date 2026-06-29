@@ -4987,11 +4987,22 @@ def _flash_clean():
         del _flash[k]
 
 
-def _render_admin(msg: str = "") -> str:
+def _render_admin(msg: str = "", page: int = 1, page_size: int = 50) -> str:
     con = sqlite3.connect(DB_PATH)
+    
+    # Keep only last 1000 records, delete older
+    con.execute("DELETE FROM access_log WHERE id NOT IN (SELECT id FROM access_log ORDER BY id DESC LIMIT 1000)")
+    con.commit()
+    
     users = con.execute("SELECT id,username,is_admin,active,created_at,last_login,plain_password FROM users ORDER BY id").fetchall()
     total_hits = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
-    logs = con.execute("SELECT username,ip,path,action,details,timestamp FROM access_log ORDER BY id DESC LIMIT 50").fetchall()
+    
+    # Pagination
+    offset = (page - 1) * page_size
+    total_logs = total_hits
+    total_pages = (total_logs + page_size - 1) // page_size
+    
+    logs = con.execute("SELECT username,ip,path,action,details,timestamp FROM access_log ORDER BY id DESC LIMIT ? OFFSET ?", (page_size, offset)).fetchall()
     con.close()
 
     n_active = sum(1 for u in users if u[3])
@@ -5031,6 +5042,13 @@ def _render_admin(msg: str = "") -> str:
     for l in logs:
         un, ip, path, act, det, ts = l
         lrows += f"<tr><td>{_fmt_msk(ts)}</td><td>{un}</td><td>{ip or ''}</td><td>{path}</td><td>{act}</td><td class='g'>{det or ''}</td></tr>"
+
+    # Pagination controls
+    prev_page = max(1, page - 1)
+    next_page = min(total_pages, page + 1)
+    pagination = ""
+    if total_pages > 1:
+        pagination = f'<div class="pg"><a href="/admin?p=1" class="{"disabled" if page == 1 else ""}">«</a> <a href="/admin?p={prev_page}" class="{"disabled" if page == 1 else ""}">‹</a> <span>Page {page} of {total_pages}</span> <a href="/admin?p={next_page}" class="{"disabled" if page == total_pages else ""}">›</a> <a href="/admin?p={total_pages}" class="{"disabled" if page == total_pages else ""}">»</a></div>'
 
     msg_html = f'<div class="msg">{msg}</div>' if msg else ""
 
