@@ -1519,10 +1519,20 @@ def _fixtures_cache_path(team_id: str) -> str:
     return os.path.join("/home/openclaw/.openclaw/workspace", f"_fixtures_{team_id}.json")
 
 def _read_fixtures_cache(team_id: str):
-    """Read fixtures cache and filter out past matches"""
+    """Read fixtures cache with 6-hour TTL and filter out past matches"""
     path = _fixtures_cache_path(team_id)
     if not os.path.exists(path):
         return None
+    
+    # Check TTL (6 hours)
+    try:
+        import time
+        cache_age = time.time() - os.path.getmtime(path)
+        if cache_age > 6 * 3600:  # 6 hours
+            return None
+    except:
+        pass
+    
     try:
         with open(path, 'r') as f:
             data = json.load(f)
