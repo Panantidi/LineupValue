@@ -1519,14 +1519,51 @@ def _fixtures_cache_path(team_id: str) -> str:
     return os.path.join("/home/openclaw/.openclaw/workspace", f"_fixtures_{team_id}.json")
 
 def _read_fixtures_cache(team_id: str):
-    """Read fixtures cache (no TTL - always return if exists)"""
+    """Read fixtures cache and filter out past matches"""
     path = _fixtures_cache_path(team_id)
     if not os.path.exists(path):
         return None
     try:
         with open(path, 'r') as f:
             data = json.load(f)
-        return data.get('fixtures', [])
+        fixtures = data.get('fixtures', [])
+        
+        # Filter out past matches
+        now = datetime.utcnow()
+        today_start = datetime(now.year, now.month, now.day, 0, 0, 0)
+        
+        valid_fixtures = []
+        for m in fixtures:
+            date_str = m.get('date', '')
+            # Parse date: "27.06 05:00" or "25.09"
+            dm = re.match(r'(\d{1,2})\.(\d{2})(?:\s+(\d{2}):(\d{2}))?', date_str)
+            if dm:
+                day = int(dm.group(1))
+                month = int(dm.group(2))
+                year = now.year
+                if month < now.month:
+                    year = now.year + 1
+                elif month == now.month and day < now.day:
+                    year = now.year + 1
+                
+                if dm.group(3):
+                    hour = int(dm.group(3))
+                    minute = int(dm.group(4))
+                else:
+                    hour, minute = 12, 0
+                
+                try:
+                    match_dt = datetime(year, month, day, hour, minute)
+                    if match_dt >= today_start:
+                        valid_fixtures.append(m)
+                except ValueError:
+                    pass
+        
+        # If all fixtures are past, return None to trigger refresh
+        if not valid_fixtures:
+            return None
+        
+        return valid_fixtures
     except:
         pass
     return None
