@@ -1532,10 +1532,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 btn.innerHTML = '♻️ Update data';
                 btn.disabled = false;
                 
-                setTimeout(function() {{ 
-                    const url = location.pathname + '?_v=' + Date.now();
-                    window.location.href = url;
-                }}, 800);
+                // Reload page immediately with cache-bust
+                const url = location.pathname + '?_v=' + Date.now();
+                window.location.href = url;
             }} catch (e) {{
                 clearInterval(counterInterval);
                 console.error('[UpdateData] error:', e);
