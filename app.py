@@ -5096,9 +5096,11 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
 </div>
 <table><thead><tr><th>ID</th><th>Login</th><th>Password</th><th>Role</th><th>Status</th><th>Created</th><th>Last Login</th><th>Actions</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
-<div class="cd"><h2>Recent Activity (50)</h2>
+<div class="cd"><h2>Recent Activity ({total_logs})</h2>
 <table><thead><tr><th>Time</th><th>User</th><th>IP</th><th>Path</th><th>Action</th><th>Details</th></tr></thead>
-<tbody>{lrows}</tbody></table></div>
+<tbody>{lrows}</tbody></table>
+{pagination}
+</div>
 </div></body></html>"""
 
 
