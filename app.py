@@ -837,7 +837,7 @@ def _flash_cleanup():
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
     # Skip auth for public paths and static assets needed by external services
-    if path in PUBLIC_PATHS or path.startswith("/icons/") or path.startswith("/vision_uploads/"):
+    if path in PUBLIC_PATHS or path.startswith("/icons/") or path.startswith("/vision_uploads/") or path.startswith("/api/favorites"):
         return await call_next(request)
     # Check IP whitelist
     client_ip = request.client.host if request.client else ""
