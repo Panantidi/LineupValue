@@ -88,21 +88,28 @@ def parse_summary_results(data: str, team_id: str, team_name: str = "", team_slu
                 date = time.strftime("%d.%m", dt)
                 kickoff = time.strftime("%Y-%m-%dT%H:%M", dt)
             except: pass
+        # Parse scores - AH=home goals, AG=away goals
+        # If our team is home (left), we use AH; if away (right), we use AG
+        home_score = fields.get("AH") or fields.get("AS") or fields.get("AZ") or ""
+        away_score = fields.get("AG") or ""
+        home_team_name = fields.get("WN", "") or fields.get("WM", "").split("¬")[0] if fields.get("WM") else ""
+        away_team_name = fields.get("WM", "") or fields.get("WN", "") or ""
+        # Get team names from WM (home) and WN (away) fields
         if our_side == "left":
-            home_score = fields.get("AS") or fields.get("AZ") or ""
-            away_score = fields.get("AG") or ""
+            # Our team is home
+            away_team_name = fields.get("WN", "") or ""
         else:
-            home_score = fields.get("AG") or ""
-            away_score = fields.get("AS") or fields.get("AZ") or ""
-        home_team_name = ""; away_team_name = ""
-        if our_side == "left":
-            away_team_name = fields.get("WM", "")
-        else:
-            home_team_name = fields.get("WN", "")
+            # Our team is away
+            home_team_name = fields.get("WN", "") or ""
+            away_team_name = fields.get("WM", "") or ""
         tournament = _comp_code(current_tournament) if current_tournament else "UNK"
         mid = fields.get("AA", "")
         url = f"{BASE}/match/{fields.get('WV','')}-{left_id}/{fields.get('WU','')}-{right_id}/?mid={mid}".replace("?-", "-").replace("--", "-")
-        score = f"{home_score}-{away_score}" if home_score and away_score else ""
+        # Format score as "HomeTeam 2-1 AwayTeam"
+        if home_score and away_score:
+            score = f"{home_team_name} {home_score}-{away_score} {away_team_name}" if home_team_name and away_team_name else f"{home_score}-{away_score}"
+        else:
+            score = ""
         matches.append({"date": date, "tournament": tournament, "tournament_name": current_tournament,
                         "mid": mid, "url": url, "score": score, "home_team": home_team_name,
                         "away_team": away_team_name, "kickoff": kickoff})
