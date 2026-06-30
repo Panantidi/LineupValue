@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Fast HTTP-based team data fetcher for Soccerway."""
-import asyncio, json, re, sys, time
+import asyncio, json, re, sys, time, os
 from typing import List, Dict, Any
 import httpx
 from bs4 import BeautifulSoup
