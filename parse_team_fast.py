@@ -89,19 +89,13 @@ def parse_summary_results(data: str, team_id: str, team_name: str = "", team_slu
                 kickoff = time.strftime("%Y-%m-%dT%H:%M", dt)
             except: pass
         # Parse scores - AH=home goals, AG=away goals
-        # If our team is home (left), we use AH; if away (right), we use AG
+        # AH = home goals, AG = away goals
         home_score = fields.get("AH") or fields.get("AS") or fields.get("AZ") or ""
         away_score = fields.get("AG") or ""
-        home_team_name = fields.get("WN", "") or fields.get("WM", "").split("¬")[0] if fields.get("WM") else ""
-        away_team_name = fields.get("WM", "") or fields.get("WN", "") or ""
-        # Get team names from WM (home) and WN (away) fields
-        if our_side == "left":
-            # Our team is home
-            away_team_name = fields.get("WN", "") or ""
-        else:
-            # Our team is away
-            home_team_name = fields.get("WN", "") or ""
-            away_team_name = fields.get("WM", "") or ""
+        
+        # Get team names: AF = home team full name, AE = away team full name
+        home_team_name = fields.get("AF", "") or ""
+        away_team_name = fields.get("AE", "") or ""
         tournament = _comp_code(current_tournament) if current_tournament else "UNK"
         mid = fields.get("AA", "")
         url = f"{BASE}/match/{fields.get('WV','')}-{left_id}/{fields.get('WU','')}-{right_id}/?mid={mid}".replace("?-", "-").replace("--", "-")
@@ -239,8 +233,9 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
 
     cache["players"] = players
     cache["matches"] = [{"date": m["date"], "tournament": m["tournament"], "url": m["url"], "mid": m["mid"],
-                         "score": ld.get("score", ""), "home_team": ld.get("home_team", ""),
-                         "away_team": ld.get("away_team", "")} for m, ld in zip(matches, lineups_data)]
+                         "score": m.get("score", "") or ld.get("score", ""),
+                         "home_team": m.get("home_team", "") or ld.get("home_team", ""),
+                         "away_team": m.get("away_team", "") or ld.get("away_team", "")} for m, ld in zip(matches, lineups_data)]
     cache["_cached_at"] = time.time(); cache["last_updated"] = time.time()
     with open(cache_path, "w", encoding="utf-8") as f:
         json.dump(cache, f, ensure_ascii=False, indent=2)

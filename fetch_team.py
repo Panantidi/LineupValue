@@ -545,7 +545,9 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
 
     cache['players'] = players
     cache['matches'] = [{'date': m.date, 'tournament': m.tournament, 'url': m.url, 'mid': m.mid,
-                         'score': ld.get('score',''), 'home_team': ld.get('home_team',''), 'away_team': ld.get('away_team','')}
+                         'score': m.score or ld.get('score',''),
+                         'home_team': m.home_team or ld.get('home_team',''),
+                         'away_team': m.away_team or ld.get('away_team','')}
                         for m, ld in zip(matches, lineups_data)]
     cache['_cached_at'] = time.time()
     cache['last_updated'] = time.time()
@@ -598,7 +600,9 @@ async def run_last3_only(team_id, team_name, team_slug=''):
             p['club'] = old[0]
             p['club_logo'] = old[1]
     cache['matches'] = [{'date': m.date, 'tournament': m.tournament, 'url': m.url, 'mid': m.mid,
-                         'score': ld.get('score',''), 'home_team': ld.get('home_team',''), 'away_team': ld.get('away_team','')}
+                         'score': m.score or ld.get('score',''),
+                         'home_team': m.home_team or ld.get('home_team',''),
+                         'away_team': m.away_team or ld.get('away_team','')}
                         for m, ld in zip(matches, lineups_data)]
     cache['_cached_at'] = time.time()
     cache['last_updated'] = time.time()
