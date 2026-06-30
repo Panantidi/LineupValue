@@ -211,12 +211,63 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
 
     t3 = time.time()
     print(f"[4/5 PW] Lineups for {len(matches)} matches...")
-    from fetch_team import fetch_and_parse_lineups, get_surname, apply_last3
-    from types import SimpleNamespace
-    known_surnames = set(get_surname(p["name"]) for p in players if p.get("name"))
-    match_objs = [SimpleNamespace(date=m["date"], tournament=m["tournament"], mid=m["mid"], url=m["url"]) for m in matches]
-    lineups_data_all = await fetch_and_parse_lineups(match_objs, known_surnames)
-    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if len(ld.get("starters", [])) > 0]
+    
+    # Check lineups cache first
+    lineups_cache_dir = f"{CACHE_DIR}/lineups_cache"
+    os.makedirs(lineups_cache_dir, exist_ok=True)
+    
+    # Try to load lineups from cache
+    cached_lineups = []
+    matches_to_fetch = []
+    matches_to_fetch_indices = []
+    
+    for i, m in enumerate(matches):
+        mid = m.get("mid", "")
+        cache_file = f"{lineups_cache_dir}/{team_id}_{mid}.json"
+        if mid and os.path.exists(cache_file):
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    cached_lineup = json.load(f)
+                    # Check if cache is fresh (within 24 hours)
+                    if time.time() - cached_lineup.get("_cached_at", 0) < 86400:
+                        cached_lineups.append((i, cached_lineup))
+                        print(f"    {m['date']}: using cached lineups")
+                        continue
+            except:
+                pass
+        matches_to_fetch.append(m)
+        matches_to_fetch_indices.append(i)
+    
+    # Fetch only missing lineups
+    if matches_to_fetch:
+        from fetch_team import fetch_and_parse_lineups, get_surname, apply_last3
+        from types import SimpleNamespace
+        known_surnames = set(get_surname(p["name"]) for p in players if p.get("name"))
+        match_objs = [SimpleNamespace(date=m["date"], tournament=m["tournament"], mid=m["mid"], url=m["url"]) for m in matches_to_fetch]
+        new_lineups = await fetch_and_parse_lineups(match_objs, known_surnames)
+        
+        # Save new lineups to cache
+        for m, ld in zip(matches_to_fetch, new_lineups):
+            mid = m.get("mid", "")
+            if mid and ld.get("starters"):
+                cache_file = f"{lineups_cache_dir}/{team_id}_{mid}.json"
+                ld["_cached_at"] = time.time()
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    json.dump(ld, f, ensure_ascii=False, indent=2)
+                print(f"    {m['date']}: cached lineups ({len(ld.get('starters',[]))} starters)")
+        
+        # Merge cached and new lineups
+        all_lineups = [None] * len(matches)
+        for idx, ld in cached_lineups:
+            all_lineups[idx] = ld
+        for idx, ld in zip(matches_to_fetch_indices, new_lineups):
+            all_lineups[idx] = ld
+        lineups_data_all = all_lineups
+    else:
+        # All from cache
+        lineups_data_all = [ld for _, ld in sorted(cached_lineups, key=lambda x: x[0])]
+    
+    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if ld and len(ld.get("starters", [])) > 0]
     if len(valid_pairs) < 3: raise RuntimeError(f"only {len(valid_pairs)} lineups; need >=3")
     matches = [m for m, _ in valid_pairs[:3]]
     lineups_data = [ld for _, ld in valid_pairs[:3]]
