@@ -79,17 +79,22 @@ async def fetch_team_live(team_id: str, force_refresh: bool = False) -> dict:
         if cached:
             return cached
 
-    # Получаем имя команды
+    # Получаем имя команды и slug
     meta = _find_team_meta(team_id)
     team_name = meta.get("name", team_id)
+    team_slug = meta.get("slug", team_name.lower().replace(" ", "-"))
 
-    # Вызываем парсер
-    from soccerway_parser import fetch_team_data, to_lineup_format
+    # Используем быстрый HTTP-парсер
+    from parse_team_fast import fetch_team_fast
 
-    team_data = await fetch_team_data(team_id, team_name, force_refresh=force_refresh)
-
-    # Конвертируем в формат lineup_team_view
-    result = to_lineup_format(team_data)
+    try:
+        result = await fetch_team_fast(team_id, team_name, team_slug)
+    except Exception as e:
+        print(f"[fetch_team_live] fast parser failed: {e}, trying fallback...")
+        # Fallback к медленному Playwright парсеру
+        from soccerway_parser import fetch_team_data, to_lineup_format
+        team_data = await fetch_team_data(team_id, team_name, force_refresh=force_refresh)
+        result = to_lineup_format(team_data)
 
     # Сохраняем в кеш (перезаписываем)
     _save_live_cache(team_id, result)

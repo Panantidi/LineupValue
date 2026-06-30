@@ -30,147 +30,150 @@ def parse_score_from_title(title):
     return None
 
 async def fetch_and_parse_lineups(matches, known_surnames):
-    """Fetch lineups for all matches with home/away + score from title"""
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-setuid-sandbox'])
-        context = await browser.new_context()
-        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-        page = await context.new_page()
-
-        results = []
-        for match in matches:
-            if not match.url:
-                results.append({'date': '', 'tournament': '', 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': '', 'home_team': '', 'away_team': ''})
-                continue
-
-            mid = match.mid or ''
-            if not mid:
-                m = re.search(r'mid=([a-zA-Z0-9]+)', match.url)
-                mid = m.group(1) if m else ''
-
-            game_path = re.search(r'/game/([^?]+)', match.url)
-            match_path = re.search(r'/match/([^?]+)', match.url)
-            slug = game_path.group(1).rstrip('/') if game_path else (match_path.group(1).rstrip('/') if match_path else '')
-
-            if slug and mid:
-                url = f'{BASE}/match/{slug}/summary/lineups/?mid={mid}'
-            elif slug:
-                url = f'{BASE}/match/{slug}/summary/lineups/'
-            else:
-                url = match.url
-
-            print(f'    Loading: {match.date} {match.tournament}')
+    """Fetch lineups for all matches with home/away + score from title - PARALLEL version"""
+    async def fetch_single_match(match):
+        """Fetch lineup for a single match"""
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-setuid-sandbox'])
             try:
-                await page.goto(url, wait_until='load', timeout=30000)
-                await page.wait_for_timeout(4000)
-                # Scroll to load lazy content (Missing Players section)
-                for _ in range(5):
-                    await page.evaluate("window.scrollBy(0, 500)")
-                    await page.wait_for_timeout(500)
-                await page.evaluate("window.scrollTo(0, 0)")
-                await page.wait_for_timeout(2000)
-                html = await page.content()
-            except Exception as e:
-                print(f'    ERROR: {e}')
-                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': '', 'home_team': '', 'away_team': ''})
-                continue
+                context = await browser.new_context()
+                await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                page = await context.new_page()
 
-            soup = BeautifulSoup(html, 'html.parser')
+                if not match.url:
+                    return {'date': '', 'tournament': '', 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': '', 'home_team': '', 'away_team': ''}
 
-            # Parse score from <title>
-            title_el = soup.find('title')
-            title_text = title_el.get_text() if title_el else ''
-            # "BRE 1-1 ANG | Brest v Angers 17/05/2026, Lineups - Soccerway"
-            # or "MON 4-5 STR | Monaco v Strasbourg ..."
-            score_info = parse_score_from_title(title_text)
-            score_str = ''
-            home_team_name = ''
-            away_team_name = ''
-            if score_info:
-                s1, s2, abbr1, abbr2 = score_info
-                # Get full names from "Team1 v Team2" part after |
-                names_match = re.search(r'\|\s*([^v]+)\s+v\s+([^\d]+)', title_text)
-                if names_match:
-                    home_team_name = names_match.group(1).strip()
-                    away_team_name = names_match.group(2).strip().split(',')[0].strip()
-                    score_str = f"{home_team_name} {s1}-{s2} {away_team_name}"
+                mid = match.mid or ''
+                if not mid:
+                    m = re.search(r'mid=([a-zA-Z0-9]+)', match.url)
+                    mid = m.group(1) if m else ''
+
+                game_path = re.search(r'/game/([^?]+)', match.url)
+                match_path = re.search(r'/match/([^?]+)', match.url)
+                slug = game_path.group(1).rstrip('/') if game_path else (match_path.group(1).rstrip('/') if match_path else '')
+
+                if slug and mid:
+                    url = f'{BASE}/match/{slug}/summary/lineups/?mid={mid}'
+                elif slug:
+                    url = f'{BASE}/match/{slug}/summary/lineups/'
                 else:
-                    score_str = f"{abbr1} {s1}-{s2} {abbr2}"
-                print(f'    Score: {score_str}')
+                    url = match.url
 
-            # Find Starting Lineups
-            start_span = soup.find('span', string=re.compile(r'Starting Lineups', re.I))
-            if not start_span:
-                print(f'    No Starting Lineups found')
-                results.append({'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': score_str, 'home_team': home_team_name, 'away_team': away_team_name})
-                continue
+                print(f'    Loading: {match.date} {match.tournament}')
+                try:
+                    await page.goto(url, wait_until='load', timeout=30000)
+                    await page.wait_for_timeout(4000)
+                    for _ in range(5):
+                        await page.evaluate("window.scrollBy(0, 500)")
+                        await page.wait_for_timeout(500)
+                    await page.evaluate("window.scrollTo(0, 0)")
+                    await page.wait_for_timeout(2000)
+                    html = await page.content()
+                except Exception as e:
+                    print(f'    ERROR: {e}')
+                    return {'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': '', 'home_team': '', 'away_team': ''}
 
-            start_sec = start_span.find_parent('div', class_='section') or start_span.find_parent('div')
-            left_names, right_names = [], []
-            left_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-left"]') if start_sec else []
-            right_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-right"]') if start_sec else []
+                soup = BeautifulSoup(html, 'html.parser')
 
-            for part in left_parts:
-                el = part.select_one('span[class*="wcl-bold"]')
-                if el: left_names.append(el.get_text(strip=True))
-            for part in right_parts:
-                el = part.select_one('span[class*="wcl-bold"]')
-                if el: right_names.append(el.get_text(strip=True))
+                title_el = soup.find('title')
+                title_text = title_el.get_text() if title_el else ''
+                score_info = parse_score_from_title(title_text)
+                score_str = ''
+                home_team_name = ''
+                away_team_name = ''
+                if score_info:
+                    s1, s2, abbr1, abbr2 = score_info
+                    names_match = re.search(r'\|\s*([^v]+)\s+v\s+([^\d]+)', title_text)
+                    if names_match:
+                        home_team_name = names_match.group(1).strip()
+                        away_team_name = names_match.group(2).strip().split(',')[0].strip()
+                        score_str = f"{home_team_name} {s1}-{s2} {away_team_name}"
+                    else:
+                        score_str = f"{abbr1} {s1}-{s2} {abbr2}"
+                    print(f'    Score: {score_str}')
 
-            # Home/away by surname matching
-            left_match = sum(1 for n in left_names if get_surname(n) in known_surnames)
-            right_match = sum(1 for n in right_names if get_surname(n) in known_surnames)
-            is_home = left_match >= right_match
-            our_side = 'left' if is_home else 'right'
-            our_parts = left_parts if is_home else right_parts
-            print(f'    {"HOME" if is_home else "AWAY"}: left={left_match} right={right_match} starters={len(left_names if is_home else right_names)}')
+                start_span = soup.find('span', string=re.compile(r'Starting Lineups', re.I))
+                if not start_span:
+                    print(f'    No Starting Lineups found')
+                    return {'date': match.date, 'tournament': match.tournament, 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': score_str, 'home_team': home_team_name, 'away_team': away_team_name}
 
-            # Captains — store full lineup name for disambiguation
-            our_captains = []
-            for part in our_parts:
-                if '(C)' in part.get_text():
+                start_sec = start_span.find_parent('div', class_='section') or start_span.find_parent('div')
+                left_names, right_names = [], []
+                left_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-left"]') if start_sec else []
+                right_parts = start_sec.select('[data-testid="wcl-lineupsParticipantGeneral-right"]') if start_sec else []
+
+                for part in left_parts:
                     el = part.select_one('span[class*="wcl-bold"]')
-                    if el: our_captains.append(el.get_text(strip=True))
+                    if el: left_names.append(el.get_text(strip=True))
+                for part in right_parts:
+                    el = part.select_one('span[class*="wcl-bold"]')
+                    if el: right_names.append(el.get_text(strip=True))
 
-            # Substitutes
-            our_subs = []
-            sub_span = soup.find('span', string=re.compile(r'Substitutes', re.I))
-            if sub_span:
-                sub_sec = sub_span.find_parent('div', class_='section') or sub_span.find_parent('div')
-                if sub_sec:
-                    for part in sub_sec.select(f'[data-testid="wcl-lineupsParticipantGeneral-{our_side}"]'):
+                left_match = sum(1 for n in left_names if get_surname(n) in known_surnames)
+                right_match = sum(1 for n in right_names if get_surname(n) in known_surnames)
+                is_home = left_match >= right_match
+                our_side = 'left' if is_home else 'right'
+                our_parts = left_parts if is_home else right_parts
+                print(f'    {"HOME" if is_home else "AWAY"}: left={left_match} right={right_match} starters={len(left_names if is_home else right_names)}')
+
+                our_captains = []
+                for part in our_parts:
+                    if '(C)' in part.get_text():
                         el = part.select_one('span[class*="wcl-bold"]')
-                        if el: our_subs.append(el.get_text(strip=True))
+                        if el: our_captains.append(el.get_text(strip=True))
 
-            # Missing
-            our_missing = []
-            miss_span = soup.find('span', string=re.compile(r'Missing Players', re.I))
-            if miss_span:
-                miss_sec = miss_span.find_parent('div', class_='section') or miss_span.find_parent('div')
-                if miss_sec:
-                    for part in miss_sec.select(f'[data-testid="wcl-lineupsParticipantGeneral-{our_side}"]'):
-                        el = part.select_one('span[class*="wcl-bold"]')
-                        if el:
-                            full_name = el.get_text(strip=True)
-                            reason = ''
-                            for span in part.select('span'):
-                                txt = span.get_text(strip=True)
-                                if txt and txt != full_name and len(txt) > 2 and not txt.startswith('('):
-                                    reason = txt; break
-                            our_missing.append({'name': full_name, 'reason': reason})
+                our_subs = []
+                sub_span = soup.find('span', string=re.compile(r'Substitutes', re.I))
+                if sub_span:
+                    sub_sec = sub_span.find_parent('div', class_='section') or sub_span.find_parent('div')
+                    if sub_sec:
+                        for part in sub_sec.select(f'[data-testid="wcl-lineupsParticipantGeneral-{our_side}"]'):
+                            el = part.select_one('span[class*="wcl-bold"]')
+                            if el: our_subs.append(el.get_text(strip=True))
 
-            results.append({
-                'date': match.date, 'tournament': match.tournament,
-                'starters': left_names if is_home else right_names,
-                'substitutes': our_subs, 'missing': our_missing,
-                'captains': list(our_captains),
-                'captains_full': list(our_captains),
-                'score': score_str, 'home_team': home_team_name, 'away_team': away_team_name
-            })
-            print(f'    -> starters={len(results[-1]["starters"])} subs={len(our_subs)} missing={len(our_missing)}')
+                our_missing = []
+                miss_span = soup.find('span', string=re.compile(r'Missing Players', re.I))
+                if miss_span:
+                    miss_sec = miss_span.find_parent('div', class_='section') or miss_span.find_parent('div')
+                    if miss_sec:
+                        for part in miss_sec.select(f'[data-testid="wcl-lineupsParticipantGeneral-{our_side}"]'):
+                            el = part.select_one('span[class*="wcl-bold"]')
+                            if el:
+                                full_name = el.get_text(strip=True)
+                                reason = ''
+                                for span in part.select('span'):
+                                    txt = span.get_text(strip=True)
+                                    if txt and txt != full_name and len(txt) > 2 and not txt.startswith('('):
+                                        reason = txt; break
+                                our_missing.append({'name': full_name, 'reason': reason})
 
-        await browser.close()
-    return results
+                result = {
+                    'date': match.date, 'tournament': match.tournament,
+                    'starters': left_names if is_home else right_names,
+                    'substitutes': our_subs, 'missing': our_missing,
+                    'captains': list(our_captains),
+                    'captains_full': list(our_captains),
+                    'score': score_str, 'home_team': home_team_name, 'away_team': away_team_name
+                }
+                print(f'    -> starters={len(result["starters"])} subs={len(our_subs)} missing={len(our_missing)}')
+                return result
+            finally:
+                await browser.close()
+
+    # Run all matches in parallel
+    tasks = [fetch_single_match(match) for match in matches]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Handle exceptions
+    final_results = []
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            print(f'    ERROR in match {matches[i].date}: {result}')
+            final_results.append({'date': matches[i].date, 'tournament': matches[i].tournament, 'starters': [], 'substitutes': [], 'missing': [], 'captains': [], 'score': '', 'home_team': '', 'away_team': ''})
+        else:
+            final_results.append(result)
+    
+    return final_results
 
 def _is_captain(player_name, cap_fullnames):
     """Check if player is captain. cap_fullnames are full names from lineups
