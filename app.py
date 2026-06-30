@@ -1388,23 +1388,73 @@ async def favorites_page(request: Request):
 
 @app.get("/api/favorites")
 async def get_favorites(request: Request):
-    """Get user's favorite players."""
+    """Get user's favorite players with dynamic data from team cache."""
     username = getattr(request.state, "username", "owner")
+    DATA_DIR = "/home/openclaw/.openclaw/workspace"
+    
     with sqlite3.connect(DB_PATH) as con:
         rows = con.execute(
-            "SELECT player_id, player_data, created_at FROM user_favorites WHERE username = ? ORDER BY created_at",
+            "SELECT player_id, team_id, player_data, created_at FROM user_favorites WHERE username = ? ORDER BY created_at",
             (username,)
         ).fetchall()
+    
     favorites = []
+    team_caches = {}  # Cache team data to avoid repeated loads
+    
     for row in rows:
+        player_id, team_id, player_data_json, created_at = row
         try:
-            player_data = json.loads(row[1])
-            favorites.append({
-                "player_id": row[0],
-                **player_data
-            })
+            player_data = json.loads(player_data_json)
         except:
-            pass
+            player_data = {}
+        
+        # Try to get actual player data from team cache
+        if team_id:
+            # Load team cache if not already loaded
+            if team_id not in team_caches:
+                cache_path = os.path.join(DATA_DIR, f"_live_cache_{team_id}.json")
+                try:
+                    with open(cache_path, "r", encoding="utf-8") as f:
+                        team_caches[team_id] = json.load(f)
+                except:
+                    team_caches[team_id] = None
+            
+            team_data = team_caches[team_id]
+            if team_data and "players" in team_data:
+                # Find player in team by player_id
+                for p in team_data["players"]:
+                    if p.get("player_id") == player_id or f"{p.get('number', '')}_{p.get('name', '')}" == player_id:
+                        # Use actual data from team cache, preserving saved fields not in cache
+                        actual_data = {
+                            "player_id": player_id,
+                            "number": p.get("number", player_data.get("number", "?")),
+                            "name": p.get("name", player_data.get("name", "")),
+                            "club": team_data.get("team", {}).get("name", player_data.get("club", "")),
+                            "national": p.get("national", player_data.get("national", "")),
+                            "age": p.get("age", player_data.get("age", "")),
+                            "mv": p.get("mv", player_data.get("mv", "")),
+                            "position": p.get("position", player_data.get("position", "")),
+                            "squad_role": p.get("squad_role", player_data.get("squad_role", "")),
+                            "impact": p.get("impact", player_data.get("impact", "")),
+                            "apps": p.get("apps", player_data.get("apps", "")),
+                            "minutes": p.get("minutes", player_data.get("minutes", "")),
+                            "goals": p.get("goals", player_data.get("goals", "")),
+                            "assists": p.get("assists", player_data.get("assists", "")),
+                            "yellows": p.get("yellows", player_data.get("yellows", "")),
+                            "reds": p.get("reds", player_data.get("reds", "")),
+                        }
+                        favorites.append(actual_data)
+                        break
+                else:
+                    # Player not found in team, use saved data
+                    favorites.append({"player_id": player_id, **player_data})
+            else:
+                # No team cache, use saved data
+                favorites.append({"player_id": player_id, **player_data})
+        else:
+            # No team_id, use saved data
+            favorites.append({"player_id": player_id, **player_data})
+    
     return {"favorites": favorites}
 
 
@@ -1414,6 +1464,7 @@ async def add_favorite(request: Request):
     username = getattr(request.state, "username", "owner")
     data = await request.json()
     player_id = data.get("player_id")
+    team_id = data.get("team_id", "")
     player_data = data.get("player_data", {})
     
     # Clean player name - remove emojis and span tags
@@ -1427,8 +1478,8 @@ async def add_favorite(request: Request):
     
     with sqlite3.connect(DB_PATH) as con:
         con.execute(
-            "INSERT OR REPLACE INTO user_favorites (username, player_id, player_data, created_at) VALUES (?, ?, ?, ?)",
-            (username, player_id, json.dumps(player_data), datetime.now(timezone.utc).isoformat())
+            "INSERT OR REPLACE INTO user_favorites (username, player_id, team_id, player_data, created_at) VALUES (?, ?, ?, ?, ?)",
+            (username, player_id, team_id, json.dumps(player_data), datetime.now(timezone.utc).isoformat())
         )
     return {"success": True, "player_id": player_id}
 

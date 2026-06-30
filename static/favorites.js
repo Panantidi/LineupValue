@@ -12,6 +12,9 @@ function getPlayerDataFromRow(row) {
     // Get club from team title
     const club = document.querySelector('.team-title h1')?.textContent?.trim() || '';
     
+    // Get TEAM_ID from global variable
+    const team_id = window.TEAM_ID || '';
+    
     // Clean name - remove emoji
     let name = nameCell?.textContent?.trim() || '';
     name = name.replace(/[⚽️👟🦾🌀⭐️🔝]/g, '').trim();
@@ -24,6 +27,7 @@ function getPlayerDataFromRow(row) {
     
     return {
         player_id: (row.dataset.playerNumber || '') + '_' + (row.dataset.playerName || ''),
+        team_id: team_id,
         number: cells[0]?.textContent?.trim() || '?',
         name: name,
         club: club,
