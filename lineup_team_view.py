@@ -203,7 +203,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     team_file = None
     
     # Сначала проверяем live-кеш (свежие данные)
-    LIVE_CACHE_TTL = 60  # 1 minute
+    LIVE_CACHE_TTL = 3600  # 1 hour
     cache_age_hours = 999.0
 
     if os.path.exists(live_cache_path):
@@ -1401,7 +1401,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         const TEAM_ID = "{team_id}";
         const CACHE_AGE_SECONDS = {cache_age_seconds if cache_age_seconds else 'null'};
-        const CACHE_TTL_SECONDS = 60; // 1 minute
+        const CACHE_TTL_SECONDS = 3600; // 1 hour
         const TOTAL_GOALS = {total_goals};
         const TOTAL_ASSISTS = {total_assists};
 
