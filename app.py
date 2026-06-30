@@ -1455,7 +1455,18 @@ async def get_favorites(request: Request):
             # No team_id, use saved data
             favorites.append({"player_id": player_id, **player_data})
     
-    return {"favorites": favorites}
+    # Clean surrogate characters that can't be encoded in UTF-8
+    def clean_surrogates(obj):
+        if isinstance(obj, str):
+            return obj.encode('utf-8', errors='replace').decode('utf-8')
+        elif isinstance(obj, dict):
+            return {k: clean_surrogates(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [clean_surrogates(item) for item in obj]
+        else:
+            return obj
+    
+    return clean_surrogates({"favorites": favorites})
 
 
 @app.post("/api/favorites")
