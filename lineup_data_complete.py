@@ -34,7 +34,6 @@ def load_complete_hierarchy():
         "belgium_challenger-pro-league": ("Belgium", "Challenger Pro League"),
         "belgium_jupiler-pro-league": ("Belgium", "Jupiler Pro League"),
         "china_league-one": ("China", "League One"),
-        "china_super-league": ("China", "Super League"),
         "denmark_superliga": ("Denmark", "Superliga"),
         "england_championship": ("England", "Championship"),
         "england_premier-league": ("England", "Premier League"),
