@@ -5110,7 +5110,11 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50) -> str:
     next_page = min(total_pages, page + 1)
     pagination = ""
     if total_pages > 1:
-        pagination = f'<div class="pg"><a href="/admin?p=1" class="{"disabled" if page == 1 else ""}">«</a> <a href="/admin?p={prev_page}" class="{"disabled" if page == 1 else ""}">‹</a> <span>Page {page} of {total_pages}</span> <a href="/admin?p={next_page}" class="{"disabled" if page == total_pages else ""}">›</a> <a href="/admin?p={total_pages}" class="{"disabled" if page == total_pages else ""}">»</a></div>'
+        first_class = "disabled" if page == 1 else ""
+        prev_class = "disabled" if page == 1 else ""
+        next_class = "disabled" if page == total_pages else ""
+        last_class = "disabled" if page == total_pages else ""
+        pagination = f'<div class="pg"><a href="/admin?p=1" class="{first_class}">«</a> <a href="/admin?p={prev_page}" class="{prev_class}">‹</a> <span>Page {page} of {total_pages}</span> <a href="/admin?p={next_page}" class="{next_class}">›</a> <a href="/admin?p={total_pages}" class="{last_class}">»</a></div>'
 
     msg_html = f'<div class="msg">{msg}</div>' if msg else ""
 
