@@ -5052,10 +5052,6 @@ def _flash_clean():
 def _render_admin(msg: str = "", page: int = 1, page_size: int = 50) -> str:
     con = sqlite3.connect(DB_PATH)
     
-    # Keep only last 1000 records, delete older
-    con.execute("DELETE FROM access_log WHERE id NOT IN (SELECT id FROM access_log ORDER BY id DESC LIMIT 1000)")
-    con.commit()
-    
     users = con.execute("SELECT id,username,is_admin,active,created_at,last_login,plain_password FROM users ORDER BY id").fetchall()
     total_hits = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
     
@@ -5171,12 +5167,12 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
 
 
 @app.get("/admin")
-async def admin_panel(request: Request):
+async def admin_panel(request: Request, p: int = 1):
     if not getattr(request.state, "is_admin", False):
         raise HTTPException(status_code=403)
     _flash_clean()
     msg = _flash_get(request.query_params.get("f", ""))
-    return HTMLResponse(_render_admin(msg))
+    return HTMLResponse(_render_admin(msg, page=p))
 
 
 @app.post("/admin/gen")
