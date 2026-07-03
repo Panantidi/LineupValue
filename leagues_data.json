@@ -2402,5 +2402,99 @@
         "slug": "wisla"
       }
     ]
+  },
+  "Mexico": {
+    "Liga MX": [
+      {
+        "id": "OYSN90J0",
+        "name": "Atl. San Luis",
+        "slug": "atletico-san-luis"
+      },
+      {
+        "id": "pErwvM3s",
+        "name": "Atlante",
+        "slug": "atlante"
+      },
+      {
+        "id": "AVOJAt4f",
+        "name": "Atlas",
+        "slug": "atlas"
+      },
+      {
+        "id": "vyrswtJm",
+        "name": "Club America",
+        "slug": "club-america"
+      },
+      {
+        "id": "l0iuHPBQ",
+        "name": "Club Leon",
+        "slug": "club-leon"
+      },
+      {
+        "id": "nuNVeQkr",
+        "name": "Club Tijuana",
+        "slug": "club-tijuana"
+      },
+      {
+        "id": "G8PFBMll",
+        "name": "Cruz Azul",
+        "slug": "cruz-azul"
+      },
+      {
+        "id": "Y5TaMKY6",
+        "name": "Guadalajara Chivas",
+        "slug": "guadalajara-chivas"
+      },
+      {
+        "id": "2wZp8NAh",
+        "name": "Juarez",
+        "slug": "juarez"
+      },
+      {
+        "id": "Ya23C2Zs",
+        "name": "Monterrey",
+        "slug": "monterrey"
+      },
+      {
+        "id": "nw32pOQD",
+        "name": "Necaxa",
+        "slug": "necaxa"
+      },
+      {
+        "id": "QT16qrtK",
+        "name": "Pachuca",
+        "slug": "pachuca"
+      },
+      {
+        "id": "pO5ijKm0",
+        "name": "Puebla",
+        "slug": "puebla"
+      },
+      {
+        "id": "fqJAznPc",
+        "name": "Queretaro",
+        "slug": "queretaro"
+      },
+      {
+        "id": "EBPEFrRQ",
+        "name": "Santos Laguna",
+        "slug": "santos-laguna"
+      },
+      {
+        "id": "Iy4albIC",
+        "name": "Tigres UANL",
+        "slug": "tigres-uanl"
+      },
+      {
+        "id": "8hiBr2eQ",
+        "name": "Toluca",
+        "slug": "toluca"
+      },
+      {
+        "id": "UB73mIXI",
+        "name": "UNAM Pumas",
+        "slug": "unam-pumas"
+      }
+    ]
   }
 }
