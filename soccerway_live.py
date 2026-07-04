@@ -96,6 +96,39 @@ async def fetch_team_live(team_id: str, force_refresh: bool = False) -> dict:
         team_data = await fetch_team_data(team_id, team_name, force_refresh=force_refresh)
         result = to_lineup_format(team_data)
 
+    # Backfill last3_missing for injured players (covers both fast + fallback paths).
+    # If player has injury_return and the match is BEFORE that date, mark the cell as missing.
+    from datetime import datetime as _dt
+    def _parse_match_dt(d_str, year):
+        try:
+            dd, mm = d_str.split(".")
+            return _dt(year, int(mm), int(dd))
+        except Exception:
+            return None
+    current_year = _dt.now().year
+    players = result.get("players", []) or []
+    matches = result.get("matches", []) or []
+    for p in players:
+        inj_reason = p.get("injury_reason") or ""
+        inj_return = p.get("injury_return") or ""
+        if not inj_return:
+            continue
+        try:
+            d, m, y = inj_return.split(".")
+            return_dt = _dt(int(y), int(m), int(d))
+        except Exception:
+            continue
+        l3m = p.get("last3_missing", [None, None, None])
+        while len(l3m) < 3:
+            l3m.append(None)
+        for i, m in enumerate(matches[:3]):
+            md = _parse_match_dt(m.get("date", ""), current_year)
+            if not md:
+                continue
+            if md < return_dt and (l3m[i] is None or l3m[i] == ""):
+                l3m[i] = inj_reason or "Injury"
+        p["last3_missing"] = l3m[:3]
+
     # Сохраняем в кеш (перезаписываем)
     _save_live_cache(team_id, result)
 

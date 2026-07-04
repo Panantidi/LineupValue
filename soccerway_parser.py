@@ -41,6 +41,8 @@ class Player:
     national: str = ""
     club: str = ""  # club name for national teams (stored in flag title on squad page)
     club_logo: str = ""  # club logo URL for national teams (img src in flag cell)
+    injury_reason: str = ""  # e.g. "Calf Injury" from <svg class="lineupTable__cell--absence injury"><title>...</title></svg>
+    injury_return: str = ""  # e.g. "03.08.2026" expected return date (DD.MM.YYYY)
 
     def __post_init__(self):
         if self.last3 is None:
@@ -266,6 +268,25 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
 
             player_url = link.get('href', '') if link else ""
 
+            # Parse injury/absence status from <svg class="lineupTable__cell--absence injury">
+            # Tooltip format: "Calf Injury03.08.2026" — reason + return date concatenated
+            injury_reason = ""
+            injury_return = ""
+            absence_svg = row.select_one('svg.lineupTable__cell--absence')
+            if absence_svg:
+                title_tag = absence_svg.select_one('title')
+                if title_tag:
+                    tooltip = title_tag.get_text(strip=True)
+                    # Reason is alphabetic, date is DD.MM.YYYY (10 chars at end)
+                    m_inj = re.search(r'^(.*?)(\d{2}\.\d{2}\.\d{4})$', tooltip)
+                    if m_inj:
+                        injury_reason = m_inj.group(1).strip()
+                        injury_return = m_inj.group(2)
+                    else:
+                        # Just reason, no date
+                        injury_reason = tooltip
+                        injury_return = ""
+
             national = ""
             club = ""
             club_logo = ""
@@ -322,6 +343,8 @@ def parse_squad_html(html: str, team_id: str) -> Tuple[List[Player], str, str]:
                 national=national,
                 club=club,
                 club_logo=club_logo,
+                injury_reason=injury_reason,
+                injury_return=injury_return,
             ))
 
     print(f"    Players from Total (overall-all-table): {len(players)}")

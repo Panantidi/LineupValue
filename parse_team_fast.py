@@ -7,6 +7,9 @@ from bs4 import BeautifulSoup
 
 BASE = "https://www.soccerway.com"
 CACHE_DIR = "/home/openclaw/.openclaw/workspace"
+# Import apply_last3 at module level so it's always available (bug: was only imported
+# inside `if matches_to_fetch:` block, causing UnboundLocalError when all lineups cached).
+from fetch_team import apply_last3
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -162,6 +165,8 @@ def parse_squad_html_local(html: str, team_id: str):
         d.setdefault("last3", ["-", "-", "-"])
         d.setdefault("last3_missing", [None, None, None])
         d.setdefault("last3_captain", [False, False, False])
+        d.setdefault("injury_reason", "")
+        d.setdefault("injury_return", "")
         out.append(d)
     return out, coach_name, stadium
 
@@ -207,6 +212,7 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
     matches = parse_summary_results(feeds.get("summary-results", ""), team_id, team_name, team_slug, limit=6)
     print(f"  {len(matches)} matches in {time.time()-t2:.2f}s")
     if len(matches) < 3: raise RuntimeError(f"only {len(matches)} matches; need >=3")
+    matches = matches[:3]
 
     t3 = time.time()
     print(f"[4/5 PW] Lineups for {len(matches)} matches...")
@@ -228,7 +234,7 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
                 with open(cache_file, "r", encoding="utf-8") as f:
                     cached_lineup = json.load(f)
                     # Check if cache is fresh (within 24 hours)
-                    if time.time() - cached_lineup.get("_cached_at", 0) < 7 * 86400:
+                    if time.time() - cached_lineup.get("_cached_at", 0) < 86400:
                         cached_lineups.append((i, cached_lineup))
                         print(f"    {m['date']}: using cached lineups")
                         continue
@@ -238,7 +244,6 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
         matches_to_fetch_indices.append(i)
     
     # Fetch only missing lineups
-    from fetch_team import apply_last3
     if matches_to_fetch:
         from fetch_team import fetch_and_parse_lineups, get_surname
         from types import SimpleNamespace
@@ -267,23 +272,56 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
         # All from cache
         lineups_data_all = [ld for _, ld in sorted(cached_lineups, key=lambda x: x[0])]
     
-    # Take first 3 matches with exactly 11 starters, in chronological order
-    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if ld and len(ld.get("starters", [])) == 11]
+    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if ld and len(ld.get("starters", [])) > 0]
+    if len(valid_pairs) < 3: raise RuntimeError(f"only {len(valid_pairs)} lineups; need >=3")
     matches = [m for m, _ in valid_pairs[:3]]
     lineups_data = [ld for _, ld in valid_pairs[:3]]
-    # Pad with empty placeholders if fewer than 3
-    while len(lineups_data) < 3:
-        lineups_data.append({"starters": [], "substitutes": [], "missing": [], "captains": [], "score": "", "home_team": "", "away_team": ""})
     print(f"  lineups in {time.time()-t3:.2f}s")
 
     print(f"[5/5] Applying last3...")
     players = apply_last3(players, lineups_data)
+
+    # Backfill last3_missing for injured players (from squad page injury status).
+    # Soccerway squad page shows <svg class="lineupTable__cell--absence injury"><title>ReasonDD.MM.YYYY</title></svg>
+    # This means the player is injured with expected return date. Any match BEFORE that
+    # return date should show the missing emoji (❌) with the injury reason.
+    # We only override cells that aren't already filled by lineup-based logic.
+    from datetime import datetime as _dt
+    def _parse_match_dt(d_str, year):
+        # date format: "03.07" (DD.MM) - no year
+        try:
+            dd, mm = d_str.split(".")
+            return _dt(year, int(mm), int(dd))
+        except Exception:
+            return None
+    current_year = _dt.now().year
+    for p in players:
+        inj_reason = p.get("injury_reason") or ""
+        inj_return = p.get("injury_return") or ""
+        if not inj_reason and not inj_return:
+            continue
+        return_dt = None
+        if inj_return:
+            try:
+                d, m, y = inj_return.split(".")
+                return_dt = _dt(int(y), int(m), int(d))
+            except Exception:
+                return_dt = None
+        for i, m in enumerate(matches[:3]):
+            md = _parse_match_dt(m.get("date", ""), current_year)
+            if not md:
+                continue
+            # If injury_return is set and match is BEFORE it, fill missing
+            if return_dt and md < return_dt:
+                # Only fill if not already explicitly set by lineup logic
+                if p["last3_missing"][i] is None or p["last3_missing"][i] == "":
+                    p["last3_missing"][i] = inj_reason or "Injury"
+                    # Keep last3[i] as is (likely '-') — the emoji is rendered separately
+
     m1s = sum(1 for p in players if p.get("last3", [])[0:1] == ["START"])
     m2s = sum(1 for p in players if len(p.get("last3", [])) > 1 and p["last3"][1] == "START")
     m3s = sum(1 for p in players if len(p.get("last3", [])) > 2 and p["last3"][2] == "START")
-    # Only validate matches that have lineup data (non-empty starters)
-    valid_counts = [(m1s, m2s, m3s)]
-    if any(c > 11 for c in [m1s, m2s, m3s]):
+    if any(c == 0 for c in [m1s, m2s, m3s]) or any(c > 11 for c in [m1s, m2s, m3s]):
         raise RuntimeError(f"invalid START counts={[m1s, m2s, m3s]}")
     print(f"  START: m1={m1s} m2={m2s} m3={m3s}")
 
@@ -291,7 +329,8 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
     cache["matches"] = [{"date": m["date"], "tournament": m["tournament"], "url": m["url"], "mid": m["mid"],
                          "score": m.get("score", "") or ld.get("score", ""),
                          "home_team": m.get("home_team", "") or ld.get("home_team", ""),
-                         "away_team": m.get("away_team", "") or ld.get("away_team", "")} for m, ld in zip(matches, lineups_data)]
+                         "away_team": m.get("away_team", "") or ld.get("away_team", ""),
+                         "kickoff": m.get("kickoff", "") or ld.get("kickoff", "")} for m, ld in zip(matches, lineups_data)]
     cache["_cached_at"] = time.time(); cache["last_updated"] = time.time()
     with open(cache_path, "w", encoding="utf-8") as f:
         json.dump(cache, f, ensure_ascii=False, indent=2)

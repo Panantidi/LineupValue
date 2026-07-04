@@ -62,7 +62,7 @@ async def fetch_and_parse_lineups(matches, known_surnames):
 
                 print(f'    Loading: {match.date} {match.tournament}')
                 try:
-                    await page.goto(url, wait_until='domcontentloaded', timeout=30000)
+                    await page.goto(url, wait_until='load', timeout=30000)
                     await page.wait_for_timeout(4000)
                     for _ in range(5):
                         await page.evaluate("window.scrollBy(0, 500)")
@@ -317,6 +317,43 @@ def apply_last3(players, lineups_data):
         p['last3_captain'] = p['last3_captain'][:3]
     return players
 
+
+def backfill_injuries(players, matches):
+    """Fill last3_missing for injured players whose injury_return date is AFTER the match date.
+    Used by both run_full and run_last3_only paths in fetch_team.py.
+    """
+    from datetime import datetime as _dt
+    def _parse_match_dt(d_str, year):
+        try:
+            dd, mm = d_str.split(".")
+            return _dt(year, int(mm), int(dd))
+        except Exception:
+            return None
+    current_year = _dt.now().year
+    filled = 0
+    for p in players:
+        inj_reason = p.get("injury_reason") or ""
+        inj_return = p.get("injury_return") or ""
+        if not inj_return:
+            continue
+        try:
+            d, m, y = inj_return.split(".")
+            return_dt = _dt(int(y), int(m), int(d))
+        except Exception:
+            continue
+        l3m = p.get("last3_missing", [None, None, None])
+        while len(l3m) < 3:
+            l3m.append(None)
+        for i, m in enumerate(matches[:3]):
+            md = _parse_match_dt(m.get("date", ""), current_year)
+            if not md:
+                continue
+            if md < return_dt and (l3m[i] is None or l3m[i] == ""):
+                l3m[i] = inj_reason or "Injury"
+                filled += 1
+        p["last3_missing"] = l3m[:3]
+    return filled
+
 async def get_last3_matches_by_slug(team_id, team_name, team_slug, limit=6):
     """Fetch recent match candidates using official Soccerway slug from standings/overall.
 
@@ -546,6 +583,8 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
         print(f'ABORT: invalid START counts={[m1s,m2s,m3s]}; keeping enrichment cache without bad Last 3')
         return
     print(f'  START: m1={m1s} m2={m2s} m3={m3s}')
+    filled = backfill_injuries(players, [{'date': m.date} for m in matches])
+    if filled: print(f"  backfill injuries: {filled} cells")
 
     cache['players'] = players
     cache['matches'] = [{'date': m.date, 'tournament': m.tournament, 'url': m.url, 'mid': m.mid,
@@ -587,14 +626,16 @@ async def run_last3_only(team_id, team_name, team_slug=''):
     matches = [m for m, _ in valid_pairs[:3]]
     lineups_data = [ld for _, ld in valid_pairs[:3]]
     start_counts = [len(ld.get('starters', [])) for ld in lineups_data]
-    print(f'  playable START candidates: {start_counts}')
-
-    print('[3/3] Applying...')
+    print('[5/5] Applying...')
     players = apply_last3(players, lineups_data)
-    applied_starts = [sum(1 for p in players if len(p.get('last3', [])) > i and p['last3'][i] == 'START') for i in range(3)]
-    if any(c == 0 for c in applied_starts) or any(c > 11 for c in applied_starts):
-        print(f'ABORT: invalid applied START counts={applied_starts}; keeping existing cache')
-        return
+    m1s = sum(1 for p in players if p.get('last3',[])[0:1]==['START'])
+    m2s = sum(1 for p in players if len(p.get('last3',[]))>1 and p['last3'][1]=='START')
+    m3s = sum(1 for p in players if len(p.get('last3',[]))>2 and p['last3'][2]=='START')
+    if any(c == 0 for c in [m1s, m2s, m3s]) or any(c > 11 for c in [m1s, m2s, m3s]):
+        raise RuntimeError(f"invalid START counts={[m1s, m2s, m3s]}")
+    print(f"  START: m1={m1s} m2={m2s} m3={m3s}")
+    filled = backfill_injuries(players, [{'date': m.date} for m in matches])
+    if filled: print(f"  backfill injuries: {filled} cells")
 
     cache['players'] = players
     # Restore club/club_logo data (for national teams) preserved from old cache
