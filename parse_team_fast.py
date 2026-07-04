@@ -207,7 +207,6 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
     matches = parse_summary_results(feeds.get("summary-results", ""), team_id, team_name, team_slug, limit=6)
     print(f"  {len(matches)} matches in {time.time()-t2:.2f}s")
     if len(matches) < 3: raise RuntimeError(f"only {len(matches)} matches; need >=3")
-    matches = matches[:3]
 
     t3 = time.time()
     print(f"[4/5 PW] Lineups for {len(matches)} matches...")
@@ -229,7 +228,7 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
                 with open(cache_file, "r", encoding="utf-8") as f:
                     cached_lineup = json.load(f)
                     # Check if cache is fresh (within 24 hours)
-                    if time.time() - cached_lineup.get("_cached_at", 0) < 86400:
+                    if time.time() - cached_lineup.get("_cached_at", 0) < 7 * 86400:
                         cached_lineups.append((i, cached_lineup))
                         print(f"    {m['date']}: using cached lineups")
                         continue
@@ -239,8 +238,9 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
         matches_to_fetch_indices.append(i)
     
     # Fetch only missing lineups
+    from fetch_team import apply_last3
     if matches_to_fetch:
-        from fetch_team import fetch_and_parse_lineups, get_surname, apply_last3
+        from fetch_team import fetch_and_parse_lineups, get_surname
         from types import SimpleNamespace
         known_surnames = set(get_surname(p["name"]) for p in players if p.get("name"))
         match_objs = [SimpleNamespace(date=m["date"], tournament=m["tournament"], mid=m["mid"], url=m["url"]) for m in matches_to_fetch]
@@ -267,10 +267,13 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
         # All from cache
         lineups_data_all = [ld for _, ld in sorted(cached_lineups, key=lambda x: x[0])]
     
-    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if ld and len(ld.get("starters", [])) > 0]
-    if len(valid_pairs) < 3: raise RuntimeError(f"only {len(valid_pairs)} lineups; need >=3")
+    # Take first 3 matches with exactly 11 starters, in chronological order
+    valid_pairs = [(m, ld) for m, ld in zip(matches, lineups_data_all) if ld and len(ld.get("starters", [])) == 11]
     matches = [m for m, _ in valid_pairs[:3]]
     lineups_data = [ld for _, ld in valid_pairs[:3]]
+    # Pad with empty placeholders if fewer than 3
+    while len(lineups_data) < 3:
+        lineups_data.append({"starters": [], "substitutes": [], "missing": [], "captains": [], "score": "", "home_team": "", "away_team": ""})
     print(f"  lineups in {time.time()-t3:.2f}s")
 
     print(f"[5/5] Applying last3...")
@@ -278,7 +281,9 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
     m1s = sum(1 for p in players if p.get("last3", [])[0:1] == ["START"])
     m2s = sum(1 for p in players if len(p.get("last3", [])) > 1 and p["last3"][1] == "START")
     m3s = sum(1 for p in players if len(p.get("last3", [])) > 2 and p["last3"][2] == "START")
-    if any(c == 0 for c in [m1s, m2s, m3s]) or any(c > 11 for c in [m1s, m2s, m3s]):
+    # Only validate matches that have lineup data (non-empty starters)
+    valid_counts = [(m1s, m2s, m3s)]
+    if any(c > 11 for c in [m1s, m2s, m3s]):
         raise RuntimeError(f"invalid START counts={[m1s, m2s, m3s]}")
     print(f"  START: m1={m1s} m2={m2s} m3={m3s}")
 

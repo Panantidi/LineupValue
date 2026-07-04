@@ -8,6 +8,7 @@ Usage: python fetch_team.py <team_id> [--full]
 Score is parsed from lineups page <title> tag.
 """
 import asyncio, json, re, time, sys
+from datetime import datetime
 sys.path.insert(0, '/home/openclaw/FormAlert')
 
 from playwright.async_api import async_playwright
@@ -61,7 +62,7 @@ async def fetch_and_parse_lineups(matches, known_surnames):
 
                 print(f'    Loading: {match.date} {match.tournament}')
                 try:
-                    await page.goto(url, wait_until='load', timeout=30000)
+                    await page.goto(url, wait_until='domcontentloaded', timeout=30000)
                     await page.wait_for_timeout(4000)
                     for _ in range(5):
                         await page.evaluate("window.scrollBy(0, 500)")
