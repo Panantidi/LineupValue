@@ -5068,14 +5068,26 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50) -> str:
     con = sqlite3.connect(DB_PATH)
     
     users = con.execute("SELECT id,username,is_admin,active,created_at,last_login,plain_password FROM users ORDER BY id").fetchall()
-    total_hits = con.execute("SELECT COUNT(*) FROM access_log").fetchone()[0]
-    
+    # Count logs EXCLUDING admin users (so Recent Activity shows only non-admin activity)
+    total_hits = con.execute(
+        "SELECT COUNT(*) FROM access_log al "
+        "LEFT JOIN users u ON u.username = al.username "
+        "WHERE u.is_admin IS NULL OR u.is_admin = 0"
+    ).fetchone()[0]
+
     # Pagination
     offset = (page - 1) * page_size
     total_logs = total_hits
     total_pages = (total_logs + page_size - 1) // page_size
-    
-    logs = con.execute("SELECT username,ip,path,action,details,timestamp FROM access_log ORDER BY id DESC LIMIT ? OFFSET ?", (page_size, offset)).fetchall()
+
+    logs = con.execute(
+        "SELECT al.username,al.ip,al.path,al.action,al.details,al.timestamp "
+        "FROM access_log al "
+        "LEFT JOIN users u ON u.username = al.username "
+        "WHERE u.is_admin IS NULL OR u.is_admin = 0 "
+        "ORDER BY al.id DESC LIMIT ? OFFSET ?",
+        (page_size, offset)
+    ).fetchall()
     con.close()
 
     n_active = sum(1 for u in users if u[3])
