@@ -1581,29 +1581,32 @@ def _fixtures_cache_path(team_id: str) -> str:
     return os.path.join("/home/openclaw/.openclaw/workspace", f"_fixtures_{team_id}.json")
 
 def _read_fixtures_cache(team_id: str):
-    """Read fixtures cache with 6-hour TTL and filter out past matches"""
+    """Read fixtures cache with TTL and filter out past matches.
+    Returns None if cache is stale OR if it doesn't have enough upcoming matches
+    (so we trigger a fresh fetch from Soccerway).
+    """
     path = _fixtures_cache_path(team_id)
     if not os.path.exists(path):
         return None
-    
-    # Check TTL (6 hours)
+
+    # Check TTL (1 hour — fixtures change often, especially day-of-match)
     try:
         import time
         cache_age = time.time() - os.path.getmtime(path)
-        if cache_age > 6 * 3600:  # 6 hours
+        if cache_age > 3600:  # 1 hour instead of 6
             return None
     except:
         pass
-    
+
     try:
         with open(path, 'r') as f:
             data = json.load(f)
         fixtures = data.get('fixtures', [])
-        
+
         # Filter out past matches
         now = datetime.utcnow()
         today_start = datetime(now.year, now.month, now.day, 0, 0, 0)
-        
+
         valid_fixtures = []
         for m in fixtures:
             date_str = m.get('date', '')
@@ -1612,33 +1615,38 @@ def _read_fixtures_cache(team_id: str):
             if dm:
                 day = int(dm.group(1))
                 month = int(dm.group(2))
-                
+
                 # Determine year: assume current year first
                 year = now.year
-                
+
                 # If month already passed this year, it's next year
                 if month < now.month:
                     year = now.year + 1
                 # If same month but day passed, it's this year (past match)
                 # If same month and day >= today, it's this year
-                
+
                 if dm.group(3):
                     hour = int(dm.group(3))
                     minute = int(dm.group(4))
                 else:
                     hour, minute = 12, 0
-                
+
                 try:
                     match_dt = datetime(year, month, day, hour, minute)
                     if match_dt >= today_start:
                         valid_fixtures.append(m)
                 except ValueError:
                     pass
-        
+
         # If all fixtures are past, return None to trigger refresh
         if not valid_fixtures:
             return None
-        
+
+        # If cache has fewer than 3 upcoming matches AND it's stale (>2h old),
+        # force a refresh so we don't show incomplete fixture lists (e.g. missing today's match)
+        if len(valid_fixtures) < 3 and cache_age > 7200:
+            return None
+
         return valid_fixtures
     except:
         pass
@@ -1680,25 +1688,32 @@ async def lineup_api_fixtures(team_id: str):
             fixtures = []
             now = datetime.utcnow()
             today_start = datetime(now.year, now.month, now.day, 0, 0, 0)
-            
+
             for m in team_cache.get("matches", []):
                 date_str = m.get("date", "")
                 # Parse date: "27.06" or "15.05"
-                dm = re.match(r'(\d{1,2})\.(\d{2})', date_str)
+                dm = re.match(r"(\d{1,2})\.(\d{2})", date_str)
                 is_future = False
                 if dm:
                     day = int(dm.group(1))
                     month = int(dm.group(2))
                     year = now.year
-                    if month < now.month:
-                        year = now.year + 1
+                    # If month already passed this year, it's a past match (not next year fixture).
+                    # Soccerway team cache only contains PLAYED matches (Last 3), not fixtures.
+                    # The only exception: if day is end-of-year and we're in early January
+                    # (off-by-one), but we can ignore that edge case for simplicity.
+                    is_past = (month < now.month) or (month == now.month and day < now.day)
+                    if is_past:
+                        # Skip — this is a played match
+                        continue
+                    # Same year, same/next month, day >= today: future
                     try:
                         match_dt = datetime(year, month, day, 12, 0)
                         if match_dt >= today_start:
                             is_future = True
                     except ValueError:
                         pass
-                
+
                 if is_future:
                     fixtures.append({
                         "mid": m.get("mid", ""),
@@ -1710,7 +1725,7 @@ async def lineup_api_fixtures(team_id: str):
                         "is_home": team_id.lower() in m.get("home_team", "").lower(),
                         "url": m.get("url", "")
                     })
-            
+
             if fixtures:
                 return JSONResponse(content={"fixtures": fixtures[:3], "team_id": team_id, "from_team_cache": True})
     except:
