@@ -1139,7 +1139,9 @@ def _version_canonical_player(p: dict) -> dict:
 
 def _team_version_subset(data: dict) -> dict:
     players = data.get("players") if isinstance(data, dict) else []
+    if players is None: players = []
     matches = data.get("matches") if isinstance(data, dict) else []
+    if matches is None: matches = []
     return {
         "team": data.get("team") or {},
         "coach": data.get("coach") or {},

@@ -35,6 +35,10 @@ COMP_MAP = {
     "efl cup": "LC", "club friendlies": "FR", "friendlies": "FR",
     "friendly": "FR", "club friendly": "FR", "world championship": "WC",
     "atlantic cup": "FR", "fifa intercontinental cup": "FIC", "super cup": "SCP",
+    # Montenegro
+    "prva crnogorska liga": "MNE",
+    "crnogorski kup": "MNC",
+    "montenegro cup": "MNC",
 }
 
 def _comp_code(name: str) -> str:
@@ -151,6 +155,32 @@ async def enrich_players_http(players: list, concurrency: int = 8) -> list:
         if mv: players[i]["market_value"] = mv
     return players
 
+def parse_emblem_from_html(html: str) -> str:
+    """Extract team emblem URL from squad page HTML.
+    Soccerway puts it in <img class="heading__logo heading__logo--1" src="..." alt="TeamName">
+    Logos are hosted at https://static.flashscore.com/res/image/data/{HASH}.png
+    Returns empty string if not found.
+    """
+    try:
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html, "html.parser")
+        # Primary: heading__logo class
+        for img in soup.find_all("img"):
+            cls = (img.get("class") or [])
+            cls_join = " ".join(cls)
+            if "heading__logo" in cls_join:
+                src = img.get("src", "")
+                if src and "flashscore" in src:
+                    return src
+        # Fallback: any image with /res/image/data/ in src
+        for img in soup.find_all("img"):
+            src = img.get("src", "")
+            if "/res/image/data/" in src and src.endswith(".png"):
+                return src
+        return ""
+    except Exception:
+        return ""
+
 def parse_squad_html_local(html: str, team_id: str):
     sys.path.insert(0, "/home/openclaw/FormAlert")
     from soccerway_parser import parse_squad_html
@@ -188,7 +218,8 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
     print(f"  {len(html)} bytes in {time.time()-t0:.2f}s")
     players, coach_name, stadium_from_page = parse_squad_html_local(html, team_id)
     if not stadium: stadium = stadium_from_page
-    print(f"  {len(players)} players, coach={coach_name!r}, stadium={stadium!r}")
+    emblem_url = parse_emblem_from_html(html)
+    print(f"  {len(players)} players, coach={coach_name!r}, stadium={stadium!r}, emblem={emblem_url!r}")
     if not players: raise RuntimeError("0 players parsed")
 
     t1 = time.time()
@@ -198,7 +229,10 @@ async def fetch_team_fast(team_id, team_name, team_slug, coach_nat="", stadium="
     print(f"  Enriched: {enriched}/{len(players)} in {time.time()-t1:.2f}s")
 
     players = _copy_existing_last3(players, existing)
-    cache = {"team": {"id": team_id, "name": team_name, "slug": team_slug},
+    # Keep existing emblem if new fetch didn't return one (squad page may not have it on every layout)
+    if not emblem_url and isinstance(existing, dict):
+        emblem_url = existing.get("team", {}).get("emblem") or ""
+    cache = {"team": {"id": team_id, "name": team_name, "slug": team_slug, "emblem": emblem_url},
              "coach": {"name": coach_name, "nationality": coach_nat},
              "stadium": stadium, "players": players,
              "_cached_at": time.time(), "last_updated": time.time()}

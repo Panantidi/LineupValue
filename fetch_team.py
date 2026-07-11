@@ -403,6 +403,10 @@ async def get_last3_matches_by_slug(team_id, team_name, team_slug, limit=6):
         'atlantic cup': 'FR',
         'fifa intercontinental cup': 'FIC',
         'super cup': 'SCP',
+        # Montenegro
+        'prva crnogorska liga': 'MNE',
+        'crnogorski kup': 'MNC',
+        'montenegro cup': 'MNC',
     }
     url = f'{BASE}/team/{team_slug}/{team_id}/results/'
     print(f'  [Playwright] Loading configured results {url}')
@@ -550,7 +554,21 @@ async def run_full(team_id, team_name, team_slug, coach_nat='', stadium=''):
     print(f'  Enriched: {enriched}/{len(players)}')
     known_surnames = set(get_surname(p['name']) for p in players if p.get('name'))
 
-    cache = {'team': {'id': team_id, 'name': team_name, 'slug': team_slug},
+    # Parse team emblem from squad page HTML (same as parse_team_fast does)
+    emblem_url = ""
+    try:
+        sys.path.insert(0, "/home/openclaw/FormAlert")
+        from parse_team_fast import parse_emblem_from_html
+        emblem_url = parse_emblem_from_html(html)
+    except Exception:
+        pass
+    # Preserve existing emblem if new fetch didn't return one
+    if not emblem_url and isinstance(existing_cache, dict):
+        emblem_url = existing_cache.get("team", {}).get("emblem") or ""
+    if emblem_url:
+        print(f'  emblem: {emblem_url}')
+
+    cache = {'team': {'id': team_id, 'name': team_name, 'slug': team_slug, 'emblem': emblem_url},
              'coach': {'name': coach_name, 'nationality': coach_nat}, 'stadium': stadium,
              'players': players, '_cached_at': time.time(), 'last_updated': time.time()}
     with open(cache_path, 'w') as f: json.dump(cache, f, indent=2, ensure_ascii=False)
