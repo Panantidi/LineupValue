@@ -1147,7 +1147,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <body class="{('embed-mode' if embed else '')}">
     <div class="header">
         <div class="team-title">
-            {team_logo_html}
             <h1>{team_name}</h1>
         </div>
         <div class="header-tabs">
