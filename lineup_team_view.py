@@ -1206,15 +1206,16 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
         </div>
 
-        <!-- Info Bar: Coach, Stadium, Stats — full width (Squad mode) -->
+        <!-- Info Bar: Coach + Stadium stacked left (width = Players), Players/Avg/Total fill the rest -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;">
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
-            <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);display:flex;flex-direction:column;gap:12px;min-width:0;">
+                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
+                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
+            </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span><br><span style="color:#888;font-size:11px;">Avg Age</span></div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{total_value_display}</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
         </div>
-
         <!-- Missing Players Stats (hidden by default) -->
         <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;" id="missing-count">0</span><br><span style="color:#888;font-size:11px;">Players</span></div>
