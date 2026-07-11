@@ -267,6 +267,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         return HTMLResponse(f"Error loading team data: {e}", status_code=500)
     
     team_name = data.get("team", {}).get("name", "Unknown")
+    team_emblem = data.get("team", {}).get("emblem", "")
     players = data.get("players", [])
     matches = data.get("matches", [])
     # Check if this is a national team (team name matches country name)
@@ -585,8 +586,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         
         last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;{bg_color}" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
     
-    # Team logo removed per user request
-    team_logo_html = ""
+    # Team emblem (loaded from Soccerway squad page; falls back to initials if missing)
+    if team_emblem:
+        team_logo_html = f'<img class="team-emblem" src="{html_lib.escape(team_emblem, quote=True)}" alt="{html_lib.escape(team_name, quote=True)}" loading="lazy" onerror="this.outerHTML=\'<span class=&quot;team-emblem-fallback&quot;>{html_lib.escape(team_name[:1].upper(), quote=True)}</span>\'" />'
+    else:
+        team_logo_html = f'<span class="team-emblem team-emblem-fallback">{html_lib.escape(team_name[:1].upper(), quote=True)}</span>'
 
     html = f"""<!doctype html>
 <html>
@@ -604,7 +608,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             background: #f5f5f5;
         }}
         .header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
             color: white;
             padding: 16px 40px;
             display: flex;
@@ -621,8 +625,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .team-title {{
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             min-width: 0;
+        }}
+        .team-emblem {{
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 4px;
+        }}
+        .team-emblem-fallback {{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.20);
+            border-radius: 8px;
         }}
         .header-tabs {{
             display: flex;
@@ -968,7 +991,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .bulk-lineup-controls button, .bulk-ambiguous button, .vision-lineup-btn {{
             border: 0;
             border-radius: 8px;
-            background: #667eea;
+            background: #2e7af8;
             color: #fff;
             font-weight: 800;
             padding: 8px 12px;
@@ -1124,6 +1147,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <body class="{('embed-mode' if embed else '')}">
     <div class="header">
         <div class="team-title">
+            {team_logo_html}
             <h1>{team_name}</h1>
         </div>
         <div class="header-tabs">
