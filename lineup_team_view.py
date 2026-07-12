@@ -602,9 +602,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     for idx, p in enumerate(_top3, 1):
         _name = swap_name_order(p.get("name", "–"))
         _is = _safe_num(p.get("impact_score", 0), default=0.0)
+        _pos = str(p.get("position", "") or "").strip().upper()
+        # Compact position label
+        if _pos in ("GK",):
+            _pos_label = "GK"
+        elif _pos in ("DF",):
+            _pos_label = "DF"
+        elif _pos in ("MF",):
+            _pos_label = "MF"
+        elif _pos in ("FW",):
+            _pos_label = "FW"
+        else:
+            _pos_label = _pos[:2] if _pos else ""
         _top3_rows.append(
             f'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">'
             f'<span style="color:#667eea;font-weight:700;font-size:13px;min-width:14px;">{idx}.</span>'
+            f'<span style="background:#f0f2fa;color:#667eea;font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;min-width:24px;text-align:center;">{_pos_label}</span>'
             f'<span style="flex:1;font-size:12px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{_name}</span>'
             f'<span style="color:#667eea;font-weight:600;font-size:12px;">{_is:.2f}</span>'
             f'</div>'
@@ -1227,13 +1240,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         <!-- Info Bar: Coach + Stadium stacked left (width = Players), Players/Avg/Total fill the rest -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;">
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Top Players</div>
-                {top3_players_html}
-            </div>
             <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;">
                 <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
                 <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
+            </div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Top Players</div>
+                {top3_players_html}
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span><br><span style="color:#888;font-size:11px;">Avg Age</span></div>
