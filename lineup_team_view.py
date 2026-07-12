@@ -1464,7 +1464,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('possible');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear P-XI">✖️</button><span title="Possible XI" style="font-size:10px;margin-top:2px;">P-XI</span><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></div></th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('start');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear S-XI">✖️</button><span title="Starting XI" style="font-size:10px;margin-top:2px;">S-XI</span><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></div></th>
                         {last3_header_row1}
-                        <th rowspan="2" style="text-align:center;width:30px;padding:0;border-left:1px solid #ddd;">Apps</th>
+                        <th rowspan="2" style="text-align:center;width:32px;padding:0;border-left:1px solid #ddd;">Apps</th>
                         <th rowspan="2" style="text-align:center;width:40px;padding:0;">Min</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">G</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">A</th>
