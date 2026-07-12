@@ -592,6 +592,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     else:
         team_logo_html = f'<span class="team-emblem team-emblem-fallback">{html_lib.escape(team_name[:1].upper(), quote=True)}</span>'
 
+    # Top 3 players by impact_score
+    _top3 = sorted(
+        [p for p in sorted_players if _safe_num(p.get("impact_score", 0), default=0.0) > 0],
+        key=lambda p: _safe_num(p.get("impact_score", 0), default=0.0),
+        reverse=True
+    )[:3]
+    _top3_rows = []
+    for idx, p in enumerate(_top3, 1):
+        _name = swap_name_order(p.get("name", "–"))
+        _is = _safe_num(p.get("impact_score", 0), default=0.0)
+        _top3_rows.append(
+            f'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">'
+            f'<span style="color:#667eea;font-weight:700;font-size:13px;min-width:14px;">{idx}.</span>'
+            f'<span style="flex:1;font-size:12px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{_name}</span>'
+            f'<span style="color:#667eea;font-weight:600;font-size:12px;">{_is:.2f}</span>'
+            f'</div>'
+        )
+    top3_players_html = "".join(_top3_rows) if _top3_rows else '<div style="font-size:11px;color:#999;text-align:center;">No data</div>'
+
     html = f"""<!doctype html>
 <html>
 <head>
@@ -1208,6 +1227,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         <!-- Info Bar: Coach + Stadium stacked left (width = Players), Players/Avg/Total fill the rest -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;">
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Top Players</div>
+                {top3_players_html}
+            </div>
             <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;">
                 <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
                 <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:center;display:flex;align-items:center;justify-content:center;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
