@@ -1979,7 +1979,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (tabName === 'Squad') {{
                 squadBar.style.display = 'flex';
                 compTable.style.display = 'flex';
-                if (bulkPanel) bulkPanel.style.display = 'flex';
+                if (bulkPanel) bulkPanel.style.display = 'block';
                 document.body.classList.remove('hide-watermark');
             }} else if (tabName === 'Missing Players') {{
                 missingBar.style.display = 'flex';
