@@ -98,6 +98,41 @@ body {
             max-height: calc(100vh - 150px);
             overflow-y: auto;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: width 0.2s ease, padding 0.2s ease;
+        }
+        .team-nav-sidebar.collapsed {
+            width: 36px;
+            padding: 8px 6px;
+            overflow: hidden;
+        }
+        .team-nav-sidebar.collapsed .nav-title,
+        .team-nav-sidebar.collapsed .form-group,
+        .team-nav-sidebar.collapsed #nav-actions {
+            display: none;
+        }
+        .nav-toggle {
+            position: absolute;
+            top: 8px;
+            right: 6px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: #043fb6;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            padding: 0;
+            z-index: 2;
+        }
+        .nav-toggle:hover {
+            background: #2e7af8;
+        }
+        .team-nav-sidebar.collapsed .nav-toggle {
+            position: static;
+            margin: 0 auto;
+            display: block;
         }
         .team-nav-sidebar .nav-title {
             font-weight: 700;
@@ -150,6 +185,7 @@ body {
 </head>
 <body>
 <aside class="team-nav-sidebar" id="team-nav-sidebar">
+    <button class="nav-toggle" id="nav-toggle" onclick="toggleNavSidebar()" title="Collapse/Expand">&laquo;</button>
     <div class="nav-title">Quick Navigation</div>
     <div class="form-group">
         <label for="nav-country">Country</label>
@@ -463,6 +499,20 @@ body {
     var CURRENT_TEAM_ID = "{{my_team_id}}";
     var navData = null;
     var navFixtures = null;
+
+    window.toggleNavSidebar = function() {
+        var sb = document.getElementById('team-nav-sidebar');
+        var btn = document.getElementById('nav-toggle');
+        if (sb.classList.contains('collapsed')) {
+            sb.classList.remove('collapsed');
+            btn.innerHTML = '&laquo;';
+            btn.title = 'Collapse';
+        } else {
+            sb.classList.add('collapsed');
+            btn.innerHTML = '&raquo;';
+            btn.title = 'Expand';
+        }
+    };
 
     async function loadNavData() {
         try {
