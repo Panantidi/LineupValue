@@ -592,9 +592,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     else:
         team_logo_html = f'<span class="team-emblem team-emblem-fallback">{html_lib.escape(team_name[:1].upper(), quote=True)}</span>'
 
-    # Top 3 players by impact_score
+    # Top 3 players by impact_score, filtered to Key/Important/Starter roles only
     _top3 = sorted(
-        [p for p in sorted_players if _safe_num(p.get("impact_score", 0), default=0.0) > 0],
+        [p for p in sorted_players
+         if _safe_num(p.get("impact_score", 0), default=0.0) > 0
+         and p.get("squad_role") in ("Key", "Important", "Starter")],
         key=lambda p: _safe_num(p.get("impact_score", 0), default=0.0),
         reverse=True
     )[:3]
@@ -1248,9 +1250,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Top Players</div>
                 {top3_players_html}
             </div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span><br><span style="color:#888;font-size:11px;">Avg Age</span></div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{total_value_display}</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span><br><span style="color:#888;font-size:11px;">Avg Age</span></div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{total_value_display}</span><br><span style="color:#888;font-size:11px;">Total Value</span></div>
         </div>
         <!-- Missing Players Stats (hidden by default) -->
         <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
