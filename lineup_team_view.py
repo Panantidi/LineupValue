@@ -930,26 +930,32 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .status-orange {{ color: orange !important; font-weight: bold !important; text-decoration: underline !important; }}
         tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
 
+        .page-content {{
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 0 16px 16px 16px;
+            max-width: 100%;
+        }}
         .team-nav-sidebar {{
-            position: fixed;
-            top: 130px;
-            left: 12px;
             width: 240px;
+            flex-shrink: 0;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             padding: 12px;
             z-index: 50;
             font-size: 13px;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
         }}
-        .team-nav-sidebar .nav-title {{
-            font-weight: bold;
-            color: #043fb6;
-            font-size: 12px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .page-main {{
+            flex: 1;
+            min-width: 0;
         }}
+
         .team-nav-sidebar select {{
             width: 100%;
             padding: 6px 8px;
@@ -1271,8 +1277,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
     </div>
 
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active">Squad</div>
+            <div class="tab">Missing Players</div>
+            <div class="tab">Doubtful Players</div>
+            <div class="tab">Returning Players</div>
+            <div class="tab">Transfer In</div>
+            <div class="tab">Transfer Out</div>
+        </div>
+
+        <div id="snapshot-mode-banner" class="snapshot-mode-banner">Snapshot mode: showing saved independent squad. <button type="button" onclick="returnToLiveTeam()" style="margin-left:10px;border:0;border-radius:5px;background:#667eea;color:white;font-weight:700;padding:4px 8px;cursor:pointer;">Back to current team</button></div>
+    </div>
+
+    <div class="page-content">
     <aside class="team-nav-sidebar" id="team-nav-sidebar">
-        <div class="nav-title">Quick Navigation</div>
+
         <label for="nav-country">Country</label>
         <select id="nav-country" onchange="onNavCountryChange()">
             <option value="">-- Select Country --</option>
@@ -1298,18 +1318,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
     </aside>
 
+    <div class="page-main">
     <div class="container">
-        <div class="tabs">
-            <div class="tab active">Squad</div>
-            <div class="tab">Missing Players</div>
-            <div class="tab">Doubtful Players</div>
-            <div class="tab">Returning Players</div>
-            <div class="tab">Transfer In</div>
-            <div class="tab">Transfer Out</div>
-        </div>
-
-        <div id="snapshot-mode-banner" class="snapshot-mode-banner">Snapshot mode: showing saved independent squad. <button type="button" onclick="returnToLiveTeam()" style="margin-left:10px;border:0;border-radius:5px;background:#667eea;color:white;font-weight:700;padding:4px 8px;cursor:pointer;">Back to current team</button></div>
-
         <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
                 <div class="bulk-lineup-row">
@@ -2897,6 +2907,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
         }})();
         </script>
+    </div>
+    </div>
+    </div>
 </body>
 </html>"""
     
