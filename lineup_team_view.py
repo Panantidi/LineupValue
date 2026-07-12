@@ -1275,7 +1275,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:left;display:flex;align-items:center;justify-content:flex-start;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Top Players</div>
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Players on Fire</div>
                 {top3_players_html}
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
