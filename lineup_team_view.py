@@ -258,98 +258,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <a href="/lineup_ai/select" style="display:inline-block;text-decoration:none;border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">← Back to teams</a>
   </div>
 
-        <script>
-        (function() {{
-            const CURRENT_TEAM_ID = {team_id!r};
-            let navData = null;
-
-            async function loadNavHierarchy() {{
-                const r = await fetch('/lineup_ai/data.json', {{ cache: 'no-store' }});
-                navData = await r.json();
-                const countrySel = document.getElementById('nav-country');
-                countrySel.innerHTML = '<option value="">-- Select Country --</option>';
-                Object.keys(navData).sort().forEach(c => {{
-                    const opt = document.createElement('option');
-                    opt.value = c;
-                    opt.textContent = c;
-                    countrySel.appendChild(opt);
-                }});
-                // Auto-select current country based on team_id
-                for (const [country, leagues] of Object.entries(navData)) {{
-                    for (const teams of Object.values(leagues)) {{
-                        if (teams.some(t => t.id === CURRENT_TEAM_ID)) {{
-                            countrySel.value = country;
-                            onNavCountryChange();
-                            return;
-                        }}
-                    }}
-                }}
-            }}
-
-            window.onNavCountryChange = function() {{
-                const countrySel = document.getElementById('nav-country');
-                const champSel = document.getElementById('nav-championship');
-                const teamSel = document.getElementById('nav-team');
-                const matchSel = document.getElementById('nav-match');
-                const country = countrySel.value;
-                champSel.innerHTML = '<option value="">-- Select Championship --</option>';
-                teamSel.innerHTML = '<option value="">-- Select Team --</option>';
-                matchSel.innerHTML = '<option value="">-- Select Match --</option>';
-                teamSel.disabled = true;
-                matchSel.style.display = 'none';
-                document.getElementById('nav-match-label').style.display = 'none';
-                if (!country) {{ champSel.disabled = true; return; }}
-                const champs = Object.keys(navData[country] || {{}}).sort();
-                champSel.disabled = false;
-                let currentChamp = null;
-                for (const [ch, teams] of Object.entries(navData[country])) {{
-                    if (teams.some(t => t.id === CURRENT_TEAM_ID)) currentChamp = ch;
-                }}
-                champs.forEach(ch => {{
-                    const opt = document.createElement('option');
-                    opt.value = ch;
-                    opt.textContent = ch;
-                    if (ch === currentChamp) opt.selected = true;
-                    champSel.appendChild(opt);
-                }});
-                onNavChampionshipChange();
-            }};
-
-            window.onNavChampionshipChange = function() {{
-                const country = document.getElementById('nav-country').value;
-                const champ = document.getElementById('nav-championship').value;
-                const teamSel = document.getElementById('nav-team');
-                const matchSel = document.getElementById('nav-match');
-                teamSel.innerHTML = '<option value="">-- Select Team --</option>';
-                matchSel.innerHTML = '<option value="">-- Select Match --</option>';
-                matchSel.style.display = 'none';
-                document.getElementById('nav-match-label').style.display = 'none';
-                if (!country || !champ) {{ teamSel.disabled = true; return; }}
-                const teams = (navData[country] && navData[country][champ]) || [];
-                teamSel.disabled = false;
-                teams.forEach(t => {{
-                    const opt = document.createElement('option');
-                    opt.value = t.id;
-                    opt.textContent = t.name;
-                    if (t.id === CURRENT_TEAM_ID) opt.selected = true;
-                    teamSel.appendChild(opt);
-                }});
-            }};
-
-            window.onNavTeamChange = function() {{
-                const teamId = document.getElementById('nav-team').value;
-                if (teamId && teamId !== CURRENT_TEAM_ID) {{
-                    window.location.href = '/lineup_ai/' + teamId;
-                }}
-            }};
-
-            if (document.readyState === 'loading') {{
-                document.addEventListener('DOMContentLoaded', loadNavHierarchy);
-            }} else {{
-                loadNavHierarchy();
-            }}
-        }})();
-        </script>
+        
 
 </body></html>"""
         return HTMLResponse(html)
@@ -1376,10 +1285,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <select id="nav-team" onchange="onNavTeamChange()" disabled>
             <option value="">-- Select Team --</option>
         </select>
-        <label for="nav-match" id="nav-match-label" style="display:none;">Match</label>
-        <select id="nav-match" onchange="onNavMatchChange()" style="display:none;" disabled>
-            <option value="">-- Select Match --</option>
-        </select>
+        <div id="nav-match-group" style="display:none;">
+            <label for="nav-match" id="nav-match-label">Match</label>
+            <select id="nav-match" onchange="onNavMatchChange()" disabled>
+                <option value="">-- Select Match --</option>
+            </select>
+        </div>
         <div id="nav-actions" style="display:none; text-align:center; margin-top:10px;">
             <button id="nav-btn-analysis" onclick="openNavTeamAnalysis()" style="background:#043fb6; color:white; border:none; padding:8px 16px; border-radius:6px; font-size:13px; cursor:pointer;">
                 Team Analysis
@@ -2812,6 +2723,180 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     window.applySavedState = function(data) {{ if (data && Array.isArray(data.players)) _applySavedStateInner(data); }};
 
 </script>
+<script>
+        (function() {{
+            const CURRENT_TEAM_ID = {team_id!r};
+            let navData = null;
+            let navFixtures = null;
+
+            async function loadNavData() {{
+                try {{
+                    const response = await fetch('/lineup_ai/data.json');
+                    navData = await response.json();
+                    populateNavCountries();
+                }} catch (error) {{
+                    console.error('Error loading lineup data:', error);
+                }}
+            }}
+
+            function populateNavCountries() {{
+                const countrySelect = document.getElementById('nav-country');
+                const countries = Object.keys(navData).sort();
+                countries.forEach(country => {{
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.textContent = country;
+                    countrySelect.appendChild(option);
+                }});
+                // Auto-select current country based on team_id
+                for (const [country, leagues] of Object.entries(navData)) {{
+                    for (const teams of Object.values(leagues)) {{
+                        if (teams.some(t => t.id === CURRENT_TEAM_ID)) {{
+                            countrySelect.value = country;
+                            onNavCountryChange();
+                            return;
+                        }}
+                    }}
+                }}
+            }}
+
+            window.onNavCountryChange = function() {{
+                const country = document.getElementById('nav-country').value;
+                const championshipSelect = document.getElementById('nav-championship');
+                const teamSelect = document.getElementById('nav-team');
+                const matchSelect = document.getElementById('nav-match');
+                const matchGroup = document.getElementById('nav-match-group');
+                const matchActions = document.getElementById('nav-actions');
+
+                championshipSelect.innerHTML = '<option value="">-- Select Championship --</option>';
+                teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
+                matchSelect.innerHTML = '<option value="">-- Select Match --</option>';
+                teamSelect.disabled = true;
+                if (matchGroup) matchGroup.style.display = 'none';
+                if (matchActions) matchActions.style.display = 'none';
+
+                if (!country || !navData[country]) {{
+                    championshipSelect.disabled = true;
+                    return;
+                }}
+
+                const championships = Object.keys(navData[country]).sort();
+                let currentChamp = null;
+                for (const [ch, teams] of Object.entries(navData[country])) {{
+                    if (teams.some(t => t.id === CURRENT_TEAM_ID)) currentChamp = ch;
+                }}
+                championships.forEach(championship => {{
+                    const option = document.createElement('option');
+                    option.value = championship;
+                    option.textContent = championship;
+                    if (championship === currentChamp) option.selected = true;
+                    championshipSelect.appendChild(option);
+                }});
+                championshipSelect.disabled = false;
+                onNavChampionshipChange();
+            }};
+
+            window.onNavChampionshipChange = function() {{
+                const country = document.getElementById('nav-country').value;
+                const championship = document.getElementById('nav-championship').value;
+                const teamSelect = document.getElementById('nav-team');
+                const matchSelect = document.getElementById('nav-match');
+                const matchGroup = document.getElementById('nav-match-group');
+                const matchActions = document.getElementById('nav-actions');
+
+                teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
+                matchSelect.innerHTML = '<option value="">-- Select Match --</option>';
+                if (matchGroup) matchGroup.style.display = 'none';
+                if (matchActions) matchActions.style.display = 'none';
+
+                if (!country || !championship || !navData[country][championship]) {{
+                    teamSelect.disabled = true;
+                    return;
+                }}
+
+                const teams = navData[country][championship];
+                teams.forEach(team => {{
+                    const option = document.createElement('option');
+                    option.value = team.id;
+                    option.textContent = team.name;
+                    if (team.id === CURRENT_TEAM_ID) option.selected = true;
+                    teamSelect.appendChild(option);
+                }});
+                teamSelect.disabled = false;
+            }};
+
+            window.onNavTeamChange = async function() {{
+                const teamSelect = document.getElementById('nav-team');
+                const teamId = teamSelect.value;
+                const matchSelect = document.getElementById('nav-match');
+                const matchGroup = document.getElementById('nav-match-group');
+                const matchActions = document.getElementById('nav-actions');
+
+                if (!teamId) {{
+                    if (matchGroup) matchGroup.style.display = 'none';
+                    if (matchActions) matchActions.style.display = 'none';
+                    return;
+                }}
+
+                if (matchGroup) matchGroup.style.display = 'block';
+                if (matchActions) matchActions.style.display = 'block';
+
+                matchSelect.innerHTML = '<option value="">Loading fixtures...</option>';
+                matchSelect.disabled = true;
+
+                try {{
+                    const resp = await fetch('/lineup_ai/api/fixtures/' + teamId);
+                    const data = await resp.json();
+                    navFixtures = data.fixtures || [];
+
+                    matchSelect.innerHTML = '<option value="">-- Select a match --</option>';
+                    navFixtures.forEach((f, i) => {{
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = f.date + '  ' + f.home + ' - ' + f.away;
+                        matchSelect.appendChild(opt);
+                    }});
+                    matchSelect.disabled = false;
+                }} catch (e) {{
+                    console.error('Failed to load fixtures:', e);
+                    matchSelect.innerHTML = '<option value="">Failed to load</option>';
+                }}
+            }};
+
+            window.onNavMatchChange = function() {{
+                const teamId = document.getElementById('nav-team').value;
+                const idx = document.getElementById('nav-match').value;
+                if (!teamId || idx === '' || !navFixtures) return;
+
+                const fixture = navFixtures[parseInt(idx)];
+                if (fixture) {{
+                    const homeId = fixture.home_id || '';
+                    const awayId = fixture.away_id || '';
+                    const homeNm = fixture.home || '';
+                    const awayNm = fixture.away || '';
+                    const params = new URLSearchParams({{
+                        mid: fixture.mid,
+                        home_id: homeId,
+                        away_id: awayId,
+                        home_name: homeNm,
+                        away_name: awayNm
+                    }});
+                    window.location.href = '/lineup_ai/compare/' + teamId + '?' + params.toString();
+                }}
+            }};
+
+            window.openNavTeamAnalysis = function() {{
+                const teamId = document.getElementById('nav-team').value;
+                if (teamId) window.location.href = '/lineup_ai/' + teamId;
+            }};
+
+            if (document.readyState === 'loading') {{
+                document.addEventListener('DOMContentLoaded', loadNavData);
+            }} else {{
+                loadNavData();
+            }}
+        }})();
+        </script>
 </body>
 </html>"""
     
