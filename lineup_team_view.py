@@ -257,6 +257,100 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <p style="color:#666;line-height:1.5;">Team data has not been loaded yet</p>
     <a href="/lineup_ai/select" style="display:inline-block;text-decoration:none;border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">← Back to teams</a>
   </div>
+
+        <script>
+        (function() {{
+            const CURRENT_TEAM_ID = {team_id!r};
+            let navData = null;
+
+            async function loadNavHierarchy() {{
+                const r = await fetch('/lineup_ai/data.json', {{ cache: 'no-store' }});
+                navData = await r.json();
+                const countrySel = document.getElementById('nav-country');
+                countrySel.innerHTML = '<option value="">-- Select Country --</option>';
+                Object.keys(navData).sort().forEach(c => {{
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    countrySel.appendChild(opt);
+                }});
+                // Auto-select current country based on team_id
+                for (const [country, leagues] of Object.entries(navData)) {{
+                    for (const teams of Object.values(leagues)) {{
+                        if (teams.some(t => t.id === CURRENT_TEAM_ID)) {{
+                            countrySel.value = country;
+                            onNavCountryChange();
+                            return;
+                        }}
+                    }}
+                }}
+            }}
+
+            window.onNavCountryChange = function() {{
+                const countrySel = document.getElementById('nav-country');
+                const champSel = document.getElementById('nav-championship');
+                const teamSel = document.getElementById('nav-team');
+                const matchSel = document.getElementById('nav-match');
+                const country = countrySel.value;
+                champSel.innerHTML = '<option value="">-- Select Championship --</option>';
+                teamSel.innerHTML = '<option value="">-- Select Team --</option>';
+                matchSel.innerHTML = '<option value="">-- Select Match --</option>';
+                teamSel.disabled = true;
+                matchSel.style.display = 'none';
+                document.getElementById('nav-match-label').style.display = 'none';
+                if (!country) {{ champSel.disabled = true; return; }}
+                const champs = Object.keys(navData[country] || {{}}).sort();
+                champSel.disabled = false;
+                let currentChamp = null;
+                for (const [ch, teams] of Object.entries(navData[country])) {{
+                    if (teams.some(t => t.id === CURRENT_TEAM_ID)) currentChamp = ch;
+                }}
+                champs.forEach(ch => {{
+                    const opt = document.createElement('option');
+                    opt.value = ch;
+                    opt.textContent = ch;
+                    if (ch === currentChamp) opt.selected = true;
+                    champSel.appendChild(opt);
+                }});
+                onNavChampionshipChange();
+            }};
+
+            window.onNavChampionshipChange = function() {{
+                const country = document.getElementById('nav-country').value;
+                const champ = document.getElementById('nav-championship').value;
+                const teamSel = document.getElementById('nav-team');
+                const matchSel = document.getElementById('nav-match');
+                teamSel.innerHTML = '<option value="">-- Select Team --</option>';
+                matchSel.innerHTML = '<option value="">-- Select Match --</option>';
+                matchSel.style.display = 'none';
+                document.getElementById('nav-match-label').style.display = 'none';
+                if (!country || !champ) {{ teamSel.disabled = true; return; }}
+                const teams = (navData[country] && navData[country][champ]) || [];
+                teamSel.disabled = false;
+                teams.forEach(t => {{
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.name;
+                    if (t.id === CURRENT_TEAM_ID) opt.selected = true;
+                    teamSel.appendChild(opt);
+                }});
+            }};
+
+            window.onNavTeamChange = function() {{
+                const teamId = document.getElementById('nav-team').value;
+                if (teamId && teamId !== CURRENT_TEAM_ID) {{
+                    window.location.href = '/lineup_ai/' + teamId;
+                }}
+            }};
+
+            if (document.readyState === 'loading') {{
+                document.addEventListener('DOMContentLoaded', loadNavHierarchy);
+            }} else {{
+                loadNavHierarchy();
+            }}
+        }})();
+        </script>
+
 </body></html>"""
         return HTMLResponse(html)
     
@@ -927,6 +1021,48 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .status-orange {{ color: orange !important; font-weight: bold !important; text-decoration: underline !important; }}
         tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
 
+        .team-nav-sidebar {{
+            position: fixed;
+            top: 130px;
+            left: 12px;
+            width: 240px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 12px;
+            z-index: 50;
+            font-size: 13px;
+        }}
+        .team-nav-sidebar .nav-title {{
+            font-weight: bold;
+            color: #043fb6;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        .team-nav-sidebar select {{
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d5d9e8;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            background: #f8f9fc;
+            color: #333;
+        }}
+        .team-nav-sidebar select:disabled {{
+            opacity: 0.5;
+            cursor: not-allowed;
+        }}
+        .team-nav-sidebar label {{
+            display: block;
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 2px;
+            margin-top: 4px;
+        }}
+        body.embed-mode .team-nav-sidebar {{ display: none !important; }}
         .my-squads-sidebar {{
             width: 230px;
             flex-shrink: 0;
@@ -1225,6 +1361,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span>💎</span> My Favorites</a>
         </div>
     </div>
+
+    <aside class="team-nav-sidebar" id="team-nav-sidebar">
+        <div class="nav-title">Quick Navigation</div>
+        <label for="nav-country">Country</label>
+        <select id="nav-country" onchange="onNavCountryChange()">
+            <option value="">-- Select Country --</option>
+        </select>
+        <label for="nav-championship">Championship</label>
+        <select id="nav-championship" onchange="onNavChampionshipChange()" disabled>
+            <option value="">-- Select Championship --</option>
+        </select>
+        <label for="nav-team">Team</label>
+        <select id="nav-team" onchange="onNavTeamChange()" disabled>
+            <option value="">-- Select Team --</option>
+        </select>
+        <label for="nav-match" id="nav-match-label" style="display:none;">Match</label>
+        <select id="nav-match" onchange="onNavMatchChange()" style="display:none;" disabled>
+            <option value="">-- Select Match --</option>
+        </select>
+        <div id="nav-actions" style="display:none; text-align:center; margin-top:10px;">
+            <button id="nav-btn-analysis" onclick="openNavTeamAnalysis()" style="background:#043fb6; color:white; border:none; padding:8px 16px; border-radius:6px; font-size:13px; cursor:pointer;">
+                Team Analysis
+            </button>
+        </div>
+    </aside>
 
     <div class="container">
         <div class="tabs">
