@@ -619,9 +619,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         _top3_rows.append(
             f'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">'
             f'<span style="color:#667eea;font-weight:700;font-size:13px;min-width:14px;">{idx}.</span>'
-            f'<span style="background:#f0f2fa;color:#667eea;font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;min-width:24px;text-align:center;">{_pos_label}</span>'
+            f'<span style="background:#f0f2fa;color:#333;font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;min-width:24px;text-align:center;">{_pos_label}</span>'
             f'<span style="flex:1;font-size:12px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{_name}</span>'
-            f'<span style="color:#667eea;font-weight:600;font-size:12px;">{_is:.2f}</span>'
+            f'<span style="color:#333;font-weight:600;font-size:12px;">{_is:.2f}</span>'
             f'</div>'
         )
     top3_players_html = "".join(_top3_rows) if _top3_rows else '<div style="font-size:11px;color:#999;text-align:center;">No data</div>'
@@ -644,8 +644,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         _pcount = _pos_counts[_pkey]
         _pos_pills.append(
             f'<span style="display:inline-flex;align-items:center;gap:4px;background:#f0f2fa;border-radius:4px;padding:2px 6px;">'
-            f'<span style="color:#667eea;font-weight:700;font-size:11px;">{_plabel}</span>'
-            f'<span style="color:#667eea;font-weight:600;font-size:11px;">{_pcount}</span>'
+            f'<span style="color:#333;font-weight:700;font-size:11px;">{_plabel}</span>'
+            f'<span style="color:#333;font-weight:600;font-size:11px;">{_pcount}</span>'
             f'</span>'
         )
     positional_overview_html = (
@@ -1282,9 +1282,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Positions</div>
                 {positional_overview_html}
             </div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span></div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Avg Age</div><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span></div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Total Value</div><span style="font-weight:bold;color:#667eea;font-size:20px;">{total_value_display}</span></div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div><span style="font-weight:bold;color:#333;font-size:20px;">{squad_size}</span></div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Avg Age</div><span style="font-weight:bold;color:#333;font-size:20px;">{avg_age}</span></div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Total Value</div><span style="font-weight:bold;color:#333;font-size:20px;">{total_value_display}</span></div>
         </div>
         <!-- Missing Players Stats (hidden by default) -->
         <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
