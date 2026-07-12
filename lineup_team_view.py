@@ -626,6 +626,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         )
     top3_players_html = "".join(_top3_rows) if _top3_rows else '<div style="font-size:11px;color:#999;text-align:center;">No data</div>'
 
+
+    # Positional overview: count GK/DF/MF/FW
+    _pos_counts = {"GK": 0, "DF": 0, "MF": 0, "FW": 0}
+    for _pp in sorted_players:
+        _pp_pos = str(_pp.get("position", "") or "").strip().upper()
+        if _pp_pos in _pos_counts:
+            _pos_counts[_pp_pos] += 1
+        elif _pp_pos in ("D", "M", "F", "G"):
+            # some sources use single-letter
+            _norm = {"G": "GK", "D": "DF", "M": "MF", "F": "FW"}.get(_pp_pos)
+            if _norm:
+                _pos_counts[_norm] += 1
+    _pos_labels = [("GK", "GK"), ("DF", "DF"), ("MF", "MF"), ("FW", "FW")]
+    _pos_rows = []
+    for _plabel, _pkey in _pos_labels:
+        _pcount = _pos_counts[_pkey]
+        _pos_rows.append(
+            f'<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">'
+            f'<span style="background:#f0f2fa;color:#667eea;font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;min-width:24px;text-align:center;">{_plabel}</span>'
+            f'<span style="flex:1;font-size:12px;color:#333;">{_plabel}s</span>'
+            f'<span style="color:#667eea;font-weight:600;font-size:12px;">{_pcount}</span>'
+            f'</div>'
+        )
+    positional_overview_html = "".join(_pos_rows)
+
     html = f"""<!doctype html>
 <html>
 <head>
@@ -1249,6 +1274,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Top Players</div>
                 {top3_players_html}
+            </div>
+            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Positional Overview</div>
+                {positional_overview_html}
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{avg_age}</span><br><span style="color:#888;font-size:11px;">Avg Age</span></div>
