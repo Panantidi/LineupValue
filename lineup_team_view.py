@@ -639,17 +639,20 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if _norm:
                 _pos_counts[_norm] += 1
     _pos_labels = [("GK", "GK"), ("DF", "DF"), ("MF", "MF"), ("FW", "FW")]
-    _pos_rows = []
+    _pos_pills = []
     for _plabel, _pkey in _pos_labels:
         _pcount = _pos_counts[_pkey]
-        _pos_rows.append(
-            f'<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">'
-            f'<span style="background:#f0f2fa;color:#667eea;font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;min-width:24px;text-align:center;">{_plabel}</span>'
-            f'<span style="flex:1;font-size:12px;color:#333;">{_plabel}s</span>'
-            f'<span style="color:#667eea;font-weight:600;font-size:12px;">{_pcount}</span>'
-            f'</div>'
+        _pos_pills.append(
+            f'<span style="display:inline-flex;align-items:center;gap:4px;background:#f0f2fa;border-radius:4px;padding:2px 6px;">'
+            f'<span style="color:#667eea;font-weight:700;font-size:11px;">{_plabel}</span>'
+            f'<span style="color:#667eea;font-weight:600;font-size:11px;">{_pcount}</span>'
+            f'</span>'
         )
-    positional_overview_html = "".join(_pos_rows)
+    positional_overview_html = (
+        f'<div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">'
+        + "".join(_pos_pills)
+        + '</div>'
+    )
 
     html = f"""<!doctype html>
 <html>
@@ -1276,7 +1279,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 {top3_players_html}
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;">Positional Overview</div>
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Positions</div>
                 {positional_overview_html}
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><span style="font-weight:bold;color:#667eea;font-size:20px;">{squad_size}</span><br><span style="color:#888;font-size:11px;">Players</span></div>
