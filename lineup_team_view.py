@@ -618,7 +618,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             _pos_label = _pos[:2] if _pos else ""
         _top3_rows.append(
             f'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">'
-            f'<span style="color:#667eea;font-weight:700;font-size:13px;min-width:14px;">{idx}.</span>'
+            f''
             f'<span style="background:#f0f2fa;color:#333;font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;min-width:24px;text-align:center;">{_pos_label}</span>'
             f'<span style="flex:1;font-size:12px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{_name}</span>'
             f'<span style="color:#333;font-weight:600;font-size:12px;">{_is:.2f}</span>'
