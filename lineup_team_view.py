@@ -2628,9 +2628,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                                 : '✓ Refreshed (was ' + duration + 'h old)';
                             if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
                             if (btn) {{ btn.innerHTML = '♻️ Update data'; btn.disabled = false; }}
-                            
-                            // Reload page with cache-bust
-                            window.location.href = window.location.pathname + '?_v=' + Date.now();
+                            // No reload: auto-update already saved fresh cache.
+                            // Reloading would re-trigger the auto-update and create a reload loop.
                         }})
                         .catch(function(err) {{
                             clearInterval(counterInterval);
@@ -2639,18 +2638,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                             if (btn) {{ btn.innerHTML = '♻️ Update data'; btn.disabled = false; }}
                         }});
                 }} else {{
-                    // Background check for external updates (other users)
-                    var teamId = window.location.pathname.split('/').pop();
-                    fetch('/lineup_ai/api/fetch/' + teamId)
-                        .then(function(r) {{ return r.json(); }})
-                        .then(function(data) {{
-                            if (data && data.changed) {{
-                                window.location.reload();
-                            }}
-                        }})
-                        .catch(function(err) {{
-                            console.log('Background live-data sync failed:', err);
-                        }});
+                    // Cache is fresh, no auto-update needed. Background sync disabled
+                    // to avoid reload loops when other users update the cache.
                 }}
             }})();
         }}
