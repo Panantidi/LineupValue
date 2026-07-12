@@ -117,6 +117,9 @@ body {
         .team-nav-sidebar.collapsed .nav-rail::after {
             content: "‹";
         }
+        .nav-rail.expanded {
+            background: #2e7af8;
+        }
         .team-nav-sidebar {
             position: fixed;
             left: 6px;
@@ -137,7 +140,6 @@ body {
         .team-nav-sidebar.collapsed {
             transform: translateX(-100%);
             opacity: 0;
-            pointer-events: none;
         }
         .nav-rail-btn {
             position: absolute;
@@ -207,8 +209,8 @@ body {
 </style>
 </head>
 <body>
+<div class="nav-rail" id="nav-rail" onclick="toggleNavSidebar()" title="Show navigation"></div>
 <aside class="team-nav-sidebar" id="team-nav-sidebar">
-    <div class="nav-rail" id="nav-rail" onclick="toggleNavSidebar()" title="Toggle navigation"></div>
     <div class="nav-title">Quick Navigation<button class="nav-rail-btn" onclick="toggleNavSidebar()" title="Hide">&times;</button></div>
     <div class="form-group">
         <label for="nav-country">Country</label>
@@ -525,7 +527,15 @@ body {
 
     window.toggleNavSidebar = function() {
         var sb = document.getElementById('team-nav-sidebar');
-        sb.classList.toggle('collapsed');
+        var rail = document.getElementById('nav-rail');
+        var isCollapsed = sb.classList.toggle('collapsed');
+        if (isCollapsed) {
+            rail.title = 'Show navigation';
+            rail.classList.remove('expanded');
+        } else {
+            rail.title = 'Hide navigation';
+            rail.classList.add('expanded');
+        }
     };
 
     async function loadNavData() {
