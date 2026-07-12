@@ -1279,7 +1279,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 {top3_players_html}
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Positions</div>
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Pos.Overview</div>
                 {positional_overview_html}
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div><span style="font-weight:normal;color:#333;font-size:20px;">{squad_size}</span></div>
