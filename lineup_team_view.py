@@ -1632,19 +1632,16 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     <script>
         var _tooltipTimer = null;
-        var _sectionHosts = ['bulk-lineup-panel-host', 'comparison-table-host', 'info-bar-squad-host'];
         function toggleSection(hostId, btn) {{
             var host = document.getElementById(hostId);
             if (!host) return;
             var isVisible = host.style.display !== 'none';
-            _sectionHosts.forEach(function(id) {{
-                var h = document.getElementById(id);
-                if (h) h.style.display = 'none';
-            }});
-            document.querySelectorAll('.header-action-btn').forEach(function(b) {{ b.classList.remove('active'); }});
             if (!isVisible) {{
                 host.style.display = 'block';
                 if (btn) btn.classList.add('active');
+            }} else {{
+                host.style.display = 'none';
+                if (btn) btn.classList.remove('active');
             }}
         }}
         function selectTab(el, name) {{
