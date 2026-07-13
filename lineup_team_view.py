@@ -777,9 +777,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             align-items: flex-start;
         }}
         .main-table {{
-            flex: 1;
+            flex: 0 0 auto;
             min-width: 0;
             overflow-x: auto;
+            width: fit-content;
+            max-width: 100%;
         }}
         .main-table tbody tr {{
             height: 22px;
