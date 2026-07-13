@@ -1551,42 +1551,72 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
                 </div>
             </div>
-        </div>
 
-        <!-- Builder Lineup: pitch with 11 draggable player circles -->
-        <div id="builder-lineup-host" style="display:none;margin-top:16px;">
-            <div id="builder-lineup" style="background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);padding:16px;width:fit-content;">
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
-                    <label style="font-weight:600;color:#333;font-size:13px;">Formation:</label>
-                    <select id="bl-formation" onchange="applyFormation(this.value)" style="padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;background:white;cursor:pointer;">
-                        <option value="4-3-3">4-3-3</option>
-                        <option value="4-4-2">4-4-2</option>
-                        <option value="4-2-3-1">4-2-3-1</option>
-                        <option value="4-1-4-1">4-1-4-1</option>
-                        <option value="4-2-4">4-2-4</option>
-                        <option value="4-3-3">4-3-3</option>
-                        <option value="4-4-1-1">4-4-1-1</option>
-                        <option value="4-4-2-diamond">4-4-2 (Diamond)</option>
-                        <option value="3-1-4-2">3-1-4-2</option>
-                        <option value="3-4-3">3-4-3</option>
-                        <option value="3-5-2">3-5-2</option>
-                        <option value="5-3-2">5-3-2</option>
-                        <option value="5-4-1">5-4-1</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                    <button type="button" onclick="clearFormation()" style="padding:6px 12px;background:#f0f0f0;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:12px;">Clear</button>
-                    <button type="button" onclick="saveLineupPNG()" style="padding:6px 12px;background:#2e7af8;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Save PNG</button>
-                </div>
-                <div id="bl-pitch" style="position:relative;width:540px;height:675px;background:linear-gradient(to bottom, #2d8f3f 0%, #1f6b2d 100%);border-radius:8px;overflow:hidden;border:2px solid #fff;box-shadow:inset 0 0 30px rgba(0,0,0,0.3);">
-                    <!-- Pitch markings -->
-                    <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.4);"></div>
-                    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:80px;height:80px;border:2px solid rgba(255,255,255,0.4);border-radius:50%;"></div>
-                    <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:80px;height:140px;border:2px solid rgba(255,255,255,0.4);border-right:none;"></div>
-                    <div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:80px;height:140px;border:2px solid rgba(255,255,255,0.4);border-left:none;"></div>
-                    <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:40px;height:80px;border:2px solid rgba(255,255,255,0.4);border-right:none;"></div>
-                    <div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:40px;height:80px;border:2px solid rgba(255,255,255,0.4);border-left:none;"></div>
-                    <div id="bl-team-name" style="position:absolute;left:16px;bottom:12px;color:white;font-size:13px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.5);">{team_name}</div>
-                    <div id="bl-players" style="position:absolute;inset:0;"></div>
+            <!-- Builder Lineup: pitch with 11 draggable player circles (sits right of main table) -->
+            <div id="builder-lineup-host" style="display:none;flex-shrink:0;margin-top:0;">
+                <div id="builder-lineup" style="background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);padding:16px;width:fit-content;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                        <label style="font-weight:600;color:#333;font-size:12px;">Formation:</label>
+                        <select id="bl-formation" onchange="applyFormation(this.value)" style="padding:5px 8px;border:1px solid #ccc;border-radius:5px;font-size:12px;background:white;cursor:pointer;">
+                            <option value="4-3-3">4-3-3</option>
+                            <option value="4-4-2">4-4-2</option>
+                            <option value="4-2-3-1">4-2-3-1</option>
+                            <option value="4-1-4-1">4-1-4-1</option>
+                            <option value="4-2-4">4-2-4</option>
+                            <option value="4-4-1-1">4-4-1-1</option>
+                            <option value="4-4-2-diamond">4-4-2 (Diamond)</option>
+                            <option value="3-1-4-2">3-1-4-2</option>
+                            <option value="3-4-3">3-4-3</option>
+                            <option value="3-5-2">3-5-2</option>
+                            <option value="5-3-2">5-3-2</option>
+                            <option value="5-4-1">5-4-1</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                        <button type="button" onclick="clearFormation()" style="padding:5px 10px;background:#f0f0f0;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-size:11px;">Clear</button>
+                        <button type="button" onclick="saveLineupPNG()" style="padding:5px 10px;background:#2e7af8;color:white;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;">Save PNG</button>
+                    </div>
+                    <div id="bl-pitch" style="position:relative;width:540px;height:675px;border-radius:6px;overflow:hidden;border:3px solid #fff;background-color:#2d8f3f;">
+                        <!-- Pitch background with stripes (mowed field) -->
+                        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg, #2d8f3f 0px, #2d8f3f 67px, #298238 67px, #298238 134px);"></div>
+                        <!-- Outer touchline (already covered by border) -->
+                        <!-- Halfway line (vertical center) -->
+                        <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.85);"></div>
+                        <!-- Center circle -->
+                        <div style="position:absolute;left:50%;top:50%;width:90px;height:90px;border:2px solid rgba(255,255,255,0.85);border-radius:50%;transform:translate(-50%,-50%);"></div>
+                        <!-- Center spot -->
+                        <div style="position:absolute;left:50%;top:50%;width:4px;height:4px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translate(-50%,-50%);"></div>
+                        <!-- Top penalty area -->
+                        <div style="position:absolute;left:50%;top:0;width:330px;height:120px;border:2px solid rgba(255,255,255,0.85);border-top:none;transform:translateX(-50%);"></div>
+                        <!-- Top goal area (6-yard box) -->
+                        <div style="position:absolute;left:50%;top:0;width:160px;height:50px;border:2px solid rgba(255,255,255,0.85);border-top:none;transform:translateX(-50%);"></div>
+                        <!-- Top penalty spot -->
+                        <div style="position:absolute;left:50%;top:78px;width:3px;height:3px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translateX(-50%);"></div>
+                        <!-- Top goal (net) -->
+                        <div style="position:absolute;left:50%;top:-8px;width:80px;height:10px;border:2px solid #fff;background:rgba(255,255,255,0.1);transform:translateX(-50%);"></div>
+                        <!-- Bottom penalty area -->
+                        <div style="position:absolute;left:50%;bottom:0;width:330px;height:120px;border:2px solid rgba(255,255,255,0.85);border-bottom:none;transform:translateX(-50%);"></div>
+                        <!-- Bottom goal area -->
+                        <div style="position:absolute;left:50%;bottom:0;width:160px;height:50px;border:2px solid rgba(255,255,255,0.85);border-bottom:none;transform:translateX(-50%);"></div>
+                        <!-- Bottom penalty spot -->
+                        <div style="position:absolute;left:50%;bottom:78px;width:3px;height:3px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translateX(-50%);"></div>
+                        <!-- Bottom goal (net) -->
+                        <div style="position:absolute;left:50%;bottom:-8px;width:80px;height:10px;border:2px solid #fff;background:rgba(255,255,255,0.1);transform:translateX(-50%);"></div>
+                        <!-- Top penalty arc -->
+                        <svg style="position:absolute;left:50%;top:110px;transform:translateX(-50%);" width="160" height="40" viewBox="0 0 160 40">
+                            <path d="M 10 0 A 80 80 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
+                        </svg>
+                        <!-- Bottom penalty arc -->
+                        <svg style="position:absolute;left:50%;bottom:110px;transform:translateX(-50%) rotate(180deg);" width="160" height="40" viewBox="0 0 160 40">
+                            <path d="M 10 0 A 80 80 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
+                        </svg>
+                        <!-- Corner arcs -->
+                        <div style="position:absolute;left:0;top:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-right:none;border-bottom:none;border-top-left-radius:30px;"></div>
+                        <div style="position:absolute;right:0;top:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-left:none;border-bottom:none;border-top-right-radius:30px;"></div>
+                        <div style="position:absolute;left:0;bottom:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-right:none;border-top:none;border-bottom-left-radius:30px;"></div>
+                        <div style="position:absolute;right:0;bottom:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-left:none;border-top:none;border-bottom-right-radius:30px;"></div>
+                        <div id="bl-team-name" style="position:absolute;left:14px;bottom:10px;color:white;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:1;">{team_name}</div>
+                        <div id="bl-players" style="position:absolute;inset:0;z-index:2;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1598,7 +1628,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var host = document.getElementById(hostId);
             if (!host) return;
             var isVisible = host.style.display !== 'none';
-            // ⚖️ Compare Lineups and 📊 Squad Overview are mutually exclusive (both live in left column)
+            // ⚖️ Compare Lineups и 📊 Squad Overview — mutually exclusive
             var pairedHosts = ['comparison-table-host', 'info-bar-squad-host'];
             if (!isVisible && pairedHosts.indexOf(hostId) !== -1) {{
                 pairedHosts.forEach(function(id) {{
@@ -1615,6 +1645,19 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }} else {{
                 host.style.display = 'none';
                 if (btn) btn.classList.remove('active');
+            }}
+            // 🏗️ Builder Lineup — switch .main-layout to row when shown
+            var mainLayout = document.querySelector('.main-layout');
+            if (mainLayout) {{
+                if (hostId === 'builder-lineup-host' && host.style.display !== 'none') {{
+                    mainLayout.style.flexDirection = 'row';
+                    mainLayout.style.alignItems = 'flex-start';
+                    mainLayout.style.gap = '20px';
+                }} else {{
+                    mainLayout.style.flexDirection = 'column';
+                    mainLayout.style.alignItems = 'center';
+                    mainLayout.style.gap = '20px';
+                }}
             }}
         }}
         function selectTab(el, name) {{
@@ -3070,30 +3113,34 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
         function blMakeDraggable(el) {{
-            let dragging = false, startX, startY, origLeft, origTop;
             el.addEventListener('mousedown', function(e) {{
-                if (e.target.tagName === 'INPUT') return; // don't drag when clicking on number input
-                dragging = true;
-                const rect = el.getBoundingClientRect();
-                const parentRect = el.parentElement.getBoundingClientRect();
-                startX = e.clientX; startY = e.clientY;
-                origLeft = rect.left - parentRect.left;
-                origTop = rect.top - parentRect.top;
-                el.style.transition = 'none';
+                if (e.target.tagName === 'INPUT') return;
                 e.preventDefault();
-            }});
-            document.addEventListener('mousemove', function(e) {{
-                if (!dragging) return;
+                e.stopPropagation();
                 const parentRect = el.parentElement.getBoundingClientRect();
-                const newLeft = origLeft + (e.clientX - startX);
-                const newTop = origTop + (e.clientY - startY);
-                const clampedLeft = Math.max(0, Math.min(parentRect.width - BL_CIRCLE, newLeft));
-                const clampedTop = Math.max(0, Math.min(parentRect.height - BL_CIRCLE, newTop));
-                el.style.left = clampedLeft + 'px';
-                el.style.top = clampedTop + 'px';
+                const rect = el.getBoundingClientRect();
+                const startLeft = rect.left - parentRect.left;
+                const startTop = rect.top - parentRect.top;
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
                 el.style.transform = 'none';
+                el.style.zIndex = '100';
+                function onMove(ev) {{
+                    const newLeft = ev.clientX - parentRect.left - offsetX;
+                    const newTop = ev.clientY - parentRect.top - offsetY;
+                    const clampedLeft = Math.max(0, Math.min(parentRect.width - BL_CIRCLE, newLeft));
+                    const clampedTop = Math.max(0, Math.min(parentRect.height - BL_CIRCLE, newTop));
+                    el.style.left = clampedLeft + 'px';
+                    el.style.top = clampedTop + 'px';
+                }}
+                function onUp() {{
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    el.style.zIndex = '';
+                }}
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
             }});
-            document.addEventListener('mouseup', function() {{ dragging = false; }});
         }}
 
         function blUpdatePlayerName(idx) {{
