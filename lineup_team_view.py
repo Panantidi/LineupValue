@@ -2581,16 +2581,28 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // Clone main table (without the gradient title bar — we already added a plain title above)
                 if (mainTable) {{
                     const tcClone = mainTable.cloneNode(true);
-                    // Force the full natural width (964px = sum of all 21 column widths) so html2canvas
-                    // captures Apps/Min/G/A/YC/RC even when viewport is narrower than the table.
                     tcClone.style.width = '964px';
                     tcClone.style.maxWidth = 'none';
                     tcClone.style.overflowX = 'visible';
-                    // Force fixed table layout so column widths from <th width="Xpx"> are honored
                     const innerTable = tcClone.querySelector('table');
                     if (innerTable) {{
                         innerTable.style.tableLayout = 'fixed';
                         innerTable.style.width = '964px';
+                        innerTable.style.minWidth = '964px';
+                        // Apply explicit width to every cell so html2canvas renders them at the right size
+                        // Column widths in order: 30,30,200,70,30,60,30,60,40, 37,37,37, 37,37,37, 32,40,30,30,30,30
+                        const colWidths = [30,30,200,70,30,60,30,60,40, 37,37,37, 37,37,37, 32,40,30,30,30,30];
+                        innerTable.querySelectorAll('tr').forEach(tr => {{
+                            const cells = tr.querySelectorAll('th, td');
+                            cells.forEach((cell, i) => {{
+                                if (colWidths[i] !== undefined) {{
+                                    cell.style.width = colWidths[i] + 'px';
+                                    cell.style.minWidth = colWidths[i] + 'px';
+                                    cell.style.maxWidth = colWidths[i] + 'px';
+                                    cell.style.boxSizing = 'border-box';
+                                }}
+                            }});
+                        }});
                     }}
                     capture.appendChild(tcClone);
                 }}
