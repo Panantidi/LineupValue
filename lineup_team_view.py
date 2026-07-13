@@ -721,6 +721,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             padding: 6px 14px;
             font-size: 13px;
             border-radius: 4px;
+            color: white;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+        }}
+        .header-tabs .tab:hover {{
+            background: rgba(255,255,255,0.25);
+        }}
+        .header-tabs .tab.active {{
+            background: rgba(255,255,255,0.35);
+            border-color: rgba(255,255,255,0.5);
         }}
         .header a {{
             color: white;
@@ -1515,8 +1526,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
             <div class="main-table">
                 <!-- Team name + tabs moved up from header to sit flush above the table -->
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap;">
-                    <h1 style="margin:0;font-size:24px;font-weight:600;color:#1a2942;">{team_name}</h1>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap;background:linear-gradient(to right, #043fb6 0%, #2e7af8 100%);padding:16px 20px;border-radius:12px;">
+                    <h1 style="margin:0;font-size:24px;font-weight:600;color:white;">{team_name}</h1>
                     <div class="header-tabs">
                         <div class="tab active">Squad</div>
                         <div class="tab">Missing Players</div>
