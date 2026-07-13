@@ -781,8 +781,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             margin-left: 0;
             margin-right: auto;
             min-width: 0;
-            overflow-x: auto;
-            width: fit-content;
+            overflow-x: visible;
+        }}
+        .main-table > .table-container {{
+            width: 964px;
             max-width: 100%;
         }}
         .main-table tbody tr {{
