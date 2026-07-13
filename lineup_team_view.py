@@ -1481,7 +1481,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Possible XI">P-XI</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Possible XI vs Last Match XI">Possible XI 🆚 Last Match XI</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Difference in %">Δ (%)</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
@@ -1514,7 +1514,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">STARTING XI vs POSSIBLE XI Δ (%)</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Starting XI vs Possible XI">Starting XI 🆚 Possible XI</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1539,7 +1539,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <thead>
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Starting XI">S-XI</th>
+                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Starting XI vs Last Match XI">Starting XI 🆚 Last Match XI</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Difference in %">Δ (%)</th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
