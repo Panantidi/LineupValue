@@ -1102,6 +1102,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             padding: 12px;
             margin: 0 0 12px 0;
+            width: 964px;
+            max-width: 100%;
+            box-sizing: border-box;
         }}
         .bulk-lineup-title {{
             font-size: 14px;
@@ -1388,8 +1391,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
 
     <div class="page-main">
-<div id="bulk-lineup-panel-host" style="display:none;">
-        <div class="container">
+<div id="bulk-lineup-panel-host" style="display:none;margin-bottom:12px;">
             <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
                 <div class="bulk-lineup-row">
@@ -1418,7 +1420,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </div>
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
-        </div>
         </div>
 </div>
 
