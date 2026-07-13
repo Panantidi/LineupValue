@@ -1488,6 +1488,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <tr style="border-top:1px solid #eee;height:22px;">
                         <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-impact">0.00</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-impact">–</td>
                     </tr>
                 </tbody>
             </table>
@@ -1522,6 +1523,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <tr style="border-top:1px solid #eee;height:22px;">
                         <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-impact">0.00</td>
+                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-pct-impact">–</td>
                     </tr>
                 </tbody>
             </table>
@@ -2425,7 +2427,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             
             const sxiImpactEl = document.getElementById('cmp-sxi-impact');
             if (sxiImpactEl) sxiImpactEl.textContent = sxiImpact.toFixed(2);
-            const pctImpactEl = document.getElementById('cmp-pct-impact');
+            const pctImpactEl = document.getElementById('cmp-sxi-pct-impact');
             if (pctImpactEl) {{
                 const d = sxiImpact - lastImpact;
                 pctImpactEl.innerHTML = lastImpact > 0 ? fmtPct(d / lastImpact * 100) : '–';
