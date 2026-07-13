@@ -1005,14 +1005,18 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         body.embed-mode .team-nav-sidebar {{ display: none !important; }}
         .my-squads-sidebar {{
-            width: 230px;
+            width: 240px;
             flex-shrink: 0;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             padding: 12px;
-            max-height: calc(100vh - 150px);
+            font-size: 13px;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 32px);
             overflow-y: auto;
+            z-index: 50;
         }}
         .my-squads-title {{
             font-size: 15px;
