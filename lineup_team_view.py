@@ -2586,6 +2586,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     tcClone.style.width = '964px';
                     tcClone.style.maxWidth = 'none';
                     tcClone.style.overflowX = 'visible';
+                    // Force fixed table layout so column widths from <th width="Xpx"> are honored
+                    const innerTable = tcClone.querySelector('table');
+                    if (innerTable) {{
+                        innerTable.style.tableLayout = 'fixed';
+                        innerTable.style.width = '964px';
+                    }}
                     capture.appendChild(tcClone);
                 }}
                 // Clone coach + stadium bar (force-show if hidden by tab switch)
