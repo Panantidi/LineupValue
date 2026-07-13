@@ -1482,28 +1482,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Possible XI vs Last Match XI">Possible XI 🆚 Last Match XI</th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Difference in %">Δ (%)</th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
                         <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-impact">0.00</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-impact">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-impact">{last_match_impact:.2f}</td>
-                    </tr>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Market Value">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-mv">0.0m</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-mv">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-mv">{last_match_mv:.1f}m</td>
-                    </tr>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-age">0.0</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-age">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-last-age">{last_match_age:.1f}</td>
                     </tr>
                 </tbody>
             </table>
@@ -1522,14 +1506,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-impact">–</td>
                     </tr>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Market Value">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-mv">–</td>
-                    </tr>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-age">–</td>
-                    </tr>
                 </tbody>
             </table>
             </div>
@@ -1540,28 +1516,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <tr style="background:#f8f9fa;">
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
                         <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Starting XI vs Last Match XI">Starting XI 🆚 Last Match XI</th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Difference in %">Δ (%)</th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Last Match</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
                         <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-impact">0.00</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-impact">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-impact">{last_match_impact:.2f}</td>
-                    </tr>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Market Value">MV</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-mv">0.0m</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-mv">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-mv">{last_match_mv:.1f}m</td>
-                    </tr>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;">Av.Age</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-age">0.0</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pct-age">–</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-last-age">{last_match_age:.1f}</td>
                     </tr>
                 </tbody>
             </table>
