@@ -1368,26 +1368,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <!-- Comparison Tables (toggled by ⚖️ Compare Lineups, appears below my-squads-sidebar, mutually exclusive with info-bar-squad-host) -->
     <div id="comparison-table-host" style="display:none;">
     <div id="comparison-table" style="display:flex;flex-direction:column;gap:8px;">
-        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:6px 10px;">
-            <div style="text-align:center;font-weight:600;color:#667eea;font-size:10px;margin-bottom:4px;">Possible XI 🆚 Last Match XI</div>
-            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
-                <span style="font-weight:600;color:#555;font-size:12px;">IS</span>
-                <span id="cmp-pxi-pct-impact" style="font-size:13px;">–</span>
-            </div>
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:8px 10px;display:flex;align-items:center;justify-content:center;min-height:38px;">
+            <span id="cmp-pxi-pct-impact" style="font-size:13px;">–</span>
         </div>
-        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:6px 10px;">
-            <div style="text-align:center;font-weight:600;color:#333;font-size:10px;margin-bottom:4px;">Starting XI 🆚 Possible XI</div>
-            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
-                <span style="font-weight:600;color:#555;font-size:12px;">IS</span>
-                <span id="cmp-val-pct-impact" style="font-size:13px;">–</span>
-            </div>
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:8px 10px;display:flex;align-items:center;justify-content:center;min-height:38px;">
+            <span id="cmp-val-pct-impact" style="font-size:13px;">–</span>
         </div>
-        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:6px 10px;">
-            <div style="text-align:center;font-weight:600;color:#dc3545;font-size:10px;margin-bottom:4px;">Starting XI 🆚 Last Match XI</div>
-            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
-                <span style="font-weight:600;color:#555;font-size:12px;">IS</span>
-                <span id="cmp-sxi-pct-impact" style="font-size:13px;">–</span>
-            </div>
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:8px 10px;display:flex;align-items:center;justify-content:center;min-height:38px;">
+            <span id="cmp-sxi-pct-impact" style="font-size:13px;">–</span>
         </div>
     </div>
     </div>
