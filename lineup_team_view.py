@@ -1351,11 +1351,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
         </div>
 
-        <!-- Info Bar: Coach + Stadium stacked left (width = Players), Players/Avg/Total fill the rest -->
+        <!-- Info Bar: Players on Fire / Pos.Overview / Players / Avg Age / Total Goals / Total Apps -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;">
-            <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;">
-                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:left;display:flex;align-items:center;justify-content:flex-start;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
-            </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Players on Fire</div>
                 {top3_players_html}
@@ -1562,8 +1559,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </tbody>
             </table>
                 </div>
-                <!-- Coach below main table, auto-width (sized to text content) -->
-                <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;margin-top:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
+                <!-- Coach (left) + Stadium (right) below main table, auto-width, aligned to table edges -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;">
+                    <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
+                    <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
+                </div>
             </div>
         </div>
     </div>
