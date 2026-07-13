@@ -1365,6 +1365,33 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div id="my-squads-list"><div class="snapshot-empty-list">No saved squads yet.</div></div>
     </aside>
 
+    <!-- Comparison Tables (toggled by ⚖️ Compare Lineups, appears below my-squads-sidebar, mutually exclusive with info-bar-squad-host) -->
+    <div id="comparison-table-host" style="display:none;">
+    <div id="comparison-table" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:6px 10px;">
+            <div style="text-align:center;font-weight:600;color:#667eea;font-size:10px;margin-bottom:4px;">Possible XI 🆚 Last Match XI</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+                <span style="font-weight:600;color:#555;font-size:12px;">IS</span>
+                <span id="cmp-pxi-pct-impact" style="font-size:13px;">–</span>
+            </div>
+        </div>
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:6px 10px;">
+            <div style="text-align:center;font-weight:600;color:#333;font-size:10px;margin-bottom:4px;">Starting XI 🆚 Possible XI</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+                <span style="font-weight:600;color:#555;font-size:12px;">IS</span>
+                <span id="cmp-val-pct-impact" style="font-size:13px;">–</span>
+            </div>
+        </div>
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:6px 10px;">
+            <div style="text-align:center;font-weight:600;color:#dc3545;font-size:10px;margin-bottom:4px;">Starting XI 🆚 Last Match XI</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+                <span style="font-weight:600;color:#555;font-size:12px;">IS</span>
+                <span id="cmp-sxi-pct-impact" style="font-size:13px;">–</span>
+            </div>
+        </div>
+    </div>
+    </div>
+
     <!-- Info Bar Squad Overview (toggled by header button, appears below my-squads-sidebar) -->
     <div id="info-bar-squad-host" style="display:none;">
 <div id="info-bar-squad" style="display:flex;flex-direction:column;gap:12px;">
@@ -1472,63 +1499,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;"><span id="transfer-out-assists">0</span><span style="font-size:14px;color:#999;"> / <span id="transfer-out-assists-pct">0</span>%</span></span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
 
-        <!-- Comparison Tables: stacked vertically, each 100% width of host (= main table width 964px) -->
-        <div id="comparison-table-host" style="display:none;width:fit-content;max-width:100%;margin:0 0 12px 0;">
-        <div id="comparison-table" style="display:flex;flex-direction:column;gap:8px;">
-            <!-- Possible XI -->
-            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead>
-                    <tr style="background:#f8f9fa;">
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#667eea;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Possible XI vs Last Match XI">Possible XI 🆚 Last Match XI</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-impact">–</td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-            <!-- Value S-XI: STARTING XI vs POSSIBLE XI Δ (%) only -->
-            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead>
-                    <tr style="background:#f8f9fa;">
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#333;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Starting XI vs Possible XI">Starting XI 🆚 Possible XI</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-val-pct-impact">–</td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-            <!-- Starting XI -->
-            <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead>
-                    <tr style="background:#f8f9fa;">
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:right;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;"></th>
-                        <th style="padding:0 6px;height:22px;line-height:22px;text-align:center;color:#dc3545;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;" title="Starting XI vs Last Match XI">Starting XI 🆚 Last Match XI</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="border-top:1px solid #eee;height:22px;">
-                        <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-pct-impact">–</td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-        </div>
-        </div>
-
         <!-- Hidden -->
         <div style="display:none;">
         {last_match_impact:.2f}
@@ -1596,6 +1566,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var host = document.getElementById(hostId);
             if (!host) return;
             var isVisible = host.style.display !== 'none';
+            // ⚖️ Compare Lineups and 📊 Squad Overview are mutually exclusive (both live in left column)
+            var pairedHosts = ['comparison-table-host', 'info-bar-squad-host'];
+            if (!isVisible && pairedHosts.indexOf(hostId) !== -1) {{
+                pairedHosts.forEach(function(id) {{
+                    var h = document.getElementById(id);
+                    if (h) h.style.display = 'none';
+                }});
+                document.querySelectorAll('#btn-compare-lineups, #btn-squad-overview').forEach(function(b) {{
+                    if (b) b.classList.remove('active');
+                }});
+            }}
             if (!isVisible) {{
                 host.style.display = 'block';
                 if (btn) btn.classList.add('active');
