@@ -2523,51 +2523,32 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         recalcValueComparison();
 
         function recalcValueComparison() {{
-            // Read S-XI values from already-updated comparison table
-            var sxiImpact = parseFloat((document.getElementById('cmp-sxi-impact') || {{}}).textContent) || 0;
-            var sxiMvText = (document.getElementById('cmp-sxi-mv') || {{}}).textContent || '0';
-            var sxiAge = parseFloat((document.getElementById('cmp-sxi-age') || {{}}).textContent) || 0;
+            // Recompute S-XI impact from selected checkboxes
+            let sxiImpact = 0;
+            document.querySelectorAll('tbody tr').forEach(row => {{
+                const cb = row.querySelector('.starting-checkbox');
+                if (!cb || !cb.checked) return;
+                const cells = row.querySelectorAll('td');
+                if (!cells || cells.length < 16) return;
+                sxiImpact += parseFloat((cells[8].textContent || '').replace(/[^0-9.]/g, '')) || 0;
+            }});
+            // Recompute P-XI impact from selected checkboxes
+            let pxiImpact = 0;
+            document.querySelectorAll('tbody tr').forEach(row => {{
+                const cb = row.querySelector('.xi-checkbox');
+                if (!cb || !cb.checked) return;
+                const cells = row.querySelectorAll('td');
+                if (!cells || cells.length < 16) return;
+                pxiImpact += parseFloat((cells[8].textContent || '').replace(/[^0-9.]/g, '')) || 0;
+            }});
 
-            // Read P-XI values
-            var pxiImpact = parseFloat((document.getElementById('cmp-pxi-impact') || {{}}).textContent) || 0;
-            var pxiMvText = (document.getElementById('cmp-pxi-mv') || {{}}).textContent || '0';
-            var pxiAge = parseFloat((document.getElementById('cmp-pxi-age') || {{}}).textContent) || 0;
-
-            // Parse MV values (handle "X.Xm" and "X.XXbn")
-            function parseMV(s) {{
-                s = (s || '').trim().toLowerCase().replace(/€/g, '');
-                if (s.endsWith('bn')) return parseFloat(s) * 1000;
-                if (s.endsWith('m')) return parseFloat(s);
-                return parseFloat(s) || 0;
-            }}
-            var sxiMv = parseMV(sxiMvText);
-            var pxiMv = parseMV(pxiMvText);
-
-            // Impact Δ (%)
+            // Impact Δ (%) — S-XI vs P-XI
             var el2 = document.getElementById('cmp-val-pct-impact');
             if (el2) {{
                 if (pxiImpact > 0 && sxiImpact > 0) {{
                     var d = (sxiImpact - pxiImpact) / pxiImpact * 100;
                     el2.innerHTML = fmtPct(d);
                 }} else el2.textContent = '–';
-            }}
-
-            // MV Δ (%)
-            var el4 = document.getElementById('cmp-val-pct-mv');
-            if (el4) {{
-                if (pxiMv > 0 && sxiMv > 0) {{
-                    var d2 = (sxiMv - pxiMv) / pxiMv * 100;
-                    el4.innerHTML = fmtPct(d2);
-                }} else el4.textContent = '–';
-            }}
-
-            // Age Δ (%)
-            var el6 = document.getElementById('cmp-val-pct-age');
-            if (el6) {{
-                if (pxiAge > 0 && sxiAge > 0) {{
-                    var d3 = (sxiAge - pxiAge) / pxiAge * 100;
-                    el6.innerHTML = fmtPct(d3);
-                }} else el6.textContent = '–';
             }}
         }}
 
