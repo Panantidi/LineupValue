@@ -983,10 +983,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             padding: 12px;
             z-index: 50;
             font-size: 13px;
-            position: sticky;
-            top: 16px;
-            max-height: calc(100vh - 32px);
-            overflow-y: auto;
         }}
         .page-main {{
             flex: 1;
@@ -1023,10 +1019,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             padding: 12px;
             font-size: 13px;
-            position: sticky;
-            top: 16px;
-            max-height: calc(100vh - 32px);
-            overflow-y: auto;
             z-index: 50;
         }}
         .my-squads-title {{
