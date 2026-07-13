@@ -951,6 +951,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             top: 16px;
             max-height: calc(100vh - 32px);
             overflow-y: auto;
+            margin-left: -16px;
         }}
         .page-main {{
             flex: 1;
