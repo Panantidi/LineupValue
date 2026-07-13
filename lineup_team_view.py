@@ -1340,6 +1340,18 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
     </aside>
 
+    <aside class="my-squads-sidebar" id="my-squads-sidebar">
+        <div class="actions-bar" style="margin:0 0 10px 0;align-items:flex-start;flex-direction:column;gap:6px;">
+            <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
+            <button type="button" class="action-btn update-btn" id="update-data-btn" onclick="updateData()" title="Fetch latest data from Soccerway">♻️ Update data</button>
+            <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text}</span>
+            <span id="save-message"></span>
+        </div>
+        <div class="my-squads-title">My Squads</div>
+        <div class="my-squads-help">Saved snapshots are independent from future team data updates.</div>
+        <div id="my-squads-list"><div class="snapshot-empty-list">No saved squads yet.</div></div>
+    </aside>
+
     <div class="page-main">
     <div class="container">
         <div class="bulk-lineup-panel">
@@ -1543,18 +1555,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
 
         <div class="main-layout">
-            <aside class="my-squads-sidebar" id="my-squads-sidebar">
-                <div class="actions-bar" style="margin:0 0 10px 0;align-items:flex-start;flex-direction:column;gap:6px;">
-                    <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
-                    <button type="button" class="action-btn update-btn" id="update-data-btn" onclick="updateData()" title="Fetch latest data from Soccerway">♻️ Update data</button>
-                    <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text}</span>
-                    <span id="save-message"></span>
-                </div>
-                <div class="my-squads-title">My Squads</div>
-                <div class="my-squads-help">Saved snapshots are independent from future team data updates.</div>
-                <div id="my-squads-list"><div class="snapshot-empty-list">No saved squads yet.</div></div>
-            </aside>
-
             <div class="main-table">
                 <!-- Team name + tabs moved up from header to sit flush above the table -->
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap;background:linear-gradient(to right, #043fb6 0%, #2e7af8 100%);padding:16px 20px;border-radius:12px;">
