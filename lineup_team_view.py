@@ -1313,6 +1313,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
 
     <div class="page-content">
+    <div style="display:flex;flex-direction:column;gap:12px;flex-shrink:0;">
     <aside class="team-nav-sidebar" id="team-nav-sidebar">
 
         <label for="nav-country">Country</label>
@@ -1351,6 +1352,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div class="my-squads-help">Saved snapshots are independent from future team data updates.</div>
         <div id="my-squads-list"><div class="snapshot-empty-list">No saved squads yet.</div></div>
     </aside>
+    </div>
 
     <div class="page-main">
     <div class="container">
