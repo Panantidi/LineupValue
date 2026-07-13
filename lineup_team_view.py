@@ -1472,9 +1472,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;"><span id="transfer-out-assists">0</span><span style="font-size:14px;color:#999;"> / <span id="transfer-out-assists-pct">0</span>%</span></span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
         </div>
 
-        <!-- Comparison Tables: P-XI left, S-XI right — auto width matching main table (964px) -->
+        <!-- Comparison Tables: stacked vertically, each 100% width of host (= main table width 964px) -->
         <div id="comparison-table-host" style="display:none;width:fit-content;max-width:100%;margin:0 0 12px 0;">
-        <div id="comparison-table" style="display:flex;gap:12px;">
+        <div id="comparison-table" style="display:flex;flex-direction:column;gap:8px;">
             <!-- Possible XI -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
             <table style="width:100%;border-collapse:collapse;font-size:13px;">
