@@ -1563,6 +1563,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </tbody>
             </table>
                 </div>
+                <!-- Coach below main table, aligned to left edge of the table -->
+                <div style="background:white;padding:10px 16px;border-radius:8px;margin-top:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:left;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
             </div>
         </div>
     </div>
