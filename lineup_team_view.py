@@ -2581,14 +2581,19 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // Clone main table (without the gradient title bar — we already added a plain title above)
                 if (mainTable) {{
                     const tcClone = mainTable.cloneNode(true);
+                    // Strip any max-width/overflow from .table-container clone so it never clips
                     tcClone.style.width = '964px';
-                    tcClone.style.maxWidth = 'none';
+                    tcClone.style.maxWidth = '964px';
+                    tcClone.style.minWidth = '964px';
                     tcClone.style.overflowX = 'visible';
+                    tcClone.style.overflow = 'visible';
+                    tcClone.style.boxSizing = 'border-box';
                     const innerTable = tcClone.querySelector('table');
                     if (innerTable) {{
                         innerTable.style.tableLayout = 'fixed';
                         innerTable.style.width = '964px';
                         innerTable.style.minWidth = '964px';
+                        innerTable.style.maxWidth = '964px';
                         // Apply explicit width to every cell so html2canvas renders them at the right size
                         // Column widths in order: 30,30,200,70,30,60,30,60,40, 37,37,37, 37,37,37, 32,40,30,30,30,30
                         const colWidths = [30,30,200,70,30,60,30,60,40, 37,37,37, 37,37,37, 32,40,30,30,30,30];
@@ -2618,11 +2623,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
                 document.body.appendChild(capture);
 
+                // Force capture to lay out at 964px before html2canvas measures it
+                capture.style.width = '964px';
+                capture.offsetHeight; // force reflow
+
                 const canvas = await html2canvas(capture, {{
                     backgroundColor: '#f4f6f9',
                     scale: 2,
                     useCORS: true,
-                    logging: false
+                    logging: false,
+                    width: 964,
+                    windowWidth: 964
                 }});
 
                 document.body.removeChild(capture);
