@@ -761,6 +761,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .header-action-btn:hover {{
             background: rgba(255,255,255,0.25);
         }}
+        .header-action-btn.active {{
+            background: rgba(255,255,255,0.45);
+            border-color: rgba(255,255,255,0.7);
+            font-weight: 600;
+        }}
         .container {{
             padding: 0 32px 24px 32px;
             max-width: 1400px;
@@ -1290,9 +1295,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <body class="{('embed-mode' if embed else '')}">
     <div class="header">
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-            <button type="button" class="header-action-btn">👥 Add Lineups</button>
-            <button type="button" class="header-action-btn">⚖️ Compare Lineups</button>
-            <button type="button" class="header-action-btn">📊 Squad Overview</button>
+            <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this)">👥 Add Lineups</button>
+            <button type="button" id="btn-compare-lineups" class="header-action-btn" onclick="toggleSection('comparison-table-host', this)">⚖️ Compare Lineups</button>
+            <button type="button" id="btn-squad-overview" class="header-action-btn" onclick="toggleSection('info-bar-squad-host', this)">📊 Squad Overview</button>
             <button onclick="exportScreenshot()" id="btn-export" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:18px;">📸</button>
             <a href="/lineup_ai/select">← Back to teams</a>
             <a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span>💎</span> My Favorites</a>
@@ -1355,8 +1360,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
 
     <div class="page-main">
-    <div class="container">
-        <div class="bulk-lineup-panel">
+<div id="bulk-lineup-panel-host" style="display:none;">
+        <div class="container">
+            <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
                 <div class="bulk-lineup-row">
                     <select id="bulk-lineup-mode" aria-label="Bulk lineup mode">
@@ -1385,8 +1391,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
         </div>
+        </div>
+</div>
 
         <!-- Info Bar: Total Value / Players / Avg Age / Players on Fire / Pos.Overview (auto-width) -->
+        <div id="info-bar-squad-host" style="display:none;">
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;flex-wrap:wrap;">
             <div style="flex:0 0 auto;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Total Value</div>
@@ -1408,6 +1417,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Pos.Overview</div>
                 {positional_overview_html}
             </div>
+        </div>
         </div>
         <!-- Missing Players Stats (hidden by default) -->
         <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
@@ -1457,6 +1467,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
 
         <!-- Comparison Tables: P-XI left, S-XI right — full width (Squad mode) -->
+        <div id="comparison-table-host" style="display:none;">
         <div id="comparison-table" style="display:flex;gap:12px;margin-bottom:16px;">
             <!-- Possible XI -->
             <div style="flex:1;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
@@ -1550,6 +1561,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </table>
             </div>
         </div>
+        </div>
 
         <!-- Hidden -->
         <div style="display:none;">
@@ -1614,6 +1626,21 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     <script>
         var _tooltipTimer = null;
+        var _sectionHosts = ['bulk-lineup-panel-host', 'comparison-table-host', 'info-bar-squad-host'];
+        function toggleSection(hostId, btn) {{
+            var host = document.getElementById(hostId);
+            if (!host) return;
+            var isVisible = host.style.display !== 'none';
+            _sectionHosts.forEach(function(id) {{
+                var h = document.getElementById(id);
+                if (h) h.style.display = 'none';
+            }});
+            document.querySelectorAll('.header-action-btn').forEach(function(b) {{ b.classList.remove('active'); }});
+            if (!isVisible) {{
+                host.style.display = 'block';
+                if (btn) btn.classList.add('active');
+            }}
+        }}
         function selectTab(el, name) {{
             document.querySelectorAll('.header-tabs .tab').forEach(function(t) {{ t.classList.remove('active'); }});
             el.classList.add('active');
