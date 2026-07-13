@@ -740,11 +740,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             max-width: 1400px;
             margin: 0 auto;
         }}
-        .page-main .container {{
-            padding: 0;
-            max-width: none;
-            margin: 0;
-        }}
         .main-layout {{
             display: flex;
             gap: 20px;
@@ -939,8 +934,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             display: flex;
             gap: 12px;
             align-items: flex-start;
-            padding: 16px;
-            max-width: 100%;
+            padding: 0 16px 16px 16px;
+            max-width: 1400px;
+            margin: 0 auto;
         }}
         .team-nav-sidebar {{
             width: 240px;
