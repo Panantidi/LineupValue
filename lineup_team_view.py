@@ -2564,20 +2564,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             try {{
                 // Clone the actual .page-main that the user sees — this preserves the
                 // exact column widths, coach-stadium bar, and table layout as displayed.
+                // The gradient title bar with team name is part of .main-table and is captured here.
                 const pageMain = document.querySelector('.page-main');
                 const h1 = document.querySelector('.main-table h1');
                 const teamName = h1 ? h1.textContent.trim() : 'team';
-                const coachStadium = document.getElementById('coach-stadium-bar');
 
                 // Create off-screen capture div
                 const capture = document.createElement('div');
                 capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:fit-content;';
-
-                // Team name (no tabs)
-                const hdr = document.createElement('div');
-                hdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
-                hdr.textContent = teamName;
-                capture.appendChild(hdr);
 
                 // Clone .page-main wholesale — includes bulk-lineup, info-bar, comparison-table,
                 // and main-layout (gradient title + table + coach-stadium).
