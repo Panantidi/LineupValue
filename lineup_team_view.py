@@ -1368,9 +1368,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <!-- Comparison Tables (toggled by ⚖️ Compare Lineups, appears below my-squads-sidebar, mutually exclusive with info-bar-squad-host) -->
     <div id="comparison-table-host" style="display:none;">
     <div id="comparison-table" style="display:flex;flex-direction:column;gap:8px;">
-        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:8px 10px;display:flex;align-items:center;justify-content:center;min-height:38px;">
+        <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:8px 10px;display:flex;align-items:center;justify-content:center;min-height:38px;">
             <span id="cmp-val-pct-impact" style="font-size:13px;">–</span>
-            <span style="font-weight:600;color:#333;font-size:10px;margin-left:6px;position:relative;display:inline-block;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)">Starting XI 🆚 Possible XI<span class="tooltip-delay" style="visibility:hidden;opacity:0;transition:opacity 0.3s;position:absolute;background:#333;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;white-space:nowrap;z-index:1000;pointer-events:none;transform:translate(-50%,-130%);left:50%;top:0;">&gt;8% = possible odds move</span></span>
+            <span style="font-weight:600;color:#333;font-size:10px;margin-left:6px;position:relative;display:inline-block;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)">Starting XI 🆚 Possible XI<span class="tooltip-delay" style="visibility:hidden;opacity:0;transition:opacity 0.3s;position:fixed;background:#333;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;white-space:nowrap;z-index:9999;pointer-events:none;">&gt;8% = possible odds move</span></span>
         </div>
         <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;padding:8px 10px;display:flex;align-items:center;justify-content:center;min-height:38px;">
             <span id="cmp-sxi-pct-impact" style="font-size:13px;">–</span>
@@ -1582,7 +1582,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var bar = document.getElementById('coach-stadium-bar');
             if (bar) bar.style.display = (name === 'Squad') ? 'flex' : 'none';
         }}
-        function showTooltip(el) {{ var t = el.querySelector('.tooltip-delay'); if(t){{ _tooltipTimer = setTimeout(function(){{ t.style.visibility='visible'; t.style.opacity='1'; }}, 800); }} }}
+        function showTooltip(el) {{ var t = el.querySelector('.tooltip-delay'); if(t){{ _tooltipTimer = setTimeout(function(){{ var r = el.getBoundingClientRect(); t.style.left = (r.left + r.width/2) + 'px'; t.style.top = (r.top - 8) + 'px'; t.style.transform = 'translate(-50%, -100%)'; t.style.visibility='visible'; t.style.opacity='1'; }}, 800); }} }}
         function hideTooltip(el) {{ if(_tooltipTimer){{ clearTimeout(_tooltipTimer); _tooltipTimer=null; }} var t = el.querySelector('.tooltip-delay'); if(t){{ t.style.opacity='0'; setTimeout(function(){{ t.style.visibility='hidden'; }}, 300); }} }}
         const MISSING_STATUSES = ['Injury', 'Red card', 'Yellow red card', 'Not playing (Called up)', 'Not playing (Other)'];
         const DOUBTFUL_STATUSES = ['Doubt'];
