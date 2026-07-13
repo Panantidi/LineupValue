@@ -934,9 +934,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             display: flex;
             gap: 12px;
             align-items: flex-start;
-            padding: 0 16px 16px 16px;
-            max-width: 1400px;
-            margin: 0 auto;
+            padding: 0 16px 16px 0;
+            margin: 0;
         }}
         .team-nav-sidebar {{
             width: 240px;
