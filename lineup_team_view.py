@@ -1576,8 +1576,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <button type="button" onclick="saveLineupPNG()" style="padding:5px 10px;background:#2e7af8;color:white;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;">Save PNG</button>
                     </div>
                     <div id="bl-pitch" style="position:relative;width:540px;height:675px;border-radius:6px;overflow:hidden;border:3px solid #fff;background-color:#2d8f3f;">
-                        <!-- Pitch background with vertical stripes (mowed field, perpendicular to halfway line) -->
-                        <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg, #2d8f3f 0px, #2d8f3f 60px, #298238 60px, #298238 120px);"></div>
+                        <!-- Pitch background with horizontal stripes (mowed field, perpendicular to touchline) -->
+                        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg, #2d8f3f 0px, #2d8f3f 75px, #298238 75px, #298238 150px);"></div>
                         <!-- Outer touchline (already covered by border) -->
                         <!-- Halfway line (horizontal center) -->
                         <div style="position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(255,255,255,0.85);transform:translateY(-50%);"></div>
