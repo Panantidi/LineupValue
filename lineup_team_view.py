@@ -2560,26 +2560,30 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             btn.disabled = true;
             btn.style.opacity = '0.4';
             try {{
-                // Build a wrapper that clones the visible sections
-                const teamName = document.querySelector('.header h1').textContent.trim();
-                const infoBar = document.getElementById('info-bar-squad');
-                const compTable = document.getElementById('comparison-table');
+                // Team name — h1 is in .main-table (gradient bar), not in .header anymore
+                const h1 = document.querySelector('.main-table h1');
+                const teamName = h1 ? h1.textContent.trim() : 'team';
                 const mainTable = document.querySelector('.table-container');
+                const coachStadium = document.getElementById('coach-stadium-bar');
 
                 // Create off-screen capture div
                 const capture = document.createElement('div');
-                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + document.querySelector('.container').offsetWidth + 'px;';
+                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + (mainTable ? mainTable.offsetWidth : 1200) + 'px;';
 
-                // Header with team name
+                // Header with team name (no tabs)
                 const hdr = document.createElement('div');
                 hdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
                 hdr.textContent = teamName;
                 capture.appendChild(hdr);
 
-                // Clone sections (deep clone to preserve all state)
-                if (infoBar) capture.appendChild(infoBar.cloneNode(true));
-                if (compTable) capture.appendChild(compTable.cloneNode(true));
+                // Clone main table (without the gradient title bar — we already added a plain title above)
                 if (mainTable) capture.appendChild(mainTable.cloneNode(true));
+                // Clone coach + stadium bar (force-show if hidden by tab switch)
+                if (coachStadium) {{
+                    const clone = coachStadium.cloneNode(true);
+                    clone.style.display = 'flex';
+                    capture.appendChild(clone);
+                }}
 
                 // Replace checkboxes with circle divs in the clone
                 _replaceCheckboxesWithCircles(capture);
