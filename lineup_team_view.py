@@ -773,11 +773,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         .main-layout {{
             display: flex;
+            flex-direction: column;
             gap: 20px;
-            align-items: flex-start;
+            align-items: center;
         }}
         .main-table {{
-            flex: 0 0 auto;
+            margin: 0 auto;
             min-width: 0;
             overflow-x: auto;
             width: fit-content;
@@ -1101,7 +1102,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             padding: 12px;
-            margin: 0 0 12px 0;
+            margin: 0 auto 12px auto;
             width: 964px;
             max-width: 100%;
             box-sizing: border-box;
