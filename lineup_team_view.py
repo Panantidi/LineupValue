@@ -1354,7 +1354,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <!-- Info Bar: Coach + Stadium stacked left (width = Players), Players/Avg/Total fill the rest -->
         <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;">
             <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;">
-                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:left;display:flex;align-items:center;justify-content:flex-start;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
                 <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:left;display:flex;align-items:center;justify-content:flex-start;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
             </div>
             <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
@@ -1563,8 +1562,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </tbody>
             </table>
                 </div>
-                <!-- Coach below main table, aligned to left edge of the table -->
-                <div style="background:white;padding:10px 16px;border-radius:8px;margin-top:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;text-align:left;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
+                <!-- Coach below main table, auto-width (sized to text content) -->
+                <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;margin-top:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
             </div>
         </div>
     </div>
