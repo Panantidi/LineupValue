@@ -1368,19 +1368,28 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
         </div>
 
-        <!-- Info Bar: Players on Fire / Pos.Overview / Players / Avg Age / Total Goals / Total Apps -->
-        <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;">
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+        <!-- Info Bar: Total Value / Players / Avg Age / Players on Fire / Pos.Overview (auto-width) -->
+        <div id="info-bar-squad" style="display:flex;gap:12px;margin-bottom:12px;align-items:stretch;flex-wrap:wrap;">
+            <div style="flex:0 0 auto;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Total Value</div>
+                <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{total_value_display}</div>
+            </div>
+            <div style="flex:0 0 auto;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div>
+                <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{squad_size}</div>
+            </div>
+            <div style="flex:0 0 auto;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Avg Age</div>
+                <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{avg_age}</div>
+            </div>
+            <div style="flex:0 0 auto;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Players on Fire</div>
                 {top3_players_html}
             </div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+            <div style="flex:0 0 auto;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Pos.Overview</div>
                 {positional_overview_html}
             </div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div><span style="font-weight:normal;color:#333;font-size:20px;">{squad_size}</span></div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Avg Age</div><span style="font-weight:normal;color:#333;font-size:20px;">{avg_age}</span></div>
-            <div style="flex:0 0 calc((100% - 24px) / 10);background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;"><div style="font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Total Value</div><span style="font-weight:normal;color:#333;font-size:20px;">{total_value_display}</span></div>
         </div>
         <!-- Missing Players Stats (hidden by default) -->
         <div id="info-bar-missing" style="display:none;gap:12px;margin-bottom:12px;">
