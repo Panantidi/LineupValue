@@ -1308,6 +1308,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <button type="button" id="btn-compare-lineups" class="header-action-btn" onclick="toggleSection('comparison-table-host', this)">⚖️ Compare Lineups</button>
             <button type="button" id="btn-squad-overview" class="header-action-btn" onclick="toggleSection('info-bar-squad-host', this)">📊 Squad Overview</button>
             <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
+            <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🏗️ Builder Lineup</button>
             <a href="/lineup_ai/select">← Back to teams</a>
             <a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span>💎</span> My Favorites</a>
         </div>
@@ -1548,6 +1549,44 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div id="coach-stadium-bar" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;">
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Builder Lineup: pitch with 11 draggable player circles -->
+        <div id="builder-lineup-host" style="display:none;margin-top:16px;">
+            <div id="builder-lineup" style="background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);padding:16px;width:fit-content;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+                    <label style="font-weight:600;color:#333;font-size:13px;">Formation:</label>
+                    <select id="bl-formation" onchange="applyFormation(this.value)" style="padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;background:white;cursor:pointer;">
+                        <option value="4-3-3">4-3-3</option>
+                        <option value="4-4-2">4-4-2</option>
+                        <option value="4-2-3-1">4-2-3-1</option>
+                        <option value="4-1-4-1">4-1-4-1</option>
+                        <option value="4-2-4">4-2-4</option>
+                        <option value="4-3-3">4-3-3</option>
+                        <option value="4-4-1-1">4-4-1-1</option>
+                        <option value="4-4-2-diamond">4-4-2 (Diamond)</option>
+                        <option value="3-1-4-2">3-1-4-2</option>
+                        <option value="3-4-3">3-4-3</option>
+                        <option value="3-5-2">3-5-2</option>
+                        <option value="5-3-2">5-3-2</option>
+                        <option value="5-4-1">5-4-1</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <button type="button" onclick="clearFormation()" style="padding:6px 12px;background:#f0f0f0;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:12px;">Clear</button>
+                    <button type="button" onclick="saveLineupPNG()" style="padding:6px 12px;background:#2e7af8;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Save PNG</button>
+                </div>
+                <div id="bl-pitch" style="position:relative;width:540px;height:675px;background:linear-gradient(to bottom, #2d8f3f 0%, #1f6b2d 100%);border-radius:8px;overflow:hidden;border:2px solid #fff;box-shadow:inset 0 0 30px rgba(0,0,0,0.3);">
+                    <!-- Pitch markings -->
+                    <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.4);"></div>
+                    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:80px;height:80px;border:2px solid rgba(255,255,255,0.4);border-radius:50%;"></div>
+                    <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:80px;height:140px;border:2px solid rgba(255,255,255,0.4);border-right:none;"></div>
+                    <div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:80px;height:140px;border:2px solid rgba(255,255,255,0.4);border-left:none;"></div>
+                    <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:40px;height:80px;border:2px solid rgba(255,255,255,0.4);border-right:none;"></div>
+                    <div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:40px;height:80px;border:2px solid rgba(255,255,255,0.4);border-left:none;"></div>
+                    <div id="bl-team-name" style="position:absolute;left:16px;bottom:12px;color:white;font-size:13px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.5);">{team_name}</div>
+                    <div id="bl-players" style="position:absolute;inset:0;"></div>
                 </div>
             </div>
         </div>
@@ -2902,6 +2941,219 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }} else {{
                 loadNavData();
             }}
+        }})();
+
+        // ===== Builder Lineup =====
+        const BL_PITCH_W = 540, BL_PITCH_H = 675, BL_CIRCLE = 47;
+        // Coordinates as percentage of pitch (x%, y%); 100% = bottom/right, 0% = top/left
+        const BL_FORMATIONS = {{
+            '4-3-3': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LB', x:15, y:75}}, {{role:'CB', x:35, y:75}}, {{role:'CB', x:65, y:75}}, {{role:'RB', x:85, y:75}},
+                {{role:'CM', x:25, y:55}}, {{role:'CM', x:50, y:55}}, {{role:'CM', x:75, y:55}},
+                {{role:'LW', x:20, y:25}}, {{role:'CF', x:50, y:18}}, {{role:'RW', x:80, y:25}}
+            ],
+            '4-4-2': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LB', x:15, y:75}}, {{role:'CB', x:35, y:75}}, {{role:'CB', x:65, y:75}}, {{role:'RB', x:85, y:75}},
+                {{role:'LM', x:10, y:50}}, {{role:'CM', x:38, y:50}}, {{role:'CM', x:62, y:50}}, {{role:'RM', x:90, y:50}},
+                {{role:'ST', x:38, y:20}}, {{role:'ST', x:62, y:20}}
+            ],
+            '4-2-3-1': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LB', x:15, y:75}}, {{role:'CB', x:35, y:75}}, {{role:'CB', x:65, y:75}}, {{role:'RB', x:85, y:75}},
+                {{role:'CDM', x:35, y:58}}, {{role:'CDM', x:65, y:58}},
+                {{role:'LW', x:18, y:38}}, {{role:'CAM', x:50, y:35}}, {{role:'RW', x:82, y:38}},
+                {{role:'ST', x:50, y:18}}
+            ],
+            '4-1-4-1': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LB', x:15, y:75}}, {{role:'CB', x:35, y:75}}, {{role:'CB', x:65, y:75}}, {{role:'RB', x:85, y:75}},
+                {{role:'CDM', x:50, y:60}},
+                {{role:'LM', x:10, y:45}}, {{role:'CM', x:38, y:45}}, {{role:'CM', x:62, y:45}}, {{role:'RM', x:90, y:45}},
+                {{role:'ST', x:50, y:18}}
+            ],
+            '4-2-4': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LB', x:15, y:70}}, {{role:'CB', x:35, y:70}}, {{role:'CB', x:65, y:70}}, {{role:'RB', x:85, y:70}},
+                {{role:'CM', x:35, y:48}}, {{role:'CM', x:65, y:48}},
+                {{role:'LW', x:18, y:22}}, {{role:'ST', x:38, y:15}}, {{role:'ST', x:62, y:15}}, {{role:'RW', x:82, y:22}}
+            ],
+            '4-4-1-1': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LB', x:15, y:75}}, {{role:'CB', x:35, y:75}}, {{role:'CB', x:65, y:75}}, {{role:'RB', x:85, y:75}},
+                {{role:'LM', x:10, y:50}}, {{role:'CM', x:38, y:50}}, {{role:'CM', x:62, y:50}}, {{role:'RM', x:90, y:50}},
+                {{role:'CAM', x:50, y:32}},
+                {{role:'ST', x:50, y:15}}
+            ],
+            '4-4-2-diamond': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LB', x:15, y:72}}, {{role:'CB', x:35, y:75}}, {{role:'CB', x:65, y:75}}, {{role:'RB', x:85, y:72}},
+                {{role:'CDM', x:50, y:58}},
+                {{role:'LM', x:18, y:42}}, {{role:'CM', x:38, y:42}}, {{role:'RM', x:82, y:42}},
+                {{role:'CF', x:50, y:30}},
+                {{role:'ST', x:50, y:15}}
+            ],
+            '3-1-4-2': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'CB', x:25, y:75}}, {{role:'CB', x:50, y:75}}, {{role:'CB', x:75, y:75}},
+                {{role:'CDM', x:50, y:60}},
+                {{role:'LM', x:10, y:45}}, {{role:'CM', x:35, y:45}}, {{role:'CM', x:65, y:45}}, {{role:'RM', x:90, y:45}},
+                {{role:'ST', x:38, y:18}}, {{role:'ST', x:62, y:18}}
+            ],
+            '3-4-3': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'CB', x:25, y:75}}, {{role:'CB', x:50, y:75}}, {{role:'CB', x:75, y:75}},
+                {{role:'LM', x:10, y:50}}, {{role:'CM', x:35, y:50}}, {{role:'CM', x:65, y:50}}, {{role:'RM', x:90, y:50}},
+                {{role:'LW', x:20, y:22}}, {{role:'CF', x:50, y:15}}, {{role:'RW', x:80, y:22}}
+            ],
+            '3-5-2': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'CB', x:25, y:75}}, {{role:'CB', x:50, y:75}}, {{role:'CB', x:75, y:75}},
+                {{role:'LWB', x:8, y:50}}, {{role:'CM', x:30, y:50}}, {{role:'CDM', x:50, y:52}}, {{role:'CM', x:70, y:50}}, {{role:'RWB', x:92, y:50}},
+                {{role:'ST', x:38, y:18}}, {{role:'ST', x:62, y:18}}
+            ],
+            '5-3-2': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LWB', x:8, y:72}}, {{role:'CB', x:25, y:75}}, {{role:'CB', x:50, y:75}}, {{role:'CB', x:75, y:75}}, {{role:'RWB', x:92, y:72}},
+                {{role:'CM', x:30, y:50}}, {{role:'CM', x:50, y:50}}, {{role:'CM', x:70, y:50}},
+                {{role:'ST', x:38, y:18}}, {{role:'ST', x:62, y:18}}
+            ],
+            '5-4-1': [
+                {{role:'GK', x:50, y:90}},
+                {{role:'LWB', x:8, y:72}}, {{role:'CB', x:25, y:75}}, {{role:'CB', x:50, y:75}}, {{role:'CB', x:75, y:75}}, {{role:'RWB', x:92, y:72}},
+                {{role:'LM', x:10, y:48}}, {{role:'CM', x:35, y:48}}, {{role:'CM', x:65, y:48}}, {{role:'RM', x:90, y:48}},
+                {{role:'ST', x:50, y:18}}
+            ]
+        }};
+
+        function blBuildPlayerMap() {{
+            // Read squad from main table data-player-name attributes
+            const map = {{}};
+            document.querySelectorAll('.main-table tbody tr[data-player-name]').forEach(row => {{
+                const cells = row.querySelectorAll('td');
+                if (!cells || cells.length < 16) return;
+                const numEl = cells[0].querySelector('.player-number-circle') || cells[0];
+                const num = parseInt((numEl.textContent || '').trim(), 10);
+                const name = (row.getAttribute('data-player-name') || cells[2].textContent || '').trim();
+                if (num && !isNaN(num)) {{
+                    map[num] = name;
+                }}
+            }});
+            return map;
+        }}
+
+        function blMakePlayerCircle(idx, role, x, y) {{
+            const wrap = document.createElement('div');
+            wrap.className = 'bl-player';
+            wrap.dataset.idx = idx;
+            wrap.dataset.role = role;
+            wrap.style.cssText = `position:absolute;left:${{x}}%;top:${{y}}%;transform:translate(-50%,-50%);cursor:move;user-select:none;`;
+            const circle = document.createElement('div');
+            circle.style.cssText = `width:${{BL_CIRCLE}}px;height:${{BL_CIRCLE}}px;background:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.4);border:2px solid #2e7af8;`;
+            const numInput = document.createElement('input');
+            numInput.type = 'text';
+            numInput.maxLength = 3;
+            numInput.dataset.idx = idx;
+            numInput.style.cssText = 'width:100%;height:100%;background:transparent;border:none;color:#fff;font-size:18px;font-weight:700;text-align:center;outline:none;';
+            numInput.addEventListener('input', function() {{ blUpdatePlayerName(idx); }});
+            numInput.addEventListener('click', function(e) {{ e.stopPropagation(); }});
+            circle.appendChild(numInput);
+            const nameLabel = document.createElement('div');
+            nameLabel.id = 'bl-name-' + idx;
+            nameLabel.style.cssText = 'position:absolute;left:50%;top:100%;transform:translateX(-50%);color:#fff;font-size:11px;white-space:nowrap;margin-top:4px;text-shadow:0 1px 2px rgba(0,0,0,0.7);text-align:center;';
+            nameLabel.textContent = role;
+            wrap.appendChild(circle);
+            wrap.appendChild(nameLabel);
+            blMakeDraggable(wrap);
+            return wrap;
+        }}
+
+        function blMakeDraggable(el) {{
+            let dragging = false, startX, startY, origLeft, origTop;
+            el.addEventListener('mousedown', function(e) {{
+                if (e.target.tagName === 'INPUT') return; // don't drag when clicking on number input
+                dragging = true;
+                const rect = el.getBoundingClientRect();
+                const parentRect = el.parentElement.getBoundingClientRect();
+                startX = e.clientX; startY = e.clientY;
+                origLeft = rect.left - parentRect.left;
+                origTop = rect.top - parentRect.top;
+                el.style.transition = 'none';
+                e.preventDefault();
+            }});
+            document.addEventListener('mousemove', function(e) {{
+                if (!dragging) return;
+                const parentRect = el.parentElement.getBoundingClientRect();
+                const newLeft = origLeft + (e.clientX - startX);
+                const newTop = origTop + (e.clientY - startY);
+                const clampedLeft = Math.max(0, Math.min(parentRect.width - BL_CIRCLE, newLeft));
+                const clampedTop = Math.max(0, Math.min(parentRect.height - BL_CIRCLE, newTop));
+                el.style.left = clampedLeft + 'px';
+                el.style.top = clampedTop + 'px';
+                el.style.transform = 'none';
+            }});
+            document.addEventListener('mouseup', function() {{ dragging = false; }});
+        }}
+
+        function blUpdatePlayerName(idx) {{
+            const input = document.querySelector(`.bl-player[data-idx="${{idx}}"] input`);
+            const label = document.getElementById('bl-name-' + idx);
+            if (!input || !label) return;
+            const num = parseInt(input.value.trim(), 10);
+            if (isNaN(num)) {{
+                label.textContent = label.dataset.role || '–';
+                return;
+            }}
+            const playerMap = blBuildPlayerMap();
+            if (playerMap[num]) {{
+                label.textContent = playerMap[num];
+            }} else {{
+                label.textContent = '—';
+            }}
+        }}
+
+        function applyFormation(name) {{
+            const formation = BL_FORMATIONS[name];
+            if (!formation) return;
+            const container = document.getElementById('bl-players');
+            if (!container) return;
+            container.innerHTML = '';
+            formation.forEach((p, i) => {{
+                const circle = blMakePlayerCircle(i, p.role, p.x, p.y);
+                circle.dataset.role = p.role;
+                container.appendChild(circle);
+            }});
+        }}
+
+        function clearFormation() {{
+            const sel = document.getElementById('bl-formation');
+            if (sel) {{
+                applyFormation(sel.value);
+            }}
+        }}
+
+        async function saveLineupPNG() {{
+            const pitch = document.getElementById('bl-pitch');
+            if (!pitch) return;
+            // Temporarily remove drag shadow
+            const canvas = await html2canvas(pitch, {{
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }});
+            const link = document.createElement('a');
+            const tname = document.getElementById('bl-team-name');
+            const name = tname ? (tname.textContent || 'lineup').trim() : 'lineup';
+            link.download = name.replace(/\s+/g, '_') + '_lineup.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }}
+
+        // Initialize builder on load with default 4-3-3
+        (function() {{
+            applyFormation('4-3-3');
         }})();
         </script>
     </div>
