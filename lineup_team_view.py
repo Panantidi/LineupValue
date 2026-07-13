@@ -1529,12 +1529,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap;background:linear-gradient(to right, #043fb6 0%, #2e7af8 100%);padding:16px 20px;border-radius:12px;">
                     <h1 style="margin:0;font-size:24px;font-weight:600;color:white;">{team_name}</h1>
                     <div class="header-tabs">
-                        <div class="tab active">Squad</div>
-                        <div class="tab">Missing Players</div>
-                        <div class="tab">Doubtful Players</div>
-                        <div class="tab">Returning Players</div>
-                        <div class="tab">Transfer In</div>
-                        <div class="tab">Transfer Out</div>
+                        <div class="tab active" onclick="selectTab(this, 'Squad')">Squad</div>
+                        <div class="tab" onclick="selectTab(this, 'Missing Players')">Missing Players</div>
+                        <div class="tab" onclick="selectTab(this, 'Doubtful Players')">Doubtful Players</div>
+                        <div class="tab" onclick="selectTab(this, 'Returning Players')">Returning Players</div>
+                        <div class="tab" onclick="selectTab(this, 'Transfer In')">Transfer In</div>
+                        <div class="tab" onclick="selectTab(this, 'Transfer Out')">Transfer Out</div>
                     </div>
                 </div>
                 <div class="table-container">
@@ -1571,7 +1571,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </table>
                 </div>
                 <!-- Coach (left) + Stadium (right) below main table, auto-width, aligned to table edges -->
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;">
+                <div id="coach-stadium-bar" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;">
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
                 </div>
@@ -1581,6 +1581,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     <script>
         var _tooltipTimer = null;
+        function selectTab(el, name) {{
+            document.querySelectorAll('.header-tabs .tab').forEach(function(t) {{ t.classList.remove('active'); }});
+            el.classList.add('active');
+            var bar = document.getElementById('coach-stadium-bar');
+            if (bar) bar.style.display = (name === 'Squad') ? 'flex' : 'none';
+        }}
         function showTooltip(el) {{ var t = el.querySelector('.tooltip-delay'); if(t){{ _tooltipTimer = setTimeout(function(){{ t.style.visibility='visible'; t.style.opacity='1'; }}, 800); }} }}
         function hideTooltip(el) {{ if(_tooltipTimer){{ clearTimeout(_tooltipTimer); _tooltipTimer=null; }} var t = el.querySelector('.tooltip-delay'); if(t){{ t.style.opacity='0'; setTimeout(function(){{ t.style.visibility='hidden'; }}, 300); }} }}
         const MISSING_STATUSES = ['Injury', 'Red card', 'Yellow red card', 'Not playing (Called up)', 'Not playing (Other)'];
