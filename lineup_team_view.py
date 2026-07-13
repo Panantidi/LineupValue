@@ -1487,7 +1487,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
                         <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-impact">0.00</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-pxi-pct-impact">–</td>
                     </tr>
                 </tbody>
@@ -1522,7 +1521,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <tbody>
                     <tr style="border-top:1px solid #eee;height:22px;">
                         <td style="padding:0 6px;font-weight:600;text-align:right;white-space:nowrap;line-height:22px;" title="Impact Score">IS</td>
-                        <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-impact">0.00</td>
                         <td style="padding:0 6px;text-align:center;line-height:22px;" id="cmp-sxi-pct-impact">–</td>
                     </tr>
                 </tbody>
