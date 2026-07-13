@@ -746,6 +746,21 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .header a:hover {{
             background: rgba(255,255,255,0.3);
         }}
+        .header-action-btn {{
+            color: white;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: background 0.2s;
+            font-family: inherit;
+        }}
+        .header-action-btn:hover {{
+            background: rgba(255,255,255,0.25);
+        }}
         .container {{
             padding: 24px 32px;
             max-width: 1400px;
@@ -1271,6 +1286,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <body class="{('embed-mode' if embed else '')}">
     <div class="header">
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+            <button type="button" class="header-action-btn">👥 Add Lineups</button>
+            <button type="button" class="header-action-btn">⚖️ Compare Lineups</button>
+            <button type="button" class="header-action-btn">📊 Squad Overview</button>
             <button onclick="exportScreenshot()" id="btn-export" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:18px;">📸</button>
             <a href="/lineup_ai/select">← Back to teams</a>
             <a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span>💎</span> My Favorites</a>
