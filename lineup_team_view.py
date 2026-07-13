@@ -2562,60 +2562,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             btn.disabled = true;
             btn.style.opacity = '0.4';
             try {{
-                // Team name — h1 is in .main-table (gradient bar), not in .header anymore
+                // Clone the actual .page-main that the user sees — this preserves the
+                // exact column widths, coach-stadium bar, and table layout as displayed.
+                const pageMain = document.querySelector('.page-main');
                 const h1 = document.querySelector('.main-table h1');
                 const teamName = h1 ? h1.textContent.trim() : 'team';
-                const mainTable = document.querySelector('.table-container');
                 const coachStadium = document.getElementById('coach-stadium-bar');
 
-                // Create off-screen capture div (always 964px to fit all 21 columns)
+                // Create off-screen capture div
                 const capture = document.createElement('div');
-                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:964px;';
+                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:fit-content;';
 
-                // Header with team name (no tabs)
+                // Team name (no tabs)
                 const hdr = document.createElement('div');
                 hdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
                 hdr.textContent = teamName;
                 capture.appendChild(hdr);
 
-                // Clone main table (without the gradient title bar — we already added a plain title above)
-                if (mainTable) {{
-                    const tcClone = mainTable.cloneNode(true);
-                    // Strip any max-width/overflow from .table-container clone so it never clips
-                    tcClone.style.width = '964px';
-                    tcClone.style.maxWidth = '964px';
-                    tcClone.style.minWidth = '964px';
-                    tcClone.style.overflowX = 'visible';
-                    tcClone.style.overflow = 'visible';
-                    tcClone.style.boxSizing = 'border-box';
-                    const innerTable = tcClone.querySelector('table');
-                    if (innerTable) {{
-                        innerTable.style.tableLayout = 'fixed';
-                        innerTable.style.width = '964px';
-                        innerTable.style.minWidth = '964px';
-                        innerTable.style.maxWidth = '964px';
-                        // Apply explicit width to every cell so html2canvas renders them at the right size
-                        // Column widths in order: 30,30,200,70,30,60,30,60,40, 37,37,37, 37,37,37, 32,40,30,30,30,30
-                        const colWidths = [30,30,200,70,30,60,30,60,40, 37,37,37, 37,37,37, 32,40,30,30,30,30];
-                        innerTable.querySelectorAll('tr').forEach(tr => {{
-                            const cells = tr.querySelectorAll('th, td');
-                            cells.forEach((cell, i) => {{
-                                if (colWidths[i] !== undefined) {{
-                                    cell.style.width = colWidths[i] + 'px';
-                                    cell.style.minWidth = colWidths[i] + 'px';
-                                    cell.style.maxWidth = colWidths[i] + 'px';
-                                    cell.style.boxSizing = 'border-box';
-                                }}
-                            }});
-                        }});
-                    }}
-                    capture.appendChild(tcClone);
-                }}
-                // Clone coach + stadium bar (force-show if hidden by tab switch)
-                if (coachStadium) {{
-                    const clone = coachStadium.cloneNode(true);
-                    clone.style.display = 'flex';
-                    capture.appendChild(clone);
+                // Clone .page-main wholesale — includes bulk-lineup, info-bar, comparison-table,
+                // and main-layout (gradient title + table + coach-stadium).
+                if (pageMain) {{
+                    const pmClone = pageMain.cloneNode(true);
+                    // Force-show coach-stadium in the clone (if hidden by tab switch)
+                    const csInClone = pmClone.querySelector('#coach-stadium-bar');
+                    if (csInClone) csInClone.style.display = 'flex';
+                    capture.appendChild(pmClone);
                 }}
 
                 // Replace checkboxes with circle divs in the clone
@@ -2623,17 +2594,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
                 document.body.appendChild(capture);
 
-                // Force capture to lay out at 964px before html2canvas measures it
-                capture.style.width = '964px';
-                capture.offsetHeight; // force reflow
-
                 const canvas = await html2canvas(capture, {{
                     backgroundColor: '#f4f6f9',
                     scale: 2,
                     useCORS: true,
-                    logging: false,
-                    width: 964,
-                    windowWidth: 964
+                    logging: false
                 }});
 
                 document.body.removeChild(capture);
