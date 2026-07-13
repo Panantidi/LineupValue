@@ -1576,11 +1576,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <button type="button" onclick="saveLineupPNG()" style="padding:5px 10px;background:#2e7af8;color:white;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;">Save PNG</button>
                     </div>
                     <div id="bl-pitch" style="position:relative;width:540px;height:675px;border-radius:6px;overflow:hidden;border:3px solid #fff;background-color:#2d8f3f;">
-                        <!-- Pitch background with stripes (mowed field) -->
-                        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg, #2d8f3f 0px, #2d8f3f 67px, #298238 67px, #298238 134px);"></div>
+                        <!-- Pitch background with vertical stripes (mowed field, perpendicular to halfway line) -->
+                        <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg, #2d8f3f 0px, #2d8f3f 60px, #298238 60px, #298238 120px);"></div>
                         <!-- Outer touchline (already covered by border) -->
-                        <!-- Halfway line (vertical center) -->
-                        <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.85);"></div>
+                        <!-- Halfway line (horizontal center) -->
+                        <div style="position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(255,255,255,0.85);transform:translateY(-50%);"></div>
                         <!-- Center circle -->
                         <div style="position:absolute;left:50%;top:50%;width:90px;height:90px;border:2px solid rgba(255,255,255,0.85);border-radius:50%;transform:translate(-50%,-50%);"></div>
                         <!-- Center spot -->
@@ -3072,7 +3072,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         function blBuildPlayerMap() {{
             // Read squad from main table data-player-name attributes
+            // Format: "LastName FirstName" → reorder to "FirstName LastName"
             const map = {{}};
+            const swap = function(name) {{
+                const parts = (name || '').trim().split(/\s+/);
+                if (parts.length < 2) return name;
+                return parts.slice(1).join(' ') + ' ' + parts[0];
+            }};
             document.querySelectorAll('.main-table tbody tr[data-player-name]').forEach(row => {{
                 const cells = row.querySelectorAll('td');
                 if (!cells || cells.length < 16) return;
@@ -3080,7 +3086,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const num = parseInt((numEl.textContent || '').trim(), 10);
                 const name = (row.getAttribute('data-player-name') || cells[2].textContent || '').trim();
                 if (num && !isNaN(num)) {{
-                    map[num] = name;
+                    map[num] = swap(name);
                 }}
             }});
             return map;
@@ -3113,6 +3119,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
         function blMakeDraggable(el) {{
+            // GK cannot be dragged
+            if (el.dataset.role === 'GK') {{
+                el.style.cursor = 'default';
+                return;
+            }}
             el.addEventListener('mousedown', function(e) {{
                 if (e.target.tagName === 'INPUT') return;
                 e.preventDefault();
