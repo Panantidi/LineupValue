@@ -1259,17 +1259,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 </head>
 <body class="{('embed-mode' if embed else '')}">
     <div class="header">
-        <div class="team-title">
-            <h1>{team_name}</h1>
-        </div>
-        <div class="header-tabs">
-            <div class="tab active">Squad</div>
-            <div class="tab">Missing Players</div>
-            <div class="tab">Doubtful Players</div>
-            <div class="tab">Returning Players</div>
-            <div class="tab">Transfer In</div>
-            <div class="tab">Transfer Out</div>
-        </div>
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
             <button onclick="exportScreenshot()" id="btn-export" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:18px;">📸</button>
             <a href="/lineup_ai/select">← Back to teams</a>
@@ -1525,6 +1514,18 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </aside>
 
             <div class="main-table">
+                <!-- Team name + tabs moved up from header to sit flush above the table -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap;">
+                    <h1 style="margin:0;font-size:24px;font-weight:600;color:#1a2942;">{team_name}</h1>
+                    <div class="header-tabs">
+                        <div class="tab active">Squad</div>
+                        <div class="tab">Missing Players</div>
+                        <div class="tab">Doubtful Players</div>
+                        <div class="tab">Returning Players</div>
+                        <div class="tab">Transfer In</div>
+                        <div class="tab">Transfer Out</div>
+                    </div>
+                </div>
                 <div class="table-container">
             <table>
                 <thead>
