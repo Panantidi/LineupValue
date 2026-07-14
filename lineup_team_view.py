@@ -1389,17 +1389,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <!-- Info Bar Squad Overview (toggled by header button, appears below my-squads-sidebar) -->
     <div id="info-bar-squad-host" style="display:none;">
 <div id="info-bar-squad" style="display:flex;flex-direction:column;gap:12px;">
-            <div style="background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Total Value</div>
-                <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{total_value_display}</div>
-            </div>
-            <div style="display:flex;gap:12px;">
-                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                    <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Avg Age</div>
+            <div style="display:flex;gap:8px;">
+                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;min-width:0;">
+                    <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Total Value</div>
+                    <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{total_value_display}</div>
+                </div>
+                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;min-width:0;">
+                    <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Avg Age</div>
                     <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{avg_age}</div>
                 </div>
-                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                    <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div>
+                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;min-width:0;">
+                    <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Players</div>
                     <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{squad_size}</div>
                 </div>
             </div>
