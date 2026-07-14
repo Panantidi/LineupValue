@@ -1155,6 +1155,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             min-width: 128px;
             text-align: center;
         }}
+        /* Auto-width override for the renamed action buttons (Scan, Load Image, Run AI).
+           Lets each button size to its label rather than a fixed 128px. */
+        .bl-action-btn {{
+            width: auto !important;
+            min-width: 0 !important;
+            padding: 8px 14px !important;
+        }}
         .vision-lineup-row {{
             display: flex;
             gap: 8px;
@@ -1425,12 +1432,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <option value="start">🔴 S-XI</option>
                         <option value="squad">⚫️ List (all found)</option>
                     </select>
-                    <button type="button" onclick="applyBulkLineup()">Apply</button>
+                    <button type="button" class="bl-action-btn" onclick="applyBulkLineup()">Scan</button>
                     <div class="vision-lineup-row" style="margin-left:auto;">
                         <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                        <button type="button" class="vision-lineup-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
+                        <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Load Image</button>
                         <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
-                        <button type="button" class="vision-lineup-btn" onclick="applyVisionLineup()">🤖 AI Vision</button>
+                        <button type="button" class="vision-lineup-btn bl-action-btn" onclick="applyVisionLineup()">🤖 Run AI</button>
                         <span id="vision-lineup-status" class="vision-lineup-status"></span>
                     </div>
                 </div>
