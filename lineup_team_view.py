@@ -1301,7 +1301,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div class="header">
         <!-- Left utility buttons: My Favorites + Screenshot -->
         <div style="display:flex;align-items:center;gap:8px;margin-right:auto;">
-            <a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span>💎</span> My Favorites</a>
+            <a href="/lineup_ai/favorites" class="header-action-btn"><span>💎</span> My Favorites</a>
             <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
         </div>
         <!-- Right action buttons: lineups toggles + back -->
@@ -1310,7 +1310,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <button type="button" id="btn-compare-lineups" class="header-action-btn" onclick="toggleSection('comparison-table-host', this)">⚖️ Compare Lineups</button>
             <button type="button" id="btn-squad-overview" class="header-action-btn" onclick="toggleSection('info-bar-squad-host', this)">📊 Squad Overview</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
-            <a href="/lineup_ai/select">← Back to teams</a>
+            <a href="/lineup_ai/select" class="header-action-btn">← Back to teams</a>
         </div>
     </div>
 
