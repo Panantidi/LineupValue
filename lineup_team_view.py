@@ -1625,17 +1625,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var host = document.getElementById(hostId);
             if (!host) return;
             var isVisible = host.style.display !== 'none';
-            // ⚖️ Compare Lineups и 📊 Squad Overview — mutually exclusive
-            var pairedHosts = ['comparison-table-host', 'info-bar-squad-host'];
-            if (!isVisible && pairedHosts.indexOf(hostId) !== -1) {{
-                pairedHosts.forEach(function(id) {{
-                    var h = document.getElementById(id);
-                    if (h) h.style.display = 'none';
-                }});
-                document.querySelectorAll('#btn-compare-lineups, #btn-squad-overview').forEach(function(b) {{
-                    if (b) b.classList.remove('active');
-                }});
-            }}
+            // All header panels are independent — they can all be open at the same time.
+            // ⚖️ Compare Lineups and 📊 Squad Overview both live in the left column wrapper
+            // (Compare above, Squad below), so when both are toggled on, both stay visible.
             if (!isVisible) {{
                 host.style.display = 'block';
                 if (btn) btn.classList.add('active');
