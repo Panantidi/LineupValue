@@ -1597,13 +1597,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <div style="position:absolute;left:50%;bottom:78px;width:3px;height:3px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translateX(-50%);"></div>
                         <!-- Bottom goal (net) -->
                         <div style="position:absolute;left:50%;bottom:-8px;width:80px;height:10px;border:2px solid #fff;background:rgba(255,255,255,0.1);transform:translateX(-50%);"></div>
-                        <!-- Top penalty arc -->
-                        <svg style="position:absolute;left:50%;top:110px;transform:translateX(-50%);" width="160" height="40" viewBox="0 0 160 40">
-                            <path d="M 10 0 A 80 80 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
+                        <!-- Top penalty arc (D) — outside penalty area, facing center -->
+                        <svg style="position:absolute;left:50%;top:120px;transform:translateX(-50%);" width="160" height="60" viewBox="0 0 160 60">
+                            <path d="M 25 0 A 55 55 0 0 1 135 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
                         </svg>
-                        <!-- Bottom penalty arc -->
-                        <svg style="position:absolute;left:50%;bottom:110px;transform:translateX(-50%) rotate(180deg);" width="160" height="40" viewBox="0 0 160 40">
-                            <path d="M 10 0 A 80 80 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
+                        <!-- Bottom penalty arc (D) — outside penalty area, facing center -->
+                        <svg style="position:absolute;left:50%;bottom:120px;transform:translateX(-50%) scale(1,-1);" width="160" height="60" viewBox="0 0 160 60">
+                            <path d="M 25 0 A 55 55 0 0 1 135 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
                         </svg>
                         <div id="bl-team-name" style="position:absolute;left:14px;bottom:10px;color:white;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:1;">{team_name}</div>
                         <div id="bl-players" style="position:absolute;inset:0;z-index:2;"></div>
