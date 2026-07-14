@@ -35,6 +35,35 @@ body {
     align-items: center;
     gap: 12px;
 }
+.compare-header-left {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.compare-header-left a,
+.compare-header-left button {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.compare-header-left a:hover,
+.compare-header-left button:hover {
+    background: rgba(255,255,255,0.3);
+}
 .compare-header-controls a,
 .compare-header-controls button {
     background: rgba(255,255,255,0.15);
@@ -251,6 +280,11 @@ body {
 
 
 <div class="compare-header">
+    <!-- Left utility buttons: My Favorites + Screenshot (mirrors Team mode) -->
+    <div class="compare-header-left">
+        <a href="/lineup_ai/favorites" class="header-action-btn"><span>💎</span> My Favorites</a>
+        <button type="button" class="header-action-btn" onclick="exportMatchScreenshot()" id="btn-match-screenshot">📸 Screenshot</button>
+    </div>
     <h2 style="display:flex;align-items:center;justify-content:center;gap:12px;">
         <button onclick="updateTeamData('my')" title="Update Home Team" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:4px 8px;cursor:pointer;color:white;font-size:14px;">&#128260; Home</button>
         <span>{{my_name}} vs {{opponent_name}}</span>
@@ -263,7 +297,6 @@ body {
         <button id="match-btn-compare-lineups" onclick="toggleBothFrames('comparison-table-host', this)" title="Compare Lineups (both teams)">⚖️ Compare Lineups</button>
         <button id="match-btn-squad-overview" onclick="toggleBothFrames('info-bar-squad-host', this)" title="Squad Overview (both teams)">📊 Squad Overview</button>
         <button id="match-save-btn" onclick="saveMatchData()" title="Save Match Data">💾 Save</button>
-        <button onclick="exportMatchScreenshot()" title="Save Screenshot">&#x1F4F8;</button>
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
     </div>
 </div>
