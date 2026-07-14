@@ -1389,13 +1389,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Total Value</div>
                 <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{total_value_display}</div>
             </div>
-            <div style="background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Avg Age</div>
-                <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{avg_age}</div>
-            </div>
-            <div style="background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
-                <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div>
-                <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{squad_size}</div>
+            <div style="display:flex;gap:12px;">
+                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                    <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Avg Age</div>
+                    <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{avg_age}</div>
+                </div>
+                <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                    <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:4px;white-space:nowrap;">Players</div>
+                    <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;">{squad_size}</div>
+                </div>
             </div>
             <div style="background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
                 <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;">Pos.Overview</div>
