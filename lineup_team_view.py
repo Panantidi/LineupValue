@@ -1591,25 +1591,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <div style="position:absolute;left:50%;top:0;width:330px;height:120px;border:2px solid rgba(255,255,255,0.85);border-top:none;transform:translateX(-50%);"></div>
                         <!-- Top goal area (6-yard box) -->
                         <div style="position:absolute;left:50%;top:0;width:160px;height:50px;border:2px solid rgba(255,255,255,0.85);border-top:none;transform:translateX(-50%);"></div>
-                        <!-- Top penalty spot -->
-                        <div style="position:absolute;left:50%;top:78px;width:3px;height:3px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translateX(-50%);"></div>
+                        <!-- Top penalty spot (11 m from goal line ≈ 72px at 6.5 px/m) -->
+                        <div style="position:absolute;left:50%;top:72px;width:3px;height:3px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translateX(-50%);"></div>
                         <!-- Top goal (net) -->
                         <div style="position:absolute;left:50%;top:-8px;width:80px;height:10px;border:2px solid #fff;background:rgba(255,255,255,0.1);transform:translateX(-50%);"></div>
                         <!-- Bottom penalty area -->
                         <div style="position:absolute;left:50%;bottom:0;width:330px;height:120px;border:2px solid rgba(255,255,255,0.85);border-bottom:none;transform:translateX(-50%);"></div>
                         <!-- Bottom goal area -->
                         <div style="position:absolute;left:50%;bottom:0;width:160px;height:50px;border:2px solid rgba(255,255,255,0.85);border-bottom:none;transform:translateX(-50%);"></div>
-                        <!-- Bottom penalty spot -->
-                        <div style="position:absolute;left:50%;bottom:78px;width:3px;height:3px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translateX(-50%);"></div>
+                        <!-- Bottom penalty spot (11 m from goal line ≈ 72px at 6.5 px/m) -->
+                        <div style="position:absolute;left:50%;bottom:72px;width:3px;height:3px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translateX(-50%);"></div>
                         <!-- Bottom goal (net) -->
                         <div style="position:absolute;left:50%;bottom:-8px;width:80px;height:10px;border:2px solid #fff;background:rgba(255,255,255,0.1);transform:translateX(-50%);"></div>
-                        <!-- Top penalty arc (D) — outside penalty area, facing center -->
-                        <svg style="position:absolute;left:50%;top:120px;transform:translateX(-50%);" width="160" height="60" viewBox="0 0 160 60">
-                            <path d="M 25 0 A 55 55 0 0 1 135 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
+                        <!-- Top penalty arc (D) — outside penalty area, facing center
+                             FIFA: radius 9.15 m from penalty spot (11 m from goal line).
+                             Scale: 1m ≈ 6.5px → radius ≈ 60px, spot ≈ 72px. -->
+                        <svg style="position:absolute;left:50%;top:120px;transform:translateX(-50%);" width="180" height="62" viewBox="0 0 180 62">
+                            <path d="M 30 0 A 60 60 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
                         </svg>
                         <!-- Bottom penalty arc (D) — outside penalty area, facing center -->
-                        <svg style="position:absolute;left:50%;bottom:120px;transform:translateX(-50%) scale(1,-1);" width="160" height="60" viewBox="0 0 160 60">
-                            <path d="M 25 0 A 55 55 0 0 1 135 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
+                        <svg style="position:absolute;left:50%;bottom:120px;transform:translateX(-50%) scale(1,-1);" width="180" height="62" viewBox="0 0 180 62">
+                            <path d="M 30 0 A 60 60 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
                         </svg>
                         <div id="bl-team-name" style="position:absolute;left:14px;bottom:10px;color:white;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:1;">{team_name}</div>
                         <div id="bl-players" style="position:absolute;inset:0;z-index:2;"></div>
