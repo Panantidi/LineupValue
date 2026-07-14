@@ -534,8 +534,9 @@ body {
             // Get team names for filename
             var myDoc = myFrame.contentDocument || myFrame.contentWindow.document;
             var oppDoc = oppFrame.contentDocument || oppFrame.contentWindow.document;
-            var myName = ((myDoc.querySelector('.header h1') || {}).textContent || 'Home').trim();
-            var oppName = ((oppDoc.querySelector('.header h1') || {}).textContent || 'Away').trim();
+            // Team name lives in .main-table h1 (the gradient bar)
+            var myName = ((myDoc.querySelector('.main-table h1') || {}).textContent || 'Home').trim();
+            var oppName = ((oppDoc.querySelector('.main-table h1') || {}).textContent || 'Away').trim();
 
             var link = document.createElement('a');
             link.download = myName.replace(/\s+/g, '_') + '_vs_' + oppName.replace(/\s+/g, '_') + '.png';

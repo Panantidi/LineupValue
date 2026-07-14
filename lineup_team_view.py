@@ -2692,7 +2692,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         // Returns a Promise<canvas> for use by parent (Match mode)
         async function getScreenshotCanvas() {{
             try {{
-                const teamName = document.querySelector('.header h1').textContent.trim();
+                // Team name lives in the gradient bar inside .main-table (the .header h1 selector was wrong)
+                const h1 = document.querySelector('.main-table h1');
+                const teamName = h1 ? h1.textContent.trim() : 'team';
                 const infoBar = document.getElementById('info-bar-squad');
                 const compTable = document.getElementById('comparison-table');
                 const mainTable = document.querySelector('.table-container');
