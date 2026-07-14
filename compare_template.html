@@ -405,6 +405,12 @@ body {
         if (btn) {
             btn.classList.toggle('active');
         }
+        // Resize BOTH iframes to match the new content height (otherwise
+        // the iframe stays at its old height and the new panel gets cut off).
+        setTimeout(function() {
+            resizeFrame(myFrame);
+            resizeFrame(oppFrame);
+        }, 50);
     };
 
     window.saveMatchData = async function() {
@@ -474,6 +480,11 @@ body {
                 }
             }
             matchSavedAt = result.saved_at;
+            // Resize both iframes after applying saved state (panels may have been shown)
+            setTimeout(function() {
+                resizeFrame(myFrame);
+                resizeFrame(oppFrame);
+            }, 50);
         } catch (e) {
             console.error("Load error:", e);
         }
