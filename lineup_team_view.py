@@ -1613,7 +1613,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <svg style="position:absolute;left:50%;bottom:120px;transform:translateX(-50%) scale(1,-1);" width="180" height="62" viewBox="0 0 180 62">
                             <path d="M 30 0 A 60 60 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
                         </svg>
-                        <div id="bl-team-name" style="position:absolute;left:14px;bottom:10px;color:white;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:1;">{team_name}</div>
+                        <div id="bl-team-name" style="position:absolute;left:14px;bottom:10px;color:white;font-size:16px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.9);z-index:1;">{team_name}</div>
+                        <div id="bl-watermark" style="position:absolute;right:14px;bottom:10px;color:white;font-size:12px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:1;letter-spacing:0.3px;">@LineupValue</div>
                         <div id="bl-players" style="position:absolute;inset:0;z-index:2;"></div>
                     </div>
                 </div>
@@ -3106,7 +3107,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             circle.appendChild(numInput);
             const nameLabel = document.createElement('div');
             nameLabel.id = 'bl-name-' + idx;
-            nameLabel.style.cssText = 'position:absolute;left:50%;top:100%;transform:translateX(-50%);color:#fff;font-size:11px;white-space:nowrap;margin-top:4px;text-shadow:0 1px 2px rgba(0,0,0,0.7);text-align:center;';
+            nameLabel.style.cssText = 'position:absolute;left:50%;top:100%;transform:translateX(-50%);color:#fff;font-size:14px;font-weight:600;white-space:nowrap;margin-top:4px;text-shadow:0 1px 3px rgba(0,0,0,0.8);text-align:center;';
             nameLabel.textContent = role;
             wrap.appendChild(circle);
             wrap.appendChild(nameLabel);
