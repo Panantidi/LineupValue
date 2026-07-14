@@ -2689,51 +2689,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
         }}
 
-        // Returns a Promise<canvas> for use by parent (Match mode)
+        // Returns a Promise<canvas> for use by parent (Match mode).
+        // Mirrors Team mode exportScreenshot() — clones .page-main wholesale
+        // (includes bulk-lineup panel, info-bar, comparison-table, builder,
+        // gradient title bar, tabs, full table, coach-stadium) so the saved
+        // PNG looks exactly like what the user sees in Team mode.
         async function getScreenshotCanvas() {{
             try {{
-                // Team name lives in the gradient bar inside .main-table (the .header h1 selector was wrong)
-                const h1 = document.querySelector('.main-table h1');
-                const teamName = h1 ? h1.textContent.trim() : 'team';
-                const infoBar = document.getElementById('info-bar-squad');
-                const compTable = document.getElementById('comparison-table');
-                const mainTable = document.querySelector('.table-container');
-                const realTable = mainTable ? mainTable.querySelector('table') : null;
+                const pageMain = document.querySelector('.page-main');
+                if (!pageMain) return null;
 
-                // Measure the NATURAL width of the table (sum of all column widths)
-                let fullW = 1200;
-                if (realTable) {{
-                    // Clone just the table, set width to auto, measure natural width
-                    const probe = realTable.cloneNode(true);
-                    probe.style.width = 'auto';
-                    probe.style.position = 'absolute';
-                    probe.style.visibility = 'hidden';
-                    probe.style.left = '-9999px';
-                    document.body.appendChild(probe);
-                    fullW = Math.max(probe.offsetWidth, mainTable.scrollWidth, 1200);
-                    document.body.removeChild(probe);
-                }}
-
-                // Build capture container at natural table width
+                // Create off-screen capture div (same as Team mode)
                 const capture = document.createElement('div');
-                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:' + fullW + 'px;';
+                capture.style.cssText = 'position:absolute;left:-9999px;top:0;background:#f4f6f9;padding:16px;width:fit-content;';
 
-                const hdr = document.createElement('div');
-                hdr.style.cssText = 'font-size:22px;font-weight:700;color:#333;margin-bottom:12px;font-family:system-ui;';
-                hdr.textContent = teamName;
-                capture.appendChild(hdr);
-
-                if (infoBar) capture.appendChild(infoBar.cloneNode(true));
-                if (compTable) capture.appendChild(compTable.cloneNode(true));
-                if (mainTable) {{
-                    const mtClone = mainTable.cloneNode(true);
-                    // Force the clone and its table to expand fully
-                    mtClone.style.overflow = 'visible';
-                    mtClone.style.width = fullW + 'px';
-                    const innerTable = mtClone.querySelector('table');
-                    if (innerTable) innerTable.style.width = fullW + 'px';
-                    capture.appendChild(mtClone);
-                }}
+                // Clone .page-main wholesale — preserves the exact column widths,
+                // coach-stadium bar, and table layout as displayed in Team mode.
+                const pmClone = pageMain.cloneNode(true);
+                // Force-show coach-stadium in the clone (if hidden by tab switch)
+                const csInClone = pmClone.querySelector('#coach-stadium-bar');
+                if (csInClone) csInClone.style.display = 'flex';
+                capture.appendChild(pmClone);
 
                 _replaceCheckboxesWithCircles(capture);
                 document.body.appendChild(capture);
@@ -2742,10 +2718,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     backgroundColor: '#f4f6f9',
                     scale: 2,
                     useCORS: true,
-                    logging: false,
-                    width: capture.scrollWidth,
-                    height: capture.scrollHeight,
-                    windowWidth: capture.scrollWidth + 200
+                    logging: false
                 }});
 
                 document.body.removeChild(capture);
