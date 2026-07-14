@@ -979,7 +979,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             margin: 0;
         }}
         .team-nav-sidebar {{
-            width: 240px;
+            width: 255px;
             flex-shrink: 0;
             background: white;
             border-radius: 8px;
@@ -1016,7 +1016,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         body.embed-mode .team-nav-sidebar {{ display: none !important; }}
         .my-squads-sidebar {{
-            width: 240px;
+            width: 255px;
             flex-shrink: 0;
             background: white;
             border-radius: 8px;
