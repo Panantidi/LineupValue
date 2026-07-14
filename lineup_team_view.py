@@ -1642,10 +1642,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 host.style.display = 'none';
                 if (btn) btn.classList.remove('active');
             }}
-            // 🏗️ Builder Lineup — switch .main-layout to row when shown
+            // 🏗️ Builder Lineup — keep .main-layout in row whenever builder-lineup-host is visible,
+            // regardless of which other hostId triggered this toggleSection call.
             var mainLayout = document.querySelector('.main-layout');
             if (mainLayout) {{
-                if (hostId === 'builder-lineup-host' && host.style.display !== 'none') {{
+                var builderHost = document.getElementById('builder-lineup-host');
+                var builderVisible = builderHost && builderHost.style.display !== 'none';
+                if (builderVisible) {{
                     mainLayout.style.setProperty('flex-direction', 'row', 'important');
                     mainLayout.style.setProperty('align-items', 'flex-start', 'important');
                     mainLayout.style.setProperty('gap', '20px', 'important');
