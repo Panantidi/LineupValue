@@ -1614,7 +1614,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                             <path d="M 30 0 A 60 60 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
                         </svg>
                         <div id="bl-team-name" style="position:absolute;left:14px;bottom:10px;color:white;font-size:16px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.9);z-index:1;">{team_name}</div>
-                        <div id="bl-watermark" style="position:absolute;right:14px;bottom:10px;color:white;font-size:12px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:1;letter-spacing:0.3px;">@LineupValue</div>
+                        <div id="bl-watermark" style="position:absolute;right:14px;bottom:10px;color:white;font-size:16px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.9);z-index:1;letter-spacing:0.3px;">@LineupValue</div>
                         <div id="bl-players" style="position:absolute;inset:0;z-index:2;"></div>
                     </div>
                 </div>
