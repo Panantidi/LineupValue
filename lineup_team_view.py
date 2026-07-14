@@ -1295,10 +1295,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 </head>
 <body class="{('embed-mode' if embed else '')}">
     <div class="header">
-        <!-- Left utility buttons: Screenshot + My Favorites -->
+        <!-- Left utility buttons: My Favorites + Screenshot -->
         <div style="display:flex;align-items:center;gap:8px;margin-right:auto;">
-            <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
             <a href="/lineup_ai/favorites" style="background:#28a745;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span>💎</span> My Favorites</a>
+            <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
         </div>
         <!-- Right action buttons: lineups toggles + back -->
         <div style="display:flex;align-items:center;gap:8px;">
