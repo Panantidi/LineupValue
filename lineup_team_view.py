@@ -1646,13 +1646,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var mainLayout = document.querySelector('.main-layout');
             if (mainLayout) {{
                 if (hostId === 'builder-lineup-host' && host.style.display !== 'none') {{
-                    mainLayout.style.flexDirection = 'row';
-                    mainLayout.style.alignItems = 'flex-start';
-                    mainLayout.style.gap = '20px';
+                    mainLayout.style.setProperty('flex-direction', 'row', 'important');
+                    mainLayout.style.setProperty('align-items', 'flex-start', 'important');
+                    mainLayout.style.setProperty('gap', '20px', 'important');
+                    mainLayout.style.setProperty('flex-wrap', 'nowrap', 'important');
                 }} else {{
-                    mainLayout.style.flexDirection = 'column';
-                    mainLayout.style.alignItems = 'center';
-                    mainLayout.style.gap = '20px';
+                    mainLayout.style.removeProperty('flex-direction');
+                    mainLayout.style.removeProperty('align-items');
+                    mainLayout.style.removeProperty('gap');
+                    mainLayout.style.removeProperty('flex-wrap');
                 }}
             }}
         }}
