@@ -1578,7 +1578,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <!-- Halfway line (horizontal center) -->
                         <div style="position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(255,255,255,0.85);transform:translateY(-50%);"></div>
                         <!-- Center circle -->
-                        <div style="position:absolute;left:50%;top:50%;width:90px;height:90px;border:2px solid rgba(255,255,255,0.85);border-radius:50%;transform:translate(-50%,-50%);"></div>
+                        <div style="position:absolute;left:50%;top:50%;width:130px;height:130px;border:2px solid rgba(255,255,255,0.85);border-radius:50%;transform:translate(-50%,-50%);"></div>
                         <!-- Center spot -->
                         <div style="position:absolute;left:50%;top:50%;width:4px;height:4px;background:rgba(255,255,255,0.9);border-radius:50%;transform:translate(-50%,-50%);"></div>
                         <!-- Top penalty area -->
@@ -1605,11 +1605,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <svg style="position:absolute;left:50%;bottom:110px;transform:translateX(-50%) rotate(180deg);" width="160" height="40" viewBox="0 0 160 40">
                             <path d="M 10 0 A 80 80 0 0 1 150 0" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
                         </svg>
-                        <!-- Corner arcs -->
-                        <div style="position:absolute;left:0;top:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-right:none;border-bottom:none;border-top-left-radius:30px;"></div>
-                        <div style="position:absolute;right:0;top:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-left:none;border-bottom:none;border-top-right-radius:30px;"></div>
-                        <div style="position:absolute;left:0;bottom:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-right:none;border-top:none;border-bottom-left-radius:30px;"></div>
-                        <div style="position:absolute;right:0;bottom:0;width:20px;height:20px;border:2px solid rgba(255,255,255,0.85);border-left:none;border-top:none;border-bottom-right-radius:30px;"></div>
                         <div id="bl-team-name" style="position:absolute;left:14px;bottom:10px;color:white;font-size:12px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:1;">{team_name}</div>
                         <div id="bl-players" style="position:absolute;inset:0;z-index:2;"></div>
                     </div>
