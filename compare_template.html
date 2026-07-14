@@ -144,23 +144,29 @@ body {
         }
         .nav-rail-btn {
             position: absolute;
-            top: 6px;
+            top: 50%;
             right: 6px;
-            width: 18px;
-            height: 18px;
-            border: none;
-            background: transparent;
-            color: #888;
+            transform: translateY(-50%);
+            border: 1px solid #d0d0d0;
+            background: #f5f5f5;
+            color: #555;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 11px;
+            font-weight: 600;
             line-height: 1;
-            padding: 0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
         }
         .nav-rail-btn:hover {
-            color: #333;
+            background: #e0e0e0;
+            color: #043fb6;
+            border-color: #043fb6;
         }
 
         .team-nav-sidebar .nav-title {
+            position: relative;
+            height: 24px;
             font-weight: 700;
             color: #043fb6;
             font-size: 13px;
