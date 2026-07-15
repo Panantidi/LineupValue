@@ -115,6 +115,40 @@ async function toggleFavorite(el) {
     }
 }
 
+// Inject toast styles into the document head (favorites.css is not loaded
+// on every page, so we add the rules inline to guarantee the toast hides).
+(function injectToastStyles() {
+    if (document.getElementById('favorites-toast-style')) return;
+    const style = document.createElement('style');
+    style.id = 'favorites-toast-style';
+    style.textContent = [
+        '#favorites-toast {',
+        '  position: fixed;',
+        '  bottom: 24px;',
+        '  left: 24px;',
+        '  background: #333;',
+        '  color: white;',
+        '  padding: 16px 24px;',
+        '  border-radius: 8px;',
+        '  font-size: 14px;',
+        '  opacity: 0;',
+        '  visibility: hidden;',
+        '  transform: translateY(20px);',
+        '  transition: opacity 0.3s, transform 0.3s, visibility 0.3s;',
+        '  z-index: 10000;',
+        '  pointer-events: none;',
+        '}',
+        '#favorites-toast.show {',
+        '  opacity: 1;',
+        '  visibility: visible;',
+        '  transform: translateY(0);',
+        '}',
+        '#favorites-toast.success { background: #28a745; }',
+        '#favorites-toast.error { background: #dc3545; }',
+    ].join('\n');
+    document.head.appendChild(style);
+})();
+
 // Track the active auto-hide timer so a new toast cancels the previous one.
 let _toastHideTimer = null;
 
