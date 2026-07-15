@@ -1555,7 +1555,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap;background:linear-gradient(to right, #043fb6 0%, #2e7af8 100%);padding:16px 20px;border-radius:12px;">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <h1 style="margin:0;font-size:24px;font-weight:600;color:white;">{team_name}</h1>
-                        <span class="team-squad-emoji" title="Hover for squad overview" style="cursor:help;font-size:18px;line-height:1;position:relative;display:inline-block;color:white;">📊</span>
+                        <span class="team-squad-emoji" style="cursor:help;font-size:18px;line-height:1;position:relative;display:inline-block;color:white;">📊</span>
                     </div>
                     <div class="header-tabs">
                         <div class="tab active" onclick="selectTab(this, 'Squad')">Squad</div>
