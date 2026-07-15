@@ -293,8 +293,7 @@ body {
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="stadium {{stadium_class}}">{{stadium_text}}{{neutral_suffix}}</div>
     <div class="compare-header-controls">
-        <button id="match-btn-add-lineups" onclick="toggleBothFrames('bulk-lineup-panel-host', this)" title="Add Lineups (both teams)">👥 Add Lineups</button>
-        <button id="match-btn-compare-lineups" onclick="toggleBothFrames('comparison-table-host', this)" title="Compare Lineups (both teams)">⚖️ Compare Lineups</button>
+        <button id="match-btn-add-lineups" onclick="toggleBothFrames('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both teams)">👥 Add Lineups</button>
         <button id="match-btn-squad-overview" onclick="toggleBothFrames('info-bar-squad-host', this)" title="Squad Overview (both teams)">📊 Squad Overview</button>
         <button id="match-save-btn" onclick="saveMatchData()" title="Save Match Data">💾 Save</button>
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
@@ -400,25 +399,37 @@ body {
     var matchSavedAt = null;
 
     // Toggle the same host in BOTH team iframes (Match mode) at once.
-    // Used by 👥 / ⚖️ / 📊 buttons in the compare header.
+    // Used by 👥 Add Lineups (which also toggles ⚖️ Compare at the same time).
     // 🧹 Build Lineup is intentionally NOT exposed here.
-    window.toggleBothFrames = function(hostId, btn) {
+    // extraHosts: optional array of additional hostIds to toggle together.
+    window.toggleBothFrames = function(hostId, btn, extraHosts) {
         var myFrame = document.getElementById('my-frame');
         var oppFrame = document.getElementById('opp-frame');
         if (!myFrame || !oppFrame || !myFrame.contentWindow || !oppFrame.contentWindow) {
             alert('Frames not ready');
             return;
         }
+        // Read the current state of the primary host from one iframe to determine the new state
+        var willShow = false;
+        try {
+            var host = myFrame.contentDocument.getElementById(hostId);
+            willShow = host && host.style.display === 'none';
+        } catch (e) { /* default: toggle */ }
+        var allHosts = [hostId].concat(extraHosts || []);
         [myFrame, oppFrame].forEach(function(frame) {
-            try {
-                var win = frame.contentWindow;
-                if (typeof win.toggleSection === 'function') {
-                    win.toggleSection(hostId, null);
-                }
-            } catch (e) { /* cross-origin or frame not ready */ }
+            allHosts.forEach(function(hid) {
+                try {
+                    var doc = frame.contentDocument;
+                    var h = doc && doc.getElementById(hid);
+                    if (h) {
+                        h.style.display = willShow ? 'block' : 'none';
+                    }
+                } catch (e) { /* cross-origin or frame not ready */ }
+            });
         });
         if (btn) {
-            btn.classList.toggle('active');
+            if (willShow) btn.classList.add('active');
+            else btn.classList.remove('active');
         }
         // Resize BOTH iframes to match the new content height (otherwise
         // the iframe stays at its old height and the new panel gets cut off).
