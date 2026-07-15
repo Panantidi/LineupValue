@@ -1287,7 +1287,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         /* Match mode: bulk-lineup-panel narrows so comparison-table (255px) can sit
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
         body.embed-mode .bulk-lineup-panel {{ width: 700px !important; }}
-        body.embed-mode .comparison-tables {{ width: 258px !important; max-width: 100% !important; box-sizing: border-box !important; }}
+        body.embed-mode .comparison-tables {{ width: 271px !important; max-width: 100% !important; box-sizing: border-box !important; }}
         /* Team + Match mode: info-bar-squad-host is hidden (the 📊 emoji next to
            team name shows the same data as a hover tooltip). No standalone panel. */
         #info-bar-squad-host {{ display: none !important; }}
