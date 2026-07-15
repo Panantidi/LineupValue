@@ -1178,6 +1178,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             background: #f8f9fc;
         }}
         .vision-lineup-status {{ font-size: 12px; font-weight: 700; }}
+        /* File-name emoji (💤 / 🆗) is larger than the text status */
+        #vision-file-name {{ font-size: 20px; line-height: 1; }}
         .bulk-lineup-report {{
             margin-top: 8px;
             font-size: 12px;
@@ -1440,7 +1442,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <div class="vision-lineup-row" style="margin-left:auto;">
                         <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
                         <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
-                        <span id="vision-file-name" class="vision-lineup-status">💬</span>
+                        <span id="vision-file-name" class="vision-lineup-status">💤</span>
                         <button type="button" class="vision-lineup-btn bl-action-btn" onclick="applyVisionLineup()">Run AI</button>
                         <span id="vision-lineup-status" class="vision-lineup-status"></span>
                     </div>
@@ -2088,8 +2090,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const fileNameEl = document.getElementById('vision-file-name');
             if (fileEl && fileNameEl) {{
                 fileEl.addEventListener('change', function() {{
-                    // Show 🆗 when an image is uploaded, 💬 when none selected
-                    fileNameEl.textContent = (fileEl.files && fileEl.files[0]) ? '🆗' : '💬';
+                    // Show 🆗 when an image is uploaded, 💤 when none selected
+                    fileNameEl.textContent = (fileEl.files && fileEl.files[0]) ? '🆗' : '💤';
                 }});
             }}
         }});
