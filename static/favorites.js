@@ -115,6 +115,9 @@ async function toggleFavorite(el) {
     }
 }
 
+// Track the active auto-hide timer so a new toast cancels the previous one.
+let _toastHideTimer = null;
+
 function showToast(message, type) {
     let toast = document.getElementById('favorites-toast');
     if (!toast) {
@@ -122,9 +125,19 @@ function showToast(message, type) {
         toast.id = 'favorites-toast';
         document.body.appendChild(toast);
     }
+    // Cancel any pending hide from a previous toast so the new one stays visible
+    // for the full 3 seconds, regardless of how rapidly the user clicks.
+    if (_toastHideTimer !== null) {
+        clearTimeout(_toastHideTimer);
+        _toastHideTimer = null;
+    }
     toast.textContent = message;
     toast.className = 'show ' + type;
-    setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    // Auto-hide after 3 seconds
+    _toastHideTimer = setTimeout(function() {
+        toast.classList.remove('show');
+        _toastHideTimer = null;
+    }, 3000);
 }
 
 async function initFavorites() {

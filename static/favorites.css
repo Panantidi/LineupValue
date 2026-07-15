@@ -30,7 +30,7 @@
 #favorites-toast {
     position: fixed;
     bottom: 24px;
-    right: 24px;
+    left: 24px;
     background: #333;
     color: white;
     padding: 16px 24px;
