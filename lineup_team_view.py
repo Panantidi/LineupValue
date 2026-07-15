@@ -1282,6 +1282,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         body.embed-mode .actions-bar {{ display: none !important; }}
         body.embed-mode .container {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
         body.embed-mode .main-table {{ overflow-x: visible !important; }}
+        /* Match mode: bulk-lineup-panel narrows so comparison-table (255px) can sit
+           to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
+        body.embed-mode .bulk-lineup-panel {{ width: 700px !important; }}
+        body.embed-mode .comparison-tables {{ width: 255px !important; max-width: 100% !important; box-sizing: border-box !important; }}
         /* Favorites: disabled for international tournaments */
         .player-number-circle[data-is-wc="wc"] {{
             opacity: 0.4;

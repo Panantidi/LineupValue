@@ -319,6 +319,21 @@ body {
             // Hide the entire inner header (Team mode buttons are exposed in compare header instead)
             var innerHeader = doc.querySelector('.header');
             if (innerHeader) innerHeader.style.display = 'none';
+            // In Match mode, wrap bulk-lineup-panel-host + comparison-table-host in a
+            // single flex-row container so they sit side by side (700 + 9 + 255 = 964px,
+            // matching the main table width).
+            var pageMain = doc.querySelector('.page-main');
+            var bulkHost = doc.getElementById('bulk-lineup-panel-host');
+            var compareHost = doc.getElementById('comparison-table-host');
+            if (pageMain && bulkHost && compareHost && !doc.getElementById('bl-compare-row')) {
+                var row = doc.createElement('div');
+                row.id = 'bl-compare-row';
+                row.style.cssText = 'display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;width:964px;max-width:100%;box-sizing:border-box;';
+                // Move both hosts INTO the new row, preserving order (bulk first, then compare)
+                pageMain.insertBefore(row, bulkHost);
+                row.appendChild(bulkHost);
+                row.appendChild(compareHost);
+            }
             var links = doc.querySelectorAll('a[href="/lineup_ai/select"]');
             links.forEach(function(el) { el.style.display = 'none'; });
             var btn = doc.getElementById('btn-export');
