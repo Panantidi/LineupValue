@@ -1291,6 +1291,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         /* Match mode: info-bar-squad-host is hidden (the 📊 emoji next to team name
            shows the same data as a hover tooltip). No standalone panel in Match. */
         body.embed-mode #info-bar-squad-host {{ display: none !important; }}
+        /* Match mode: page-main fixed at 980px (fits main-table 964px + padding). */
+        body.embed-mode .page-main {{
+            width: 980px !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            flex: 0 0 auto !important;
+        }}
         /* Match mode: team-squad-emoji shows a tooltip with info-bar-squad on hover.
            The tooltip is fixed-position so it overlays everything; size 255x258.4px. */
         .team-squad-tooltip {{
