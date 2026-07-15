@@ -1287,19 +1287,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         /* Match mode: bulk-lineup-panel narrows so comparison-table (255px) can sit
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
         body.embed-mode .bulk-lineup-panel {{ width: 700px !important; flex-shrink: 0 !important; }}
-        body.embed-mode .comparison-tables {{
+        body.embed-mode #comparison-table {{
             width: 254.99px !important;
+            min-width: 254.99px !important;
+            max-width: 254.99px !important;
             flex-shrink: 0 !important;
+            flex-grow: 0 !important;
             box-sizing: border-box !important;
             overflow: visible !important;
         }}
         /* Match mode: comparison-table cards must fit on one line.
            Truncate with ellipsis instead of wrapping. */
-        body.embed-mode .comparison-tables > div {{
+        body.embed-mode #comparison-table > div {{
             min-width: 0 !important;
             overflow: hidden !important;
         }}
-        body.embed-mode .comparison-tables > div > span:last-child {{
+        body.embed-mode #comparison-table > div > span:last-child {{
             white-space: nowrap !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
