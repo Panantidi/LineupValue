@@ -1426,11 +1426,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
         <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:10px 12px;display:flex;align-items:center;justify-content:flex-start;min-height:42px;">
             <span id="cmp-sxi-pct-impact" style="font-size:15px;font-weight:600;">–</span>
-            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#dc3545;">Starting XI</span> 🆚 <span style="font-weight:600;color:#000;">Last Match XI</span></span>
+            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#dc3545;">Starting XI</span> 🆚 <span style="font-weight:600;color:#000;">Last Match</span></span>
         </div>
         <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:10px 12px;display:flex;align-items:center;justify-content:flex-start;min-height:42px;">
             <span id="cmp-pxi-pct-impact" style="font-size:15px;font-weight:600;">–</span>
-            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#667eea;">Possible XI</span> 🆚 <span style="font-weight:600;color:#000;">Last Match XI</span></span>
+            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#667eea;">Possible XI</span> 🆚 <span style="font-weight:600;color:#000;">Last Match</span></span>
         </div>
     </div>
     </div>
