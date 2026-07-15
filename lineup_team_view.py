@@ -1398,8 +1398,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
         <!-- Right action buttons: lineups toggles + back -->
         <div style="display:flex;align-items:center;gap:8px;">
-            <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this)">👥 Add Lineups</button>
-            <button type="button" id="btn-compare-lineups" class="header-action-btn" onclick="toggleSection('comparison-table-host', this)">⚖️ Compare Lineups</button>
+            <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
             <a href="/lineup_ai/select" class="header-action-btn">← Back to teams</a>
         </div>
@@ -1718,19 +1717,42 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     <script>
         var _tooltipTimer = null;
-        function toggleSection(hostId, btn) {{
+        function toggleSection(hostId, btn, extraHosts) {{
             var host = document.getElementById(hostId);
             if (!host) return;
             var isVisible = host.style.display !== 'none';
             // All header panels are independent — they can all be open at the same time.
             // ⚖️ Compare Lineups and 📊 Squad Overview both live in the left column wrapper
             // (Compare above, Squad below), so when both are toggled on, both stay visible.
+            var willShow = !isVisible;
+            // If extraHosts is provided, sync them with the primary host:
+            // - When primary becomes visible, all extraHosts also become visible.
+            // - When primary becomes hidden, all extraHosts also become hidden.
+            // (Used by the merged 👥 Add Lineups button to control both bulk and compare.)
+            var extra = [];
+            if (extraHosts) {{
+                if (Array.isArray(extraHosts)) {{
+                    extra = extraHosts;
+                }} else {{
+                    extra = [extraHosts];
+                }}
+            }}
             if (!isVisible) {{
                 host.style.display = 'block';
                 if (btn) btn.classList.add('active');
+                // Show extraHosts
+                extra.forEach(function(hid) {{
+                    var h = document.getElementById(hid);
+                    if (h) h.style.display = 'block';
+                }});
             }} else {{
                 host.style.display = 'none';
                 if (btn) btn.classList.remove('active');
+                // Hide extraHosts
+                extra.forEach(function(hid) {{
+                    var h = document.getElementById(hid);
+                    if (h) h.style.display = 'none';
+                }});
             }}
             // 🏗️ Builder Lineup — keep .main-layout in row whenever builder-lineup-host is visible,
             // regardless of which other hostId triggered this toggleSection call.
