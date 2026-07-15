@@ -1155,7 +1155,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             min-width: 128px;
             text-align: center;
         }}
-        /* Auto-width override for the renamed action buttons (Scan, Load Image, Run AI).
+        /* Auto-width override for the renamed action buttons (Scan, Upload Image, Run AI).
            Lets each button size to its label rather than a fixed 128px. */
         .bl-action-btn {{
             width: auto !important;
@@ -1439,8 +1439,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <button type="button" class="bl-action-btn" onclick="applyBulkLineup()">Scan</button>
                     <div class="vision-lineup-row" style="margin-left:auto;">
                         <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                        <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Load Image</button>
-                        <span id="vision-file-name" class="vision-lineup-status">File not selected</span>
+                        <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
+                        <span id="vision-file-name" class="vision-lineup-status">💬</span>
                         <button type="button" class="vision-lineup-btn bl-action-btn" onclick="applyVisionLineup()">Run AI</button>
                         <span id="vision-lineup-status" class="vision-lineup-status"></span>
                     </div>
@@ -2088,7 +2088,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const fileNameEl = document.getElementById('vision-file-name');
             if (fileEl && fileNameEl) {{
                 fileEl.addEventListener('change', function() {{
-                    fileNameEl.textContent = (fileEl.files && fileEl.files[0]) ? fileEl.files[0].name : 'File not selected';
+                    // Show 🆗 when an image is uploaded, 💬 when none selected
+                    fileNameEl.textContent = (fileEl.files && fileEl.files[0]) ? '🆗' : '💬';
                 }});
             }}
         }});
