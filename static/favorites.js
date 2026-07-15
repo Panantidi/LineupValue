@@ -9,8 +9,11 @@ function getPlayerDataFromRow(row) {
     const flagImg = cells[1]?.querySelector('img');
     const national = flagImg?.getAttribute('alt') || flagImg?.alt || '';
     
-    // Get club from team title
-    const club = document.querySelector('.team-title h1')?.textContent?.trim() || '';
+    // Get club from team name. The h1 lives inside .main-table; the .team-title
+    // class is a CSS hook (style for h1) not a wrapper element, so query both.
+    const club = document.querySelector('.team-title h1')?.textContent?.trim()
+        || document.querySelector('.main-table h1')?.textContent?.trim()
+        || '';
     
     // Get TEAM_ID from global variable
     const team_id = window.TEAM_ID || '';
