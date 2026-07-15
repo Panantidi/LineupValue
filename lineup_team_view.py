@@ -1288,9 +1288,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
         body.embed-mode .bulk-lineup-panel {{ width: 700px !important; }}
         body.embed-mode .comparison-tables {{ width: 258px !important; max-width: 100% !important; box-sizing: border-box !important; }}
-        /* Match mode: info-bar-squad-host is hidden (the 📊 emoji next to team name
-           shows the same data as a hover tooltip). No standalone panel in Match. */
-        body.embed-mode #info-bar-squad-host {{ display: none !important; }}
+        /* Team + Match mode: info-bar-squad-host is hidden (the 📊 emoji next to
+           team name shows the same data as a hover tooltip). No standalone panel. */
+        #info-bar-squad-host {{ display: none !important; }}
         /* Match mode: page-content fixed at 980px (fits main-table 964px + padding).
            page-main is flex:1 inside it, so it also becomes 980px. */
         body.embed-mode .page-content {{
@@ -1357,7 +1357,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this)">👥 Add Lineups</button>
             <button type="button" id="btn-compare-lineups" class="header-action-btn" onclick="toggleSection('comparison-table-host', this)">⚖️ Compare Lineups</button>
-            <button type="button" id="btn-squad-overview" class="header-action-btn" onclick="toggleSection('info-bar-squad-host', this)">📊 Squad Overview</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
             <a href="/lineup_ai/select" class="header-action-btn">← Back to teams</a>
         </div>
