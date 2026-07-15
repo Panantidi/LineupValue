@@ -1288,6 +1288,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
         body.embed-mode .bulk-lineup-panel {{ width: 700px !important; }}
         body.embed-mode .comparison-tables {{ width: 255px !important; max-width: 100% !important; box-sizing: border-box !important; }}
+        /* Match mode: info-bar-squad-host is hidden (the 📊 emoji next to team name
+           shows the same data as a hover tooltip). No standalone panel in Match. */
+        body.embed-mode #info-bar-squad-host {{ display: none !important; }}
         /* Match mode: team-squad-emoji shows a tooltip with info-bar-squad on hover.
            The tooltip is fixed-position so it overlays everything; size 255x258.4px. */
         .team-squad-tooltip {{
