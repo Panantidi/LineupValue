@@ -1284,6 +1284,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         body.embed-mode .actions-bar {{ display: none !important; }}
         body.embed-mode .container {{ overflow: visible !important; height: auto !important; max-height: none !important; }}
         body.embed-mode .main-table {{ overflow-x: visible !important; }}
+        /* Team + Match mode: bulk-lineup-panel 700px, comparison-table 254.99px.
+           Both panels share bl-compare-row (980px = 700 + 9 + 254.99 + slack). */
+        .bulk-lineup-panel {{ width: 700px !important; max-width: 700px !important; flex-shrink: 0 !important; box-sizing: border-box !important; }}
+        #comparison-table {{
+            width: 254.99px !important;
+            min-width: 254.99px !important;
+            max-width: 254.99px !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+            box-sizing: border-box !important;
+            overflow: visible !important;
+        }}
+        /* Prevent text wrap in comparison cards */
+        #comparison-table > div {{
+            min-width: 0 !important;
+            overflow: hidden !important;
+        }}
+        #comparison-table > div > span:last-child {{
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            min-width: 0 !important;
+        }}
         /* Match mode: bulk-lineup-panel narrows so comparison-table (255px) can sit
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
         body.embed-mode .bulk-lineup-panel {{ width: 700px !important; flex-shrink: 0 !important; }}
@@ -2151,6 +2174,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     // Show 🆗 when an image is uploaded, 💤 when none selected
                     fileNameEl.textContent = (fileEl.files && fileEl.files[0]) ? '🆗' : '💤';
                 }});
+            }}
+            // Team mode: wrap bulk-lineup-panel-host + comparison-table-host in a
+            // shared flex-row (bl-compare-row) at page load, so toggling them via
+            // header buttons doesn't cause layout shift. Mirrors Match mode layout.
+            const bulkHost = document.getElementById('bulk-lineup-panel-host');
+            const compareHost = document.getElementById('comparison-table-host');
+            const pageMain = document.querySelector('.page-main');
+            if (pageMain && bulkHost && compareHost && !document.getElementById('bl-compare-row')) {{
+                const row = document.createElement('div');
+                row.id = 'bl-compare-row';
+                row.style.cssText = 'display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;width:980px;max-width:100%;box-sizing:border-box;';
+                pageMain.insertBefore(row, bulkHost);
+                row.appendChild(bulkHost);
+                // Move comparison-table-host into the same row, regardless of
+                // which sidebar/aside it currently lives in (e.g. column-wrapper).
+                row.appendChild(compareHost);
             }}
         }});
 
