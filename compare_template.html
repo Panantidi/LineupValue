@@ -326,7 +326,7 @@ body {
             if (pageMain && bulkHost && compareHost && !doc.getElementById('bl-compare-row')) {
                 var row = doc.createElement('div');
                 row.id = 'bl-compare-row';
-                row.style.cssText = 'display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;width:964px;max-width:100%;box-sizing:border-box;';
+                row.style.cssText = 'display:flex;gap:9px;align-items:flex-start;margin-bottom:12px;width:980px;max-width:100%;box-sizing:border-box;';
                 // Move both hosts INTO the new row, preserving order (bulk first, then compare)
                 pageMain.insertBefore(row, bulkHost);
                 row.appendChild(bulkHost);

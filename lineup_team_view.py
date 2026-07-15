@@ -1286,8 +1286,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         body.embed-mode .main-table {{ overflow-x: visible !important; }}
         /* Match mode: bulk-lineup-panel narrows so comparison-table (255px) can sit
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
-        body.embed-mode .bulk-lineup-panel {{ width: 700px !important; }}
-        body.embed-mode .comparison-tables {{ width: 271px !important; max-width: 100% !important; box-sizing: border-box !important; }}
+        body.embed-mode .bulk-lineup-panel {{ width: 700px !important; flex-shrink: 0 !important; }}
+        body.embed-mode .comparison-tables {{
+            width: 271px !important;
+            flex-shrink: 0 !important;
+            box-sizing: border-box !important;
+            overflow: visible !important;
+        }}
+        /* Match mode: comparison-table cards must fit on one line.
+           Truncate with ellipsis instead of wrapping. */
+        body.embed-mode .comparison-tables > div {{
+            min-width: 0 !important;
+            overflow: hidden !important;
+        }}
+        body.embed-mode .comparison-tables > div > span:last-child {{
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            min-width: 0 !important;
+        }}
         /* Team + Match mode: info-bar-squad-host is hidden (the 📊 emoji next to
            team name shows the same data as a hover tooltip). No standalone panel. */
         #info-bar-squad-host {{ display: none !important; }}
