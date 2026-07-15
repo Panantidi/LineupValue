@@ -1288,7 +1288,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
         body.embed-mode .bulk-lineup-panel {{ width: 700px !important; flex-shrink: 0 !important; }}
         body.embed-mode .comparison-tables {{
-            width: 271px !important;
+            width: 254.99px !important;
             flex-shrink: 0 !important;
             box-sizing: border-box !important;
             overflow: visible !important;
