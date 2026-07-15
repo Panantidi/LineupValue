@@ -1288,6 +1288,26 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
            to its right within the same row, total 700 + 9 + 255 = 964px (= main table). */
         body.embed-mode .bulk-lineup-panel {{ width: 700px !important; }}
         body.embed-mode .comparison-tables {{ width: 255px !important; max-width: 100% !important; box-sizing: border-box !important; }}
+        /* Match mode: team-squad-emoji shows a tooltip with info-bar-squad on hover.
+           The tooltip is fixed-position so it overlays everything; size 255x258.4px. */
+        .team-squad-tooltip {{
+            position: fixed;
+            z-index: 10001;
+            width: 255px;
+            height: 258.4px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            padding: 8px 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+            display: none;
+            pointer-events: none;
+        }}
+        .team-squad-emoji:hover + .team-squad-tooltip,
+        .team-squad-tooltip:hover {{
+            display: block;
+        }}
         /* Favorites: disabled for international tournaments */
         .player-number-circle[data-is-wc="wc"] {{
             opacity: 0.4;
@@ -1517,7 +1537,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div class="main-table">
                 <!-- Team name + tabs moved up from header to sit flush above the table -->
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap;background:linear-gradient(to right, #043fb6 0%, #2e7af8 100%);padding:16px 20px;border-radius:12px;">
-                    <h1 style="margin:0;font-size:24px;font-weight:600;color:white;">{team_name}</h1>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <h1 style="margin:0;font-size:24px;font-weight:600;color:white;">{team_name}</h1>
+                        <span class="team-squad-emoji" title="Hover for squad overview" style="cursor:help;font-size:18px;line-height:1;position:relative;display:inline-block;color:white;">📊</span>
+                    </div>
                     <div class="header-tabs">
                         <div class="tab active" onclick="selectTab(this, 'Squad')">Squad</div>
                         <div class="tab" onclick="selectTab(this, 'Missing Players')">Missing Players</div>
@@ -3198,6 +3221,54 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         // Initialize builder on load with default 4-3-3
         (function() {{
             applyFormation('4-3-3');
+        }})();
+
+        // Team-squad-emoji (📊) tooltip: show info-bar-squad as a fixed-position
+        // tooltip when hovering the emoji next to the team name. Tooltip is 255x258.4px.
+        (function() {{
+            const squadSource = document.getElementById('info-bar-squad');
+            if (!squadSource) return;
+            const emoji = document.querySelector('.team-squad-emoji');
+            if (!emoji) return;
+            // Create the tooltip element (sibling of emoji inside the team-name div)
+            const tip = document.createElement('div');
+            tip.className = 'team-squad-tooltip';
+            // Clone the rendered info-bar-squad contents
+            tip.innerHTML = squadSource.innerHTML;
+            emoji.parentElement.appendChild(tip);
+            // Position the tooltip next to the emoji on hover
+            let isHover = false;
+            function show() {{
+                isHover = true;
+                const r = emoji.getBoundingClientRect();
+                // Default: place to the right of emoji
+                let left = r.right + 8;
+                let top = r.top - 4;
+                // If tooltip would overflow viewport on the right, place to the left
+                if (left + 255 > window.innerWidth) {{
+                    left = r.left - 255 - 8;
+                }}
+                // If still off-screen, clamp to viewport
+                if (left < 4) left = 4;
+                if (top + 258.4 > window.innerHeight) {{
+                    top = window.innerHeight - 258.4 - 4;
+                }}
+                if (top < 4) top = 4;
+                tip.style.left = left + 'px';
+                tip.style.top = top + 'px';
+                tip.style.display = 'block';
+            }}
+            function hide() {{
+                // Delay hide so user can move cursor into the tooltip itself
+                setTimeout(function() {{
+                    if (!isHover) tip.style.display = 'none';
+                }}, 100);
+                isHover = false;
+            }}
+            emoji.addEventListener('mouseenter', show);
+            emoji.addEventListener('mouseleave', function() {{ isHover = false; hide(); }});
+            tip.addEventListener('mouseenter', function() {{ isHover = true; tip.style.display = 'block'; }});
+            tip.addEventListener('mouseleave', function() {{ isHover = false; hide(); }});
         }})();
         </script>
     </div>
