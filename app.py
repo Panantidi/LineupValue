@@ -1251,6 +1251,16 @@ def _start_team_version_refresh(team_id: str) -> bool:
     # globally. Extra page opens must stay fast and skip scheduling.
     if _is_any_team_refresh_running() or _is_team_refresh_running(team_id):
         return False
+    # For protected teams (managed by non-Soccerway source like Flashscore prefill),
+    # do NOT start a Soccerway refresh — it would clobber the prebuilt cache.
+    try:
+        import json as _json_p
+        with open("/home/openclaw/.openclaw/workspace/_protected_teams.json", "r") as _f:
+            _protected_p = set(_json_p.load(_f))
+        if team_id in _protected_p:
+            return False
+    except Exception:
+        pass
     script = os.path.join(os.path.dirname(__file__), "refresh_team_version.py")
     if not os.path.exists(script):
         return False
