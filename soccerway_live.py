@@ -68,11 +68,31 @@ def _save_live_cache(team_id: str, data: dict):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+# Team IDs whose live cache is managed by a non-Soccerway source (e.g. Flashscore
+# prefill). For these, fetch_team_live must NOT overwrite the cache — otherwise
+# the Soccerway parser will clobber the prebuilt data on every page open.
+PROTECTED_TEAMS_FILE = "/home/openclaw/.openclaw/workspace/_protected_teams.json"
+
+def _load_protected_teams() -> set:
+    try:
+        with open(PROTECTED_TEAMS_FILE, "r", encoding="utf-8") as f:
+            return set(json.load(f))
+    except Exception:
+        return set()
+
 async def fetch_team_live(team_id: str, force_refresh: bool = False) -> dict:
     """
     Главная функция: подгрузить актуальные данные команды с Soccerway.
     Возвращает dict в формате Player_Info.json.
     """
+    # Если команда в protect-list — НЕ перезаписываем кеш и возвращаем как есть
+    if team_id in _load_protected_teams():
+        cached = _load_live_cache(team_id)
+        if cached:
+            return cached
+        # Нет кеша — возвращаем минимальный, чтобы UI не падал
+        return {"team": {"id": team_id, "name": team_id, "slug": team_id}, "players": [], "matches": [], "coach": {"name": "", "nationality": ""}, "stadium": ""}
+
     # Проверяем live-кеш (пропускаем при force_refresh)
     if not force_refresh:
         cached = _load_live_cache(team_id)
