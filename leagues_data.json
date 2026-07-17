@@ -1,222 +1,263 @@
 {
   "Albania": {
-    "Kategoria Superiore": [
+    "Abissnet Superiore": [
       {
         "id": "IFgZ7CIA",
         "name": "Partizani",
-        "slug": "partizani"
+        "slug": "partizani",
+        "image_path": "https://static.flashscore.com/res/image/data/0vqOsjWg-4praOw3K.png"
       },
       {
         "id": "0OGo7WXG",
         "name": "Vllaznia",
-        "slug": "vllaznia"
+        "slug": "vllaznia",
+        "image_path": "https://static.flashscore.com/res/image/data/hdZQaQYg-v5LfxjB6.png"
       },
       {
         "id": "t6zKRVws",
         "name": "KF Tirana",
-        "slug": "kf-tirana"
+        "slug": "kf-tirana",
+        "image_path": "https://static.flashscore.com/res/image/data/j9t2HkcM-4n770DLk.png"
       },
       {
         "id": "KdZNQkgm",
         "name": "Dinamo Tirana",
-        "slug": "dinamo-tirana"
+        "slug": "dinamo-tirana",
+        "image_path": "https://static.flashscore.com/res/image/data/CELo7vvS-bBJMyX2M.png"
       },
       {
         "id": "lQvENR7I",
         "name": "Teuta",
-        "slug": "teuta"
+        "slug": "teuta",
+        "image_path": "https://static.flashscore.com/res/image/data/vTNlxYWg-IocNNWTI.png"
       },
       {
         "id": "6XNAEETR",
         "name": "Skenderbeu",
-        "slug": "skenderbeu-korca"
+        "slug": "skenderbeu-korca",
+        "image_path": "https://static.flashscore.com/res/image/data/dWUtVjhl-Qethn5bT.png"
       },
       {
         "id": "nBwoAYyq",
         "name": "Laci",
-        "slug": "laci"
+        "slug": "laci",
+        "image_path": "https://static.flashscore.com/res/image/data/fNENMKAr-b1YVBbMi.png"
       },
       {
         "id": "CjYs7BO9",
         "name": "Egnatia",
-        "slug": "kf-egnatia"
+        "slug": "kf-egnatia",
+        "image_path": "https://static.flashscore.com/res/image/data/pWu5xJBr-byNKiB8E.png"
       },
       {
         "id": "2JQFerwk",
         "name": "Vora",
-        "slug": "vora"
+        "slug": "vora",
+        "image_path": "https://static.flashscore.com/res/image/data/EJ1SAYdM-dbTgASCR.png"
       },
       {
         "id": "QBmz1ReP",
         "name": "AF Elbasani",
-        "slug": "af-elbasani"
+        "slug": "af-elbasani",
+        "image_path": "https://static.flashscore.com/res/image/data/b12epvBr-dA5ctvdU.png"
       }
     ],
-    "Kategoria e Pare": [
+    "Kategoria e Parë": [
       {
         "id": "nBwoAYyq",
         "name": "Laci",
-        "slug": "laci"
+        "slug": "laci",
+        "image_path": "https://static.flashscore.com/res/image/data/fNENMKAr-b1YVBbMi.png"
       },
       {
         "id": "6XNAEETR",
         "name": "Skenderbeu",
-        "slug": "skenderbeu-korca"
+        "slug": "skenderbeu-korca",
+        "image_path": "https://static.flashscore.com/res/image/data/dWUtVjhl-Qethn5bT.png"
       },
       {
         "id": "0bFKFUkM",
         "name": "Pogradeci",
-        "slug": "pogradeci"
+        "slug": "pogradeci",
+        "image_path": "https://static.flashscore.com/res/image/data/xK1lBdXg-Kpv29qKr.png"
       },
       {
         "id": "xjN2SjL9",
         "name": "Iliria Fushe-Kruje",
-        "slug": "iliria-kruja"
+        "slug": "iliria-kruja",
+        "image_path": "https://static.flashscore.com/res/image/data/ljf8m3Wg-29ebI4SF.png"
       },
       {
         "id": "KISc88wJ",
         "name": "Besa Kavaje",
-        "slug": "besa-kavaje"
+        "slug": "besa-kavaje",
+        "image_path": "https://static.flashscore.com/res/image/data/U9yA6PzB-AwFmkDUE.png"
       },
       {
         "id": "UZSk9hik",
         "name": "Kastrioti",
-        "slug": "kastrioti"
+        "slug": "kastrioti",
+        "image_path": "https://static.flashscore.com/res/image/data/AwhnuEHG-0Ko5ckvj.png"
       },
       {
         "id": "WrmwREKs",
         "name": "Burreli",
-        "slug": "burreli"
+        "slug": "burreli",
+        "image_path": "https://static.flashscore.com/res/image/data/dzsciLAr-ImbcyEHR.png"
       },
       {
         "id": "M5I8JbRT",
         "name": "Korabi Peshkopi",
-        "slug": "korabi-peshkopi"
+        "slug": "korabi-peshkopi",
+        "image_path": "https://static.flashscore.com/res/image/data/W42U1LfM-MgGnCkV6.png"
       },
       {
         "id": "6Bf7iF4h",
         "name": "AF Luftetari",
-        "slug": "af-luftetari"
+        "slug": "af-luftetari",
+        "image_path": "https://static.flashscore.com/res/image/data/Ak4B6ceM-29ebI4SF.png"
       },
       {
         "id": "AqdUTxEC",
         "name": "Kukesi",
-        "slug": "kukesi"
+        "slug": "kukesi",
+        "image_path": "https://static.flashscore.com/res/image/data/nRMxdwhl-xYAyYwqs.png"
       },
       {
         "id": "61k9O7hC",
         "name": "Apolonia Fier",
-        "slug": "apolonia-fier"
+        "slug": "apolonia-fier",
+        "image_path": "https://static.flashscore.com/res/image/data/CbDYSzZA-8In8358e.png"
       },
       {
         "id": "hbo5Pmw6",
         "name": "Lushnja",
-        "slug": "lushnja"
+        "slug": "lushnja",
+        "image_path": "https://static.flashscore.com/res/image/data/2clR0peM-Q1oNR2wr.png"
       }
     ],
-    "Kategoria e Dyte": [],
     "Albanian Cup": [
       {
         "id": "IFgZ7CIA",
         "name": "Partizani",
-        "slug": "partizani"
+        "slug": "partizani",
+        "image_path": "https://static.flashscore.com/res/image/data/0vqOsjWg-4praOw3K.png"
       },
       {
         "id": "0OGo7WXG",
         "name": "Vllaznia",
-        "slug": "vllaznia"
+        "slug": "vllaznia",
+        "image_path": "https://static.flashscore.com/res/image/data/hdZQaQYg-v5LfxjB6.png"
       },
       {
         "id": "t6zKRVws",
         "name": "KF Tirana",
-        "slug": "kf-tirana"
+        "slug": "kf-tirana",
+        "image_path": "https://static.flashscore.com/res/image/data/j9t2HkcM-4n770DLk.png"
       },
       {
         "id": "KdZNQkgm",
         "name": "Dinamo Tirana",
-        "slug": "dinamo-tirana"
+        "slug": "dinamo-tirana",
+        "image_path": "https://static.flashscore.com/res/image/data/CELo7vvS-bBJMyX2M.png"
       },
       {
         "id": "lQvENR7I",
         "name": "Teuta",
-        "slug": "teuta"
+        "slug": "teuta",
+        "image_path": "https://static.flashscore.com/res/image/data/vTNlxYWg-IocNNWTI.png"
       },
       {
         "id": "6XNAEETR",
         "name": "Skenderbeu",
-        "slug": "skenderbeu-korca"
+        "slug": "skenderbeu-korca",
+        "image_path": "https://static.flashscore.com/res/image/data/dWUtVjhl-Qethn5bT.png"
       },
       {
         "id": "nBwoAYyq",
         "name": "Laci",
-        "slug": "laci"
+        "slug": "laci",
+        "image_path": "https://static.flashscore.com/res/image/data/fNENMKAr-b1YVBbMi.png"
       },
       {
         "id": "CjYs7BO9",
         "name": "Egnatia",
-        "slug": "kf-egnatia"
+        "slug": "kf-egnatia",
+        "image_path": "https://static.flashscore.com/res/image/data/pWu5xJBr-byNKiB8E.png"
       },
       {
         "id": "2JQFerwk",
         "name": "Vora",
-        "slug": "vora"
+        "slug": "vora",
+        "image_path": "https://static.flashscore.com/res/image/data/EJ1SAYdM-dbTgASCR.png"
       },
       {
         "id": "QBmz1ReP",
         "name": "AF Elbasani",
-        "slug": "af-elbasani"
+        "slug": "af-elbasani",
+        "image_path": "https://static.flashscore.com/res/image/data/b12epvBr-dA5ctvdU.png"
       }
     ],
-    "Albanian Supercup": [
+    "Super Cup": [
       {
         "id": "IFgZ7CIA",
         "name": "Partizani",
-        "slug": "partizani"
+        "slug": "partizani",
+        "image_path": "https://static.flashscore.com/res/image/data/0vqOsjWg-4praOw3K.png"
       },
       {
         "id": "0OGo7WXG",
         "name": "Vllaznia",
-        "slug": "vllaznia"
+        "slug": "vllaznia",
+        "image_path": "https://static.flashscore.com/res/image/data/hdZQaQYg-v5LfxjB6.png"
       },
       {
         "id": "t6zKRVws",
         "name": "KF Tirana",
-        "slug": "kf-tirana"
+        "slug": "kf-tirana",
+        "image_path": "https://static.flashscore.com/res/image/data/j9t2HkcM-4n770DLk.png"
       },
       {
         "id": "KdZNQkgm",
         "name": "Dinamo Tirana",
-        "slug": "dinamo-tirana"
+        "slug": "dinamo-tirana",
+        "image_path": "https://static.flashscore.com/res/image/data/CELo7vvS-bBJMyX2M.png"
       },
       {
         "id": "lQvENR7I",
         "name": "Teuta",
-        "slug": "teuta"
+        "slug": "teuta",
+        "image_path": "https://static.flashscore.com/res/image/data/vTNlxYWg-IocNNWTI.png"
       },
       {
         "id": "6XNAEETR",
         "name": "Skenderbeu",
-        "slug": "skenderbeu-korca"
+        "slug": "skenderbeu-korca",
+        "image_path": "https://static.flashscore.com/res/image/data/dWUtVjhl-Qethn5bT.png"
       },
       {
         "id": "nBwoAYyq",
         "name": "Laci",
-        "slug": "laci"
+        "slug": "laci",
+        "image_path": "https://static.flashscore.com/res/image/data/fNENMKAr-b1YVBbMi.png"
       },
       {
         "id": "CjYs7BO9",
         "name": "Egnatia",
-        "slug": "kf-egnatia"
+        "slug": "kf-egnatia",
+        "image_path": "https://static.flashscore.com/res/image/data/pWu5xJBr-byNKiB8E.png"
       },
       {
         "id": "2JQFerwk",
         "name": "Vora",
-        "slug": "vora"
+        "slug": "vora",
+        "image_path": "https://static.flashscore.com/res/image/data/EJ1SAYdM-dbTgASCR.png"
       },
       {
         "id": "QBmz1ReP",
         "name": "AF Elbasani",
-        "slug": "af-elbasani"
+        "slug": "af-elbasani",
+        "image_path": "https://static.flashscore.com/res/image/data/b12epvBr-dA5ctvdU.png"
       }
     ]
   },
