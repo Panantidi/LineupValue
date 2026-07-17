@@ -1547,11 +1547,11 @@ async def lineup_api_fetch(team_id: str):
     
     try:
         # Синхронное обновление - ждём завершения
+        # Note: fetch_team_live itself saves to cache. Don't double-save here —
+        # for protected teams, fetch_team_live returns existing cache without
+        # touching disk, but app.py must not overwrite it.
         fresh = await fetch_team_live(team_id, force_refresh=True)
         duration_seconds = round(time.time() - start_time, 1)
-        
-        if len(fresh.get("players", [])) > 0:
-            _save_live_cache(team_id, fresh)
         
         # Сравнить с предыдущим кэшем
         new_cache = _load_live_cache(team_id)
