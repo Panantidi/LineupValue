@@ -1303,10 +1303,28 @@ def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict 
 
 def prepare_team_data_version(team_id: str) -> dict:
     """Return cached data immediately, refresh in background.
-    
+
     User sees data instantly. Soccerway update happens asynchronously.
     Next visit shows fresh data.
     """
+    # Protected teams (managed by non-Soccerway source like Flashscore prefill):
+    # return the on-disk cache as-is, do NOT touch DB or start Soccerway refresh.
+    try:
+        import json as _json_v
+        with open("/home/openclaw/.openclaw/workspace/_protected_teams.json", "r") as _f:
+            _protected_v = set(_json_v.load(_f))
+        if team_id in _protected_v:
+            try:
+                cached = _read_team_cache(team_id)
+                if cached.get("players"):
+                    return cached
+            except Exception:
+                pass
+            # No usable on-disk cache: return empty so UI can show "no data"
+            return {"team": {"id": team_id, "name": team_id, "slug": team_id, "emblem": ""}, "players": [], "matches": [], "coach": {"name": "", "nationality": ""}, "stadium": ""}
+    except Exception:
+        pass
+
     # Try to return existing version immediately
     current = _get_current_team_version(team_id)
     if current and current.get("data"):
@@ -1314,7 +1332,7 @@ def prepare_team_data_version(team_id: str) -> dict:
         # Start background refresh (don't wait)
         _start_team_version_refresh(team_id)
         return current["data"]
-    
+
     # No version: try cache
     try:
         cached = _read_team_cache(team_id)
