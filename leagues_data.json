@@ -1,10 +1,224 @@
 {
   "Albania": {
-    "Kategoria Superiore": [],
-    "Kategoria e Pare": [],
+    "Kategoria Superiore": [
+      {
+        "id": "IFgZ7CIA",
+        "name": "Partizani",
+        "slug": "partizani"
+      },
+      {
+        "id": "0OGo7WXG",
+        "name": "Vllaznia",
+        "slug": "vllaznia"
+      },
+      {
+        "id": "t6zKRVws",
+        "name": "KF Tirana",
+        "slug": "kf-tirana"
+      },
+      {
+        "id": "KdZNQkgm",
+        "name": "Dinamo Tirana",
+        "slug": "dinamo-tirana"
+      },
+      {
+        "id": "lQvENR7I",
+        "name": "Teuta",
+        "slug": "teuta"
+      },
+      {
+        "id": "6XNAEETR",
+        "name": "Skenderbeu",
+        "slug": "skenderbeu-korca"
+      },
+      {
+        "id": "nBwoAYyq",
+        "name": "Laci",
+        "slug": "laci"
+      },
+      {
+        "id": "CjYs7BO9",
+        "name": "Egnatia",
+        "slug": "kf-egnatia"
+      },
+      {
+        "id": "2JQFerwk",
+        "name": "Vora",
+        "slug": "vora"
+      },
+      {
+        "id": "QBmz1ReP",
+        "name": "AF Elbasani",
+        "slug": "af-elbasani"
+      }
+    ],
+    "Kategoria e Pare": [
+      {
+        "id": "nBwoAYyq",
+        "name": "Laci",
+        "slug": "laci"
+      },
+      {
+        "id": "6XNAEETR",
+        "name": "Skenderbeu",
+        "slug": "skenderbeu-korca"
+      },
+      {
+        "id": "0bFKFUkM",
+        "name": "Pogradeci",
+        "slug": "pogradeci"
+      },
+      {
+        "id": "xjN2SjL9",
+        "name": "Iliria Fushe-Kruje",
+        "slug": "iliria-kruja"
+      },
+      {
+        "id": "KISc88wJ",
+        "name": "Besa Kavaje",
+        "slug": "besa-kavaje"
+      },
+      {
+        "id": "UZSk9hik",
+        "name": "Kastrioti",
+        "slug": "kastrioti"
+      },
+      {
+        "id": "WrmwREKs",
+        "name": "Burreli",
+        "slug": "burreli"
+      },
+      {
+        "id": "M5I8JbRT",
+        "name": "Korabi Peshkopi",
+        "slug": "korabi-peshkopi"
+      },
+      {
+        "id": "6Bf7iF4h",
+        "name": "AF Luftetari",
+        "slug": "af-luftetari"
+      },
+      {
+        "id": "AqdUTxEC",
+        "name": "Kukesi",
+        "slug": "kukesi"
+      },
+      {
+        "id": "61k9O7hC",
+        "name": "Apolonia Fier",
+        "slug": "apolonia-fier"
+      },
+      {
+        "id": "hbo5Pmw6",
+        "name": "Lushnja",
+        "slug": "lushnja"
+      }
+    ],
     "Kategoria e Dyte": [],
-    "Albanian Cup": [],
-    "Albanian Supercup": []
+    "Albanian Cup": [
+      {
+        "id": "IFgZ7CIA",
+        "name": "Partizani",
+        "slug": "partizani"
+      },
+      {
+        "id": "0OGo7WXG",
+        "name": "Vllaznia",
+        "slug": "vllaznia"
+      },
+      {
+        "id": "t6zKRVws",
+        "name": "KF Tirana",
+        "slug": "kf-tirana"
+      },
+      {
+        "id": "KdZNQkgm",
+        "name": "Dinamo Tirana",
+        "slug": "dinamo-tirana"
+      },
+      {
+        "id": "lQvENR7I",
+        "name": "Teuta",
+        "slug": "teuta"
+      },
+      {
+        "id": "6XNAEETR",
+        "name": "Skenderbeu",
+        "slug": "skenderbeu-korca"
+      },
+      {
+        "id": "nBwoAYyq",
+        "name": "Laci",
+        "slug": "laci"
+      },
+      {
+        "id": "CjYs7BO9",
+        "name": "Egnatia",
+        "slug": "kf-egnatia"
+      },
+      {
+        "id": "2JQFerwk",
+        "name": "Vora",
+        "slug": "vora"
+      },
+      {
+        "id": "QBmz1ReP",
+        "name": "AF Elbasani",
+        "slug": "af-elbasani"
+      }
+    ],
+    "Albanian Supercup": [
+      {
+        "id": "IFgZ7CIA",
+        "name": "Partizani",
+        "slug": "partizani"
+      },
+      {
+        "id": "0OGo7WXG",
+        "name": "Vllaznia",
+        "slug": "vllaznia"
+      },
+      {
+        "id": "t6zKRVws",
+        "name": "KF Tirana",
+        "slug": "kf-tirana"
+      },
+      {
+        "id": "KdZNQkgm",
+        "name": "Dinamo Tirana",
+        "slug": "dinamo-tirana"
+      },
+      {
+        "id": "lQvENR7I",
+        "name": "Teuta",
+        "slug": "teuta"
+      },
+      {
+        "id": "6XNAEETR",
+        "name": "Skenderbeu",
+        "slug": "skenderbeu-korca"
+      },
+      {
+        "id": "nBwoAYyq",
+        "name": "Laci",
+        "slug": "laci"
+      },
+      {
+        "id": "CjYs7BO9",
+        "name": "Egnatia",
+        "slug": "kf-egnatia"
+      },
+      {
+        "id": "2JQFerwk",
+        "name": "Vora",
+        "slug": "vora"
+      },
+      {
+        "id": "QBmz1ReP",
+        "name": "AF Elbasani",
+        "slug": "af-elbasani"
+      }
+    ]
   },
   "Australia": {
     "A-League": [
