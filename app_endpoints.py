@@ -103,6 +103,21 @@ async def lineup_refresh_cache(team_id: str, request: Request):
     DATA_DIR = "/home/openclaw/.openclaw/workspace"
     live_cache_path = os.path.join(DATA_DIR, f"_live_cache_{team_id}.json")
 
+    # For protected teams (managed by non-Soccerway source like Flashscore prefill),
+    # do NOT delete the cache — it would be clobbered by Soccerway on next open.
+    try:
+        import json as _json
+        with open("/home/openclaw/.openclaw/workspace/_protected_teams.json", "r") as _f:
+            _protected = set(_json.load(_f))
+    except Exception:
+        _protected = set()
+    if team_id in _protected:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url=f"/lineup_ai/view/{team_id}?refreshed=0&protected=1",
+            status_code=303,
+        )
+
     if os.path.exists(live_cache_path):
         try:
             os.remove(live_cache_path)
