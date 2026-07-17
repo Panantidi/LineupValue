@@ -551,47 +551,62 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     last3_header_row1 = '<th colspan="3" style="text-align:center;font-size:11px;padding:6px 4px;border-bottom:1px solid #e0e0e0;">Last 3</th>'
     last3_header_cells = ""
     for m in last3_matches:
+        # New Flashscore-driven format: {date, tournament_name_short, tournament_name_full,
+        #   home_team, away_team, score ("1-1"), side, match_id}
+        # Fallback to old Soccerway format if new fields absent.
         date_str = m.get("date", "")
-        comp_str = m.get("comp", "") or m.get("tournament", "")
+        comp_short = m.get("tournament_name_short") or m.get("comp") or m.get("tournament") or ""
+        comp_full = m.get("tournament_name_full") or _full_comp_name(comp_short)
+        home_t = m.get("home_team", "")
+        away_t = m.get("away_team", "")
         score_str = m.get("score", "")
-        full_comp = _full_comp_name(comp_str)
-        tooltip_text = f"{full_comp}: {score_str}" if score_str else full_comp
+
+        # Tooltip: full tournament name + teams + score
+        if home_t and away_t:
+            tooltip_text = f"{comp_full}\n{home_t} {score_str} {away_t}"
+        else:
+            tooltip_text = f"{comp_full}: {score_str}" if score_str else comp_full
         tooltip_html = html_lib.escape(tooltip_text, quote=True)
-        
-        # Determine match result color for selected team
+
+        # Determine match result color for selected team (new format uses m["side"])
         bg_color = ""
-        if score_str:
-            # Parse score: "Team1 1-0 Team2" or "ABR1 1-1 ABR2"
-            score_match = re.match(r'(.+?)\s+(\d+)\s*-\s*(\d+)\s+(.+)', score_str)
-            if score_match:
-                team1_name = score_match.group(1).strip()
-                goals1 = int(score_match.group(2))
-                goals2 = int(score_match.group(3))
-                team2_name = score_match.group(4).strip()
-                
-                # Check if our team is team1 or team2
-                team_name_lower = team_name.lower()
-                is_team1 = team_name_lower in team1_name.lower() or team1_name.lower() in team_name_lower
-                is_team2 = team_name_lower in team2_name.lower() or team2_name.lower() in team_name_lower
-                
-                if is_team1 and not is_team2:
-                    # Our team is HOME (team1)
-                    if goals1 > goals2:
-                        bg_color = "background:#d4edda;"  # Win - green
-                    elif goals1 < goals2:
-                        bg_color = "background:#f8d7da;"  # Loss - red
-                    else:
-                        bg_color = "background:#fff3cd;"  # Draw - orange
-                elif is_team2 and not is_team1:
-                    # Our team is AWAY (team2)
-                    if goals2 > goals1:
-                        bg_color = "background:#d4edda;"  # Win - green
-                    elif goals2 < goals1:
-                        bg_color = "background:#f8d7da;"  # Loss - red
-                    else:
-                        bg_color = "background:#fff3cd;"  # Draw - orange
-        
-        last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;{bg_color}" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{comp_str}</span></th>'
+        side = m.get("side")
+        if score_str and ("-" in score_str):
+            try:
+                parts = score_str.split("-")
+                gh = int(parts[0].strip())
+                ga = int(parts[1].strip())
+                if side == "home":
+                    if gh > ga: bg_color = "background:#d4edda;"
+                    elif gh < ga: bg_color = "background:#f8d7da;"
+                    else: bg_color = "background:#fff3cd;"
+                elif side == "away":
+                    if ga > gh: bg_color = "background:#d4edda;"
+                    elif ga < gh: bg_color = "background:#f8d7da;"
+                    else: bg_color = "background:#fff3cd;"
+            except (ValueError, IndexError):
+                pass
+            # Fallback: old regex-based detection if new side field missing
+            if not bg_color and not side:
+                score_match = re.match(r'(.+?)\s+(\d+)\s*-\s*(\d+)\s+(.+)', score_str)
+                if score_match:
+                    team1_name = score_match.group(1).strip()
+                    goals1 = int(score_match.group(2))
+                    goals2 = int(score_match.group(3))
+                    team2_name = score_match.group(4).strip()
+                    team_name_lower = team_name.lower()
+                    is_team1 = team_name_lower in team1_name.lower() or team1_name.lower() in team_name_lower
+                    is_team2 = team_name_lower in team2_name.lower() or team2_name.lower() in team_name_lower
+                    if is_team1 and not is_team2:
+                        if goals1 > goals2: bg_color = "background:#d4edda;"
+                        elif goals1 < goals2: bg_color = "background:#f8d7da;"
+                        else: bg_color = "background:#fff3cd;"
+                    elif is_team2 and not is_team1:
+                        if goals2 > goals1: bg_color = "background:#d4edda;"
+                        elif goals2 < goals1: bg_color = "background:#f8d7da;"
+                        else: bg_color = "background:#fff3cd;"
+
+        last3_header_cells += f'<th class="last3-tooltip" style="text-align:center;font-size:10px;padding:2px 2px;line-height:1.2;white-space:nowrap;border-top:none;cursor:default;width:37px;{bg_color}" data-tooltip="{tooltip_html}">{date_str}<br><span style="font-weight:400;color:#888;">{html_lib.escape(comp_short, quote=True)}</span></th>'
     
     # Team emblem (loaded from Soccerway squad page; falls back to initials if missing)
     if team_emblem:
