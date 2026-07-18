@@ -2290,6 +2290,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const transferOutBar = document.getElementById('info-bar-transfer-out');
             const compTable = document.getElementById('comparison-table');
             const bulkPanel = document.querySelector('.bulk-lineup-panel');
+            const coachStadiumBar = document.getElementById('coach-stadium-bar');
 
             // Hide all bars
             squadBar.style.display = 'none';
@@ -2299,37 +2300,44 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             transferInBar.style.display = 'none';
             transferOutBar.style.display = 'none';
             compTable.style.display = 'none';
+
             // Show relevant bar
             if (tabName === 'Squad') {{
                 squadBar.style.display = 'flex';
                 compTable.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'block';
                 document.body.classList.remove('hide-watermark');
+                if (coachStadiumBar) coachStadiumBar.style.display = 'flex';
             }} else if (tabName === 'Missing Players') {{
                 missingBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
                 document.body.classList.add('hide-watermark');
                 calcGroupStats('missing', MISSING_STATUSES);
+                if (coachStadiumBar) coachStadiumBar.style.display = 'none';
             }} else if (tabName === 'Doubtful Players') {{
                 doubtfulBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
                 document.body.classList.add('hide-watermark');
                 calcGroupStats('doubtful', DOUBTFUL_STATUSES);
+                if (coachStadiumBar) coachStadiumBar.style.display = 'none';
             }} else if (tabName === 'Returning Players') {{
                 returningBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
                 document.body.classList.add('hide-watermark');
                 calcGroupStats('returning', RETURNING_STATUSES);
+                if (coachStadiumBar) coachStadiumBar.style.display = 'none';
             }} else if (tabName === 'Transfer In') {{
                 transferInBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
                 document.body.classList.add('hide-watermark');
                 calcGroupStats('transfer-in', TRANSFER_IN_STATUSES);
+                if (coachStadiumBar) coachStadiumBar.style.display = 'none';
             }} else if (tabName === 'Transfer Out') {{
                 transferOutBar.style.display = 'flex';
                 if (bulkPanel) bulkPanel.style.display = 'none';
                 document.body.classList.add('hide-watermark');
                 calcGroupStats('transfer-out', TRANSFER_OUT_STATUSES);
+                if (coachStadiumBar) coachStadiumBar.style.display = 'none';
             }}
 
             // Filter table rows
