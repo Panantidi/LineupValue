@@ -2424,7 +2424,12 @@ async def lineup_team(team_id: str, embed: str = ""):
         prepare_team_data_version(team_id)
     except Exception:
         pass
-    return render_team_view(team_id, embed)
+    from fastapi.responses import HTMLResponse
+    response = HTMLResponse(content=render_team_view(team_id, embed))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 
