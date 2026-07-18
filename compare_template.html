@@ -662,15 +662,22 @@ body {
             option.textContent = country;
             countrySelect.appendChild(option);
         });
-        // Auto-select current country based on team_id
+        // Auto-select current country based on team_id.
+        // Prefer the first championship in navData (top-tier league) over mirror copies
+        // like Albania Cup / Super Cup that also contain this team.
+        var foundCountry = null;
         for (var country in navData) {
-            for (var champ in navData[country]) {
-                if (navData[country][champ].some(function(t) { return t.id === CURRENT_TEAM_ID; })) {
-                    countrySelect.value = country;
-                    onNavCountryChange();
-                    return;
+            if (navData.hasOwnProperty(country)) {
+                var firstChamp = Object.keys(navData[country])[0];
+                if (firstChamp && navData[country][firstChamp].some(function(t) { return t.id === CURRENT_TEAM_ID; })) {
+                    foundCountry = country;
+                    break;
                 }
             }
+        }
+        if (foundCountry) {
+            countrySelect.value = foundCountry;
+            onNavCountryChange();
         }
     }
 
@@ -695,10 +702,15 @@ body {
         }
 
         var championships = Object.keys(navData[country]).sort();
+        // Prefer the first championship in the iteration order from navData (top-tier league).
+        // The old code picked the last sorted one, which often landed on Super Cup / Country Cup.
         var currentChamp = null;
-        for (var ch in navData[country]) {
+        var champKeys = Object.keys(navData[country]);
+        for (var i = 0; i < champKeys.length; i++) {
+            var ch = champKeys[i];
             if (navData[country][ch].some(function(t) { return t.id === CURRENT_TEAM_ID; })) {
                 currentChamp = ch;
+                break;
             }
         }
         championships.forEach(function(championship) {
