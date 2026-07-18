@@ -1035,6 +1035,63 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             margin-top: 4px;
         }}
         body.embed-mode .team-nav-sidebar {{ display: none !important; }}
+        /* Custom country dropdown (replaces native <select> to allow flag images) */
+        .nav-country-dropdown {{
+            position: relative;
+            width: 100%;
+            margin-bottom: 8px;
+        }}
+        .nav-dropdown-trigger {{
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border: 1px solid #d5d9e8;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #f8f9fc;
+            color: #333;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+        }}
+        .nav-dropdown-trigger:hover {{ background: #eef1f8; }}
+        .nav-dropdown-trigger:focus {{ outline: 2px solid #2e7af8; outline-offset: 1px; }}
+        .nav-dropdown-arrow {{ font-size: 9px; color: #888; transition: transform 0.15s; }}
+        .nav-dropdown-trigger[aria-expanded="true"] .nav-dropdown-arrow {{ transform: rotate(180deg); }}
+        .nav-dropdown-list {{
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0;
+            right: 0;
+            max-height: 280px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #d5d9e8;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            z-index: 1000;
+            padding: 4px 0;
+            margin: 0;
+            list-style: none;
+        }}
+        .nav-dropdown-list li {{
+            display: flex;
+            align-items: center;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+        }}
+        .nav-dropdown-list li:hover {{ background: #f0f4ff; }}
+        .nav-dropdown-list li.selected {{ background: #e0e9ff; font-weight: 600; }}
+        .nav-dropdown-list li img {{
+            height: 14px;
+            width: auto;
+            vertical-align: middle;
+            border-radius: 1px;
+            margin-right: 6px;
+        }}
         .my-squads-sidebar {{
             width: 255px;
             flex-shrink: 0;
@@ -1441,12 +1498,18 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div style="display:flex;flex-direction:column;gap:12px;flex-shrink:0;">
     <aside class="team-nav-sidebar" id="team-nav-sidebar">
 
-        <div id="nav-country-display" style="display:flex;align-items:center;gap:6px;font-weight:600;color:#333;font-size:13px;margin-bottom:4px;min-height:18px;">
-            <span id="nav-country-flag"></span>
-            <span id="nav-country-name">Country</span>
+        <label for="nav-country-trigger">Country</label>
+        <div class="nav-country-dropdown" id="nav-country-dropdown">
+            <button type="button" id="nav-country-trigger" class="nav-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="toggleCountryDropdown()">
+                <span id="nav-country-flag" style="margin-right:6px;"></span>
+                <span id="nav-country-name">-- Select Country --</span>
+                <span class="nav-dropdown-arrow" style="margin-left:auto;">▼</span>
+            </button>
+            <ul class="nav-dropdown-list" id="nav-country-list" role="listbox" style="display:none;"></ul>
         </div>
-        <select id="nav-country" onchange="onNavCountryChange()">
-            <option value="">-- Select Country --</option>
+        <!-- hidden original select to keep onNavCountryChange() compatible -->
+        <select id="nav-country" style="display:none;" onchange="onNavCountryChange()">
+            <option value=""></option>
         </select>
         <label for="nav-championship">Championship</label>
         <select id="nav-championship" onchange="onNavChampionshipChange()" disabled>
@@ -2961,12 +3024,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
             function populateNavCountries() {{
                 const countrySelect = document.getElementById('nav-country');
+                const countryList = document.getElementById('nav-country-list');
                 const countries = Object.keys(navData).sort();
+                // Populate hidden native select (kept for compatibility with onNavCountryChange)
+                countrySelect.innerHTML = '<option value=""></option>';
+                // Populate custom dropdown list with flag images
+                countryList.innerHTML = '';
                 countries.forEach(country => {{
+                    // Hidden select option (for compatibility)
                     const option = document.createElement('option');
                     option.value = country;
                     option.textContent = country;
                     countrySelect.appendChild(option);
+                    // Visible list item with flag
+                    const li = document.createElement('li');
+                    li.setAttribute('data-value', country);
+                    li.setAttribute('role', 'option');
+                    const code = COUNTRY_CODES[country] || '';
+                    const flagHtml = code
+                        ? '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '">'
+                        : '<span style="display:inline-block;width:20px;"></span>';
+                    li.innerHTML = flagHtml + '<span>' + country + '</span>';
+                    li.onclick = function() {{
+                        selectCountry(country);
+                    }};
+                    countryList.appendChild(li);
                 }});
                 // Auto-select current country based on team_id.
                 // Prefer the first championship in navData (top-tier league) over mirror copies
@@ -2980,11 +3062,51 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     }}
                 }}
                 if (foundCountry) {{
-                    countrySelect.value = foundCountry;
-                    updateCountryFlag(foundCountry);
-                    onNavCountryChange();
+                    selectCountry(foundCountry);
                 }}
             }}
+
+            function selectCountry(country) {{
+                const countrySelect = document.getElementById('nav-country');
+                const countryList = document.getElementById('nav-country-list');
+                const trigger = document.getElementById('nav-country-trigger');
+                countrySelect.value = country;
+                // Mark selected
+                countryList.querySelectorAll('li').forEach(li => {{
+                    li.classList.toggle('selected', li.getAttribute('data-value') === country);
+                }});
+                // Update trigger label
+                updateCountryFlag(country);
+                // Close dropdown
+                countryList.style.display = 'none';
+                trigger.setAttribute('aria-expanded', 'false');
+                // Trigger existing handler
+                onNavCountryChange();
+            }}
+
+            window.toggleCountryDropdown = function() {{
+                const countryList = document.getElementById('nav-country-list');
+                const trigger = document.getElementById('nav-country-trigger');
+                const isOpen = countryList.style.display === 'block';
+                if (isOpen) {{
+                    countryList.style.display = 'none';
+                    trigger.setAttribute('aria-expanded', 'false');
+                }} else {{
+                    countryList.style.display = 'block';
+                    trigger.setAttribute('aria-expanded', 'true');
+                }}
+            }};
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {{
+                const dropdown = document.getElementById('nav-country-dropdown');
+                if (dropdown && !dropdown.contains(event.target)) {{
+                    const list = document.getElementById('nav-country-list');
+                    const trigger = document.getElementById('nav-country-trigger');
+                    if (list) list.style.display = 'none';
+                    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+                }}
+            }});
 
             // ISO 3166-1 alpha-2 country codes (mirrors get_flag_html mapping)
             const COUNTRY_CODES = {{
