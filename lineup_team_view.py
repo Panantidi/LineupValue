@@ -1064,7 +1064,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             top: calc(100% + 2px);
             left: 0;
             right: 0;
-            max-height: 280px;
+            max-height: 520px;
             overflow-y: auto;
             background: white;
             border: 1px solid #d5d9e8;
