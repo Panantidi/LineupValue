@@ -1441,7 +1441,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div style="display:flex;flex-direction:column;gap:12px;flex-shrink:0;">
     <aside class="team-nav-sidebar" id="team-nav-sidebar">
 
-        <label for="nav-country">Country</label>
+        <div id="nav-country-display" style="display:flex;align-items:center;gap:6px;font-weight:600;color:#333;font-size:13px;margin-bottom:4px;min-height:18px;">
+            <span id="nav-country-flag"></span>
+            <span id="nav-country-name">Country</span>
+        </div>
         <select id="nav-country" onchange="onNavCountryChange()">
             <option value="">-- Select Country --</option>
         </select>
@@ -2978,12 +2981,64 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
                 if (foundCountry) {{
                     countrySelect.value = foundCountry;
+                    updateCountryFlag(foundCountry);
                     onNavCountryChange();
                 }}
             }}
 
+            // ISO 3166-1 alpha-2 country codes (mirrors get_flag_html mapping)
+            const COUNTRY_CODES = {{
+                Afghanistan:'af',Albania:'al',Algeria:'dz',Andorra:'ad',Angola:'ao',
+                Argentina:'ar',Armenia:'am',Australia:'au',Austria:'at',Azerbaijan:'az',
+                Bahrain:'bh',Bangladesh:'bd',Belarus:'by',Belgium:'be',Bolivia:'bo',
+                'Bosnia and Herzegovina':'ba',Brazil:'br',Bulgaria:'bg',Cameroon:'cm',
+                Canada:'ca',Chile:'cl',China:'cn',Colombia:'co','Costa Rica':'cr',
+                Croatia:'hr',Cyprus:'cy','Czech Republic':'cz',Denmark:'dk',
+                Ecuador:'ec',Egypt:'eg','El Salvador':'sv',England:'gb',
+                Estonia:'ee','Faroe Islands':'fo',Finland:'fi',France:'fr',
+                Georgia:'ge',Germany:'de',Ghana:'gh',Gibraltar:'gi',Greece:'gr',
+                Guatemala:'gt',Honduras:'hn','Hong Kong':'hk',Hungary:'hu',
+                Iceland:'is',India:'in',Indonesia:'id',Iran:'ir',Iraq:'iq',
+                Ireland:'ie',Israel:'il',Italy:'it','Ivory Coast':'ci',
+                Jamaica:'jm',Japan:'jp',Kazakhstan:'kz',Kenya:'ke',Kosovo:'xk',
+                Kuwait:'kw',Kyrgyzstan:'kg',Latvia:'lv',Liechtenstein:'li',
+                Lithuania:'lt',Luxembourg:'lu',Malaysia:'my',Mali:'ml',Malta:'mt',
+                Mexico:'mx',Moldova:'md',Mongolia:'mn',Montenegro:'me',Morocco:'ma',
+                Netherlands:'nl','New Zealand':'nz',Nicaragua:'ni',Nigeria:'ng',
+                'Northern Ireland':'gb-nir','North Macedonia':'mk',Norway:'no',
+                Panama:'pa',Paraguay:'py',Peru:'pe',Philippines:'ph',Poland:'pl',
+                Portugal:'pt',Qatar:'qa',Romania:'ro',Russia:'ru','San Marino':'sm',
+                'Saudi Arabia':'sa',Scotland:'gb-sct',Senegal:'sn',Serbia:'rs',
+                Singapore:'sg',Slovakia:'sk',Slovenia:'si','South Africa':'za',
+                'South Korea':'kr',Spain:'es',Sweden:'se',Switzerland:'ch',
+                Taiwan:'tw',Tajikistan:'tj',Thailand:'th',
+                'Trinidad and Tobago':'tt',Tunisia:'tn',Turkey:'tr',
+                Turkmenistan:'tm',Ukraine:'ua','United Arab Emirates':'ae',
+                Uruguay:'uy',USA:'us','Uzbekistan':'uz',Venezuela:'ve',
+                Vietnam:'vn',Wales:'gb-wls'
+            }};
+
+            function updateCountryFlag(country) {{
+                const flagSpan = document.getElementById('nav-country-flag');
+                const nameSpan = document.getElementById('nav-country-name');
+                if (!flagSpan || !nameSpan) return;
+                if (!country) {{
+                    flagSpan.innerHTML = '';
+                    nameSpan.textContent = 'Country';
+                    return;
+                }}
+                const code = COUNTRY_CODES[country];
+                if (code) {{
+                    flagSpan.innerHTML = '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '" style="height:14px;width:auto;vertical-align:middle;border-radius:1px;">';
+                }} else {{
+                    flagSpan.innerHTML = '';
+                }}
+                nameSpan.textContent = country;
+            }}
+
             window.onNavCountryChange = function() {{
                 const country = document.getElementById('nav-country').value;
+                updateCountryFlag(country);
                 const championshipSelect = document.getElementById('nav-championship');
                 const teamSelect = document.getElementById('nav-team');
                 const matchSelect = document.getElementById('nav-match');
