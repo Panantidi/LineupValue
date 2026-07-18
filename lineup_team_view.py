@@ -303,7 +303,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     coach_name_display = swap_name_order(coach_name) if coach_name != "–" else "–"
     
     stadium_name = data.get("stadium", "") or data.get("team", {}).get("stadium", "")
-    stadium_display = stadium_name if stadium_name else "–"
+    stadium_city = data.get("team", {}).get("city", "")
+    if stadium_name and stadium_city:
+        stadium_display = f"{stadium_name} ({stadium_city})"
+    elif stadium_name:
+        stadium_display = stadium_name
+    elif stadium_city:
+        stadium_display = f"({stadium_city})"
+    else:
+        stadium_display = "–"
     
     # Calculate stats
     squad_size = len(players)
