@@ -883,7 +883,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             position: relative;
             background: white;
             border-radius: 12px;
-            overflow-x: auto;
+            overflow: visible;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }}
         .table-container::before {{
@@ -909,9 +909,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         .hide-watermark .table-container::before {{
             display: none;
-        }}
-        .hide-watermark .table-container {{
-            overflow-y: hidden;
         }}
         .player-name {{
             white-space: nowrap !important;
