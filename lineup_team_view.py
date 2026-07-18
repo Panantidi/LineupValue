@@ -1060,20 +1060,18 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .nav-dropdown-arrow {{ font-size: 9px; color: #888; transition: transform 0.15s; }}
         .nav-dropdown-trigger[aria-expanded="true"] .nav-dropdown-arrow {{ transform: rotate(180deg); }}
         .nav-dropdown-list {{
-            position: absolute;
-            top: calc(100% + 2px);
-            left: 0;
-            right: 0;
+            position: fixed;
             max-height: 520px;
             overflow-y: auto;
             background: white;
             border: 1px solid #d5d9e8;
             border-radius: 6px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-            z-index: 1000;
+            z-index: 10000;
             padding: 4px 0;
             margin: 0;
             list-style: none;
+            min-width: 200px;
         }}
         .nav-dropdown-list li {{
             display: flex;
@@ -3092,6 +3090,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     countryList.style.display = 'none';
                     trigger.setAttribute('aria-expanded', 'false');
                 }} else {{
+                    // Position dropdown just below the trigger (fixed positioning)
+                    const rect = trigger.getBoundingClientRect();
+                    countryList.style.top = (rect.bottom + 2) + 'px';
+                    countryList.style.left = rect.left + 'px';
+                    countryList.style.minWidth = rect.width + 'px';
                     countryList.style.display = 'block';
                     trigger.setAttribute('aria-expanded', 'true');
                 }}
