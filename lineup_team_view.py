@@ -2966,15 +2966,20 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     option.textContent = country;
                     countrySelect.appendChild(option);
                 }});
-                // Auto-select current country based on team_id
+                // Auto-select current country based on team_id.
+                // Prefer the first championship in navData (top-tier league) over mirror copies
+                // like Albania Cup / Super Cup that also contain this team.
+                let foundCountry = null;
                 for (const [country, leagues] of Object.entries(navData)) {{
-                    for (const teams of Object.values(leagues)) {{
-                        if (teams.some(t => t.id === CURRENT_TEAM_ID)) {{
-                            countrySelect.value = country;
-                            onNavCountryChange();
-                            return;
-                        }}
+                    const firstChamp = Object.keys(leagues)[0];
+                    if (firstChamp && leagues[firstChamp].some(t => t.id === CURRENT_TEAM_ID)) {{
+                        foundCountry = country;
+                        break;
                     }}
+                }}
+                if (foundCountry) {{
+                    countrySelect.value = foundCountry;
+                    onNavCountryChange();
                 }}
             }}
 
@@ -2999,9 +3004,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
 
                 const championships = Object.keys(navData[country]).sort();
+                // Prefer the first championship in the iteration order (which follows navData
+                // insertion order from leagues_data.json) — that's the top-tier league.
+                // The old code picked the last sorted one, which often landed on Super Cup
+                // / Country Cup mirror copies of the same team.
+                const iterationOrder = Object.keys(navData[country]);
                 let currentChamp = null;
-                for (const [ch, teams] of Object.entries(navData[country])) {{
-                    if (teams.some(t => t.id === CURRENT_TEAM_ID)) currentChamp = ch;
+                for (const ch of iterationOrder) {{
+                    if (navData[country][ch].some(t => t.id === CURRENT_TEAM_ID)) {{
+                        currentChamp = ch;
+                        break;
+                    }}
                 }}
                 championships.forEach(championship => {{
                     const option = document.createElement('option');
