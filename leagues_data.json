@@ -261,6 +261,496 @@
       }
     ]
   },
+  "Algeria": {
+    "Ligue 1": [
+      {
+        "id": "tnY2Lfcp",
+        "name": "MC Alger",
+        "slug": "mc-alger",
+        "image_path": "https://static.flashscore.com/res/image/data/bsA97kAr-jwbJzKoA.png"
+      },
+      {
+        "id": "nimcBvel",
+        "name": "Saoura",
+        "slug": "saoura",
+        "image_path": "https://static.flashscore.com/res/image/data/vNfHRbZg-d2HUGulG.png"
+      },
+      {
+        "id": "vNJLB2jP",
+        "name": "CR Belouizdad",
+        "slug": "cr-belouizdad",
+        "image_path": "https://static.flashscore.com/res/image/data/YFrTfhAr-t841SRot.png"
+      },
+      {
+        "id": "CrCmB35M",
+        "name": "Oran",
+        "slug": "oran",
+        "image_path": "https://static.flashscore.com/res/image/data/A3U4s1hl-WEM4tWjn.png"
+      },
+      {
+        "id": "Wfaskwf0",
+        "name": "Kabylie",
+        "slug": "kabylie",
+        "image_path": "https://static.flashscore.com/res/image/data/lh2AXye5-KrkUCdS2.png"
+      },
+      {
+        "id": "dhMQsMOh",
+        "name": "Olympique Akbou",
+        "slug": "olympique-akbou",
+        "image_path": "https://static.flashscore.com/res/image/data/bqVGTAyB-4WWOhs55.png"
+      },
+      {
+        "id": "lYuJtBj9",
+        "name": "Khenchela",
+        "slug": "khenchela",
+        "image_path": "https://static.flashscore.com/res/image/data/WlYP0PzB-YJd3IARM.png"
+      },
+      {
+        "id": "QmvZvxCB",
+        "name": "Ben Aknoun",
+        "slug": "es-ben-aknoun",
+        "image_path": "https://static.flashscore.com/res/image/data/ht1A4kdM-foycN4W1.png"
+      },
+      {
+        "id": "nBionu2l",
+        "name": "Constantine",
+        "slug": "constantine",
+        "image_path": "https://static.flashscore.com/res/image/data/xztLXXwS-z564LBUI.png"
+      },
+      {
+        "id": "zXBidj5t",
+        "name": "USM Alger",
+        "slug": "usm-alger",
+        "image_path": "https://static.flashscore.com/res/image/data/4hhvAgwS-dYgRyyJN.png"
+      },
+      {
+        "id": "EDgC6qYp",
+        "name": "ES Setif",
+        "slug": "es-setif",
+        "image_path": "https://static.flashscore.com/res/image/data/84RXcQXg-CEDetKma.png"
+      },
+      {
+        "id": "hGHHy7Am",
+        "name": "Rouisset",
+        "slug": "rouisset",
+        "image_path": "https://static.flashscore.com/res/image/data/nw7kf1hl-2wF033pH.png"
+      },
+      {
+        "id": "Aobolc96",
+        "name": "ASO Chlef",
+        "slug": "aso-chlef",
+        "image_path": "https://static.flashscore.com/res/image/data/hzAcpCCr-zgzLiH7t.png"
+      },
+      {
+        "id": "WIyffF3J",
+        "name": "Paradou",
+        "slug": "paradou",
+        "image_path": "https://static.flashscore.com/res/image/data/bPACjTXg-fmCzuNKb.png"
+      },
+      {
+        "id": "j9T7TM2E",
+        "name": "Mostaganem",
+        "slug": "mostaganem",
+        "image_path": "https://static.flashscore.com/res/image/data/Iy1jExZA-CzNJXG1l.png"
+      },
+      {
+        "id": "S6H5xCS1",
+        "name": "El Bayadh",
+        "slug": "el-bayadh",
+        "image_path": "https://static.flashscore.com/res/image/data/x6WtZidM-h4Z3bnZ6.png"
+      }
+    ],
+    "Ligue 2": [
+      {
+        "id": "pMubgZIP",
+        "name": "Biskra",
+        "slug": "biskra",
+        "image_path": "https://static.flashscore.com/res/image/data/pnt336yB-zgzLiH7t.png"
+      },
+      {
+        "id": "SKsVr3nc",
+        "name": "CA Batna",
+        "slug": "ca-batna",
+        "image_path": "https://static.flashscore.com/res/image/data/nZV9d8zB-bc2jScJD.png"
+      },
+      {
+        "id": "pYZgYcYG",
+        "name": "US Chaouia",
+        "slug": "us-chaouia",
+        "image_path": "https://static.flashscore.com/res/image/data/dr6yd6Ar-0n2iZoEQ.png"
+      },
+      {
+        "id": "QkjUWanK",
+        "name": "MO Bejaia",
+        "slug": "mo-bejaia",
+        "image_path": "https://static.flashscore.com/res/image/data/IeLLaOf5-UVsmIYOi.png"
+      },
+      {
+        "id": "Y1wWSvDa",
+        "name": "Djijel",
+        "slug": "js-djijel",
+        "image_path": "https://static.flashscore.com/res/image/data/xzClEiYA-23MkkJhg.png"
+      },
+      {
+        "id": "OQubDJ3q",
+        "name": "Annaba",
+        "slug": "annaba",
+        "image_path": "https://static.flashscore.com/res/image/data/2DfSm8fM-Wpswp859.png"
+      },
+      {
+        "id": "OISa0FK8",
+        "name": "Magra",
+        "slug": "magra",
+        "image_path": "https://static.flashscore.com/res/image/data/MDLjGJhl-UH02WlUl.png"
+      },
+      {
+        "id": "8AGnSASs",
+        "name": "CR Beni Thour",
+        "slug": "beni-thour",
+        "image_path": "https://static.flashscore.com/res/image/data/tzVK3AFG-WS7MAE04.png"
+      },
+      {
+        "id": "21SPlgRt",
+        "name": "MSP Batna",
+        "slug": "msp-batna",
+        "image_path": "https://static.flashscore.com/res/image/data/x83NC1HG-IRA8LNk1.png"
+      },
+      {
+        "id": "KEogLiTu",
+        "name": "Telaghema",
+        "slug": "telaghema",
+        "image_path": "https://static.flashscore.com/res/image/data/nP1OF3e5-QBMSXsER.png"
+      },
+      {
+        "id": "hdnmDXCa",
+        "name": "Beni Oulbane",
+        "slug": "beni-oulbane",
+        "image_path": "https://static.flashscore.com/res/image/data/69WKrdg5-219Jrzr4.png"
+      },
+      {
+        "id": "UcqOqc1D",
+        "name": "MO Constantine",
+        "slug": "mo-constantine",
+        "image_path": "https://static.flashscore.com/res/image/data/GIvrJWdM-46whCS8a.png"
+      },
+      {
+        "id": "n1hTsS32",
+        "name": "Bordj Menail",
+        "slug": "bordj-menail",
+        "image_path": "https://static.flashscore.com/res/image/data/EN5wUgf5-8nMucysR.png"
+      },
+      {
+        "id": "h0AHNRz4",
+        "name": "Khroub",
+        "slug": "khroub",
+        "image_path": "https://static.flashscore.com/res/image/data/CfdrC2hl-UHnvkyj2.png"
+      },
+      {
+        "id": "jgGJTKcg",
+        "name": "Khemis El Khechna",
+        "slug": "ib-khemis-el-khechna",
+        "image_path": "https://static.flashscore.com/res/image/data/pIUCiJh5-8GPj9I2g.png"
+      },
+      {
+        "id": "jcEpyIYq",
+        "name": "Chelghoum",
+        "slug": "chelghoum",
+        "image_path": "https://static.flashscore.com/res/image/data/fioRjmhl-hxVNorwd.png"
+      },
+      {
+        "id": "6Ngogp51",
+        "name": "El Biar",
+        "slug": "js-el-biar",
+        "image_path": "https://static.flashscore.com/res/image/data/6uqyGByS-ln1qN73t.png"
+      },
+      {
+        "id": "YVkFoJW0",
+        "name": "Harrach",
+        "slug": "harrach",
+        "image_path": "https://static.flashscore.com/res/image/data/vaGSQwzB-nom0tPkO.png"
+      },
+      {
+        "id": "p0qAWcB9",
+        "name": "Temouchent",
+        "slug": "cr-temouchent",
+        "image_path": "https://static.flashscore.com/res/image/data/rotzv2wS-thxoreJh.png"
+      },
+      {
+        "id": "4Id3feN8",
+        "name": "RC Kouba",
+        "slug": "rc-kouba",
+        "image_path": "https://static.flashscore.com/res/image/data/WQTstoYg-d06PsAvN.png"
+      },
+      {
+        "id": "SdyEjp6g",
+        "name": "ASM Oran",
+        "slug": "asm-oran",
+        "image_path": "https://static.flashscore.com/res/image/data/WlCJD8Xg-thjk0AWn.png"
+      },
+      {
+        "id": "WGMAvQia",
+        "name": "Hussein Dey",
+        "slug": "hussein-dey",
+        "image_path": "https://static.flashscore.com/res/image/data/bB5oCVzB-vcB7Oh9m.png"
+      },
+      {
+        "id": "GfuKpwn7",
+        "name": "Tlemcen",
+        "slug": "tlemcen",
+        "image_path": "https://static.flashscore.com/res/image/data/bTFPWte5-tIknCwDS.png"
+      },
+      {
+        "id": "txkthMBe",
+        "name": "JSM Tiaret",
+        "slug": "jsm-tiaret",
+        "image_path": "https://static.flashscore.com/res/image/data/OpdR7aHG-Mu3xq5TL.png"
+      },
+      {
+        "id": "4pYv75FD",
+        "name": "Kolea",
+        "slug": "kolea",
+        "image_path": "https://static.flashscore.com/res/image/data/bR8z2CYA-M3yhdAsd.png"
+      },
+      {
+        "id": "xlp9ES6l",
+        "name": "WA Mostaganem",
+        "slug": "wa-mostaganem",
+        "image_path": "https://static.flashscore.com/res/image/data/jq7qcyil-vyfioEid.png"
+      },
+      {
+        "id": "pWAiN7Lc",
+        "name": "Saida",
+        "slug": "saida",
+        "image_path": "https://static.flashscore.com/res/image/data/Oh1DSeZg-EXAfHfrO.png"
+      },
+      {
+        "id": "OSn5oNaJ",
+        "name": "GC Mascara",
+        "slug": "gc-mascara",
+        "image_path": "https://static.flashscore.com/res/image/data/dlvmFECa-8SLMOwAA.png"
+      },
+      {
+        "id": "fasnPe96",
+        "name": "Arba",
+        "slug": "arba",
+        "image_path": "https://static.flashscore.com/res/image/data/8K8nFICr-llMR2u3k.png"
+      },
+      {
+        "id": "j130Kf3S",
+        "name": "Tixeraine",
+        "slug": "tixeraine",
+        "image_path": "https://static.flashscore.com/res/image/data/fNt1dZCr-A9imAHQH.png"
+      },
+      {
+        "id": "xWAxL4dk",
+        "name": "Adrar",
+        "slug": "adrar",
+        "image_path": "https://static.flashscore.com/res/image/data/xvhnVDxS-CIgpO0LT.png"
+      },
+      {
+        "id": "Cvmz7O5o",
+        "name": "Bechar Djedid",
+        "slug": "bechar-djedid",
+        "image_path": "https://static.flashscore.com/res/image/data/tQwl78HG-8EAmhsmd.png"
+      }
+    ],
+    "Algeria Cup": [
+      {
+        "id": "tnY2Lfcp",
+        "name": "MC Alger",
+        "slug": "mc-alger",
+        "image_path": "https://static.flashscore.com/res/image/data/bsA97kAr-jwbJzKoA.png"
+      },
+      {
+        "id": "nimcBvel",
+        "name": "Saoura",
+        "slug": "saoura",
+        "image_path": "https://static.flashscore.com/res/image/data/vNfHRbZg-d2HUGulG.png"
+      },
+      {
+        "id": "vNJLB2jP",
+        "name": "CR Belouizdad",
+        "slug": "cr-belouizdad",
+        "image_path": "https://static.flashscore.com/res/image/data/YFrTfhAr-t841SRot.png"
+      },
+      {
+        "id": "CrCmB35M",
+        "name": "Oran",
+        "slug": "oran",
+        "image_path": "https://static.flashscore.com/res/image/data/A3U4s1hl-WEM4tWjn.png"
+      },
+      {
+        "id": "Wfaskwf0",
+        "name": "Kabylie",
+        "slug": "kabylie",
+        "image_path": "https://static.flashscore.com/res/image/data/lh2AXye5-KrkUCdS2.png"
+      },
+      {
+        "id": "dhMQsMOh",
+        "name": "Olympique Akbou",
+        "slug": "olympique-akbou",
+        "image_path": "https://static.flashscore.com/res/image/data/bqVGTAyB-4WWOhs55.png"
+      },
+      {
+        "id": "lYuJtBj9",
+        "name": "Khenchela",
+        "slug": "khenchela",
+        "image_path": "https://static.flashscore.com/res/image/data/WlYP0PzB-YJd3IARM.png"
+      },
+      {
+        "id": "QmvZvxCB",
+        "name": "Ben Aknoun",
+        "slug": "es-ben-aknoun",
+        "image_path": "https://static.flashscore.com/res/image/data/ht1A4kdM-foycN4W1.png"
+      },
+      {
+        "id": "nBionu2l",
+        "name": "Constantine",
+        "slug": "constantine",
+        "image_path": "https://static.flashscore.com/res/image/data/xztLXXwS-z564LBUI.png"
+      },
+      {
+        "id": "zXBidj5t",
+        "name": "USM Alger",
+        "slug": "usm-alger",
+        "image_path": "https://static.flashscore.com/res/image/data/4hhvAgwS-dYgRyyJN.png"
+      },
+      {
+        "id": "EDgC6qYp",
+        "name": "ES Setif",
+        "slug": "es-setif",
+        "image_path": "https://static.flashscore.com/res/image/data/84RXcQXg-CEDetKma.png"
+      },
+      {
+        "id": "hGHHy7Am",
+        "name": "Rouisset",
+        "slug": "rouisset",
+        "image_path": "https://static.flashscore.com/res/image/data/nw7kf1hl-2wF033pH.png"
+      },
+      {
+        "id": "Aobolc96",
+        "name": "ASO Chlef",
+        "slug": "aso-chlef",
+        "image_path": "https://static.flashscore.com/res/image/data/hzAcpCCr-zgzLiH7t.png"
+      },
+      {
+        "id": "WIyffF3J",
+        "name": "Paradou",
+        "slug": "paradou",
+        "image_path": "https://static.flashscore.com/res/image/data/bPACjTXg-fmCzuNKb.png"
+      },
+      {
+        "id": "j9T7TM2E",
+        "name": "Mostaganem",
+        "slug": "mostaganem",
+        "image_path": "https://static.flashscore.com/res/image/data/Iy1jExZA-CzNJXG1l.png"
+      },
+      {
+        "id": "S6H5xCS1",
+        "name": "El Bayadh",
+        "slug": "el-bayadh",
+        "image_path": "https://static.flashscore.com/res/image/data/x6WtZidM-h4Z3bnZ6.png"
+      }
+    ],
+    "Super Cup": [
+      {
+        "id": "tnY2Lfcp",
+        "name": "MC Alger",
+        "slug": "mc-alger",
+        "image_path": "https://static.flashscore.com/res/image/data/bsA97kAr-jwbJzKoA.png"
+      },
+      {
+        "id": "nimcBvel",
+        "name": "Saoura",
+        "slug": "saoura",
+        "image_path": "https://static.flashscore.com/res/image/data/vNfHRbZg-d2HUGulG.png"
+      },
+      {
+        "id": "vNJLB2jP",
+        "name": "CR Belouizdad",
+        "slug": "cr-belouizdad",
+        "image_path": "https://static.flashscore.com/res/image/data/YFrTfhAr-t841SRot.png"
+      },
+      {
+        "id": "CrCmB35M",
+        "name": "Oran",
+        "slug": "oran",
+        "image_path": "https://static.flashscore.com/res/image/data/A3U4s1hl-WEM4tWjn.png"
+      },
+      {
+        "id": "Wfaskwf0",
+        "name": "Kabylie",
+        "slug": "kabylie",
+        "image_path": "https://static.flashscore.com/res/image/data/lh2AXye5-KrkUCdS2.png"
+      },
+      {
+        "id": "dhMQsMOh",
+        "name": "Olympique Akbou",
+        "slug": "olympique-akbou",
+        "image_path": "https://static.flashscore.com/res/image/data/bqVGTAyB-4WWOhs55.png"
+      },
+      {
+        "id": "lYuJtBj9",
+        "name": "Khenchela",
+        "slug": "khenchela",
+        "image_path": "https://static.flashscore.com/res/image/data/WlYP0PzB-YJd3IARM.png"
+      },
+      {
+        "id": "QmvZvxCB",
+        "name": "Ben Aknoun",
+        "slug": "es-ben-aknoun",
+        "image_path": "https://static.flashscore.com/res/image/data/ht1A4kdM-foycN4W1.png"
+      },
+      {
+        "id": "nBionu2l",
+        "name": "Constantine",
+        "slug": "constantine",
+        "image_path": "https://static.flashscore.com/res/image/data/xztLXXwS-z564LBUI.png"
+      },
+      {
+        "id": "zXBidj5t",
+        "name": "USM Alger",
+        "slug": "usm-alger",
+        "image_path": "https://static.flashscore.com/res/image/data/4hhvAgwS-dYgRyyJN.png"
+      },
+      {
+        "id": "EDgC6qYp",
+        "name": "ES Setif",
+        "slug": "es-setif",
+        "image_path": "https://static.flashscore.com/res/image/data/84RXcQXg-CEDetKma.png"
+      },
+      {
+        "id": "hGHHy7Am",
+        "name": "Rouisset",
+        "slug": "rouisset",
+        "image_path": "https://static.flashscore.com/res/image/data/nw7kf1hl-2wF033pH.png"
+      },
+      {
+        "id": "Aobolc96",
+        "name": "ASO Chlef",
+        "slug": "aso-chlef",
+        "image_path": "https://static.flashscore.com/res/image/data/hzAcpCCr-zgzLiH7t.png"
+      },
+      {
+        "id": "WIyffF3J",
+        "name": "Paradou",
+        "slug": "paradou",
+        "image_path": "https://static.flashscore.com/res/image/data/bPACjTXg-fmCzuNKb.png"
+      },
+      {
+        "id": "j9T7TM2E",
+        "name": "Mostaganem",
+        "slug": "mostaganem",
+        "image_path": "https://static.flashscore.com/res/image/data/Iy1jExZA-CzNJXG1l.png"
+      },
+      {
+        "id": "S6H5xCS1",
+        "name": "El Bayadh",
+        "slug": "el-bayadh",
+        "image_path": "https://static.flashscore.com/res/image/data/x6WtZidM-h4Z3bnZ6.png"
+      }
+    ]
+  },
   "Australia": {
     "A-League": [
       {
