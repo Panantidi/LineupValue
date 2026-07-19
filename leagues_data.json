@@ -12995,5 +12995,3981 @@
         "image_path": "https://static.flashscore.com/res/image/data/K6OorzdM-M73FC44i.png"
       }
     ]
+  },
+  "Andorra": {
+    "Primera Divisió": [
+      {
+        "id": "4CambolL",
+        "name": "Inter Escaldes",
+        "slug": "inter-escaldes",
+        "image_path": "https://static.flashscore.com/res/image/data/rqmuPbEG-8nCMN5pD.png"
+      },
+      {
+        "id": "6kBSnSvE",
+        "name": "UE Santa Coloma",
+        "slug": "ue-santa-coloma",
+        "image_path": "https://static.flashscore.com/res/image/data/YaoyiSzB-2aQZ1RRP.png"
+      },
+      {
+        "id": "bNrLJX1l",
+        "name": "FC Rangers",
+        "slug": "fc-rangers",
+        "image_path": "https://static.flashscore.com/res/image/data/b76vj9Br-UotWH3iq.png"
+      },
+      {
+        "id": "v1MelMDR",
+        "name": "FC Santa Coloma",
+        "slug": "fc-santa-coloma",
+        "image_path": "https://static.flashscore.com/res/image/data/8KM8lKdM-Uik4ihaC.png"
+      },
+      {
+        "id": "hQcdh3te",
+        "name": "Atletic Escaldes",
+        "slug": "atletic-escaldes",
+        "image_path": "https://static.flashscore.com/res/image/data/4zJRM6dM-WnxS8ZvA.png"
+      },
+      {
+        "id": "biWhbE4E",
+        "name": "Penya",
+        "slug": "penya",
+        "image_path": "https://static.flashscore.com/res/image/data/ULtTc3HG-Q1mZy3w9.png"
+      },
+      {
+        "id": "b9WGGWfK",
+        "name": "Ordino",
+        "slug": "ordino",
+        "image_path": "https://static.flashscore.com/res/image/data/6VeOv9hl-byaNU0dt.png"
+      },
+      {
+        "id": "2FQVLC6o",
+        "name": "Carroi",
+        "slug": "carroi",
+        "image_path": "https://static.flashscore.com/res/image/data/KQLMyLCr-Kd6FFBdj.png"
+      },
+      {
+        "id": "8MZIdRpm",
+        "name": "Esperanca",
+        "slug": "esperanca",
+        "image_path": "https://static.flashscore.com/res/image/data/463LXqEa-QocXXBOn.png"
+      },
+      {
+        "id": "6HqtNmeI",
+        "name": "Pas de la Casa",
+        "slug": "pas-de-la-casa",
+        "image_path": "https://static.flashscore.com/res/image/data/StAI5VzB-p0XqLazT.png"
+      }
+    ]
+  },
+  "Colombia": {
+    "Primera A": [
+      {
+        "id": "ULWUFrRR",
+        "name": "Chico",
+        "slug": "chico",
+        "image_path": "https://static.flashscore.com/res/image/data/KdbjZezB-zi9oOsF3.png"
+      },
+      {
+        "id": "p2ADRKlk",
+        "name": "Ind. Medellin",
+        "slug": "ind-medellin",
+        "image_path": "https://static.flashscore.com/res/image/data/lMyrsdhl-WvCEcmg7.png"
+      },
+      {
+        "id": "Oh9HQv4e",
+        "name": "America De Cali",
+        "slug": "america-de-cali",
+        "image_path": "https://static.flashscore.com/res/image/data/fySikCAr-hSZHTo4B.png"
+      },
+      {
+        "id": "6HbMPbJ1",
+        "name": "Santa Fe",
+        "slug": "santa-fe",
+        "image_path": "https://static.flashscore.com/res/image/data/dlONm5jl-AaS9a4Ho.png"
+      },
+      {
+        "id": "KK2QOIY7",
+        "name": "Inter Bogotá",
+        "slug": "inter-bogota",
+        "image_path": "https://static.flashscore.com/res/image/data/xCeMUuZg-nouesssi.png"
+      },
+      {
+        "id": "GWDKnMQE",
+        "name": "Dep. Cali",
+        "slug": "dep-cali",
+        "image_path": "https://static.flashscore.com/res/image/data/O2O10jHG-IHPA1GDt.png"
+      },
+      {
+        "id": "C23omttL",
+        "name": "Atl. Nacional",
+        "slug": "atl-nacional",
+        "image_path": "https://static.flashscore.com/res/image/data/EVh8vJcM-tnwDCzLD.png"
+      },
+      {
+        "id": "I1DMa0eR",
+        "name": "Bucaramanga",
+        "slug": "bucaramanga",
+        "image_path": "https://static.flashscore.com/res/image/data/Eovph8GG-0xyt4W2g.png"
+      },
+      {
+        "id": "zs0leK3r",
+        "name": "Cucuta",
+        "slug": "cucuta",
+        "image_path": "https://static.flashscore.com/res/image/data/IcgRTYAr-hCmseTFa.png"
+      },
+      {
+        "id": "GdemgvJl",
+        "name": "Dep. Pasto",
+        "slug": "dep-pasto",
+        "image_path": "https://static.flashscore.com/res/image/data/rPpVBxZg-hjn5AE5Q.png"
+      },
+      {
+        "id": "bLphhbYf",
+        "name": "Deportes Tolima",
+        "slug": "deportes-tolima",
+        "image_path": "https://static.flashscore.com/res/image/data/ngiuiwYg-IVYXEpED.png"
+      },
+      {
+        "id": "ptqMix37",
+        "name": "Junior",
+        "slug": "junior",
+        "image_path": "https://static.flashscore.com/res/image/data/Kz2UFMh5-zLpFRlja.png"
+      },
+      {
+        "id": "OWsQjdID",
+        "name": "Millonarios",
+        "slug": "millonarios",
+        "image_path": "https://static.flashscore.com/res/image/data/COAjhCg5-6kduDy6P.png"
+      },
+      {
+        "id": "bVsnDlMD",
+        "name": "Once Caldas",
+        "slug": "once-caldas",
+        "image_path": "https://static.flashscore.com/res/image/data/2JsUqijl-bsEYFgtQ.png"
+      },
+      {
+        "id": "CYojC8yK",
+        "name": "Pereira",
+        "slug": "dep-pereira",
+        "image_path": "https://static.flashscore.com/res/image/data/l2DCBWh5-rysGeGXN.png"
+      },
+      {
+        "id": "Ma0BXUXe",
+        "name": "Aguilas",
+        "slug": "aguilas-doradas",
+        "image_path": "https://static.flashscore.com/res/image/data/rTt0P7Da-2eGA9cib.png"
+      },
+      {
+        "id": "GfFNymsk",
+        "name": "Alianza",
+        "slug": "alianza",
+        "image_path": "https://static.flashscore.com/res/image/data/hlFxY4e5-jqTIQW5H.png"
+      },
+      {
+        "id": "8YJQcU38",
+        "name": "Fortaleza",
+        "slug": "fortaleza-c-e-i-f",
+        "image_path": "https://static.flashscore.com/res/image/data/08K355yB-lrqyzouB.png"
+      },
+      {
+        "id": "KzwFLhIU",
+        "name": "Llaneros",
+        "slug": "llaneros",
+        "image_path": "https://static.flashscore.com/res/image/data/2LyTztEa-hjn5AE5Q.png"
+      },
+      {
+        "id": "hCwaFc4a",
+        "name": "Jaguares de Cordoba",
+        "slug": "jaguares-de-cordoba",
+        "image_path": "https://static.flashscore.com/res/image/data/dCAiSoFa-K401txJG.png"
+      }
+    ],
+    "Primera B": [
+      {
+        "id": "zms5B2Zr",
+        "name": "Quindio",
+        "slug": "quindio",
+        "image_path": "https://static.flashscore.com/res/image/data/S8EdcyFG-Eam1BfjK.png"
+      },
+      {
+        "id": "xtFGm2B8",
+        "name": "Envigado",
+        "slug": "envigado",
+        "image_path": "https://static.flashscore.com/res/image/data/pQrkdmhl-2XZjQRJG.png"
+      },
+      {
+        "id": "6eofBSjQ",
+        "name": "Cartagena",
+        "slug": "cartagena",
+        "image_path": "https://static.flashscore.com/res/image/data/8pmdmdWg-zVgW5cY1.png"
+      },
+      {
+        "id": "EcJJz8BQ",
+        "name": "Tigres",
+        "slug": "tigres-futbol-club",
+        "image_path": "https://static.flashscore.com/res/image/data/rstsF9FG-r7qn5qKU.png"
+      },
+      {
+        "id": "8tIHbqDh",
+        "name": "Inter Palmira",
+        "slug": "inter-palmira",
+        "image_path": "https://static.flashscore.com/res/image/data/xC9qu5jl-GGXLQEpI.png"
+      },
+      {
+        "id": "IZmBcNVO",
+        "name": "Leones",
+        "slug": "leones",
+        "image_path": "https://static.flashscore.com/res/image/data/tpBPaidM-ldtTlNn4.png"
+      },
+      {
+        "id": "ze01M68P",
+        "name": "Real Cundinamarca",
+        "slug": "real-cundinamarca",
+        "image_path": "https://static.flashscore.com/res/image/data/C0A5xQil-bqFiSdJl.png"
+      },
+      {
+        "id": "tpLItk4L",
+        "name": "U. Magdalena",
+        "slug": "union-magdalena",
+        "image_path": "https://static.flashscore.com/res/image/data/jyJ7DMCr-MTr4IgZi.png"
+      },
+      {
+        "id": "O8ANu9JR",
+        "name": "Barranquilla",
+        "slug": "barranquilla",
+        "image_path": "https://static.flashscore.com/res/image/data/noLBhOzS-WMQ3R7Tc.png"
+      },
+      {
+        "id": "foERz7de",
+        "name": "Bogota",
+        "slug": "bogota",
+        "image_path": "https://static.flashscore.com/res/image/data/fcbudQh5-8dHhJecc.png"
+      },
+      {
+        "id": "jD7zZpR7",
+        "name": "Atletico F.C.",
+        "slug": "atletico-f-c",
+        "image_path": "https://static.flashscore.com/res/image/data/n9uLPnDr-YkXz5hTm.png"
+      },
+      {
+        "id": "nPIUdlJE",
+        "name": "Real Santander",
+        "slug": "real-santander",
+        "image_path": "https://static.flashscore.com/res/image/data/p6ESPiYg-YLa74tUj.png"
+      },
+      {
+        "id": "tUWKtMms",
+        "name": "Patriotas",
+        "slug": "patriotas",
+        "image_path": "https://static.flashscore.com/res/image/data/2JepZwg5-vPkIlTrP.png"
+      },
+      {
+        "id": "6yoKBtoR",
+        "name": "Boca Juniors",
+        "slug": "boca-juniors-de-cali",
+        "image_path": "https://static.flashscore.com/res/image/data/KtChAhe5-YkXz5hTm.png"
+      },
+      {
+        "id": "ET6jTFPs",
+        "name": "Orsomarso",
+        "slug": "orsomarso",
+        "image_path": "https://static.flashscore.com/res/image/data/KEu2pFDa-OQvTHdKn.png"
+      },
+      {
+        "id": "25WDovil",
+        "name": "Ind. Yumbo",
+        "slug": "ind-yumbo",
+        "image_path": "https://static.flashscore.com/res/image/data/YoyCsODa-4CASjXQA.png"
+      }
+    ]
+  },
+  "Croatia": {
+    "HNL": [
+      {
+        "id": "8G5ufQTg",
+        "name": "Din. Zagreb",
+        "slug": "din-zagreb",
+        "image_path": "https://static.flashscore.com/res/image/data/YktDsvYg-GU4hlIMk.png"
+      },
+      {
+        "id": "2w5qgpq0",
+        "name": "Hajduk Split",
+        "slug": "hajduk-split",
+        "image_path": "https://static.flashscore.com/res/image/data/KhiiTqGG-Mc6FcsjL.png"
+      },
+      {
+        "id": "448T3rTI",
+        "name": "Osijek",
+        "slug": "osijek",
+        "image_path": "https://static.flashscore.com/res/image/data/nNYioZhl-OKctcAHF.png"
+      },
+      {
+        "id": "zXKuUR5J",
+        "name": "Rijeka",
+        "slug": "rijeka",
+        "image_path": "https://static.flashscore.com/res/image/data/lfaoWXVg-YDFGOnMF.png"
+      },
+      {
+        "id": "ENJqToLP",
+        "name": "Slaven Belupo",
+        "slug": "slaven-belupo",
+        "image_path": "https://static.flashscore.com/res/image/data/SS4m3nGG-xluSzFWQ.png"
+      },
+      {
+        "id": "Wv0GNPrm",
+        "name": "Varazdin",
+        "slug": "varazdin",
+        "image_path": "https://static.flashscore.com/res/image/data/I3Ae1kZA-CCW2Z0Rb.png"
+      },
+      {
+        "id": "hCg2iHl4",
+        "name": "Istra 1961",
+        "slug": "istra-1961",
+        "image_path": "https://static.flashscore.com/res/image/data/lfzsioFa-S0dWTsz4.png"
+      },
+      {
+        "id": "CWwBJ6PA",
+        "name": "Lok. Zagreb",
+        "slug": "lok-zagreb",
+        "image_path": "https://static.flashscore.com/res/image/data/2V3mzCil-xGP0AdYc.png"
+      },
+      {
+        "id": "6JxGelZC",
+        "name": "Rudes",
+        "slug": "rudes",
+        "image_path": "https://static.flashscore.com/res/image/data/I15VzaxS-rkMd9kXu.png"
+      },
+      {
+        "id": "WnmFp9Kg",
+        "name": "Gorica",
+        "slug": "hnk-gorica",
+        "image_path": "https://static.flashscore.com/res/image/data/CQ0e4MHG-rFDZLoVn.png"
+      }
+    ],
+    "Prva NL": [
+      {
+        "id": "Q7rTf6Em",
+        "name": "Cibalia",
+        "slug": "cibalia",
+        "image_path": "https://static.flashscore.com/res/image/data/vBp1rREa-Kfira0nm.png"
+      },
+      {
+        "id": "63RpLG3c",
+        "name": "Segesta",
+        "slug": "segesta",
+        "image_path": "https://static.flashscore.com/res/image/data/AgyBw1Br-nZALE08p.png"
+      },
+      {
+        "id": "GAJEO6nD",
+        "name": "Karlovac",
+        "slug": "karlovac",
+        "image_path": "https://static.flashscore.com/res/image/data/QXHF6Ug5-2yv2uyE9.png"
+      },
+      {
+        "id": "YVV4mjPD",
+        "name": "Orijent",
+        "slug": "orijent",
+        "image_path": "https://static.flashscore.com/res/image/data/0tF4NlWg-jD6xcIBf.png"
+      },
+      {
+        "id": "nDCpAOpa",
+        "name": "Vukovar 1991",
+        "slug": "vukovar-1991",
+        "image_path": "https://static.flashscore.com/res/image/data/xIZjIBYA-QmEhB75o.png"
+      },
+      {
+        "id": "WIJa2sXr",
+        "name": "Mladost Zdralovi",
+        "slug": "mladost-zdralovi",
+        "image_path": "https://static.flashscore.com/res/image/data/vRksfAil-OtNCFOTr.png"
+      },
+      {
+        "id": "xzkscjkf",
+        "name": "Bijelo Brdo",
+        "slug": "bijelo-brdo",
+        "image_path": "https://static.flashscore.com/res/image/data/zDWsP3HG-xQzYcpTj.png"
+      },
+      {
+        "id": "WdlodA40",
+        "name": "Opatija",
+        "slug": "opatija",
+        "image_path": "https://static.flashscore.com/res/image/data/bXdAXie5-QutHm2Et.png"
+      },
+      {
+        "id": "niq8m4JB",
+        "name": "Hrvace",
+        "slug": "hrvace",
+        "image_path": "https://static.flashscore.com/res/image/data/KdrzyDdM-tOxtObbs.png"
+      },
+      {
+        "id": "UyrJlD3a",
+        "name": "Dugopolje",
+        "slug": "dugopolje",
+        "image_path": "https://static.flashscore.com/res/image/data/z3EnecBr-SOQfJgM4.png"
+      },
+      {
+        "id": "84MtBybr",
+        "name": "Sesvete",
+        "slug": "sesvete",
+        "image_path": "https://static.flashscore.com/res/image/data/WzoW4CzB-nmOIRPXs.png"
+      },
+      {
+        "id": "QcDw584G",
+        "name": "Jadran LP",
+        "slug": "jadran-luka-ploce",
+        "image_path": "https://static.flashscore.com/res/image/data/WbnXTtyB-4t2GgNO4.png"
+      },
+      {
+        "id": "K8QuTfjN",
+        "name": "Kustosija",
+        "slug": "kustosija",
+        "image_path": "https://static.flashscore.com/res/image/data/n5Ny26YA-jBNXxIjf.png"
+      },
+      {
+        "id": "2qpsFbhJ",
+        "name": "Dubrava",
+        "slug": "dubrava-zagreb",
+        "image_path": "https://static.flashscore.com/res/image/data/QwWPhoil-jkjucMTj.png"
+      },
+      {
+        "id": "GMno8hG6",
+        "name": "Croatia Zmijavci",
+        "slug": "croatia-zmijavci",
+        "image_path": "https://static.flashscore.com/res/image/data/hSFdFdZA-zHQMQAtd.png"
+      },
+      {
+        "id": "4r3PKUmK",
+        "name": "NK Dinamo Zagreb 2",
+        "slug": "dinamo-zagreb",
+        "image_path": "https://static.flashscore.com/res/image/data/YL2iDUFG-AabQOsPn.png"
+      }
+    ],
+    "Druga NL": [
+      {
+        "id": "WlNUZNS5",
+        "name": "Dragovoljac",
+        "slug": "dragovoljac",
+        "image_path": "https://static.flashscore.com/res/image/data/2X5lQnFG-r9KVUYrB.png"
+      },
+      {
+        "id": "42LxY1cI",
+        "name": "Bjelovar",
+        "slug": "bjelovar",
+        "image_path": "https://static.flashscore.com/res/image/data/SWRS33Ca-UPhyZXn8.png"
+      },
+      {
+        "id": "AXI6H6hP",
+        "name": "Lucko",
+        "slug": "lucko",
+        "image_path": "https://static.flashscore.com/res/image/data/hAnLnrCr-bDYl55Qg.png"
+      },
+      {
+        "id": "ULZd9r05",
+        "name": "Zagora",
+        "slug": "zagora",
+        "image_path": "https://static.flashscore.com/res/image/data/SrMb97Xg-GvnQg73g.png"
+      },
+      {
+        "id": "KM0V2PR7",
+        "name": "Dugo Selo",
+        "slug": "dugo-selo",
+        "image_path": "https://static.flashscore.com/res/image/data/Esn1SNXg-vmpDLEkF.png"
+      },
+      {
+        "id": "pUFLJqBa",
+        "name": "Grobnican",
+        "slug": "grobnican",
+        "image_path": "https://static.flashscore.com/res/image/data/nyQML1cM-UD6R4K5p.png"
+      },
+      {
+        "id": "IsETHNuC",
+        "name": "Koprivnica",
+        "slug": "nk-koprivnica",
+        "image_path": "https://static.flashscore.com/res/image/data/ld8wOKHG-hIpnkcid.png"
+      },
+      {
+        "id": "6qdHOIHi",
+        "name": "Radnik Krizevci",
+        "slug": "radnik-krizevci",
+        "image_path": "https://static.flashscore.com/res/image/data/G8u8MEHG-WYO2BUR7.png"
+      },
+      {
+        "id": "nDhEkglg",
+        "name": "Solin",
+        "slug": "solin",
+        "image_path": "https://static.flashscore.com/res/image/data/xtyJpail-OlLDanjn.png"
+      },
+      {
+        "id": "6NJYByep",
+        "name": "Uskok Klis",
+        "slug": "uskok-klis",
+        "image_path": "https://static.flashscore.com/res/image/data/4OrOtcFa-6RaUPQrh.png"
+      },
+      {
+        "id": "Y367Smor",
+        "name": "Trnje",
+        "slug": "trnje",
+        "image_path": "https://static.flashscore.com/res/image/data/Maq6uCYg-rFXom3rp.png"
+      },
+      {
+        "id": "Ua3m5DkK",
+        "name": "Slavonija Pozega",
+        "slug": "slavonija-pozega",
+        "image_path": "https://static.flashscore.com/res/image/data/I5BvoMil-ER5SBYaU.png"
+      },
+      {
+        "id": "zNoOeOwP",
+        "name": "Jarun",
+        "slug": "jarun",
+        "image_path": "https://static.flashscore.com/res/image/data/QRrYSnyB-rwU2cvqU.png"
+      },
+      {
+        "id": "40QU6cXB",
+        "name": "Varteks Varazdin",
+        "slug": "varteks-varazdin-2011",
+        "image_path": "https://static.flashscore.com/res/image/data/IX5zC1FG-nmKIPn4A.png"
+      },
+      {
+        "id": "YyGPrROs",
+        "name": "Uljanik Pula",
+        "slug": "uljanik-pula",
+        "image_path": "https://static.flashscore.com/res/image/data/G2YTAmXg-CvuxWyon.png"
+      },
+      {
+        "id": "Ia30x5e3",
+        "name": "Inker Zapresic",
+        "slug": "nk-inker-zapresic",
+        "image_path": "https://static.flashscore.com/res/image/data/jsMMXIil-QeCoyxgq.png"
+      }
+    ]
+  },
+  "Cyprus": {
+    "Cyprus League": [
+      {
+        "id": "GSLWiAPe",
+        "name": "Omonia",
+        "slug": "omonia",
+        "image_path": "https://static.flashscore.com/res/image/data/bsIgrkFa-8GeT5Kmk.png"
+      },
+      {
+        "id": "4lUZQCQq",
+        "name": "AEK Larnaca",
+        "slug": "aek-larnaca",
+        "image_path": "https://static.flashscore.com/res/image/data/Ot5VROHG-QF8cQNGa.png"
+      },
+      {
+        "id": "pjUEaE29",
+        "name": "Apollon",
+        "slug": "apollon-limassol",
+        "image_path": "https://static.flashscore.com/res/image/data/xKNmfFzS-x4Xh4Pu0.png"
+      },
+      {
+        "id": "n99DUVW8",
+        "name": "Pafos",
+        "slug": "pafos",
+        "image_path": "https://static.flashscore.com/res/image/data/WnpK7zEa-vsuzjYJe.png"
+      },
+      {
+        "id": "OKJwmfm3",
+        "name": "APOEL",
+        "slug": "apoel",
+        "image_path": "https://static.flashscore.com/res/image/data/6eTv2lCr-dM5j1Xkq.png"
+      },
+      {
+        "id": "tINNchXL",
+        "name": "Aris",
+        "slug": "aris-limassol",
+        "image_path": "https://static.flashscore.com/res/image/data/Or2ftmgl-hntOaigG.png"
+      },
+      {
+        "id": "lbEQcoSc",
+        "name": "Omonia Aradippou",
+        "slug": "omonia-aradippou",
+        "image_path": "https://static.flashscore.com/res/image/data/WtJIapyS-zsEhpDp6.png"
+      },
+      {
+        "id": "bBTwQWuj",
+        "name": "AEL Limassol",
+        "slug": "ael-limassol",
+        "image_path": "https://static.flashscore.com/res/image/data/zgcaXmf5-jZcv4JNH.png"
+      },
+      {
+        "id": "pUKZmzYd",
+        "name": "Anorthosis",
+        "slug": "anorthosis",
+        "image_path": "https://static.flashscore.com/res/image/data/UoEqLryB-2N4oF7eD.png"
+      },
+      {
+        "id": "fw137af7",
+        "name": "Krasava",
+        "slug": "krasava",
+        "image_path": "https://static.flashscore.com/res/image/data/OSN9b9h5-zwjwOleQ.png"
+      },
+      {
+        "id": "8IA9VBH2",
+        "name": "Ol. Nicosia",
+        "slug": "ol-nicosia",
+        "image_path": "https://static.flashscore.com/res/image/data/0CiXZ9yB-l2Xtf5Mh.png"
+      },
+      {
+        "id": "trCLzEsJ",
+        "name": "Chloraka",
+        "slug": "akritas-chloraka",
+        "image_path": "https://static.flashscore.com/res/image/data/bPcDrCGG-EoODef3s.png"
+      },
+      {
+        "id": "Y3WRhjAk",
+        "name": "Achnas",
+        "slug": "achnas",
+        "image_path": "https://static.flashscore.com/res/image/data/UTb4Hugl-zFems01k.png"
+      },
+      {
+        "id": "fDXNgWfq",
+        "name": "Paralimni",
+        "slug": "paralimni",
+        "image_path": "https://static.flashscore.com/res/image/data/tjPU6Hil-p2SoLYBg.png"
+      }
+    ],
+    "Division 2": [
+      {
+        "id": "jcbJ6Sv2",
+        "name": "Nea Salamis",
+        "slug": "nea-salamis",
+        "image_path": "https://static.flashscore.com/res/image/data/pbkQnrCr-lpjUYRoQ.png"
+      },
+      {
+        "id": "AsjajEEj",
+        "name": "PAEEK",
+        "slug": "paeek",
+        "image_path": "https://static.flashscore.com/res/image/data/f5N4vPGG-tb3xYV24.png"
+      },
+      {
+        "id": "OQpzcCnS",
+        "name": "Doxa",
+        "slug": "doxa",
+        "image_path": "https://static.flashscore.com/res/image/data/jR9Bnff5-Mg04AAfr.png"
+      },
+      {
+        "id": "AHEsxolO",
+        "name": "Omonia 29th May",
+        "slug": "omonia-29th-may",
+        "image_path": "https://static.flashscore.com/res/image/data/Umakfyg5-f971CVTb.png"
+      },
+      {
+        "id": "dWCMOmPr",
+        "name": "Ayia Napa",
+        "slug": "ayia-napa",
+        "image_path": "https://static.flashscore.com/res/image/data/ANTTBoil-AoqqSdQE.png"
+      },
+      {
+        "id": "rgI3oA08",
+        "name": "Karmiotissa",
+        "slug": "karmiotissa",
+        "image_path": "https://static.flashscore.com/res/image/data/KxsLHtWg-lb9Frd2K.png"
+      },
+      {
+        "id": "GhcnTTGR",
+        "name": "ASIL Lysi",
+        "slug": "asil-lysi",
+        "image_path": "https://static.flashscore.com/res/image/data/bZGLuOXg-UPSfwEH5.png"
+      },
+      {
+        "id": "4rOR8MUH",
+        "name": "M.E.A.P. Nisou",
+        "slug": "m-e-a-p-nisou",
+        "image_path": "https://static.flashscore.com/res/image/data/xhliZRCr-QLujOl7t.png"
+      },
+      {
+        "id": "63Dby8vk",
+        "name": "Digenis Akritas",
+        "slug": "digenis-akritas",
+        "image_path": "https://static.flashscore.com/res/image/data/S6q5y3ZA-WnOlbjXd.png"
+      },
+      {
+        "id": "lnH6CTcS",
+        "name": "Apea Akrotiriou",
+        "slug": "apea-akrotiriou",
+        "image_path": "https://static.flashscore.com/res/image/data/KjcOJOXg-neE5S3gb.png"
+      },
+      {
+        "id": "QiPN92FB",
+        "name": "Halkanoras",
+        "slug": "halkanoras",
+        "image_path": "https://static.flashscore.com/res/image/data/IiBZM9Da-Is7m85Lh.png"
+      },
+      {
+        "id": "j1NcgwN8",
+        "name": "Kitiou",
+        "slug": "kitiou",
+        "image_path": "https://static.flashscore.com/res/image/data/Ee3mILXg-hO9sGZur.png"
+      },
+      {
+        "id": "Qmj7yXZm",
+        "name": "Iraklis Yerolakkou",
+        "slug": "iraklis-yerolakkou",
+        "image_path": "https://static.flashscore.com/res/image/data/4WQv7LEa-rDdkheKm.png"
+      },
+      {
+        "id": "M5lXqMwo",
+        "name": "Ethnikos Latsion",
+        "slug": "ethnikos-latsion",
+        "image_path": "https://static.flashscore.com/res/image/data/vgkNxdAr-fynHwBNp.png"
+      },
+      {
+        "id": "SpQHa1pe",
+        "name": "Zakakiou",
+        "slug": "aez-zakakiou",
+        "image_path": "https://static.flashscore.com/res/image/data/h2RUoDh5-fevv2dQD.png"
+      },
+      {
+        "id": "YyyVbDya",
+        "name": "Achyronas-Onisilos",
+        "slug": "achyronas-onisilos",
+        "image_path": "https://static.flashscore.com/res/image/data/CW6VQMdM-8nzpNIA5.png"
+      }
+    ]
+  },
+  "Egypt": {
+    "Premier League": [
+      {
+        "id": "Qk0VR4IS",
+        "name": "Zamalek",
+        "slug": "zamalek",
+        "image_path": "https://static.flashscore.com/res/image/data/AJGPFrg5-EJgyrHTR.png"
+      },
+      {
+        "id": "zyHMiDZ6",
+        "name": "Pyramids",
+        "slug": "pyramids",
+        "image_path": "https://static.flashscore.com/res/image/data/lfVyFzZA-61CV5LkU.png"
+      },
+      {
+        "id": "EPsYDm4A",
+        "name": "Al Ahly",
+        "slug": "al-ahly",
+        "image_path": "https://static.flashscore.com/res/image/data/pSJg75YA-CWnyifXm.png"
+      },
+      {
+        "id": "ATasWtPS",
+        "name": "Ceramica Cleopatra",
+        "slug": "ceramica-cleopatra",
+        "image_path": "https://static.flashscore.com/res/image/data/U10spnGG-jFZNeE0K.png"
+      },
+      {
+        "id": "4b8hBolT",
+        "name": "Al Masry",
+        "slug": "al-masry",
+        "image_path": "https://static.flashscore.com/res/image/data/rN8awRZA-K8vlWhPS.png"
+      },
+      {
+        "id": "t6WUYDaO",
+        "name": "Smouha",
+        "slug": "smouha",
+        "image_path": "https://static.flashscore.com/res/image/data/ChzRwiAr-Y1Z3w2bI.png"
+      },
+      {
+        "id": "2wpo7PBj",
+        "name": "Enppi",
+        "slug": "enppi",
+        "image_path": "https://static.flashscore.com/res/image/data/zeo9lcdM-UXviHTBE.png"
+      },
+      {
+        "id": "8hYMzzVB",
+        "name": "Wadi Degla",
+        "slug": "wadi-degla",
+        "image_path": "https://static.flashscore.com/res/image/data/UcWtUtf5-nDyPqWH0.png"
+      },
+      {
+        "id": "SxS0BA1C",
+        "name": "ZED",
+        "slug": "zed-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/OpTmC1Ca-d8SflmrH.png"
+      },
+      {
+        "id": "EHDG5a4M",
+        "name": "El Gouna",
+        "slug": "el-gouna",
+        "image_path": "https://static.flashscore.com/res/image/data/UmUnCZDa-rFudGJm8.png"
+      },
+      {
+        "id": "Gx9ImdAm",
+        "name": "National Bank Egypt",
+        "slug": "national-bank-egypt",
+        "image_path": "https://static.flashscore.com/res/image/data/2NIl1Wjl-pjUF9hEb.png"
+      },
+      {
+        "id": "0ImETQmG",
+        "name": "Petrojet",
+        "slug": "petrojet",
+        "image_path": "https://static.flashscore.com/res/image/data/SQnPVseM-QJAe2ryT.png"
+      },
+      {
+        "id": "KCzFp0OB",
+        "name": "Modern Sport",
+        "slug": "modern-sport",
+        "image_path": "https://static.flashscore.com/res/image/data/lWv0FGg5-zuoIGyJI.png"
+      },
+      {
+        "id": "rRAQSp3M",
+        "name": "El Gaish",
+        "slug": "el-gaish",
+        "image_path": "https://static.flashscore.com/res/image/data/MiskvO9r-zcdwYkPa.png"
+      },
+      {
+        "id": "WpApD7JG",
+        "name": "Al Ittihad",
+        "slug": "al-ittihad-alexandria",
+        "image_path": "https://static.flashscore.com/res/image/data/nqczxtZA-MHzP9uWK.png"
+      },
+      {
+        "id": "WYauVS3c",
+        "name": "Ghazl El Mahallah",
+        "slug": "ghazl-el-mahallah",
+        "image_path": "https://static.flashscore.com/res/image/data/jJJvbbHG-AXTgaM87.png"
+      },
+      {
+        "id": "hAgPF9Zc",
+        "name": "Arab Contractors",
+        "slug": "arab-contractors-al-mokawloon",
+        "image_path": "https://static.flashscore.com/res/image/data/Cr3P88f5-SWYiaUwN.png"
+      },
+      {
+        "id": "EckpUnJ3",
+        "name": "Haras El Hodood",
+        "slug": "haras-el-hodood",
+        "image_path": "https://static.flashscore.com/res/image/data/QqGlNoe5-WOiN3YjQ.png"
+      },
+      {
+        "id": "lxEn765o",
+        "name": "Kahrabaa Ismailia",
+        "slug": "kahrabaa-ismailia",
+        "image_path": "https://static.flashscore.com/res/image/data/ELhuGbe5-S2XF5qq0.png"
+      },
+      {
+        "id": "UP8rEKaA",
+        "name": "Pharco",
+        "slug": "pharco-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/x8RiWvFa-dxOryHtQ.png"
+      },
+      {
+        "id": "Q79lCRYM",
+        "name": "El Ismaily",
+        "slug": "el-ismaily",
+        "image_path": "https://static.flashscore.com/res/image/data/G4eIZjZA-OYCzxRxR.png"
+      }
+    ],
+    "Division 2 A": [
+      {
+        "id": "Q79lCRYM",
+        "name": "El Ismaily",
+        "slug": "el-ismaily",
+        "image_path": "https://static.flashscore.com/res/image/data/G4eIZjZA-OYCzxRxR.png"
+      },
+      {
+        "id": "Onos85dp",
+        "name": "Tersana",
+        "slug": "tersana",
+        "image_path": "https://static.flashscore.com/res/image/data/SMJUvfyS-GzO2bts3.png"
+      },
+      {
+        "id": "EckpUnJ3",
+        "name": "Haras El Hodood",
+        "slug": "haras-el-hodood",
+        "image_path": "https://static.flashscore.com/res/image/data/QqGlNoe5-WOiN3YjQ.png"
+      },
+      {
+        "id": "dt3L4JJS",
+        "name": "El Mansoura",
+        "slug": "el-mansoura",
+        "image_path": "https://static.flashscore.com/res/image/data/MPQgyI9r-E5jYcdP4.png"
+      },
+      {
+        "id": "Y1fm0wSq",
+        "name": "El-Entag El-Harby",
+        "slug": "el-entag-el-harby",
+        "image_path": "https://static.flashscore.com/res/image/data/trPj2lAr-Us8QgGhE.png"
+      },
+      {
+        "id": "4t3wxbUl",
+        "name": "Baladiyat El Mahalla",
+        "slug": "baladiyat-el-mahalla",
+        "image_path": "https://static.flashscore.com/res/image/data/ruLBUGzB-KYcA3PnS.png"
+      },
+      {
+        "id": "na5wg1oG",
+        "name": "Tanta",
+        "slug": "tanta",
+        "image_path": "https://static.flashscore.com/res/image/data/4zGUVdjl-UTpZ7Xnm.png"
+      },
+      {
+        "id": "jw5i5tLk",
+        "name": "Al-Sekka",
+        "slug": "al-sekka",
+        "image_path": "https://static.flashscore.com/res/image/data/lv9ZrZf5-d8SflmrH.png"
+      },
+      {
+        "id": "zeb5g0zd",
+        "name": "Al Nasr",
+        "slug": "al-nasr-cairo",
+        "image_path": "https://static.flashscore.com/res/image/data/AioPr3il-rD8SY36b.png"
+      },
+      {
+        "id": "fTu5lbuj",
+        "name": "El Daklyeh",
+        "slug": "el-daklyeh",
+        "image_path": "https://static.flashscore.com/res/image/data/r7Zai5zB-l4Qdre7N.png"
+      },
+      {
+        "id": "4bLm8fm3",
+        "name": "Maleyeit Kafr El Zayiat",
+        "slug": "maleyeit-kafr-el-zayiat",
+        "image_path": "https://static.flashscore.com/res/image/data/O2A5jByB-fFMk4dGn.png"
+      },
+      {
+        "id": "UP8rEKaA",
+        "name": "Pharco",
+        "slug": "pharco-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/x8RiWvFa-dxOryHtQ.png"
+      },
+      {
+        "id": "SxdAv1Zg",
+        "name": "WE SC",
+        "slug": "we-sports-club",
+        "image_path": "https://static.flashscore.com/res/image/data/r923SEdM-YPaND3wR.png"
+      },
+      {
+        "id": "lxEn765o",
+        "name": "Kahrabaa Ismailia",
+        "slug": "kahrabaa-ismailia",
+        "image_path": "https://static.flashscore.com/res/image/data/ELhuGbe5-S2XF5qq0.png"
+      },
+      {
+        "id": "bih8ssHt",
+        "name": "La Viena",
+        "slug": "la-viena",
+        "image_path": "https://static.flashscore.com/res/image/data/29T6UeDa-SWxorfRd.png"
+      },
+      {
+        "id": "MTaVEMJ5",
+        "name": "Dayrout",
+        "slug": "dayrout",
+        "image_path": "https://static.flashscore.com/res/image/data/nLVrWTkl-6k0NZmTN.png"
+      },
+      {
+        "id": "ARsfCqEI",
+        "name": "Proxy",
+        "slug": "proxy",
+        "image_path": "https://static.flashscore.com/res/image/data/Eyuwu2zB-zaZRfcTP.png"
+      },
+      {
+        "id": "G8AAK2bU",
+        "name": "Team FC",
+        "slug": "team-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/tGYgpSXg-hYl22P3o.png"
+      },
+      {
+        "id": "8nemvXht",
+        "name": "Masar",
+        "slug": "masar",
+        "image_path": "https://static.flashscore.com/res/image/data/zuiJxIFG-fko1Kltm.png"
+      },
+      {
+        "id": "x6F5TwDt",
+        "name": "Mega Sport",
+        "slug": "mega-sport",
+        "image_path": "https://static.flashscore.com/res/image/data/2e876Mil-KGQSgqAs.png"
+      }
+    ],
+    "League Cup": [
+      {
+        "id": "rRAQSp3M",
+        "name": "El Gaish",
+        "slug": "el-gaish",
+        "image_path": "https://static.flashscore.com/res/image/data/MiskvO9r-zcdwYkPa.png"
+      },
+      {
+        "id": "hAgPF9Zc",
+        "name": "Arab Contractors",
+        "slug": "arab-contractors-al-mokawloon",
+        "image_path": "https://static.flashscore.com/res/image/data/Cr3P88f5-SWYiaUwN.png"
+      },
+      {
+        "id": "2wpo7PBj",
+        "name": "Enppi",
+        "slug": "enppi",
+        "image_path": "https://static.flashscore.com/res/image/data/zeo9lcdM-UXviHTBE.png"
+      },
+      {
+        "id": "UP8rEKaA",
+        "name": "Pharco",
+        "slug": "pharco-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/x8RiWvFa-dxOryHtQ.png"
+      },
+      {
+        "id": "WYauVS3c",
+        "name": "Ghazl El Mahallah",
+        "slug": "ghazl-el-mahallah",
+        "image_path": "https://static.flashscore.com/res/image/data/jJJvbbHG-AXTgaM87.png"
+      },
+      {
+        "id": "EPsYDm4A",
+        "name": "Al Ahly",
+        "slug": "al-ahly",
+        "image_path": "https://static.flashscore.com/res/image/data/pSJg75YA-CWnyifXm.png"
+      },
+      {
+        "id": "ATasWtPS",
+        "name": "Ceramica Cleopatra",
+        "slug": "ceramica-cleopatra",
+        "image_path": "https://static.flashscore.com/res/image/data/U10spnGG-jFZNeE0K.png"
+      },
+      {
+        "id": "0ImETQmG",
+        "name": "Petrojet",
+        "slug": "petrojet",
+        "image_path": "https://static.flashscore.com/res/image/data/SQnPVseM-QJAe2ryT.png"
+      },
+      {
+        "id": "EHDG5a4M",
+        "name": "El Gouna",
+        "slug": "el-gouna",
+        "image_path": "https://static.flashscore.com/res/image/data/UmUnCZDa-rFudGJm8.png"
+      },
+      {
+        "id": "8hYMzzVB",
+        "name": "Wadi Degla",
+        "slug": "wadi-degla",
+        "image_path": "https://static.flashscore.com/res/image/data/UcWtUtf5-nDyPqWH0.png"
+      },
+      {
+        "id": "Gx9ImdAm",
+        "name": "National Bank Egypt",
+        "slug": "national-bank-egypt",
+        "image_path": "https://static.flashscore.com/res/image/data/2NIl1Wjl-pjUF9hEb.png"
+      },
+      {
+        "id": "Q79lCRYM",
+        "name": "El Ismaily",
+        "slug": "el-ismaily",
+        "image_path": "https://static.flashscore.com/res/image/data/G4eIZjZA-OYCzxRxR.png"
+      },
+      {
+        "id": "KCzFp0OB",
+        "name": "Modern Sport",
+        "slug": "modern-sport",
+        "image_path": "https://static.flashscore.com/res/image/data/lWv0FGg5-zuoIGyJI.png"
+      },
+      {
+        "id": "zyHMiDZ6",
+        "name": "Pyramids",
+        "slug": "pyramids",
+        "image_path": "https://static.flashscore.com/res/image/data/lfVyFzZA-61CV5LkU.png"
+      },
+      {
+        "id": "4b8hBolT",
+        "name": "Al Masry",
+        "slug": "al-masry",
+        "image_path": "https://static.flashscore.com/res/image/data/rN8awRZA-K8vlWhPS.png"
+      },
+      {
+        "id": "SxS0BA1C",
+        "name": "ZED",
+        "slug": "zed-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/OpTmC1Ca-d8SflmrH.png"
+      },
+      {
+        "id": "WpApD7JG",
+        "name": "Al Ittihad",
+        "slug": "al-ittihad-alexandria",
+        "image_path": "https://static.flashscore.com/res/image/data/nqczxtZA-MHzP9uWK.png"
+      },
+      {
+        "id": "lxEn765o",
+        "name": "Kahrabaa Ismailia",
+        "slug": "kahrabaa-ismailia",
+        "image_path": "https://static.flashscore.com/res/image/data/ELhuGbe5-S2XF5qq0.png"
+      },
+      {
+        "id": "t6WUYDaO",
+        "name": "Smouha",
+        "slug": "smouha",
+        "image_path": "https://static.flashscore.com/res/image/data/ChzRwiAr-Y1Z3w2bI.png"
+      },
+      {
+        "id": "Qk0VR4IS",
+        "name": "Zamalek",
+        "slug": "zamalek",
+        "image_path": "https://static.flashscore.com/res/image/data/AJGPFrg5-EJgyrHTR.png"
+      },
+      {
+        "id": "EckpUnJ3",
+        "name": "Haras El Hodood",
+        "slug": "haras-el-hodood",
+        "image_path": "https://static.flashscore.com/res/image/data/QqGlNoe5-WOiN3YjQ.png"
+      },
+      {
+        "id": "8hYMzzVB",
+        "name": "Wadi Degla",
+        "slug": "wadi-degla",
+        "image_path": "https://static.flashscore.com/res/image/data/UcWtUtf5-nDyPqWH0.png"
+      },
+      {
+        "id": "2wpo7PBj",
+        "name": "Enppi",
+        "slug": "enppi",
+        "image_path": "https://static.flashscore.com/res/image/data/zeo9lcdM-UXviHTBE.png"
+      },
+      {
+        "id": "WpApD7JG",
+        "name": "Al Ittihad",
+        "slug": "al-ittihad-alexandria",
+        "image_path": "https://static.flashscore.com/res/image/data/nqczxtZA-MHzP9uWK.png"
+      }
+    ]
+  },
+  "Estonia": {
+    "Meistriliiga": [
+      {
+        "id": "zNmMkSLj",
+        "name": "Levadia",
+        "slug": "levadia",
+        "image_path": "https://static.flashscore.com/res/image/data/lE0eh6h5-x28DBGvr.png"
+      },
+      {
+        "id": "zLFV5ykn",
+        "name": "Flora",
+        "slug": "flora",
+        "image_path": "https://static.flashscore.com/res/image/data/l0Zs0Xf5-jes3ohYg.png"
+      },
+      {
+        "id": "6sqJGMx9",
+        "name": "Kalju",
+        "slug": "kalju",
+        "image_path": "https://static.flashscore.com/res/image/data/AgK0X9Xg-hECBEt8P.png"
+      },
+      {
+        "id": "CAjWlFop",
+        "name": "Paide",
+        "slug": "paide-linnameeskond",
+        "image_path": "https://static.flashscore.com/res/image/data/SvmV18Xg-lGvMSKuF.png"
+      },
+      {
+        "id": "zRHz0529",
+        "name": "Parnu JK Vaprus",
+        "slug": "parnu-jk-vaprus",
+        "image_path": "https://static.flashscore.com/res/image/data/OxarQHdM-E9SqAVg5.png"
+      },
+      {
+        "id": "SdXRE07L",
+        "name": "Tammeka",
+        "slug": "tammeka-tartu",
+        "image_path": "https://static.flashscore.com/res/image/data/YNKQZdEa-lGvMSKuF.png"
+      },
+      {
+        "id": "OjJXWrlR",
+        "name": "Nomme Utd",
+        "slug": "nomme-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/SUbc5Kg5-6s2L0Hso.png"
+      },
+      {
+        "id": "GS9F0Cw6",
+        "name": "Harju JK Laagri",
+        "slug": "harju-jk-laagri",
+        "image_path": "https://static.flashscore.com/res/image/data/Ao79cLzB-xdabbQpB.png"
+      },
+      {
+        "id": "xAe6hQ2a",
+        "name": "Kuressaare",
+        "slug": "kuressaare",
+        "image_path": "https://static.flashscore.com/res/image/data/tOU14wZg-tf1sAOHr.png"
+      },
+      {
+        "id": "CpFLgaVe",
+        "name": "Narva",
+        "slug": "narva",
+        "image_path": "https://static.flashscore.com/res/image/data/vZJ4W5dM-Q9o5ZqI5.png"
+      }
+    ],
+    "Esiliiga": [
+      {
+        "id": "d0Ll6LfA",
+        "name": "Tartu Welco",
+        "slug": "tartu-jk-welco",
+        "image_path": "https://static.flashscore.com/res/image/data/nPV5WEEa-CUaaVuZ6.png"
+      },
+      {
+        "id": "IDMA5yW1",
+        "name": "Viimsi JK",
+        "slug": "viimsi-jk",
+        "image_path": "https://static.flashscore.com/res/image/data/pU0qs9YA-Cf9A9k0g.png"
+      },
+      {
+        "id": "2yVOY4JE",
+        "name": "Flora U21",
+        "slug": "flora-tallinn",
+        "image_path": "https://static.flashscore.com/res/image/data/YXNMdUDa-roUOGVSL.png"
+      },
+      {
+        "id": "dtBIRUDA",
+        "name": "Elva",
+        "slug": "elva",
+        "image_path": "https://static.flashscore.com/res/image/data/SrdxBTYg-tnFQZaTd.png"
+      },
+      {
+        "id": "AeSim1ob",
+        "name": "Levadia U21",
+        "slug": "levadia",
+        "image_path": "https://static.flashscore.com/res/image/data/6uAyAEf5-r5C2FDKF.png"
+      },
+      {
+        "id": "2JBESAb4",
+        "name": "Maardu",
+        "slug": "maardu-linnameeskond",
+        "image_path": "https://static.flashscore.com/res/image/data/b9TMokWg-K0MaHlQK.png"
+      },
+      {
+        "id": "jyEPhJp2",
+        "name": "Tallinna Kalev",
+        "slug": "tallinna-kalev",
+        "image_path": "https://static.flashscore.com/res/image/data/nBRRyUXg-2yt6rfeJ.png"
+      },
+      {
+        "id": "h4P4wwmp",
+        "name": "FC Tallinn",
+        "slug": "fc-tallinn",
+        "image_path": "https://static.flashscore.com/res/image/data/EqscPlg5-trLzk4N1.png"
+      },
+      {
+        "id": "xbcC6KVp",
+        "name": "Nomme Utd U21",
+        "slug": "nomme-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/Cza0LXzS-jZ7FMYWc.png"
+      },
+      {
+        "id": "xhga8s3a",
+        "name": "Nomme Kalju U21",
+        "slug": "kalju",
+        "image_path": "https://static.flashscore.com/res/image/data/WtGXliFG-4r9zIb7l.png"
+      }
+    ],
+    "Esiliiga B": [
+      {
+        "id": "4OUoYDvN",
+        "name": "Tammeka U21",
+        "slug": "tammeka-tartu",
+        "image_path": "https://static.flashscore.com/res/image/data/0fCI0rcM-fmfS2lRL.png"
+      },
+      {
+        "id": "xOQjfL0q",
+        "name": "Tulevik",
+        "slug": "tulevik",
+        "image_path": "https://static.flashscore.com/res/image/data/IqE44LYg-n17Y23th.png"
+      },
+      {
+        "id": "YmBskpV9",
+        "name": "Johvi Phoenix",
+        "slug": "johvi-phoenix",
+        "image_path": "https://static.flashscore.com/res/image/data/2mL5V5Fa-WhmQ8a6A.png"
+      },
+      {
+        "id": "dIO7EA6C",
+        "name": "Narva U21",
+        "slug": "narva",
+        "image_path": "https://static.flashscore.com/res/image/data/IZxiAnXg-A5XadDOP.png"
+      },
+      {
+        "id": "IZus1VoB",
+        "name": "Parnu JK Vaprus U21",
+        "slug": "parnu-jk-vaprus",
+        "image_path": "https://static.flashscore.com/res/image/data/KULveHeM-KhEgsL24.png"
+      },
+      {
+        "id": "2kXHaud8",
+        "name": "Levadia U19",
+        "slug": "levadia",
+        "image_path": "https://static.flashscore.com/res/image/data/KdjHziyS-bBq4y599.png"
+      },
+      {
+        "id": "Iob7E5n8",
+        "name": "Tabasalu",
+        "slug": "tabasalu",
+        "image_path": "https://static.flashscore.com/res/image/data/ATs2bcil-Qez3KKP2.png"
+      },
+      {
+        "id": "hKWevrb3",
+        "name": "Tartu Kalev",
+        "slug": "tartu-kalev",
+        "image_path": "https://static.flashscore.com/res/image/data/hE0iNYDa-bcv6Y6TL.png"
+      },
+      {
+        "id": "I5BFeY63",
+        "name": "Tallinna Kalev U21",
+        "slug": "tallinna-kalev",
+        "image_path": "https://static.flashscore.com/res/image/data/AyDZ0LEG-IsLk5d1t.png"
+      },
+      {
+        "id": "vyN9Mt9s",
+        "name": "Legion",
+        "slug": "legion",
+        "image_path": "https://static.flashscore.com/res/image/data/CUyurKhl-O8o4uq5U.png"
+      }
+    ]
+  },
+  "Gibraltar": {
+    "National League": [
+      {
+        "id": "bHbMply6",
+        "name": "Lincoln Red Imps",
+        "slug": "lincoln-red-imps",
+        "image_path": "https://static.flashscore.com/res/image/data/KGFtXvwS-86hNCjlr.png"
+      },
+      {
+        "id": "Gh9HoULa",
+        "name": "St Josephs",
+        "slug": "st-josephs",
+        "image_path": "https://static.flashscore.com/res/image/data/pGXFX7il-z58FFaka.png"
+      },
+      {
+        "id": "69Ioq0e8",
+        "name": "Mons Calpe",
+        "slug": "mons-calpe",
+        "image_path": "https://static.flashscore.com/res/image/data/r1IFJPEa-YDRnyzWt.png"
+      },
+      {
+        "id": "jPGTrS5I",
+        "name": "Europa FC",
+        "slug": "europa-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/tYZ42JFG-WxVAm446.png"
+      },
+      {
+        "id": "4As1mjim",
+        "name": "Lions Gibraltar",
+        "slug": "lions-gibraltar",
+        "image_path": "https://static.flashscore.com/res/image/data/zytbMbGG-6aBJEs1O.png"
+      },
+      {
+        "id": "Yqn5nA6g",
+        "name": "Lynx",
+        "slug": "lynx",
+        "image_path": "https://static.flashscore.com/res/image/data/SMzcU2Br-8MryApd5.png"
+      },
+      {
+        "id": "EVDrNIYl",
+        "name": "Magpies",
+        "slug": "magpies",
+        "image_path": "https://static.flashscore.com/res/image/data/4KCEDrg5-4WOczZd3.png"
+      },
+      {
+        "id": "KMgyPPeE",
+        "name": "Europa Point",
+        "slug": "europa-point",
+        "image_path": "https://static.flashscore.com/res/image/data/nuz5zVGG-0OsrQ96r.png"
+      },
+      {
+        "id": "xKmcdXGf",
+        "name": "College 1975 FC",
+        "slug": "college-1975",
+        "image_path": "https://static.flashscore.com/res/image/data/dlLWapjl-0OqH0etr.png"
+      },
+      {
+        "id": "QJrclWys",
+        "name": "Glacis United",
+        "slug": "glacis-united",
+        "image_path": "https://static.flashscore.com/res/image/data/QaTOygYg-6aBJEs1O.png"
+      },
+      {
+        "id": "bHzgsvQK",
+        "name": "Hound Dogs",
+        "slug": "hound-dogs",
+        "image_path": "https://static.flashscore.com/res/image/data/YkHA2Whl-j3mERG8A.png"
+      },
+      {
+        "id": "d2HPq8jC",
+        "name": "Manchester 62",
+        "slug": "manchester-62",
+        "image_path": "https://static.flashscore.com/res/image/data/dji0Glf5-YVYVaCm7.png"
+      }
+    ]
+  },
+  "Hungary": {
+    "NB I.": [
+      {
+        "id": "ppX6bEHk",
+        "name": "MTK Budapest",
+        "slug": "mtk-budapest",
+        "image_path": "https://static.flashscore.com/res/image/data/pre3mce5-06r6gWo9.png"
+      },
+      {
+        "id": "fHXrBYWe",
+        "name": "Honved",
+        "slug": "honved",
+        "image_path": "https://static.flashscore.com/res/image/data/jHYI6seM-0bbECxUd.png"
+      },
+      {
+        "id": "8KymAhn2",
+        "name": "Debrecen",
+        "slug": "debrecen",
+        "image_path": "https://static.flashscore.com/res/image/data/dYpV6RzS-CMHdHsML.png"
+      },
+      {
+        "id": "4WnsYev9",
+        "name": "Gyor",
+        "slug": "gyor",
+        "image_path": "https://static.flashscore.com/res/image/data/xjUc6mgl-E54OB8CP.png"
+      },
+      {
+        "id": "02x8YFgF",
+        "name": "Ujpest",
+        "slug": "ujpest",
+        "image_path": "https://static.flashscore.com/res/image/data/lp2HSOfM-fRhD1w4R.png"
+      },
+      {
+        "id": "0rhLtCWr",
+        "name": "Paks",
+        "slug": "paks",
+        "image_path": "https://static.flashscore.com/res/image/data/QweoGhyB-KQLmg0CN.png"
+      },
+      {
+        "id": "r7sQuWok",
+        "name": "Zalaegerszegi",
+        "slug": "zalaegerszegi",
+        "image_path": "https://static.flashscore.com/res/image/data/YRfnOucM-K6VrDp5l.png"
+      },
+      {
+        "id": "Eusk3D88",
+        "name": "Vasas",
+        "slug": "vasas",
+        "image_path": "https://static.flashscore.com/res/image/data/p0Axj3Ca-vZxvDf2E.png"
+      },
+      {
+        "id": "Srog2XNE",
+        "name": "Nyiregyhaza",
+        "slug": "nyiregyhaza",
+        "image_path": "https://static.flashscore.com/res/image/data/v58QgeWg-pxcIObkB.png"
+      },
+      {
+        "id": "pKS9M7R7",
+        "name": "Ferencvaros",
+        "slug": "ferencvaros",
+        "image_path": "https://static.flashscore.com/res/image/data/OvQtjVhl-0jIfCnDf.png"
+      },
+      {
+        "id": "W8WY1Eze",
+        "name": "Kisvarda",
+        "slug": "kisvarda-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/vLF7ihg5-v55CsMXC.png"
+      },
+      {
+        "id": "2m24xZpe",
+        "name": "Puskas Academy",
+        "slug": "puskas-academy",
+        "image_path": "https://static.flashscore.com/res/image/data/Y7HEubCa-beeffRLF.png"
+      }
+    ],
+    "NB II.": [
+      {
+        "id": "QulwZyP2",
+        "name": "DVTK",
+        "slug": "dvtk",
+        "image_path": "https://static.flashscore.com/res/image/data/nF9hbcEa-0UzbxoaP.png"
+      },
+      {
+        "id": "MctUvj1e",
+        "name": "Videoton",
+        "slug": "videoton",
+        "image_path": "https://static.flashscore.com/res/image/data/INGAUZkl-r9YXWu9h.png"
+      },
+      {
+        "id": "02KZ7Tp1",
+        "name": "Gyirmot",
+        "slug": "gyirmot-fc-gyor",
+        "image_path": "https://static.flashscore.com/res/image/data/fZCrbVCa-jgCXPm29.png"
+      },
+      {
+        "id": "KhWRqihE",
+        "name": "Kazincbarcika",
+        "slug": "kazincbarcika",
+        "image_path": "https://static.flashscore.com/res/image/data/dU94wFwS-x2vELgxO.png"
+      },
+      {
+        "id": "vsq0Rrxm",
+        "name": "Kecskemeti TE",
+        "slug": "kecskemeti-te",
+        "image_path": "https://static.flashscore.com/res/image/data/lthGm0hl-hh7mgnQQ.png"
+      },
+      {
+        "id": "Wl17PM6a",
+        "name": "Mezokovesd-Zsory",
+        "slug": "mezokovesd-zsory",
+        "image_path": "https://static.flashscore.com/res/image/data/lIcWREZA-raoadkIN.png"
+      },
+      {
+        "id": "YakVmGwo",
+        "name": "Ajka",
+        "slug": "ajka",
+        "image_path": "https://static.flashscore.com/res/image/data/zVMN5Y9r-naOND1eG.png"
+      },
+      {
+        "id": "Yik4F60k",
+        "name": "Kozarmisleny SE",
+        "slug": "kozarmisleny-se",
+        "image_path": "https://static.flashscore.com/res/image/data/f72awGf5-0YQW5T9j.png"
+      },
+      {
+        "id": "pjPZ2I07",
+        "name": "Nagykanizsa",
+        "slug": "nagykanizsa-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/x4aKNYg5-QmOFMYth.png"
+      },
+      {
+        "id": "8nTZJCAg",
+        "name": "Szentlorinc",
+        "slug": "szentlorinc-se",
+        "image_path": "https://static.flashscore.com/res/image/data/fgnvMSfM-tAcSz2Nj.png"
+      },
+      {
+        "id": "hImB5ta6",
+        "name": "Szeged",
+        "slug": "szeged-csanad-ga",
+        "image_path": "https://static.flashscore.com/res/image/data/YH9DmfZA-4Eieg1S8.png"
+      },
+      {
+        "id": "vTCIIJrC",
+        "name": "Soroksar",
+        "slug": "soroksar",
+        "image_path": "https://static.flashscore.com/res/image/data/8Y1Qx2Ca-OfzhuaGa.png"
+      },
+      {
+        "id": "QmBnIcDO",
+        "name": "Karcagi",
+        "slug": "karcagi",
+        "image_path": "https://static.flashscore.com/res/image/data/vw3KsryS-lWzRw4We.png"
+      },
+      {
+        "id": "6Bcf5DcH",
+        "name": "Csakvari",
+        "slug": "csakvari",
+        "image_path": "https://static.flashscore.com/res/image/data/2DO0RzDa-bHxTHQRE.png"
+      },
+      {
+        "id": "2o1dIwok",
+        "name": "BVSC-Zuglo",
+        "slug": "bvsc-zuglo",
+        "image_path": "https://static.flashscore.com/res/image/data/2gKjaof5-QDBYa0tA.png"
+      },
+      {
+        "id": "OnU9vMCj",
+        "name": "Tiszakecske",
+        "slug": "tiszakecske",
+        "image_path": "https://static.flashscore.com/res/image/data/295SkICr-vmEbY2ta.png"
+      }
+    ],
+    "NB III - Northeast": [
+      {
+        "id": "hxHR9kGl",
+        "name": "Cigand SE",
+        "slug": "cigand-se",
+        "image_path": "https://static.flashscore.com/res/image/data/tWX5cwvS-GpXKtMM8.png"
+      },
+      {
+        "id": "lOu9ShzM",
+        "name": "Debrecen II",
+        "slug": "debrecen",
+        "image_path": "https://static.flashscore.com/res/image/data/vgI9QSEa-QPotZjND.png"
+      },
+      {
+        "id": "I5Ej6C34",
+        "name": "Mateszalkai MTK",
+        "slug": "mateszalkai-mtk",
+        "image_path": "https://static.flashscore.com/res/image/data/f3jvcpzB-KdthnxoC.png"
+      },
+      {
+        "id": "SQnbu2ZT",
+        "name": "Eger SE",
+        "slug": "eger",
+        "image_path": "https://static.flashscore.com/res/image/data/johakBfM-vZdK4Ad9.png"
+      },
+      {
+        "id": "QLiAdVdg",
+        "name": "Tiszaujvaros",
+        "slug": "tiszaujvaros",
+        "image_path": "https://static.flashscore.com/res/image/data/tjEwkBYg-Wl1gI8lP.png"
+      },
+      {
+        "id": "IyfZkl3E",
+        "name": "Godollo",
+        "slug": "godollo",
+        "image_path": "https://static.flashscore.com/res/image/data/ObK1HwyS-A5XeZnxl.png"
+      },
+      {
+        "id": "pnhvUz4H",
+        "name": "SBTC",
+        "slug": "salgotarjani-btc",
+        "image_path": "https://static.flashscore.com/res/image/data/6R59mdFa-S0SgzrN6.png"
+      },
+      {
+        "id": "OdgnaYjo",
+        "name": "DVTK II",
+        "slug": "dvtk",
+        "image_path": "https://static.flashscore.com/res/image/data/EH9tk8cM-YkNk2DHe.png"
+      },
+      {
+        "id": "bchJ0AjC",
+        "name": "Tiszafuredi",
+        "slug": "tiszafuredi",
+        "image_path": "https://static.flashscore.com/res/image/data/IXVULQg5-KnkNHWWC.png"
+      },
+      {
+        "id": "IqI0DQM8",
+        "name": "Debreceni EAC",
+        "slug": "debreceni-eac",
+        "image_path": "https://static.flashscore.com/res/image/data/rF5uUBhl-rkrAJoOS.png"
+      },
+      {
+        "id": "QNRjs8Kc",
+        "name": "Kisvarda II",
+        "slug": "kisvarda-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/OEj31zEa-UZmqyXw7.png"
+      },
+      {
+        "id": "O0jNb4OB",
+        "name": "Tarpa",
+        "slug": "tarpa",
+        "image_path": "https://static.flashscore.com/res/image/data/zXQxCswS-S8OICUN3.png"
+      },
+      {
+        "id": "hW0p0wll",
+        "name": "Hajdunanas",
+        "slug": "hajdunanas",
+        "image_path": "https://static.flashscore.com/res/image/data/nTc2efGG-fHcbEuLc.png"
+      },
+      {
+        "id": "YsOTSSNi",
+        "name": "Fuzesabony",
+        "slug": "fuzesabony",
+        "image_path": "https://static.flashscore.com/res/image/data/CxQoiVwS-td2QqZnf.png"
+      },
+      {
+        "id": "dd5aWZLE",
+        "name": "Nyiregyhaza II",
+        "slug": "nyiregyhaza",
+        "image_path": "https://static.flashscore.com/res/image/data/vFA5Yjgl-x8gdJoem.png"
+      },
+      {
+        "id": "84UPi6bk",
+        "name": "Ozd-Sajovolgye",
+        "slug": "ozd-sajovolgye",
+        "image_path": "https://static.flashscore.com/res/image/data/SCQlMGyS-AqGS6oxd.png"
+      }
+    ],
+    "NB III - Northwest": [
+      {
+        "id": "URufuAG1",
+        "name": "Tatabanya",
+        "slug": "tatabanya",
+        "image_path": "https://static.flashscore.com/res/image/data/W6ozyMEa-YXyLZhye.png"
+      },
+      {
+        "id": "C6prpoL8",
+        "name": "Haladas",
+        "slug": "haladas",
+        "image_path": "https://static.flashscore.com/res/image/data/SdXz88Ca-Gxgti1jl.png"
+      },
+      {
+        "id": "UsVoMumS",
+        "name": "Gyor II",
+        "slug": "gyor",
+        "image_path": "https://static.flashscore.com/res/image/data/YalML5Wg-2ylh3sPT.png"
+      },
+      {
+        "id": "bJCXN2OE",
+        "name": "Mosonmagyarovari TE",
+        "slug": "mosonmagyarovari-te",
+        "image_path": "https://static.flashscore.com/res/image/data/td8F9GEa-OxordwsH.png"
+      },
+      {
+        "id": "jLk1VKWd",
+        "name": "Zalaegerszegi II",
+        "slug": "zalaegerszegi",
+        "image_path": "https://static.flashscore.com/res/image/data/lC5NdwGG-M3XDl8RR.png"
+      },
+      {
+        "id": "zsxRqAVe",
+        "name": "Dorogi",
+        "slug": "dorogi-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/pjP9djf5-MyDMigwf.png"
+      },
+      {
+        "id": "AZvIdI1H",
+        "name": "Sarisapi Banyasz",
+        "slug": "sarisapi-banyasz",
+        "image_path": "https://static.flashscore.com/res/image/data/ppHZ9qxS-G2rSNsYS.png"
+      },
+      {
+        "id": "byVmTAgg",
+        "name": "Balatonalmadi SE",
+        "slug": "balatonalmadi",
+        "image_path": "https://static.flashscore.com/res/image/data/bVFodsYg-h2MXGMKq.png"
+      },
+      {
+        "id": "lQTCi17K",
+        "name": "Komaromi VSE",
+        "slug": "komaromi-vse",
+        "image_path": "https://static.flashscore.com/res/image/data/UgbfdlAr-CWYiTOih.png"
+      },
+      {
+        "id": "8zvWhjdB",
+        "name": "1908 SZAC KSE",
+        "slug": "1908-szac-kse",
+        "image_path": "https://static.flashscore.com/res/image/data/4xxKSYwS-byXXfZNp.png"
+      },
+      {
+        "id": "QahDPqrs",
+        "name": "Bicskei",
+        "slug": "bicskei",
+        "image_path": "https://static.flashscore.com/res/image/data/A3rvbde5-8QUmMefG.png"
+      },
+      {
+        "id": "Ovbf1web",
+        "name": "Kiraly SE",
+        "slug": "kiraly-se",
+        "image_path": "https://static.flashscore.com/res/image/data/4xbZvYEG-2yCiaEpH.png"
+      },
+      {
+        "id": "K6gF1jy6",
+        "name": "Papai Perutz",
+        "slug": "papai-perutz",
+        "image_path": "https://static.flashscore.com/res/image/data/8IjeVnAr-Spb98hhp.png"
+      },
+      {
+        "id": "0CDrR0kQ",
+        "name": "Puskas Academy II",
+        "slug": "puskas-academy",
+        "image_path": "https://static.flashscore.com/res/image/data/nDXfE8fM-zgWp1KPr.png"
+      },
+      {
+        "id": "nyXbUIpg",
+        "name": "VSC Veszprem",
+        "slug": "vsc-veszprem",
+        "image_path": "https://static.flashscore.com/res/image/data/GQ20gwBr-YDwzMQgm.png"
+      },
+      {
+        "id": "pMH75N6M",
+        "name": "Sopron",
+        "slug": "fc-sopron",
+        "image_path": "https://static.flashscore.com/res/image/data/2D5nKODa-vswqu4ti.png"
+      }
+    ],
+    "NB III - Southeast": [
+      {
+        "id": "S4fYDBhR",
+        "name": "Bekescsaba 1912",
+        "slug": "bekescsaba-1912",
+        "image_path": "https://static.flashscore.com/res/image/data/fXlsOKzB-EwC2WVw6.png"
+      },
+      {
+        "id": "4YlfBc04",
+        "name": "Szolnoki MAV",
+        "slug": "szolnoki-mav",
+        "image_path": "https://static.flashscore.com/res/image/data/xQfh7ph5-hEhfZQIn.png"
+      },
+      {
+        "id": "Iqa2snlE",
+        "name": "ESMTK Budapest",
+        "slug": "esmtk-budapest",
+        "image_path": "https://static.flashscore.com/res/image/data/z3O9KcAr-QyQv4Myo.png"
+      },
+      {
+        "id": "IX6jVbkp",
+        "name": "FC Dabas",
+        "slug": "fc-dabas",
+        "image_path": "https://static.flashscore.com/res/image/data/nwpQZ6g5-plNcEZl6.png"
+      },
+      {
+        "id": "dftcjg80",
+        "name": "III. Keruleti TVE",
+        "slug": "iii-keruleti-tve",
+        "image_path": "https://static.flashscore.com/res/image/data/Od18Zaf5-jFwixDgE.png"
+      },
+      {
+        "id": "x23p81h2",
+        "name": "BKV Elore",
+        "slug": "bkv-elore",
+        "image_path": "https://static.flashscore.com/res/image/data/bymBSYFG-dY9d4gsj.png"
+      },
+      {
+        "id": "8UFdYpV2",
+        "name": "Honved II",
+        "slug": "honved",
+        "image_path": "https://static.flashscore.com/res/image/data/Iq2oMyDa-Eiwk13RC.png"
+      },
+      {
+        "id": "QiiIy04H",
+        "name": "Ujpest II",
+        "slug": "ujpest",
+        "image_path": "https://static.flashscore.com/res/image/data/bLIv4oEa-tb3O8fBf.png"
+      },
+      {
+        "id": "42UYnLnr",
+        "name": "Monori",
+        "slug": "monori",
+        "image_path": "https://static.flashscore.com/res/image/data/rFSiXczB-p0VIc311.png"
+      },
+      {
+        "id": "fa8FWHWo",
+        "name": "Csepel",
+        "slug": "csepel",
+        "image_path": "https://static.flashscore.com/res/image/data/dOU6MJYA-84awLPUn.png"
+      },
+      {
+        "id": "nT5vA8MR",
+        "name": "Hodmezovasarhely FC",
+        "slug": "hodmezovasarhely",
+        "image_path": "https://static.flashscore.com/res/image/data/hdHRUxil-b5Y8jmyA.png"
+      },
+      {
+        "id": "tlKkEB96",
+        "name": "Szegedi",
+        "slug": "szegedi",
+        "image_path": "https://static.flashscore.com/res/image/data/z1Esj2Da-UgSuBWhI.png"
+      },
+      {
+        "id": "QNZRRPOf",
+        "name": "Gyulai Termal",
+        "slug": "gyulai-termal",
+        "image_path": "https://static.flashscore.com/res/image/data/25kaKOZA-8G7NwpSd.png"
+      },
+      {
+        "id": "O6wS9TVq",
+        "name": "Vasas II",
+        "slug": "vasas",
+        "image_path": "https://static.flashscore.com/res/image/data/YTFF65e5-h4gbaGGH.png"
+      },
+      {
+        "id": "vJFARnHt",
+        "name": "Szeged II",
+        "slug": "szeged-csanad-ga",
+        "image_path": "https://static.flashscore.com/res/image/data/65ABtVfM-bsSFtOr3.png"
+      },
+      {
+        "id": "MBh1demD",
+        "name": "Sandorfalvi",
+        "slug": "sandorfalvi",
+        "image_path": "https://static.flashscore.com/res/image/data/2aGYYbFa-Yc35xNz3.png"
+      }
+    ]
+  },
+  "Iran": {
+    "Azadegan League": [
+      {
+        "id": "M5HFyp7p",
+        "name": "Nassaji Mazandaran",
+        "slug": "mazandaran",
+        "image_path": "https://static.flashscore.com/res/image/data/WOEGLvFa-pnfsJZrF.png"
+      },
+      {
+        "id": "SGdWZm5q",
+        "name": "Mes Shahr Babak",
+        "slug": "mes-shahr-babak",
+        "image_path": "https://static.flashscore.com/res/image/data/MucUidhl-WnCoxpTP.png"
+      },
+      {
+        "id": "nqFIkLT5",
+        "name": "Sanat Naft",
+        "slug": "sanat-naft",
+        "image_path": "https://static.flashscore.com/res/image/data/On6ERce5-AFhQhDig.png"
+      },
+      {
+        "id": "OYnmjkvc",
+        "name": "Pars Janoobi Jam",
+        "slug": "pars-janoobi-jam",
+        "image_path": "https://static.flashscore.com/res/image/data/fDCgFZAr-zuNMbFy3.png"
+      },
+      {
+        "id": "ru4IqxCK",
+        "name": "Saipa",
+        "slug": "saipa",
+        "image_path": "https://static.flashscore.com/res/image/data/M93TqMGG-KjyPABje.png"
+      },
+      {
+        "id": "S4OFnQbr",
+        "name": "Havadar SC",
+        "slug": "havadar-sc",
+        "image_path": "https://static.flashscore.com/res/image/data/OMraU3jl-YehxX2A5.png"
+      },
+      {
+        "id": "ru0xddzh",
+        "name": "Naft Bandar Abbas",
+        "slug": "naft-bandar-abbas",
+        "image_path": "https://static.flashscore.com/res/image/data/C2aiKXwS-tbDBhVur.png"
+      },
+      {
+        "id": "lUMUUiLc",
+        "name": "Fard",
+        "slug": "fard",
+        "image_path": "https://static.flashscore.com/res/image/data/A97VLrZg-vcyiozFl.png"
+      },
+      {
+        "id": "b7KrS94Q",
+        "name": "Mes Kerman",
+        "slug": "mes-kerman",
+        "image_path": "https://static.flashscore.com/res/image/data/h0DNJJh5-6LYZkudJ.png"
+      },
+      {
+        "id": "8YXcPSw5",
+        "name": "Ario Eslamshahr",
+        "slug": "ario-eslamshahr",
+        "image_path": "https://static.flashscore.com/res/image/data/veOHfBfM-G24pwoP9.png"
+      },
+      {
+        "id": "jRaUHus8",
+        "name": "Besat Kermanshah",
+        "slug": "besat-kermanshah",
+        "image_path": "https://static.flashscore.com/res/image/data/tviTY4cM-rmciwEe5.png"
+      },
+      {
+        "id": "2DA5iG6Q",
+        "name": "Kara Gostar",
+        "slug": "kara-gostar-shabestar",
+        "image_path": "https://static.flashscore.com/res/image/data/pfM9ladM-jB3OT2hF.png"
+      },
+      {
+        "id": "zkKQta1H",
+        "name": "Niroye Zamini",
+        "slug": "niroye-zamini",
+        "image_path": "https://static.flashscore.com/res/image/data/61A95ngl-Kb3sC1m8.png"
+      },
+      {
+        "id": "fovauQHR",
+        "name": "Shenavarsazi Qeshm",
+        "slug": "shenavarsazi-qeshm",
+        "image_path": "https://static.flashscore.com/res/image/data/618cmfhl-xSwJHDL1.png"
+      },
+      {
+        "id": "WMWZ5k4j",
+        "name": "Naft Gachsaran",
+        "slug": "naft-gachsaran",
+        "image_path": "https://static.flashscore.com/res/image/data/4GzTMpCr-6VDKUtsi.png"
+      },
+      {
+        "id": "Uge11saU",
+        "name": "Shahrdari Noshahr",
+        "slug": "shahrdari-noshahr",
+        "image_path": "https://static.flashscore.com/res/image/data/rP6auWfM-00DJkNxD.png"
+      },
+      {
+        "id": "IR8r7QaG",
+        "name": "Navad Urmia",
+        "slug": "navad-urmia",
+        "image_path": "https://static.flashscore.com/res/image/data/QTXIdU9r-C2R4eAB4.png"
+      },
+      {
+        "id": "M7bmvmss",
+        "name": "Damash Gilan",
+        "slug": "damash-gilan",
+        "image_path": "https://static.flashscore.com/res/image/data/Cp4muJcM-8vlx2XkN.png"
+      }
+    ]
+  },
+  "Iraq": {
+    "Stars League": [
+      {
+        "id": "0Ygn4oxO",
+        "name": "Al Quwa Al Jawiya",
+        "slug": "al-quwa-al-jawiya",
+        "image_path": "https://static.flashscore.com/res/image/data/xh78Qrf5-46X3z1y3.png"
+      },
+      {
+        "id": "84r5OlNu",
+        "name": "Al Shorta",
+        "slug": "al-shorta",
+        "image_path": "https://static.flashscore.com/res/image/data/vsh2CYjl-WnGqjgF8.png"
+      },
+      {
+        "id": "MLk7IOLT",
+        "name": "Erbil",
+        "slug": "erbil",
+        "image_path": "https://static.flashscore.com/res/image/data/YXqSoKwS-4YgSElVF.png"
+      },
+      {
+        "id": "WWdfLQyB",
+        "name": "Al Zawraa",
+        "slug": "al-zawraa",
+        "image_path": "https://static.flashscore.com/res/image/data/2y2b6eh5-2g5GC7oP.png"
+      },
+      {
+        "id": "hIVZ0V7r",
+        "name": "Al-Karma",
+        "slug": "al-karma",
+        "image_path": "https://static.flashscore.com/res/image/data/rgjBRCYA-r3sCq6Mh.png"
+      },
+      {
+        "id": "lOZsM6M4",
+        "name": "Al Talaba",
+        "slug": "al-talaba",
+        "image_path": "https://static.flashscore.com/res/image/data/67cuKYBr-2g5GC7oP.png"
+      },
+      {
+        "id": "YNmI8NfH",
+        "name": "Al Karkh",
+        "slug": "al-karkh",
+        "image_path": "https://static.flashscore.com/res/image/data/Q3lwqxil-APoQXHrN.png"
+      },
+      {
+        "id": "AP8ryJd1",
+        "name": "Newroz",
+        "slug": "newroz",
+        "image_path": "https://static.flashscore.com/res/image/data/WAl1h6Fa-Kvcjhqr4.png"
+      },
+      {
+        "id": "YBFbLqQ4",
+        "name": "Zakho",
+        "slug": "zakho",
+        "image_path": "https://static.flashscore.com/res/image/data/tr150nxS-tWncHhCl.png"
+      },
+      {
+        "id": "bBCXxS6o",
+        "name": "Duhok",
+        "slug": "duhok",
+        "image_path": "https://static.flashscore.com/res/image/data/M7tjeMh5-0EjiJh2K.png"
+      },
+      {
+        "id": "OUyZDrUp",
+        "name": "Diyala",
+        "slug": "diyala",
+        "image_path": "https://static.flashscore.com/res/image/data/dUVpmFyS-z1QXekU5.png"
+      },
+      {
+        "id": "Wl6D5mh5",
+        "name": "Al Naft",
+        "slug": "al-naft",
+        "image_path": "https://static.flashscore.com/res/image/data/C0mmWIDa-4EDVpa7U.png"
+      },
+      {
+        "id": "QoCjN5eh",
+        "name": "Al Mosul",
+        "slug": "al-mosul",
+        "image_path": "https://static.flashscore.com/res/image/data/b5MTqUfM-jctnlrS7.png"
+      },
+      {
+        "id": "6ijwNYFs",
+        "name": "Al Gharraf",
+        "slug": "al-gharraf",
+        "image_path": "https://static.flashscore.com/res/image/data/EZkaRdwS-MRa15xx7.png"
+      },
+      {
+        "id": "6ynQ61PT",
+        "name": "Naft Missan",
+        "slug": "naft-missan",
+        "image_path": "https://static.flashscore.com/res/image/data/GCsYRceM-YNQFYb9a.png"
+      },
+      {
+        "id": "ETw16Txa",
+        "name": "Al Minaa",
+        "slug": "al-minaa",
+        "image_path": "https://static.flashscore.com/res/image/data/ruB0shDa-KptdoeRG.png"
+      },
+      {
+        "id": "tGug8k8n",
+        "name": "Al Kahraba",
+        "slug": "al-kahraba",
+        "image_path": "https://static.flashscore.com/res/image/data/vwLHHnwS-2wVbTlr0.png"
+      },
+      {
+        "id": "QgdbKpiH",
+        "name": "Baghdad",
+        "slug": "baghdad",
+        "image_path": "https://static.flashscore.com/res/image/data/OrDNhEEG-bioloqCq.png"
+      },
+      {
+        "id": "EDeI477B",
+        "name": "Al Najaf",
+        "slug": "al-najaf",
+        "image_path": "https://static.flashscore.com/res/image/data/M3ZIK9il-SrmtDxWq.png"
+      },
+      {
+        "id": "2VIId41o",
+        "name": "Al-Qassim",
+        "slug": "al-qassim",
+        "image_path": "https://static.flashscore.com/res/image/data/ADaBlVh5-EohbEPja.png"
+      }
+    ]
+  },
+  "Lithuania": {
+    "TOPLYGA": [
+      {
+        "id": "0p17kQla",
+        "name": "Kauno Zalgiris",
+        "slug": "fk-kauno-zalgiris",
+        "image_path": "https://static.flashscore.com/res/image/data/vaXjACeM-hjhLeNs8.png"
+      },
+      {
+        "id": "nieEy2it",
+        "name": "Banga",
+        "slug": "banga",
+        "image_path": "https://static.flashscore.com/res/image/data/Y3YEghh5-tGWvEQkr.png"
+      },
+      {
+        "id": "zT1dAfJo",
+        "name": "Suduva",
+        "slug": "suduva",
+        "image_path": "https://static.flashscore.com/res/image/data/A1ysJqyB-KUTmPbTL.png"
+      },
+      {
+        "id": "jX421nlj",
+        "name": "Dziugas Telsiai",
+        "slug": "dziugas-telsiai",
+        "image_path": "https://static.flashscore.com/res/image/data/bynXs2g5-SzcyTWCp.png"
+      },
+      {
+        "id": "4ts3eKC1",
+        "name": "Transinvest",
+        "slug": "transinvest",
+        "image_path": "https://static.flashscore.com/res/image/data/AmOybdil-QsHXIQQ6.png"
+      },
+      {
+        "id": "fuLOijFI",
+        "name": "Zalgiris",
+        "slug": "zalgiris",
+        "image_path": "https://static.flashscore.com/res/image/data/zyfEVweM-CK4bnx4C.png"
+      },
+      {
+        "id": "nmpJqEeg",
+        "name": "Hegelmann",
+        "slug": "fc-hegelmann",
+        "image_path": "https://static.flashscore.com/res/image/data/b9sFwyvS-pEAEP7pd.png"
+      },
+      {
+        "id": "E1ffSpX7",
+        "name": "FK Panevezys",
+        "slug": "fk-panevezys",
+        "image_path": "https://static.flashscore.com/res/image/data/EDlv8Ih5-OlLDanjn.png"
+      },
+      {
+        "id": "CMmWKuwf",
+        "name": "FA Siauliai",
+        "slug": "fa-siauliai",
+        "image_path": "https://static.flashscore.com/res/image/data/4Wttb0hl-MNgQcn0j.png"
+      },
+      {
+        "id": "Cpqd5uFj",
+        "name": "Riteriai",
+        "slug": "riteriai",
+        "image_path": "https://static.flashscore.com/res/image/data/tAtcCaFa-jJXyKvW1.png"
+      }
+    ],
+    "I Lyga": [
+      {
+        "id": "zPJTfWHt",
+        "name": "FK Minija",
+        "slug": "fk-minija",
+        "image_path": "https://static.flashscore.com/res/image/data/KUJ0qNEa-tp21ECEq.png"
+      },
+      {
+        "id": "lji4OKLR",
+        "name": "Babrungas",
+        "slug": "fk-babrungas",
+        "image_path": "https://static.flashscore.com/res/image/data/2V2AuleM-AkoReUjd.png"
+      },
+      {
+        "id": "WKRKz2ha",
+        "name": "BE1 NFA",
+        "slug": "be1-nfa",
+        "image_path": "https://static.flashscore.com/res/image/data/tMcjsLyB-hIbfcqvo.png"
+      },
+      {
+        "id": "n7oPRgQm",
+        "name": "Neptunas",
+        "slug": "neptunas",
+        "image_path": "https://static.flashscore.com/res/image/data/nk3besXg-hlwzEwBT.png"
+      },
+      {
+        "id": "fLfvxM6n",
+        "name": "Tauras Taurage",
+        "slug": "tauras-taurage",
+        "image_path": "https://static.flashscore.com/res/image/data/MLhPWtZg-xGkXZymr.png"
+      },
+      {
+        "id": "OnVA3S0I",
+        "name": "Dainava Alytus",
+        "slug": "dainava-alytus",
+        "image_path": "https://static.flashscore.com/res/image/data/lj2VfEWg-x28DBGvr.png"
+      },
+      {
+        "id": "MwvTjdNN",
+        "name": "Garliava",
+        "slug": "garliava",
+        "image_path": "https://static.flashscore.com/res/image/data/4SC5MgWg-AkoReUjd.png"
+      },
+      {
+        "id": "fowyKah0",
+        "name": "BFA Vilnius",
+        "slug": "bfa-vilnius",
+        "image_path": "https://static.flashscore.com/res/image/data/tCCoHfHG-nLTNpDG5.png"
+      },
+      {
+        "id": "h6asNEBe",
+        "name": "Atmosfera",
+        "slug": "fk-atmosfera",
+        "image_path": "https://static.flashscore.com/res/image/data/KUw2nkdM-nqIONXU4.png"
+      },
+      {
+        "id": "hYCFfKW1",
+        "name": "Zalgiris 2",
+        "slug": "zalgiris",
+        "image_path": "https://static.flashscore.com/res/image/data/MVine5GG-vsu1FSKE.png"
+      },
+      {
+        "id": "jmW1Hn7M",
+        "name": "Jonava",
+        "slug": "jonava",
+        "image_path": "https://static.flashscore.com/res/image/data/CMiWBnDa-2PkRYezG.png"
+      },
+      {
+        "id": "GnBj9326",
+        "name": "Transinvest 2",
+        "slug": "transinvest",
+        "image_path": "https://static.flashscore.com/res/image/data/bZFCvdCr-ryXJnH21.png"
+      },
+      {
+        "id": "INVNLyL2",
+        "name": "Hegelmann Litauen 2",
+        "slug": "hegelmann-litauen",
+        "image_path": "https://static.flashscore.com/res/image/data/fHuAAYeM-xEfYGxcI.png"
+      },
+      {
+        "id": "CGVJhWaC",
+        "name": "Ekranas",
+        "slug": "ekranas",
+        "image_path": "https://static.flashscore.com/res/image/data/WUx8QvvS-KGWqWzzf.png"
+      },
+      {
+        "id": "AuTtkGys",
+        "name": "Kauno Zalgiris 2",
+        "slug": "fk-kauno-zalgiris",
+        "image_path": "https://static.flashscore.com/res/image/data/juyHQxvS-44G7n4n4.png"
+      },
+      {
+        "id": "Uabtt05L",
+        "name": "Siauliai 2",
+        "slug": "siauliai",
+        "image_path": "https://static.flashscore.com/res/image/data/IHRIU5zB-0lmxeFfS.png"
+      }
+    ]
+  },
+  "Luxembourg": {
+    "BGL Ligue": [
+      {
+        "id": "ruKP1XIN",
+        "name": "Racing Luxembourg",
+        "slug": "racing-luxembourg",
+        "image_path": "https://static.flashscore.com/res/image/data/dIOhYye5-fBhtpSEp.png"
+      },
+      {
+        "id": "CAvMpqxD",
+        "name": "Kaerjeng",
+        "slug": "kaerjeng",
+        "image_path": "https://static.flashscore.com/res/image/data/EHX8pte5-YB20ndi2.png"
+      },
+      {
+        "id": "p2TnjrqF",
+        "name": "Dudelange",
+        "slug": "dudelange",
+        "image_path": "https://static.flashscore.com/res/image/data/jDnmjpjl-rkYlaIFp.png"
+      },
+      {
+        "id": "pSWVqtMr",
+        "name": "Differdange",
+        "slug": "differdange",
+        "image_path": "https://static.flashscore.com/res/image/data/23Sq90Yg-ENsaZXsh.png"
+      },
+      {
+        "id": "0K0JZsB0",
+        "name": "Ettelbruck",
+        "slug": "ettelbruck",
+        "image_path": "https://static.flashscore.com/res/image/data/nsCJmWCr-roYoOWWi.png"
+      },
+      {
+        "id": "xEsd9oqh",
+        "name": "Jeunesse Esch",
+        "slug": "jeunesse-esch",
+        "image_path": "https://static.flashscore.com/res/image/data/r5w26Mhl-IDTUhVTJ.png"
+      },
+      {
+        "id": "zBrIvURI",
+        "name": "Victoria Rosport",
+        "slug": "victoria-rosport",
+        "image_path": "https://static.flashscore.com/res/image/data/r5RkJFg5-faxfJZUP.png"
+      },
+      {
+        "id": "tvAn8Mqj",
+        "name": "Hesperange",
+        "slug": "hesperange",
+        "image_path": "https://static.flashscore.com/res/image/data/WhMrnAfM-Y72Z4YSk.png"
+      },
+      {
+        "id": "xjLtWPyc",
+        "name": "Rumelange",
+        "slug": "rumelange",
+        "image_path": "https://static.flashscore.com/res/image/data/f1E914Ca-IkoY0gOk.png"
+      },
+      {
+        "id": "zyvpVqi3",
+        "name": "Wiltz",
+        "slug": "wiltz",
+        "image_path": "https://static.flashscore.com/res/image/data/M7ECKbyS-j9bYxxH3.png"
+      },
+      {
+        "id": "EmEnIs2Q",
+        "name": "Niedercorn",
+        "slug": "progres-niedercorn",
+        "image_path": "https://static.flashscore.com/res/image/data/pfL6x1Xg-2qE2OlaR.png"
+      },
+      {
+        "id": "YLIte97b",
+        "name": "Mondorf",
+        "slug": "mondorf",
+        "image_path": "https://static.flashscore.com/res/image/data/Ea44bjdM-MyBvjPJr.png"
+      },
+      {
+        "id": "O4ORhR6N",
+        "name": "Bissen",
+        "slug": "bissen",
+        "image_path": "https://static.flashscore.com/res/image/data/d6bgILDa-xp9MKGr2.png"
+      },
+      {
+        "id": "jB6Sq2yc",
+        "name": "UNA Strassen",
+        "slug": "una-strassen",
+        "image_path": "https://static.flashscore.com/res/image/data/UgZll1yB-OtNCFOTr.png"
+      },
+      {
+        "id": "U15WrMj3",
+        "name": "Hostert",
+        "slug": "hostert",
+        "image_path": "https://static.flashscore.com/res/image/data/rwLCcDjl-IoJOCMD1.png"
+      },
+      {
+        "id": "x28KdMNq",
+        "name": "Walferdange",
+        "slug": "fc-residence-walferdange",
+        "image_path": "https://static.flashscore.com/res/image/data/tUSiD4GG-Mcnc0HDe.png"
+      }
+    ]
+  },
+  "New Zealand": {
+    "National League": [
+      {
+        "id": "IZffjpXk",
+        "name": "Wellington Olympic",
+        "slug": "wellington-olympic",
+        "image_path": "https://static.flashscore.com/res/image/data/CI5iPowS-SQPHwrbB.png"
+      },
+      {
+        "id": "ddkU52k3",
+        "name": "Auckland City",
+        "slug": "auckland-city",
+        "image_path": "https://static.flashscore.com/res/image/data/GYsaaPyS-E7VNOejE.png"
+      },
+      {
+        "id": "EsJJ4OsG",
+        "name": "Miramar",
+        "slug": "miramar",
+        "image_path": "https://static.flashscore.com/res/image/data/fmWA9hjl-QcPsNsq4.png"
+      },
+      {
+        "id": "CzEIJVBd",
+        "name": "Auckland FC 2",
+        "slug": "auckland-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/4tKCDMHG-bg4W3FtB.png"
+      },
+      {
+        "id": "fBE1a7bi",
+        "name": "Western Springs",
+        "slug": "western-springs",
+        "image_path": "https://static.flashscore.com/res/image/data/0WLSUCg5-21FNgQUq.png"
+      },
+      {
+        "id": "jTudGJqU",
+        "name": "Birkenhead",
+        "slug": "birkenhead",
+        "image_path": "https://static.flashscore.com/res/image/data/WS1GSnFG-t8IYVn89.png"
+      },
+      {
+        "id": "QVsPc0kd",
+        "name": "Christchurch",
+        "slug": "christchurch",
+        "image_path": "https://static.flashscore.com/res/image/data/fXqDpkBr-UyJ4tBb5.png"
+      },
+      {
+        "id": "UP87Tii5",
+        "name": "Wellington Phoenix 2",
+        "slug": "wellington-phoenix",
+        "image_path": "https://static.flashscore.com/res/image/data/jwJVM2jl-nXRv0Dlj.png"
+      },
+      {
+        "id": "88hrLBT7",
+        "name": "Western Suburbs",
+        "slug": "western-suburbs",
+        "image_path": "https://static.flashscore.com/res/image/data/8WTchvgl-IPe6Wjw2.png"
+      },
+      {
+        "id": "rPK7mZfE",
+        "name": "Auckland United",
+        "slug": "auckland-united",
+        "image_path": "https://static.flashscore.com/res/image/data/CGOKvte5-SITuon1D.png"
+      },
+      {
+        "id": "ULjNeiuq",
+        "name": "Coastal Spirit",
+        "slug": "coastal-spirit",
+        "image_path": "https://static.flashscore.com/res/image/data/nDiaajAr-0rWLehDC.png"
+      }
+    ]
+  },
+  "Nigeria": {
+    "NPFL": [
+      {
+        "id": "KxX6KECj",
+        "name": "Rangers Int'l",
+        "slug": "rangers-international",
+        "image_path": "https://static.flashscore.com/res/image/data/WzV2SoZA-2we3ECzB.png"
+      },
+      {
+        "id": "b1JSz0K3",
+        "name": "Rivers United",
+        "slug": "rivers-united",
+        "image_path": "https://static.flashscore.com/res/image/data/va30AEWg-b9ILLhyC.png"
+      },
+      {
+        "id": "thJIFAIJ",
+        "name": "Shooting",
+        "slug": "shooting",
+        "image_path": "https://static.flashscore.com/res/image/data/8IE4o8Ca-vafZSxgs.png"
+      },
+      {
+        "id": "KIgj4VpG",
+        "name": "Ikorodu City",
+        "slug": "ikorodu-city",
+        "image_path": "https://static.flashscore.com/res/image/data/pWR64Lh5-dKY2CJMr.png"
+      },
+      {
+        "id": "pxviQfX7",
+        "name": "Bendel",
+        "slug": "bendel",
+        "image_path": "https://static.flashscore.com/res/image/data/jBmbe9HG-0ASSpGr9.png"
+      },
+      {
+        "id": "feNMEUXP",
+        "name": "Nasarawa",
+        "slug": "nasarawa-united",
+        "image_path": "https://static.flashscore.com/res/image/data/UBIP1JzS-jLtZzIk3.png"
+      },
+      {
+        "id": "OlLhCm2D",
+        "name": "Abia Warriors",
+        "slug": "abia-warriors",
+        "image_path": "https://static.flashscore.com/res/image/data/CfGhCW9r-S6F1CeeO.png"
+      },
+      {
+        "id": "08vcsotn",
+        "name": "Barau",
+        "slug": "barau",
+        "image_path": "https://static.flashscore.com/res/image/data/0li0ITGG-fJh95mmn.png"
+      },
+      {
+        "id": "hQzztph5",
+        "name": "Katsina Utd",
+        "slug": "katsina-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/CGcRw6Ar-jZRvn4Ng.png"
+      },
+      {
+        "id": "8QFGSB43",
+        "name": "Plateau United",
+        "slug": "plateau-united",
+        "image_path": "https://static.flashscore.com/res/image/data/xWtYL3EG-p2th4IJk.png"
+      },
+      {
+        "id": "tW5m7Mbt",
+        "name": "Enyimba",
+        "slug": "enyimba-international",
+        "image_path": "https://static.flashscore.com/res/image/data/C47QcbCr-OjrXHMiH.png"
+      },
+      {
+        "id": "ImcxMeb2",
+        "name": "Kun Khalifa",
+        "slug": "kun-khalifa",
+        "image_path": "https://static.flashscore.com/res/image/data/IySDYqCr-2wPjZet2.png"
+      },
+      {
+        "id": "4dauChz4",
+        "name": "Warri Wolves",
+        "slug": "warri-wolves",
+        "image_path": "https://static.flashscore.com/res/image/data/QoIvsmgl-WAE6XaLc.png"
+      },
+      {
+        "id": "l2xyIbkT",
+        "name": "Niger Tornadoes",
+        "slug": "niger-tornadoes",
+        "image_path": "https://static.flashscore.com/res/image/data/pUHbT9ZA-tUg7DWkH.png"
+      },
+      {
+        "id": "8fXi1zgC",
+        "name": "Kano Pillars",
+        "slug": "kano-pillars",
+        "image_path": "https://static.flashscore.com/res/image/data/p2HwVgDa-SMiiurvd.png"
+      },
+      {
+        "id": "2VT1zt5c",
+        "name": "Kwara",
+        "slug": "kwara",
+        "image_path": "https://static.flashscore.com/res/image/data/fwOfhDEG-tUg7DWkH.png"
+      },
+      {
+        "id": "zkQvu47B",
+        "name": "Remo Stars",
+        "slug": "remo-stars",
+        "image_path": "https://static.flashscore.com/res/image/data/SOmVd0ZA-jZRvn4Ng.png"
+      },
+      {
+        "id": "d2LNmdTt",
+        "name": "El Kanemi",
+        "slug": "el-kanemi-warriors",
+        "image_path": "https://static.flashscore.com/res/image/data/6TGMTZZA-4ABIwYxc.png"
+      },
+      {
+        "id": "fasjBzzf",
+        "name": "Bayelsa United",
+        "slug": "bayelsa-united",
+        "image_path": "https://static.flashscore.com/res/image/data/Od9qM2HG-0tRQIga2.png"
+      },
+      {
+        "id": "nZg9p86q",
+        "name": "Wikki Tourist",
+        "slug": "wikki-tourists",
+        "image_path": "https://static.flashscore.com/res/image/data/zoTwPpcM-G2zabaGS.png"
+      }
+    ],
+    "NNL": [
+      {
+        "id": "Eijh6dYJ",
+        "name": "Inter Lagos",
+        "slug": "inter-lagos",
+        "image_path": "https://static.flashscore.com/res/image/data/dWdSfRGG-A59BTFZI.png"
+      },
+      {
+        "id": "hKGcTMz9",
+        "name": "Beyond Limits FC",
+        "slug": "beyond-limits-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/KClYB5Cr-rPfBXfBH.png"
+      },
+      {
+        "id": "jDoBB8Ec",
+        "name": "Heartland",
+        "slug": "heartland-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/p2BL77Wg-tUg7DWkH.png"
+      },
+      {
+        "id": "SKMC0B1K",
+        "name": "Smart City",
+        "slug": "smart-city",
+        "image_path": "https://static.flashscore.com/res/image/data/8bKMjxeM-nZ4B9gvU.png"
+      },
+      {
+        "id": "Cpisq6j2",
+        "name": "Sunshine Stars",
+        "slug": "sunshine-stars",
+        "image_path": "https://static.flashscore.com/res/image/data/GftIcdYA-KrkUCdS2.png"
+      },
+      {
+        "id": "2781TGwi",
+        "name": "Edel",
+        "slug": "edel-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/CnwJUhe5-ldn82KQn.png"
+      },
+      {
+        "id": "nDlTynyj",
+        "name": "Crown FC",
+        "slug": "crown-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/WU2LcIfM-Uw8p6Ok8.png"
+      },
+      {
+        "id": "2JvYR6sH",
+        "name": "Abia Comets",
+        "slug": "abia-comets",
+        "image_path": "https://static.flashscore.com/res/image/data/K2wvm6h5-K8nYWSz2.png"
+      },
+      {
+        "id": "zgUZTnSA",
+        "name": "Gateway Utd.",
+        "slug": "gateway-united",
+        "image_path": "https://static.flashscore.com/res/image/data/nc3vjmh5-0ASSpGr9.png"
+      },
+      {
+        "id": "8Unjxadi",
+        "name": "Sporting Lagos",
+        "slug": "sporting-lagos",
+        "image_path": "https://static.flashscore.com/res/image/data/MiZXK4Wg-lbmWyQYr.png"
+      },
+      {
+        "id": "QPhDqSLk",
+        "name": "Akwa United",
+        "slug": "akwa-united",
+        "image_path": "https://static.flashscore.com/res/image/data/zH973rf5-2we3ECzB.png"
+      },
+      {
+        "id": "K69G10tc",
+        "name": "Ekiti United",
+        "slug": "ekiti-united",
+        "image_path": "https://static.flashscore.com/res/image/data/G8wUSNcM-dzLTCD4i.png"
+      },
+      {
+        "id": "n3ixuKZK",
+        "name": "Stormers",
+        "slug": "stormers",
+        "image_path": "https://static.flashscore.com/res/image/data/hhkJPwCa-CM1G0oQe.png"
+      },
+      {
+        "id": "I5GhmnlD",
+        "name": "Abakaliki",
+        "slug": "abakaliki",
+        "image_path": "https://static.flashscore.com/res/image/data/j7FiAOil-QTgTC1Ii.png"
+      },
+      {
+        "id": "nHWAgJlE",
+        "name": "Solution",
+        "slug": "solution",
+        "image_path": "https://static.flashscore.com/res/image/data/2LB2pgCr-zwK9stAh.png"
+      },
+      {
+        "id": "KdHDEe6r",
+        "name": "Godswill Akpabio",
+        "slug": "godswill-akpabio",
+        "image_path": "https://static.flashscore.com/res/image/data/WQbYOGcM-8SRjhBlS.png"
+      },
+      {
+        "id": "UZRAPYxG",
+        "name": "Rovers FC",
+        "slug": "rovers-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/CKCBcVYA-McdJXDyh.png"
+      },
+      {
+        "id": "4vDj7QMl",
+        "name": "Osun",
+        "slug": "osun-united",
+        "image_path": "https://static.flashscore.com/res/image/data/AqrxHFyS-ldn82KQn.png"
+      },
+      {
+        "id": "AZqVOR1h",
+        "name": "First Bank",
+        "slug": "first-bank",
+        "image_path": "https://static.flashscore.com/res/image/data/A32mfnFa-WpmUq4T9.png"
+      },
+      {
+        "id": "Eq7PxH3d",
+        "name": "Doma United",
+        "slug": "doma-united",
+        "image_path": "https://static.flashscore.com/res/image/data/CtCNhveM-dM3WQm8J.png"
+      },
+      {
+        "id": "CK3dUv9I",
+        "name": "Lobi Stars",
+        "slug": "lobi",
+        "image_path": "https://static.flashscore.com/res/image/data/Kxwz6jYg-tUg7DWkH.png"
+      },
+      {
+        "id": "SMKLCZze",
+        "name": "Basira",
+        "slug": "basira",
+        "image_path": "https://static.flashscore.com/res/image/data/8076t9eM-MFu2NvhC.png"
+      },
+      {
+        "id": "SrddPCK0",
+        "name": "Kada Warriors",
+        "slug": "kada-warriors",
+        "image_path": "https://static.flashscore.com/res/image/data/Cb13abwS-UDW8lQuG.png"
+      },
+      {
+        "id": "4GUSIVDh",
+        "name": "Sokoto",
+        "slug": "sokoto-united",
+        "image_path": "https://static.flashscore.com/res/image/data/pnlLzZVg-SnoC1vtg.png"
+      },
+      {
+        "id": "hrp5R7FP",
+        "name": "ABS",
+        "slug": "abs",
+        "image_path": "https://static.flashscore.com/res/image/data/EHO4nijl-Mozo6m8T.png"
+      },
+      {
+        "id": "WEHzZwkG",
+        "name": "Mighty Jets",
+        "slug": "mighty-jets",
+        "image_path": "https://static.flashscore.com/res/image/data/Kdh0klEa-YF2CsGgl.png"
+      },
+      {
+        "id": "82ALp5pd",
+        "name": "City FC Abuja",
+        "slug": "city-fc-abuja",
+        "image_path": "https://static.flashscore.com/res/image/data/SEHcmxDa-KnkNHWWC.png"
+      },
+      {
+        "id": "Qs6bhWiE",
+        "name": "Ranchers Bees",
+        "slug": "ranchers-bees",
+        "image_path": "https://static.flashscore.com/res/image/data/hCH8i7Yg-rBcwEWAM.png"
+      },
+      {
+        "id": "0rOyH9r5",
+        "name": "Adamawa Utd",
+        "slug": "adamawa-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/KOnb3OAr-S8CDq6K7.png"
+      },
+      {
+        "id": "8EU3qBA1",
+        "name": "Jigawa Golden Stars",
+        "slug": "jigawa-golden-stars",
+        "image_path": "https://static.flashscore.com/res/image/data/vgCTOVVg-zuobiG82.png"
+      },
+      {
+        "id": "Or09eFR5",
+        "name": "Yobe Stars",
+        "slug": "yobe-stars",
+        "image_path": "https://static.flashscore.com/res/image/data/jc0K3icM-j3BKho9S.png"
+      },
+      {
+        "id": "SzyXMRNt",
+        "name": "Kebbi",
+        "slug": "kebbi",
+        "image_path": "https://static.flashscore.com/res/image/data/O871Dxg5-WjIk1wJt.png"
+      },
+      {
+        "id": "hGWEFC1m",
+        "name": "Bichi First",
+        "slug": "bichi-first",
+        "image_path": "https://static.flashscore.com/res/image/data/rmBiHWjl-Kv9y59TM.png"
+      },
+      {
+        "id": "Krt0SeGu",
+        "name": "Gombe",
+        "slug": "gombe",
+        "image_path": "https://static.flashscore.com/res/image/data/06gCvuFa-tUg7DWkH.png"
+      },
+      {
+        "id": "jeWb8Lbq",
+        "name": "Sporting Supreme",
+        "slug": "sporting-supreme",
+        "image_path": "https://static.flashscore.com/res/image/data/0x7YsoYg-jcSbgUkL.png"
+      }
+    ]
+  },
+  "North Macedonia": {
+    "1. MFL": [
+      {
+        "id": "pUDLi8o9",
+        "name": "Bashkimi",
+        "slug": "bashkimi",
+        "image_path": "https://static.flashscore.com/res/image/data/UVsMZnCr-8ISTYn2F.png"
+      },
+      {
+        "id": "4IQgZaVs",
+        "name": "Vardar",
+        "slug": "vardar",
+        "image_path": "https://static.flashscore.com/res/image/data/ClbJdgcM-86OeMIIr.png"
+      },
+      {
+        "id": "OOOcul3J",
+        "name": "Sileks",
+        "slug": "sileks",
+        "image_path": "https://static.flashscore.com/res/image/data/bZPXq9Yg-Ys5PBeU0.png"
+      },
+      {
+        "id": "0CSfLb3m",
+        "name": "Bregalnica Stip",
+        "slug": "bregalnica-stip",
+        "image_path": "https://static.flashscore.com/res/image/data/rDWZafZA-tlGkFnP1.png"
+      },
+      {
+        "id": "je0pik4r",
+        "name": "Shkendija",
+        "slug": "shkendija-tetovo",
+        "image_path": "https://static.flashscore.com/res/image/data/zqyP3xil-GQWZId7Q.png"
+      },
+      {
+        "id": "djdjMkfa",
+        "name": "Tikves",
+        "slug": "tikves",
+        "image_path": "https://static.flashscore.com/res/image/data/h6f4Doh5-pzWJOM6s.png"
+      },
+      {
+        "id": "zZIXVuai",
+        "name": "FK Skopje",
+        "slug": "fk-skopje",
+        "image_path": "https://static.flashscore.com/res/image/data/lx2nm6FG-pCTkNqKp.png"
+      },
+      {
+        "id": "xbdnzGk4",
+        "name": "Struga",
+        "slug": "struga",
+        "image_path": "https://static.flashscore.com/res/image/data/2y60SDh5-tOKRfvtG.png"
+      },
+      {
+        "id": "4YnUAu0q",
+        "name": "Arsimi",
+        "slug": "arsimi",
+        "image_path": "https://static.flashscore.com/res/image/data/MuNSXvxS-zewHCo2N.png"
+      },
+      {
+        "id": "EZnLXz45",
+        "name": "Shkendija Haracine",
+        "slug": "shkendija-haracine",
+        "image_path": "https://static.flashscore.com/res/image/data/nD1gn6Br-W8NE6Ooc.png"
+      }
+    ],
+    "2. MFL": [
+      {
+        "id": "4lLL2D3H",
+        "name": "Pelister",
+        "slug": "pelister",
+        "image_path": "https://static.flashscore.com/res/image/data/YobeKMFG-0bfbSFVb.png"
+      },
+      {
+        "id": "OzyqWypD",
+        "name": "Rabotnicki",
+        "slug": "rabotnicki",
+        "image_path": "https://static.flashscore.com/res/image/data/vLHCY3Da-Cdxq7Y31.png"
+      },
+      {
+        "id": "2RZnVeaJ",
+        "name": "Makedonija GP",
+        "slug": "makedonija-gp",
+        "image_path": "https://static.flashscore.com/res/image/data/ClsEVhzB-2Vr1NS7K.png"
+      },
+      {
+        "id": "nXhUJfPh",
+        "name": "Teteks",
+        "slug": "teteks",
+        "image_path": "https://static.flashscore.com/res/image/data/OCH9Jkh5-tOvmJnVr.png"
+      },
+      {
+        "id": "tfhYIEva",
+        "name": "Shkupi",
+        "slug": "shkupi",
+        "image_path": "https://static.flashscore.com/res/image/data/zLPd4UZA-j1MLsUx8.png"
+      },
+      {
+        "id": "INkzns51",
+        "name": "Belasica",
+        "slug": "belasica-strumica",
+        "image_path": "https://static.flashscore.com/res/image/data/xr7Z7Wjl-lz3D00sr.png"
+      },
+      {
+        "id": "nm791ddh",
+        "name": "Osogovo",
+        "slug": "osogovo",
+        "image_path": "https://static.flashscore.com/res/image/data/0Aj7r9wS-zgrW06kj.png"
+      },
+      {
+        "id": "URbQf1o6",
+        "name": "Ohrid",
+        "slug": "ohrid",
+        "image_path": "https://static.flashscore.com/res/image/data/IPqtTKyS-tEmXxut6.png"
+      },
+      {
+        "id": "pfgWiWEp",
+        "name": "Kozuf Gevgelija",
+        "slug": "kozuf-gevgelija",
+        "image_path": "https://static.flashscore.com/res/image/data/4zP6YuAr-lt4sJRnd.png"
+      },
+      {
+        "id": "vieICppL",
+        "name": "Novaci",
+        "slug": "novaci",
+        "image_path": "https://static.flashscore.com/res/image/data/EVzgUqeM-GErSfHt1.png"
+      },
+      {
+        "id": "zBfN7rNl",
+        "name": "Gorno Lisice",
+        "slug": "gorno-lisice",
+        "image_path": "https://static.flashscore.com/res/image/data/SWuZsNEa-pWXGCQdh.png"
+      },
+      {
+        "id": "MJPOymtO",
+        "name": "Brera Strumica",
+        "slug": "brera-strumica",
+        "image_path": "https://static.flashscore.com/res/image/data/jD0S3NDa-l2cVHkio.png"
+      },
+      {
+        "id": "dMucBrM6",
+        "name": "Detonit Plackovica",
+        "slug": "detonit-plackovica",
+        "image_path": "https://static.flashscore.com/res/image/data/23CCEkzB-zHYvR1li.png"
+      },
+      {
+        "id": "tA2TWDkI",
+        "name": "Kamjani",
+        "slug": "kamjani",
+        "image_path": "https://static.flashscore.com/res/image/data/fFGnYexS-KIoEwk0g.png"
+      }
+    ]
+  },
+  "Paraguay": {
+    "Copa de Primera": [
+      {
+        "id": "SjvFLAZp",
+        "name": "2 de Mayo",
+        "slug": "2-de-mayo",
+        "image_path": "https://static.flashscore.com/res/image/data/prv1MFxS-0fWrlsjA.png"
+      },
+      {
+        "id": "C4uAqERi",
+        "name": "Cerro Porteno",
+        "slug": "cerro-porteno",
+        "image_path": "https://static.flashscore.com/res/image/data/Ovlb3hBr-0fSZKKz2.png"
+      },
+      {
+        "id": "KYvzpYtb",
+        "name": "Guarani",
+        "slug": "guarani",
+        "image_path": "https://static.flashscore.com/res/image/data/Gpc7WAil-G0qum5Ko.png"
+      },
+      {
+        "id": "bPwvqhd4",
+        "name": "Libertad Asuncion",
+        "slug": "libertad-asuncion",
+        "image_path": "https://static.flashscore.com/res/image/data/ln1XQ9Ar-UwvYANk9.png"
+      },
+      {
+        "id": "tlTrrCBA",
+        "name": "Nacional Asuncion",
+        "slug": "nacional-asuncion",
+        "image_path": "https://static.flashscore.com/res/image/data/WIKARXhl-6PG8meHs.png"
+      },
+      {
+        "id": "b9eesWQG",
+        "name": "Olimpia Asuncion",
+        "slug": "olimpia-asuncion",
+        "image_path": "https://static.flashscore.com/res/image/data/fFjeTTwS-UPd1WAes.png"
+      },
+      {
+        "id": "EogpxU3p",
+        "name": "Sp. Luqueno",
+        "slug": "sp-luqueno",
+        "image_path": "https://static.flashscore.com/res/image/data/6BPq9VdM-4GUthy9Q.png"
+      },
+      {
+        "id": "44u3vKp4",
+        "name": "Rubio Nu",
+        "slug": "rubio-nu",
+        "image_path": "https://static.flashscore.com/res/image/data/SYOSI3Ea-naCm8i0g.png"
+      },
+      {
+        "id": "WdYZQrTO",
+        "name": "Sportivo Trinidense",
+        "slug": "sportivo-trinidense",
+        "image_path": "https://static.flashscore.com/res/image/data/h0WsLVGG-hpyVjm6H.png"
+      },
+      {
+        "id": "Awvfjn49",
+        "name": "San Lorenzo",
+        "slug": "san-lorenzo",
+        "image_path": "https://static.flashscore.com/res/image/data/OEgPhXYA-jwW2wgsf.png"
+      },
+      {
+        "id": "WhS2lQYL",
+        "name": "Recoleta",
+        "slug": "recoleta",
+        "image_path": "https://static.flashscore.com/res/image/data/fLgiVph5-WpTP4Ior.png"
+      },
+      {
+        "id": "pxVtG7lc",
+        "name": "Ameliano",
+        "slug": "sportivo-ameliano",
+        "image_path": "https://static.flashscore.com/res/image/data/ruDjw6fM-zLKsTEF7.png"
+      }
+    ],
+    "Division Intermedia": [
+      {
+        "id": "jqQfqYl1",
+        "name": "12 de Junio",
+        "slug": "12-de-junio",
+        "image_path": "https://static.flashscore.com/res/image/data/ENHhNEh5-G8DKctQf.png"
+      },
+      {
+        "id": "lAdLw2uC",
+        "name": "Benjamin Aceval",
+        "slug": "benjamin-aceval",
+        "image_path": "https://static.flashscore.com/res/image/data/W0qOudYA-xd306D1r.png"
+      },
+      {
+        "id": "GYxobEi0",
+        "name": "General Caballero JLM",
+        "slug": "general-caballero-jlm",
+        "image_path": "https://static.flashscore.com/res/image/data/x0BmuAil-voVnm15G.png"
+      },
+      {
+        "id": "vi03zYSK",
+        "name": "Deportivo Santani",
+        "slug": "deportivo-santani",
+        "image_path": "https://static.flashscore.com/res/image/data/8QE5LtXg-vZlYXIJP.png"
+      },
+      {
+        "id": "WMg3uAeT",
+        "name": "Sol de America",
+        "slug": "sol-de-america",
+        "image_path": "https://static.flashscore.com/res/image/data/nNN8rze5-UJLaZhBP.png"
+      },
+      {
+        "id": "SGIjiOBd",
+        "name": "Atl. Tembetary",
+        "slug": "atletico-tembetary",
+        "image_path": "https://static.flashscore.com/res/image/data/WhN4KMyS-h4RQtct9.png"
+      },
+      {
+        "id": "b1h2ykJK",
+        "name": "Dep. Capiata",
+        "slug": "deportivo-capiata",
+        "image_path": "https://static.flashscore.com/res/image/data/b3pEPDYg-res3xMfc.png"
+      },
+      {
+        "id": "pQWa0Pw3",
+        "name": "Guairena",
+        "slug": "guairena-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/bRHbFwdM-vqrpfFH7.png"
+      },
+      {
+        "id": "ClcSkFr7",
+        "name": "Independiente FBC",
+        "slug": "independiente-fbc",
+        "image_path": "https://static.flashscore.com/res/image/data/WtPhnCe5-UqPHdrWk.png"
+      },
+      {
+        "id": "GjpjDIgP",
+        "name": "Sp. Carapegua",
+        "slug": "sportivo-carapegua",
+        "image_path": "https://static.flashscore.com/res/image/data/63YeLBhl-z96RnWye.png"
+      },
+      {
+        "id": "dpC5MgSM",
+        "name": "Resistencia",
+        "slug": "resistencia",
+        "image_path": "https://static.flashscore.com/res/image/data/Wfby0jHG-byFMtarp.png"
+      },
+      {
+        "id": "lEfFmplS",
+        "name": "Fernando de la Mora",
+        "slug": "fernando-de-la-mora",
+        "image_path": "https://static.flashscore.com/res/image/data/bs4dvsyS-vqrpfFH7.png"
+      },
+      {
+        "id": "hxhlylJj",
+        "name": "Tacuary",
+        "slug": "tacuary",
+        "image_path": "https://static.flashscore.com/res/image/data/riZgIBYg-OtymR74A.png"
+      },
+      {
+        "id": "Slcti31U",
+        "name": "Paraguari AC",
+        "slug": "paraguari-ac",
+        "image_path": "https://static.flashscore.com/res/image/data/QZxk09FG-UTxotyS6.png"
+      },
+      {
+        "id": "bqfI2s7J",
+        "name": "Encarnacion FC",
+        "slug": "encarnacion-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/vN0zl4YA-hpVKiseK.png"
+      },
+      {
+        "id": "4lBoecPt",
+        "name": "3 de Noviembre",
+        "slug": "3-de-noviembre",
+        "image_path": "https://static.flashscore.com/res/image/data/4zm3OJWg-vVhJsBu6.png"
+      }
+    ]
+  },
+  "San Marino": {
+    "Campionato Sammarinese": [
+      {
+        "id": "Yq1P1sCB",
+        "name": "Tre Fiori",
+        "slug": "tre-fiori",
+        "image_path": "https://static.flashscore.com/res/image/data/W8zL79YA-4nHGwTWE.png"
+      },
+      {
+        "id": "hARcOLbq",
+        "name": "Virtus",
+        "slug": "virtus",
+        "image_path": "https://static.flashscore.com/res/image/data/AepzL9Ar-KEDg48Us.png"
+      },
+      {
+        "id": "hbTJ6z9T",
+        "name": "Tre Penne",
+        "slug": "tre-penne",
+        "image_path": "https://static.flashscore.com/res/image/data/ruY0fTCa-YVxpougo.png"
+      },
+      {
+        "id": "2BZasmEM",
+        "name": "La Fiorita",
+        "slug": "la-fiorita",
+        "image_path": "https://static.flashscore.com/res/image/data/rHTIZlAr-IqhLeVal.png"
+      },
+      {
+        "id": "ARyhbSD9",
+        "name": "Folgore",
+        "slug": "folgore",
+        "image_path": "https://static.flashscore.com/res/image/data/2L8cuazB-WSoqOAv8.png"
+      },
+      {
+        "id": "CArKp3Lq",
+        "name": "Domagnano",
+        "slug": "sp-domagnano",
+        "image_path": "https://static.flashscore.com/res/image/data/4z6kTiDa-lMD1XBvn.png"
+      },
+      {
+        "id": "nTlVS1jS",
+        "name": "Fiorentino",
+        "slug": "fiorentino",
+        "image_path": "https://static.flashscore.com/res/image/data/O4jUOqAr-h8gApWqJ.png"
+      },
+      {
+        "id": "A1dhkqDS",
+        "name": "Cosmos",
+        "slug": "sp-cosmos",
+        "image_path": "https://static.flashscore.com/res/image/data/zF8fM4Br-ldU75dio.png"
+      },
+      {
+        "id": "jgeQalQj",
+        "name": "Juvenes/Dogana",
+        "slug": "juvenes-dogana",
+        "image_path": "https://static.flashscore.com/res/image/data/f56qgwZg-8AW7ex2o.png"
+      },
+      {
+        "id": "EizmiPoN",
+        "name": "Libertas",
+        "slug": "ac-libertas",
+        "image_path": "https://static.flashscore.com/res/image/data/8UH5VPXg-tMgHdBpr.png"
+      },
+      {
+        "id": "6DHgkGdl",
+        "name": "Pennarossa",
+        "slug": "ss-pennarossa",
+        "image_path": "https://static.flashscore.com/res/image/data/Qac7pnDa-lE5HhTyt.png"
+      },
+      {
+        "id": "lIzdcnTF",
+        "name": "San Giovanni",
+        "slug": "san-giovanni",
+        "image_path": "https://static.flashscore.com/res/image/data/Mqo1lEeM-IHc0M2Zm.png"
+      },
+      {
+        "id": "MZnw6dmF",
+        "name": "Faetano",
+        "slug": "sc-faetano",
+        "image_path": "https://static.flashscore.com/res/image/data/E5de1UEG-AwNhcAn3.png"
+      },
+      {
+        "id": "MyQM9ORC",
+        "name": "San Marino Academy U22",
+        "slug": "san-marino-academy",
+        "image_path": "https://static.flashscore.com/res/image/data/lrw6KdyB-MeezU9jU.png"
+      },
+      {
+        "id": "pj7mrTbG",
+        "name": "Cailungo",
+        "slug": "cailungo",
+        "image_path": "https://static.flashscore.com/res/image/data/WSE1ppjl-xfd2nhF6.png"
+      },
+      {
+        "id": "O4fsjdsr",
+        "name": "Murata",
+        "slug": "ss-murata",
+        "image_path": "https://static.flashscore.com/res/image/data/67lTUkYA-WlmCNqNq.png"
+      }
+    ]
+  },
+  "Saudi Arabia": {
+    "Saudi Professional League": [
+      {
+        "id": "h4I89ZuE",
+        "name": "Al Nassr",
+        "slug": "al-nassr",
+        "image_path": "https://static.flashscore.com/res/image/data/GfvgLjwS-dr3R7wGl.png"
+      },
+      {
+        "id": "hxxcePl9",
+        "name": "Al Hilal",
+        "slug": "al-hilal",
+        "image_path": "https://static.flashscore.com/res/image/data/8YrWgbEG-joUWHZ1t.png"
+      },
+      {
+        "id": "0MHmoCY0",
+        "name": "Al Ahli SC",
+        "slug": "al-ahli-sc",
+        "image_path": "https://static.flashscore.com/res/image/data/rkvFdlDa-tjD2oGGi.png"
+      },
+      {
+        "id": "tvQZtrTd",
+        "name": "Al Qadsiah",
+        "slug": "al-qadsiah",
+        "image_path": "https://static.flashscore.com/res/image/data/QFOCP3jl-OvCAgTwF.png"
+      },
+      {
+        "id": "QmsyAjWh",
+        "name": "Al Ittihad",
+        "slug": "al-ittihad",
+        "image_path": "https://static.flashscore.com/res/image/data/UmlxT0ZA-xdB0SprH.png"
+      },
+      {
+        "id": "WjJkJilj",
+        "name": "Al Taawon",
+        "slug": "al-taawon",
+        "image_path": "https://static.flashscore.com/res/image/data/xQvLINXg-zwr48VYG.png"
+      },
+      {
+        "id": "ncrXAWGn",
+        "name": "Al Ettifaq",
+        "slug": "al-ettifaq-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/40ne2Ng5-ve6EavVg.png"
+      },
+      {
+        "id": "SOrkawEs",
+        "name": "Neom SC",
+        "slug": "neom-sc",
+        "image_path": "https://static.flashscore.com/res/image/data/WfvCASyS-hjWUhSZq.png"
+      },
+      {
+        "id": "YZFeqj3D",
+        "name": "Al Hazem",
+        "slug": "al-hazem-rass",
+        "image_path": "https://static.flashscore.com/res/image/data/KtfMWzeM-YDmGqAgC.png"
+      },
+      {
+        "id": "Meknfpi2",
+        "name": "Al Fayha",
+        "slug": "al-fayha",
+        "image_path": "https://static.flashscore.com/res/image/data/YTSt4cf5-z58zJYcl.png"
+      },
+      {
+        "id": "OIDqIbjd",
+        "name": "Al Fateh",
+        "slug": "al-fateh",
+        "image_path": "https://static.flashscore.com/res/image/data/lCUr5Tg5-ll4pyUYI.png"
+      },
+      {
+        "id": "UanWW9fq",
+        "name": "Al Khaleej",
+        "slug": "al-khaleej",
+        "image_path": "https://static.flashscore.com/res/image/data/jRzKUkBr-W6U2Bfuk.png"
+      },
+      {
+        "id": "Gzqmz0ya",
+        "name": "Al Shabab",
+        "slug": "al-shabab",
+        "image_path": "https://static.flashscore.com/res/image/data/UFJ8nujl-EHxCXeIg.png"
+      },
+      {
+        "id": "Mqs1WbFK",
+        "name": "Al Kholood",
+        "slug": "al-kholood",
+        "image_path": "https://static.flashscore.com/res/image/data/vT3vzkzB-4hpwfka3.png"
+      },
+      {
+        "id": "l6Iu2w06",
+        "name": "Al Riyadh",
+        "slug": "al-riyadh",
+        "image_path": "https://static.flashscore.com/res/image/data/2RWIo5Ca-0tD8wfLu.png"
+      },
+      {
+        "id": "xfAehSWL",
+        "name": "Damac",
+        "slug": "damac",
+        "image_path": "https://static.flashscore.com/res/image/data/f1Df7KeM-29Hb7UEa.png"
+      },
+      {
+        "id": "tKjRGGMC",
+        "name": "Al Okhdood",
+        "slug": "al-okhdood",
+        "image_path": "https://static.flashscore.com/res/image/data/61CWtPf5-nsNrUNVC.png"
+      },
+      {
+        "id": "0QD6GL0s",
+        "name": "Al Najma",
+        "slug": "al-najma",
+        "image_path": "https://static.flashscore.com/res/image/data/GUl1NDFG-lQBgfCk0.png"
+      }
+    ],
+    "Division 1": [
+      {
+        "id": "lnEqnhJf",
+        "name": "Abha",
+        "slug": "abha",
+        "image_path": "https://static.flashscore.com/res/image/data/8bELNbeM-E9j3kB6r.png"
+      },
+      {
+        "id": "AsIgIB3d",
+        "name": "Al-Faisaly",
+        "slug": "al-faisaly",
+        "image_path": "https://static.flashscore.com/res/image/data/dtnNMEDa-t0G26lU5.png"
+      },
+      {
+        "id": "URqHJiim",
+        "name": "Al Diriyah",
+        "slug": "al-diriyah",
+        "image_path": "https://static.flashscore.com/res/image/data/boAy6UcM-jHnn6RLJ.png"
+      },
+      {
+        "id": "OC8T8zk3",
+        "name": "Al-Ula",
+        "slug": "al-ula",
+        "image_path": "https://static.flashscore.com/res/image/data/zVXQXTXg-O0yydsS1.png"
+      },
+      {
+        "id": "A3ZAc2rn",
+        "name": "Al Orubah",
+        "slug": "al-orubah",
+        "image_path": "https://static.flashscore.com/res/image/data/hGWqA7yB-jLvfDNRl.png"
+      },
+      {
+        "id": "IiU3CHMA",
+        "name": "Al Jabalain",
+        "slug": "al-jabalain",
+        "image_path": "https://static.flashscore.com/res/image/data/QNY2eCCa-dOSHi8Gq.png"
+      },
+      {
+        "id": "WfHC8geK",
+        "name": "Al Raed",
+        "slug": "al-raed",
+        "image_path": "https://static.flashscore.com/res/image/data/4UV6u6YA-8WX8K8kE.png"
+      },
+      {
+        "id": "ruiBiPF5",
+        "name": "Al Zulfi",
+        "slug": "al-zulfi",
+        "image_path": "https://static.flashscore.com/res/image/data/hzzvxveM-WA80T3IM.png"
+      },
+      {
+        "id": "xYXsXyUh",
+        "name": "Al Taee",
+        "slug": "al-taee",
+        "image_path": "https://static.flashscore.com/res/image/data/E7gXywBr-GQAvU1Ht.png"
+      },
+      {
+        "id": "fqHipWm7",
+        "name": "Al Wehda",
+        "slug": "al-wehda",
+        "image_path": "https://static.flashscore.com/res/image/data/I9SzYbil-h0wZ9zwk.png"
+      },
+      {
+        "id": "A7YIBlI0",
+        "name": "Al Bukiryah",
+        "slug": "al-bukiryah",
+        "image_path": "https://static.flashscore.com/res/image/data/4ljGf8Ca-Q3KiA9EL.png"
+      },
+      {
+        "id": "tIq6HsLN",
+        "name": "Al Anwar",
+        "slug": "al-anwar",
+        "image_path": "https://static.flashscore.com/res/image/data/lOnj7HWg-0YSORAco.png"
+      },
+      {
+        "id": "CfPZn6fq",
+        "name": "Jeddah",
+        "slug": "jeddah-club",
+        "image_path": "https://static.flashscore.com/res/image/data/Kt3xN3cM-ERioccwC.png"
+      },
+      {
+        "id": "rTsOwLSH",
+        "name": "Al Adalah",
+        "slug": "al-adalah",
+        "image_path": "https://static.flashscore.com/res/image/data/GArR1dCa-CATmi5yJ.png"
+      },
+      {
+        "id": "KYVyZZDD",
+        "name": "Al Jandal",
+        "slug": "al-jandal",
+        "image_path": "https://static.flashscore.com/res/image/data/Eyaf2bil-fe8kvGSu.png"
+      },
+      {
+        "id": "hnItl5OL",
+        "name": "Al Batin",
+        "slug": "al-batin",
+        "image_path": "https://static.flashscore.com/res/image/data/6kSlnVCa-pSPK8Cih.png"
+      },
+      {
+        "id": "8f20POYF",
+        "name": "Al Arabi",
+        "slug": "al-arabi-saudi-arabia",
+        "image_path": "https://static.flashscore.com/res/image/data/CpKOgpCa-IuMgP94j.png"
+      },
+      {
+        "id": "r1tdCVJC",
+        "name": "Al Jubail",
+        "slug": "al-jubail",
+        "image_path": "https://static.flashscore.com/res/image/data/0Q6mzfcM-rXlZiDxM.png"
+      }
+    ]
+  },
+  "Thailand": {
+    "Thai League 1": [
+      {
+        "id": "r3QHlQs7",
+        "name": "Buriram",
+        "slug": "buriram-united-f-c",
+        "image_path": "https://static.flashscore.com/res/image/data/KCS8nzyS-AHLMjQO5.png"
+      },
+      {
+        "id": "hI9jm0Hq",
+        "name": "Pathum United",
+        "slug": "pathum-united",
+        "image_path": "https://static.flashscore.com/res/image/data/KfeKbBYg-0pXo2qlp.png"
+      },
+      {
+        "id": "zsaenKWk",
+        "name": "Bangkok Utd",
+        "slug": "bangkok-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/Y1NdwVVg-YTZHs7OG.png"
+      },
+      {
+        "id": "drd0zlZS",
+        "name": "Chonburi",
+        "slug": "chonburi",
+        "image_path": "https://static.flashscore.com/res/image/data/2eS9GVCr-l8KQkpvC.png"
+      },
+      {
+        "id": "Yov9ooRk",
+        "name": "Port MTI FC",
+        "slug": "port-mti-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/OQS0nRBr-fcsqdDUg.png"
+      },
+      {
+        "id": "Ori0c7SL",
+        "name": "Chiangrai Utd",
+        "slug": "chiangrai-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/6akZ4HdM-8Wk0ypia.png"
+      },
+      {
+        "id": "ppiiJg9Q",
+        "name": "Ratchaburi",
+        "slug": "ratchaburi",
+        "image_path": "https://static.flashscore.com/res/image/data/vLmgPKeM-EqcBTBE3.png"
+      },
+      {
+        "id": "lKndTaXN",
+        "name": "Ayutthaya Utd",
+        "slug": "ayutthaya-united",
+        "image_path": "https://static.flashscore.com/res/image/data/A9yNuYCr-URT2U7E2.png"
+      },
+      {
+        "id": "UcjkBSc4",
+        "name": "Prachuap",
+        "slug": "prachuap",
+        "image_path": "https://static.flashscore.com/res/image/data/8pkhkszB-IyW2TNZo.png"
+      },
+      {
+        "id": "KQyceoMu",
+        "name": "Sukhothai",
+        "slug": "sukhothai",
+        "image_path": "https://static.flashscore.com/res/image/data/hb7sL7Cr-80ikQqiO.png"
+      },
+      {
+        "id": "ImxRTbnJ",
+        "name": "Lamphun Warrior",
+        "slug": "lamphun-warrior",
+        "image_path": "https://static.flashscore.com/res/image/data/0GZCtcHG-6chnFpDH.png"
+      },
+      {
+        "id": "fgVmmMns",
+        "name": "Pattani",
+        "slug": "pattani",
+        "image_path": "https://static.flashscore.com/res/image/data/x0ca9bWg-4h6xogX3.png"
+      },
+      {
+        "id": "vRlEPIv3",
+        "name": "Uthai Thani",
+        "slug": "uthai-thani",
+        "image_path": "https://static.flashscore.com/res/image/data/M1IOLFcM-WQMIi69a.png"
+      },
+      {
+        "id": "2yziZgpF",
+        "name": "Rayong FC",
+        "slug": "rayong-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/ncytSfg5-KdMz8rw5.png"
+      },
+      {
+        "id": "WfRreYSb",
+        "name": "Rasisalai Utd",
+        "slug": "rasisalai-united",
+        "image_path": "https://static.flashscore.com/res/image/data/Q1aCbTGG-l8KQkpvC.png"
+      },
+      {
+        "id": "GfZzY0aO",
+        "name": "Sisaket United",
+        "slug": "sisaket-united",
+        "image_path": "https://static.flashscore.com/res/image/data/lvRupUCa-KW2QDOLE.png"
+      }
+    ],
+    "Thai League 2": [
+      {
+        "id": "WfRreYSb",
+        "name": "Rasisalai Utd",
+        "slug": "rasisalai-united",
+        "image_path": "https://static.flashscore.com/res/image/data/Q1aCbTGG-l8KQkpvC.png"
+      },
+      {
+        "id": "GfZzY0aO",
+        "name": "Sisaket United",
+        "slug": "sisaket-united",
+        "image_path": "https://static.flashscore.com/res/image/data/lvRupUCa-KW2QDOLE.png"
+      },
+      {
+        "id": "fgVmmMns",
+        "name": "Pattani",
+        "slug": "pattani",
+        "image_path": "https://static.flashscore.com/res/image/data/x0ca9bWg-4h6xogX3.png"
+      },
+      {
+        "id": "djXgeqKA",
+        "name": "Nong Bua Pitchaya",
+        "slug": "nong-bua-pitchaya",
+        "image_path": "https://static.flashscore.com/res/image/data/vJExPoyB-YFzpTQGt.png"
+      },
+      {
+        "id": "2LddyUJM",
+        "name": "Police Tero",
+        "slug": "police-tero",
+        "image_path": "https://static.flashscore.com/res/image/data/2gXEKOEa-GpN2pNZt.png"
+      },
+      {
+        "id": "CS4a4B57",
+        "name": "Chainat",
+        "slug": "chainat-hornbill",
+        "image_path": "https://static.flashscore.com/res/image/data/29z4TteM-nFtSniOn.png"
+      },
+      {
+        "id": "xS8UNpOf",
+        "name": "Khonkaen Utd.",
+        "slug": "khonkaen-united",
+        "image_path": "https://static.flashscore.com/res/image/data/U3X8PTFG-fcVlM5eq.png"
+      },
+      {
+        "id": "4GIs69BN",
+        "name": "Mahasarakham",
+        "slug": "mahasarakham",
+        "image_path": "https://static.flashscore.com/res/image/data/8Qxk0Df5-WQMIi69a.png"
+      },
+      {
+        "id": "tKrx6oBf",
+        "name": "Trat FC",
+        "slug": "trat-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/0Qvcrxjl-4pfHzuv8.png"
+      },
+      {
+        "id": "48KSYo8B",
+        "name": "Chiangmai Utd",
+        "slug": "chiangmai-united",
+        "image_path": "https://static.flashscore.com/res/image/data/OdBjB1Ca-I3GEuL1T.png"
+      },
+      {
+        "id": "jFoYjFCi",
+        "name": "Phrae",
+        "slug": "phrae-united",
+        "image_path": "https://static.flashscore.com/res/image/data/MJN9qNZA-C0InOu7t.png"
+      },
+      {
+        "id": "IBcQYsCd",
+        "name": "Pattaya United",
+        "slug": "pattaya-united",
+        "image_path": "https://static.flashscore.com/res/image/data/rohrT9Br-vNAMRd6S.png"
+      },
+      {
+        "id": "I5bEfkJn",
+        "name": "Songkhla",
+        "slug": "songkhla",
+        "image_path": "https://static.flashscore.com/res/image/data/2eKHQycM-Gt3KM83q.png"
+      },
+      {
+        "id": "OfUbf3Ka",
+        "name": "Chanthaburi",
+        "slug": "chanthaburi",
+        "image_path": "https://static.flashscore.com/res/image/data/Kfmq66Yg-O2x5RX09.png"
+      },
+      {
+        "id": "jZrmfVlc",
+        "name": "Nakhon Pathom",
+        "slug": "nakhon-pathom",
+        "image_path": "https://static.flashscore.com/res/image/data/CGb0mbyS-xbYLTahr.png"
+      },
+      {
+        "id": "dGETqI82",
+        "name": "Kasetsart",
+        "slug": "kasetsart",
+        "image_path": "https://static.flashscore.com/res/image/data/0vSsIBGG-dxdS0FFM.png"
+      },
+      {
+        "id": "d4g2i9Xe",
+        "name": "Nakhon Si",
+        "slug": "nakhon-si-united",
+        "image_path": "https://static.flashscore.com/res/image/data/Kr5ytme5-pKLnT9Pg.png"
+      },
+      {
+        "id": "YeASD3Ig",
+        "name": "Bangkok FC",
+        "slug": "bangkok-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/8tPnPGZA-WQMIi69a.png"
+      },
+      {
+        "id": "8GRcSpU6",
+        "name": "Lampang",
+        "slug": "lampang-f-c",
+        "image_path": "https://static.flashscore.com/res/image/data/0Oupg8yB-UDdNUb9r.png"
+      }
+    ]
+  },
+  "United Arab Emirates": {
+    "UAE League": [
+      {
+        "id": "WUREBBlh",
+        "name": "Al Jazira",
+        "slug": "al-jazira",
+        "image_path": "https://static.flashscore.com/res/image/data/tvVZRYil-lWIXXvLm.png"
+      },
+      {
+        "id": "21AL1RQp",
+        "name": "Al Wahda",
+        "slug": "al-wahda",
+        "image_path": "https://static.flashscore.com/res/image/data/UuJiFyeM-YXHWp1ah.png"
+      },
+      {
+        "id": "YqFkJ2t6",
+        "name": "Al Sharjah",
+        "slug": "al-sharjah",
+        "image_path": "https://static.flashscore.com/res/image/data/Yq6dwwdM-Ma5gfLsn.png"
+      },
+      {
+        "id": "EiQ5g3JL",
+        "name": "Shabab Al-Ahli Dubai",
+        "slug": "shabab-al-ahli-dubai",
+        "image_path": "https://static.flashscore.com/res/image/data/0CZOhXDa-8zUcYY2j.png"
+      },
+      {
+        "id": "UX1exRBg",
+        "name": "Al Ain",
+        "slug": "al-ain",
+        "image_path": "https://static.flashscore.com/res/image/data/dS0NzAil-OKa9P8WR.png"
+      },
+      {
+        "id": "CtP7yoRa",
+        "name": "Ajman",
+        "slug": "ajman",
+        "image_path": "https://static.flashscore.com/res/image/data/QTyVodZg-Y1gt7Cyd.png"
+      },
+      {
+        "id": "WnyRy5t6",
+        "name": "Al Dhafra",
+        "slug": "al-dhafra",
+        "image_path": "https://static.flashscore.com/res/image/data/vy2WVEhl-2RQbS0SQ.png"
+      },
+      {
+        "id": "AwzVzPeC",
+        "name": "Khorfakkan",
+        "slug": "khorfakkan",
+        "image_path": "https://static.flashscore.com/res/image/data/OAfj9FzB-OQU9zTMb.png"
+      },
+      {
+        "id": "40ZYZrBI",
+        "name": "Al Nasr",
+        "slug": "al-nasr",
+        "image_path": "https://static.flashscore.com/res/image/data/dlkIInXg-xbrb3RaU.png"
+      },
+      {
+        "id": "OQuUcn3P",
+        "name": "Al Wasl",
+        "slug": "al-wasl",
+        "image_path": "https://static.flashscore.com/res/image/data/WSOq3hFG-K8vlWhPS.png"
+      },
+      {
+        "id": "8riCzYNT",
+        "name": "Bani Yas",
+        "slug": "bani-yas",
+        "image_path": "https://static.flashscore.com/res/image/data/MP2ER7ZA-nDaFzJhq.png"
+      },
+      {
+        "id": "CxR74upk",
+        "name": "Ittihad Kalba",
+        "slug": "ittihad-kalba",
+        "image_path": "https://static.flashscore.com/res/image/data/bB9xYDjl-lUHDtcYu.png"
+      },
+      {
+        "id": "YuLeXbqH",
+        "name": "Hatta",
+        "slug": "hatta",
+        "image_path": "https://static.flashscore.com/res/image/data/ro2711zB-QVAzX6rD.png"
+      },
+      {
+        "id": "6s1W4sXk",
+        "name": "United FC",
+        "slug": "united-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/tENQslFG-fcsIsfw8.png"
+      }
+    ],
+    "Division 1": [
+      {
+        "id": "p4rvWiWp",
+        "name": "Emirates Club",
+        "slug": "emirates-club",
+        "image_path": "https://static.flashscore.com/res/image/data/OfkLysdM-MHQFRCXq.png"
+      },
+      {
+        "id": "tvrpfLrG",
+        "name": "Dibba Al Hisn",
+        "slug": "dibba-al-hisn",
+        "image_path": "https://static.flashscore.com/res/image/data/dKKsoTf5-OSNa5roI.png"
+      },
+      {
+        "id": "b1keFgcs",
+        "name": "Al Fujairah",
+        "slug": "al-fujairah",
+        "image_path": "https://static.flashscore.com/res/image/data/dllgeuhl-GOsncUhM.png"
+      },
+      {
+        "id": "2eHlABP4",
+        "name": "Dibba Al Fujairah",
+        "slug": "dibba-al-fujairah",
+        "image_path": "https://static.flashscore.com/res/image/data/4jUqjOg5-COCcK4Lc.png"
+      },
+      {
+        "id": "Uc1fhNOq",
+        "name": "Al Thaid",
+        "slug": "al-thaid",
+        "image_path": "https://static.flashscore.com/res/image/data/IBCqhocM-jeJRhi1f.png"
+      },
+      {
+        "id": "CMjaisvj",
+        "name": "Al Jazira Hamra",
+        "slug": "al-jazira-hamra",
+        "image_path": "https://static.flashscore.com/res/image/data/UBeJFNxS-riRr7RbM.png"
+      },
+      {
+        "id": "A792j1gd",
+        "name": "Al Urooba",
+        "slug": "al-urooba",
+        "image_path": "https://static.flashscore.com/res/image/data/2iE3O0Yg-2JG9UkI7.png"
+      },
+      {
+        "id": "6JKdE4o3",
+        "name": "Al Arabi",
+        "slug": "al-arabi-uae",
+        "image_path": "https://static.flashscore.com/res/image/data/MLpQZkFa-ERBvby7K.png"
+      },
+      {
+        "id": "z5nFsAsU",
+        "name": "Al Hamriyah",
+        "slug": "al-hamriyah",
+        "image_path": "https://static.flashscore.com/res/image/data/4YkwnwCr-SQmQu5R8.png"
+      },
+      {
+        "id": "ABf8Ftqg",
+        "name": "Al Bataeh",
+        "slug": "al-bataeh",
+        "image_path": "https://static.flashscore.com/res/image/data/h85WiIg5-xrtBiP1b.png"
+      },
+      {
+        "id": "0I76gFiS",
+        "name": "Dubai City",
+        "slug": "dubai-city",
+        "image_path": "https://static.flashscore.com/res/image/data/KlYyFKeM-8n4j8mYd.png"
+      },
+      {
+        "id": "ncKaA39S",
+        "name": "Gulf United",
+        "slug": "gulf-united",
+        "image_path": "https://static.flashscore.com/res/image/data/A5k0v6GG-jNN4J2US.png"
+      },
+      {
+        "id": "SAlALi3d",
+        "name": "Al-Ittifaq",
+        "slug": "al-ittifaq",
+        "image_path": "https://static.flashscore.com/res/image/data/QmtfjXdM-zJumDmjr.png"
+      },
+      {
+        "id": "Acdwjnx1",
+        "name": "Forte Virtus",
+        "slug": "forte-virtus",
+        "image_path": "https://static.flashscore.com/res/image/data/v3j3TcFa-rDn1OkW4.png"
+      },
+      {
+        "id": "ClZNpjDU",
+        "name": "Palm City",
+        "slug": "palm-city",
+        "image_path": "https://static.flashscore.com/res/image/empty-logo-team-share.gif"
+      }
+    ]
+  },
+  "Vietnam": {
+    "V.League 1": [
+      {
+        "id": "tnHa1drt",
+        "name": "Cong An Ha Noi",
+        "slug": "cong-an-ha-noi",
+        "image_path": "https://static.flashscore.com/res/image/data/CU93T5Fa-KnmSRxvE.png"
+      },
+      {
+        "id": "Gb6wjV0S",
+        "name": "Viettel",
+        "slug": "viettel",
+        "image_path": "https://static.flashscore.com/res/image/data/0Qfb99EG-vcLqLXYS.png"
+      },
+      {
+        "id": "GtBp2ZoS",
+        "name": "Phu Dong Ninh Binh",
+        "slug": "phu-dong-ninh-binh",
+        "image_path": "https://static.flashscore.com/res/image/data/vHkP4zDr-nD3eT8Ou.png"
+      },
+      {
+        "id": "x2LRDuqP",
+        "name": "Hanoi FC",
+        "slug": "hanoi-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/ShEcH3f5-Ek0C3Mkc.png"
+      },
+      {
+        "id": "AgIq9iBm",
+        "name": "Ho Chi Minh",
+        "slug": "ho-chi-minh",
+        "image_path": "https://static.flashscore.com/res/image/data/Cf2X2OAr-0nzZbYGl.png"
+      },
+      {
+        "id": "riY859AC",
+        "name": "Nam Dinh",
+        "slug": "nam-dinh",
+        "image_path": "https://static.flashscore.com/res/image/data/6oSz1BdM-4YgEdVnq.png"
+      },
+      {
+        "id": "W2JuAXes",
+        "name": "Hai Phong",
+        "slug": "hai-phong",
+        "image_path": "https://static.flashscore.com/res/image/data/p0GH54Xg-K8WM297g.png"
+      },
+      {
+        "id": "jBPHGr0j",
+        "name": "Hong Linh Ha Tinh",
+        "slug": "hong-linh-ha-tinh",
+        "image_path": "https://static.flashscore.com/res/image/data/bmNymCyB-vcL7uyZh.png"
+      },
+      {
+        "id": "UBWx5muP",
+        "name": "Song Lam Nghe An",
+        "slug": "song-lam-nghe-an",
+        "image_path": "https://static.flashscore.com/res/image/data/SjfvgTDa-EiT1Wpdd.png"
+      },
+      {
+        "id": "4GHm8BQg",
+        "name": "Gia Lai",
+        "slug": "gia-lai",
+        "image_path": "https://static.flashscore.com/res/image/data/x00zIWh5-Q1sXdNBU.png"
+      },
+      {
+        "id": "b5Rh9ait",
+        "name": "Thanh Hoa",
+        "slug": "thanh-hoa",
+        "image_path": "https://static.flashscore.com/res/image/data/jkzICadM-bRJembjh.png"
+      },
+      {
+        "id": "AmLfEgYJ",
+        "name": "Da Nang",
+        "slug": "da-nang",
+        "image_path": "https://static.flashscore.com/res/image/data/I75Jl4yB-EiT1Wpdd.png"
+      },
+      {
+        "id": "WSRPbuTF",
+        "name": "PVF-CAND",
+        "slug": "pvf-cand",
+        "image_path": "https://static.flashscore.com/res/image/data/dpjnquZA-Cz9hOoBf.png"
+      },
+      {
+        "id": "hS84kAeJ",
+        "name": "Binh Duong",
+        "slug": "binh-duong",
+        "image_path": "https://static.flashscore.com/res/image/data/ATDe2szB-zX43sNzb.png"
+      }
+    ],
+    "V.League 2": [
+      {
+        "id": "6g0U8aqi",
+        "name": "Truong Tuoi Dong Nai",
+        "slug": "truong-tuoi-dong-nai",
+        "image_path": "https://static.flashscore.com/res/image/data/bBy2dJxS-CKnsTHLc.png"
+      },
+      {
+        "id": "pv9xA4eM",
+        "name": "Bac Ninh",
+        "slug": "bac-ninh",
+        "image_path": "https://static.flashscore.com/res/image/data/lQohgHCa-As3RA4Es.png"
+      },
+      {
+        "id": "z5ftUOgs",
+        "name": "Ho Chi Minh City",
+        "slug": "ho-chi-minh-city",
+        "image_path": "https://static.flashscore.com/res/image/data/fPw2LdwS-0QWdQxII.png"
+      },
+      {
+        "id": "02ZSs2tP",
+        "name": "Quy Nhon United",
+        "slug": "quy-nhon-united",
+        "image_path": "https://static.flashscore.com/res/image/data/845JVYAr-MkKtctuN.png"
+      },
+      {
+        "id": "b7ogJJMf",
+        "name": "Xuan Thien Phu Tho",
+        "slug": "xuan-thien-phu-tho",
+        "image_path": "https://static.flashscore.com/res/image/data/0jGgUkwS-CCrKV3n9.png"
+      },
+      {
+        "id": "xEDBwcig",
+        "name": "PVF-CAND B",
+        "slug": "pvf-cand",
+        "image_path": "https://static.flashscore.com/res/image/data/Uamk3jWg-6RcHnMgC.png"
+      },
+      {
+        "id": "p0vhYMWA",
+        "name": "Van Hien",
+        "slug": "van-hien",
+        "image_path": "https://static.flashscore.com/res/image/data/YLHymzyS-OWHYxP4J.png"
+      },
+      {
+        "id": "Myp07Vu0",
+        "name": "Khanh Hoa",
+        "slug": "khanh-hoa",
+        "image_path": "https://static.flashscore.com/res/image/data/2B6Rhqf5-Mm7dwV2n.png"
+      },
+      {
+        "id": "4OeQqaNP",
+        "name": "Quang Ninh",
+        "slug": "quang-ninh",
+        "image_path": "https://static.flashscore.com/res/image/data/2ZvJSKcM-thOzwLyc.png"
+      },
+      {
+        "id": "lvKbDDmQ",
+        "name": "Dong Thap",
+        "slug": "dong-thap",
+        "image_path": "https://static.flashscore.com/res/image/data/IXtdGnFG-COGqeUYd.png"
+      },
+      {
+        "id": "40Z46ke6",
+        "name": "Long An",
+        "slug": "long-an",
+        "image_path": "https://static.flashscore.com/res/image/data/8lvZ96Ar-jeFu6Qy4.png"
+      },
+      {
+        "id": "IiSwji56",
+        "name": "Ho Chi Minh 2",
+        "slug": "ho-chi-minh",
+        "image_path": "https://static.flashscore.com/res/image/data/OWRRnYGG-xrxpVxK6.png"
+      },
+      {
+        "id": "OE9clfNc",
+        "name": "Hoa Binh",
+        "slug": "hoa-binh",
+        "image_path": "https://static.flashscore.com/res/image/data/I5TEbZjl-SS0gf4U4.png"
+      }
+    ]
   }
 }
