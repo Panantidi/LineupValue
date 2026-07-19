@@ -1494,6 +1494,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
+            <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
             <a href="/lineup_ai/select" class="header-action-btn">← Back to teams</a>
         </div>
     </div>
@@ -1875,6 +1876,24 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
             }}
         }}
+        function toggleFaq() {{
+            var host = document.getElementById('faq-host');
+            if (!host) return;
+            var isVisible = host.style.display === 'flex';
+            host.style.display = isVisible ? 'none' : 'flex';
+        }}
+        document.addEventListener('keydown', function(e) {{
+            if (e.key === 'Escape') {{
+                var host = document.getElementById('faq-host');
+                if (host && host.style.display === 'flex') host.style.display = 'none';
+            }}
+        }});
+        document.addEventListener('click', function(e) {{
+            var host = document.getElementById('faq-host');
+            if (host && host.style.display === 'flex' && e.target === host) {{
+                host.style.display = 'none';
+            }}
+        }});
         function selectTab(el, name) {{
             document.querySelectorAll('.header-tabs .tab').forEach(function(t) {{ t.classList.remove('active'); }});
             el.classList.add('active');
@@ -3605,6 +3624,46 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </script>
     </div>
     </div>
+    </div>
+    <!-- FAQ Modal -->
+    <div id="faq-host" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto;box-sizing:border-box;">
+        <div style="background:white;border-radius:12px;max-width:780px;width:100%;padding:24px 28px;box-shadow:0 10px 40px rgba(0,0,0,0.25);position:relative;">
+            <button type="button" onclick="toggleFaq()" style="position:absolute;top:12px;right:12px;background:transparent;border:none;font-size:24px;cursor:pointer;color:#888;line-height:1;padding:4px 10px;">&times;</button>
+            <h2 style="margin:0 0 18px 0;color:#043fb6;font-size:22px;">📋 FREQUENTLY ASKED QUESTIONS</h2>
+            <div style="font-size:14px;color:#333;line-height:1.6;">
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">1. What do the player status icons mean?</h3>
+                <p style="margin:4px 0;">❓ — Doubt<br>❌ — Injury<br>🟥 — Red card<br>🟨 — Last yellow card<br>✈️ — Called up<br>🚫 — Not playing<br>🔙 — Return<br>🆕 — New player<br>🚪 — Left the team</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">2. What do the player role badges represent?</h3>
+                <p style="margin:4px 0;">⚽️ — Top Scorer<br>👟 — Top Assist<br>🎯 — Attacking Defender (IS &gt;6)<br>🎨 — Creative Midfielder (IS &gt;5)<br>⭐️ — Very Strong Player (IS &gt; 7)<br>👑 — World-Class Player (IS &gt; 9)</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">3. How is the Impact Score (IS) calculated?</h3>
+                <p style="margin:4px 0;">Impact Score — comprehensive indicator that measures a player's real impact on the team's outcome. Goals, assists, playing time and field position are taken into account. The formula gives different weights to goals, assists, and playing time for each role, so it's incorrect to compare a defender and a striker directly — it's important to look at the value relative to the position.</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">4. What's the difference between Squad List, Possible XI, and Starting XI?</h3>
+                <p style="margin:4px 0;">⚫️ Squad List — full squad of all available players<br>🔵 Possible XI — predicted lineup on match<br>🔴 Starting XI — starting lineup on match</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">5. How do I add my own lineup?</h3>
+                <p style="margin:4px 0;">Use the 👥 Add Lineups feature. You can paste text (separated by commas) or upload an image — the system uses AI to detect and match the lineup from the image to squad list.</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">6. Can I compare lineups?</h3>
+                <p style="margin:4px 0;">Yes! You can compare:<br>Starting XI 🆚 Possible XI — See how the predicted lineup stacks up against the actual lineup (Δ8% = possible odds move).<br>Starting XI 🆚 Last Match — Compare starting lineup with the previous game.<br>Possible XI 🆚 Last Match — Evaluate the predicted lineup with the previous game.</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">7. What are the requirements for a player to receive a badge?</h3>
+                <p style="margin:4px 0;">Minimum of 10 matches or 900 minutes played (excluding Top Scorer and Top Assist). Badges are assigned based on current calculations at the time of viewing.</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">8. What stats are shown in the team overview 📊?</h3>
+                <p style="margin:4px 0;">Total Value — Combined market worth.<br>Avg. Age — Average age of all players.<br>Players — Total squad count.<br>Pos. Overview — Breakdown by position (GK, DF, MF, FW).<br>Players on Fire — Top performers based on recent stats.</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">9. How do I save a lineup as an image?</h3>
+                <p style="margin:4px 0;">📸 Screenshot — Save any lineup as a high-resolution PNG image directly to your computer's Downloads folder.</p>
+
+                <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">10. What is Build Lineup and how does it work?</h3>
+                <p style="margin:4px 0;">🧩 Build Lineup — interactive tool that lets you create your own custom XI.<br><strong>How to use it:</strong><br>Choose a formation — Select from popular formations like 4-3-3, and more.<br>Assign players — Tap on any position circle and insert the player's shirt number. The system will automatically match it to the squad list.<br>Save PNG — Once your lineup is complete, save it and download as an image to share or use elsewhere.</p>
+
+            </div>
+        </div>
     </div>
 </body>
 </html>"""
