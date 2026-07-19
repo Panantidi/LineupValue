@@ -511,7 +511,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <td style="text-align:center;padding:4px 2px;"><span class="player-number-circle" data-player-name="{player_display_name}" data-player-number="{p.get('number', '?')}" data-player-club="{team_name}" data-is-wc="{wc_attr}" onclick="toggleFavorite(this)" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#e9ecef;color:#495057;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">{p.get('number', '?')}</span></td>
                 <td style="text-align:center;">{get_nat_html(p)}</td>
                 <td class="player-name" style="white-space:nowrap;">{"<strong>" + player_display_name + df_fire + mf_lightning + star_impact + top_impact + (top_scorer_badge if (unique_goal_leader and player_display_name == unique_goal_leader) else "") + (top_assist_badge if (unique_assist_leader and player_display_name == unique_assist_leader) else "") + "</strong>" if (unique_goal_leader and player_display_name == unique_goal_leader) or (unique_assist_leader and player_display_name == unique_assist_leader) else player_display_name + df_fire + mf_lightning + star_impact + top_impact}</td>
-                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
+                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
                 <td style="text-align:center;padding:4px 2px;">{p.get("age", "–")}</td>
                 <td style="text-align:center;">{p.get("market_value", "–")}</td>
                 <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;text-align:center;padding:4px 2px;">{p.get("position", "–")}</td>
@@ -1518,7 +1518,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <label for="nav-country-trigger">Country</label>
         <div class="nav-country-dropdown" id="nav-country-dropdown">
             <button type="button" id="nav-country-trigger" class="nav-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="toggleCountryDropdown()">
-                <span id="nav-country-flag" style="margin-right:6px;"></span>
+                <span id="nav-country-flag" style="display:none;"></span>
                 <span id="nav-country-name">-- Select Country --</span>
                 <span class="nav-dropdown-arrow" style="margin-left:auto;">▼</span>
             </button>
@@ -1590,7 +1590,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div id="info-bar-squad-host" style="display:none;">
 <div id="info-bar-squad" style="display:flex;flex-direction:column;gap:12px;width:255px;box-sizing:border-box;">
             <div style="display:flex;gap:8px;">
-                <div style="flex:2;background:white;padding:10px 8px;border-radius:8px;border:1px solid #667eea;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;min-width:0;">
+                <div style="flex:2;background:white;padding:10px 4px;border-radius:8px;border:1px solid #667eea;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;min-width:0;">
                     <div style="text-align:center;font-weight:bold;color:#667eea;font-size:11px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Total Value</div>
                     <div style="font-weight:normal;color:#333;font-size:20px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{total_value_display}</div>
                 </div>
@@ -1663,7 +1663,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;">
                         <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
-                            <option value="Squad" style="color:#333;">Squad</option>
+                            <option value="Squad" style="color:#333;">All Squad</option>
                             <option value="Missing Players" style="color:#333;">Missing Players</option>
                             <option value="Doubtful Players" style="color:#333;">Doubtful Players</option>
                             <option value="Returning Players" style="color:#333;">Returning Players</option>
@@ -3068,11 +3068,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     const li = document.createElement('li');
                     li.setAttribute('data-value', country);
                     li.setAttribute('role', 'option');
-                    const code = COUNTRY_CODES[country] || '';
-                    const flagHtml = code
-                        ? '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '">'
-                        : '<span style="display:inline-block;width:20px;"></span>';
-                    li.innerHTML = flagHtml + '<span>' + country + '</span>';
+                    li.innerHTML = '<span>' + country + '</span>';
                     li.onclick = function() {{
                         selectCountry(country);
                     }};
@@ -3176,17 +3172,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             function updateCountryFlag(country) {{
                 const flagSpan = document.getElementById('nav-country-flag');
                 const nameSpan = document.getElementById('nav-country-name');
-                if (!flagSpan || !nameSpan) return;
+                if (!nameSpan) return;
+                if (flagSpan) flagSpan.innerHTML = '';
                 if (!country) {{
-                    flagSpan.innerHTML = '';
                     nameSpan.textContent = 'Country';
                     return;
-                }}
-                const code = COUNTRY_CODES[country];
-                if (code) {{
-                    flagSpan.innerHTML = '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '" style="height:14px;width:auto;vertical-align:middle;border-radius:1px;">';
-                }} else {{
-                    flagSpan.innerHTML = '';
                 }}
                 nameSpan.textContent = country;
             }}

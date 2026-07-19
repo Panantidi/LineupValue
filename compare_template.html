@@ -327,7 +327,7 @@ body {
         <label for="nav-country-trigger">Country</label>
         <div class="nav-country-dropdown" id="nav-country-dropdown">
             <button type="button" id="nav-country-trigger" class="nav-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="toggleCountryDropdown()">
-                <span id="nav-country-flag" style="margin-right:6px;"></span>
+                <span id="nav-country-flag" style="display:none;"></span>
                 <span id="nav-country-name">-- Select Country --</span>
                 <span class="nav-dropdown-arrow" style="margin-left:auto;">▼</span>
             </button>
@@ -761,11 +761,7 @@ body {
             var li = document.createElement('li');
             li.setAttribute('data-value', country);
             li.setAttribute('role', 'option');
-            var code = COUNTRY_CODES[country] || '';
-            var flagHtml = code
-                ? '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '">'
-                : '<span style="display:inline-block;width:20px;"></span>';
-            li.innerHTML = flagHtml + '<span>' + country + '</span>';
+            li.innerHTML = '<span>' + country + '</span>';
             li.onclick = function() { selectCountry(country); };
             countryList.appendChild(li);
         });
@@ -864,17 +860,11 @@ body {
     function updateCountryFlag(country) {
         var flagSpan = document.getElementById('nav-country-flag');
         var nameSpan = document.getElementById('nav-country-name');
-        if (!flagSpan || !nameSpan) return;
+        if (!nameSpan) return;
+        if (flagSpan) flagSpan.innerHTML = '';
         if (!country) {
-            flagSpan.innerHTML = '';
             nameSpan.textContent = '-- Select Country --';
             return;
-        }
-        var code = COUNTRY_CODES[country];
-        if (code) {
-            flagSpan.innerHTML = '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '" style="height:14px;width:auto;vertical-align:middle;border-radius:1px;">';
-        } else {
-            flagSpan.innerHTML = '';
         }
         nameSpan.textContent = country;
     }
