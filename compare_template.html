@@ -241,6 +241,61 @@ body {
             background: #2e7af8;
         }
 
+        /* Custom country dropdown (replaces native <select> to allow flag images) */
+        .nav-country-dropdown {
+            position: relative;
+            width: 100%;
+        }
+        .nav-dropdown-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+        }
+        .nav-dropdown-trigger:hover { background: #f8f9fc; }
+        .nav-dropdown-trigger:focus { outline: 2px solid #2e7af8; outline-offset: 1px; }
+        .nav-dropdown-arrow { font-size: 9px; color: #888; transition: transform 0.15s; }
+        .nav-dropdown-trigger[aria-expanded="true"] .nav-dropdown-arrow { transform: rotate(180deg); }
+        .nav-dropdown-list {
+            position: fixed;
+            max-height: 520px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #d5d9e8;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            z-index: 10000;
+            padding: 4px 0;
+            margin: 0;
+            list-style: none;
+            min-width: 200px;
+        }
+        .nav-dropdown-list li {
+            display: flex;
+            align-items: center;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+        }
+        .nav-dropdown-list li:hover { background: #f0f4ff; }
+        .nav-dropdown-list li.selected { background: #e0e9ff; font-weight: 600; }
+        .nav-dropdown-list li img {
+            height: 14px;
+            width: auto;
+            vertical-align: middle;
+            border-radius: 1px;
+            margin-right: 6px;
+        }
+
 </style>
 </head>
 <body>
@@ -248,9 +303,17 @@ body {
 <aside class="team-nav-sidebar" id="team-nav-sidebar">
     <div class="nav-title"><button class="nav-rail-btn" onclick="toggleNavSidebar()" title="Hide">&lt;&lt; Hide</button></div>
     <div class="form-group">
-        <label for="nav-country">Country</label>
-        <select id="nav-country" onchange="onNavCountryChange()">
-            <option value="">-- Select Country --</option>
+        <label for="nav-country-trigger">Country</label>
+        <div class="nav-country-dropdown" id="nav-country-dropdown">
+            <button type="button" id="nav-country-trigger" class="nav-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="toggleCountryDropdown()">
+                <span id="nav-country-flag" style="margin-right:6px;"></span>
+                <span id="nav-country-name">-- Select Country --</span>
+                <span class="nav-dropdown-arrow" style="margin-left:auto;">▼</span>
+            </button>
+        </div>
+        <ul class="nav-dropdown-list" id="nav-country-list" role="listbox" style="display:none;"></ul>
+        <select id="nav-country" style="display:none;" onchange="onNavCountryChange()">
+            <option value=""></option>
         </select>
     </div>
     <div class="form-group">
@@ -655,12 +718,29 @@ body {
 
     function populateNavCountries() {
         var countrySelect = document.getElementById('nav-country');
+        var countryList = document.getElementById('nav-country-list');
+        // Move the country list to <body> so it escapes any parent stacking context
+        if (countryList && countryList.parentElement !== document.body) {
+            document.body.appendChild(countryList);
+        }
         var countries = Object.keys(navData).sort();
+        countrySelect.innerHTML = '<option value=""></option>';
+        countryList.innerHTML = '';
         countries.forEach(function(country) {
             var option = document.createElement('option');
             option.value = country;
             option.textContent = country;
             countrySelect.appendChild(option);
+            var li = document.createElement('li');
+            li.setAttribute('data-value', country);
+            li.setAttribute('role', 'option');
+            var code = COUNTRY_CODES[country] || '';
+            var flagHtml = code
+                ? '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '">'
+                : '<span style="display:inline-block;width:20px;"></span>';
+            li.innerHTML = flagHtml + '<span>' + country + '</span>';
+            li.onclick = function() { selectCountry(country); };
+            countryList.appendChild(li);
         });
         // Auto-select current country based on team_id.
         // Prefer the first championship in navData (top-tier league) over mirror copies
@@ -676,9 +756,100 @@ body {
             }
         }
         if (foundCountry) {
-            countrySelect.value = foundCountry;
-            onNavCountryChange();
+            selectCountry(foundCountry);
         }
+    }
+
+    function selectCountry(country) {
+        var countrySelect = document.getElementById('nav-country');
+        var countryList = document.getElementById('nav-country-list');
+        var trigger = document.getElementById('nav-country-trigger');
+        countrySelect.value = country;
+        countryList.querySelectorAll('li').forEach(function(li) {
+            li.classList.toggle('selected', li.getAttribute('data-value') === country);
+        });
+        updateCountryFlag(country);
+        countryList.style.display = 'none';
+        trigger.setAttribute('aria-expanded', 'false');
+        onNavCountryChange();
+    }
+
+    window.toggleCountryDropdown = function() {
+        var countryList = document.getElementById('nav-country-list');
+        var trigger = document.getElementById('nav-country-trigger');
+        var isOpen = countryList.style.display === 'block';
+        if (isOpen) {
+            countryList.style.display = 'none';
+            trigger.setAttribute('aria-expanded', 'false');
+        } else {
+            var rect = trigger.getBoundingClientRect();
+            countryList.style.top = (rect.bottom + 2) + 'px';
+            countryList.style.left = rect.left + 'px';
+            countryList.style.minWidth = rect.width + 'px';
+            countryList.style.display = 'block';
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+    };
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        var dropdown = document.getElementById('nav-country-dropdown');
+        if (dropdown && !dropdown.contains(event.target)) {
+            var list = document.getElementById('nav-country-list');
+            var trigger = document.getElementById('nav-country-trigger');
+            if (list) list.style.display = 'none';
+            if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // ISO 3166-1 alpha-2 country codes (mirrors get_flag_html mapping)
+    var COUNTRY_CODES = {
+        Afghanistan:'af',Albania:'al',Algeria:'dz',Andorra:'ad',Angola:'ao',
+        Argentina:'ar',Armenia:'am',Australia:'au',Austria:'at',Azerbaijan:'az',
+        Bahrain:'bh',Bangladesh:'bd',Belarus:'by',Belgium:'be',Bolivia:'bo',
+        'Bosnia and Herzegovina':'ba',Brazil:'br',Bulgaria:'bg',Cameroon:'cm',
+        Canada:'ca',Chile:'cl',China:'cn',Colombia:'co','Costa Rica':'cr',
+        Croatia:'hr',Cyprus:'cy','Czech Republic':'cz',Denmark:'dk',
+        Ecuador:'ec',Egypt:'eg','El Salvador':'sv',England:'gb',
+        Estonia:'ee','Faroe Islands':'fo',Finland:'fi',France:'fr',
+        Georgia:'ge',Germany:'de',Ghana:'gh',Gibraltar:'gi',Greece:'gr',
+        Guatemala:'gt',Honduras:'hn','Hong Kong':'hk',Hungary:'hu',
+        Iceland:'is',India:'in',Indonesia:'id',Iran:'ir',Iraq:'iq',
+        Ireland:'ie',Israel:'il',Italy:'it','Ivory Coast':'ci',
+        Jamaica:'jm',Japan:'jp',Kazakhstan:'kz',Kenya:'ke',Kosovo:'xk',
+        Kuwait:'kw',Kyrgyzstan:'kg',Latvia:'lv',Liechtenstein:'li',
+        Lithuania:'lt',Luxembourg:'lu',Malaysia:'my',Mali:'ml',Malta:'mt',
+        Mexico:'mx',Moldova:'md',Mongolia:'mn',Montenegro:'me',Morocco:'ma',
+        Netherlands:'nl','New Zealand':'nz',Nicaragua:'ni',Nigeria:'ng',
+        'Northern Ireland':'gb-nir','North Macedonia':'mk',Norway:'no',
+        Panama:'pa',Paraguay:'py',Peru:'pe',Philippines:'ph',Poland:'pl',
+        Portugal:'pt',Qatar:'qa',Romania:'ro',Russia:'ru','San Marino':'sm',
+        'Saudi Arabia':'sa',Scotland:'gb-sct',Senegal:'sn',Serbia:'rs',
+        Singapore:'sg',Slovakia:'sk',Slovenia:'si','South Africa':'za',
+        'South Korea':'kr',Spain:'es',Sweden:'se',Switzerland:'ch',
+        Taiwan:'tw',Tajikistan:'tj',Thailand:'th',
+        'Trinidad and Tobago':'tt',Tunisia:'tn',Turkey:'tr',
+        Turkmenistan:'tm',Ukraine:'ua','United Arab Emirates':'ae',
+        Uruguay:'uy',USA:'us','Uzbekistan':'uz',Venezuela:'ve',
+        Vietnam:'vn',Wales:'gb-wls'
+    };
+
+    function updateCountryFlag(country) {
+        var flagSpan = document.getElementById('nav-country-flag');
+        var nameSpan = document.getElementById('nav-country-name');
+        if (!flagSpan || !nameSpan) return;
+        if (!country) {
+            flagSpan.innerHTML = '';
+            nameSpan.textContent = '-- Select Country --';
+            return;
+        }
+        var code = COUNTRY_CODES[country];
+        if (code) {
+            flagSpan.innerHTML = '<img src="https://flagcdn.com/w20/' + code + '.png" alt="' + country + '" style="height:14px;width:auto;vertical-align:middle;border-radius:1px;">';
+        } else {
+            flagSpan.innerHTML = '';
+        }
+        nameSpan.textContent = country;
     }
 
     window.onNavCountryChange = function() {
