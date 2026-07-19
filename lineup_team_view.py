@@ -1016,12 +1016,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .team-nav-sidebar select {{
             width: 100%;
             padding: 6px 8px;
+            padding-right: 24px;
             border: 1px solid #d5d9e8;
             border-radius: 6px;
             font-size: 13px;
             margin-bottom: 8px;
             background: #f8f9fc;
             color: #333;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }}
+        /* Custom ▼ arrow for Championship/Team/Match selects (matches Country dropdown) */
+        .team-nav-sidebar .select-wrapper {{
+            position: relative;
+            width: 100%;
+        }}
+        .team-nav-sidebar .select-wrapper::after {{
+            content: "▼";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 9px;
+            color: #888;
+            pointer-events: none;
         }}
         .team-nav-sidebar select:disabled {{
             opacity: 0.5;
@@ -1511,18 +1530,24 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <option value=""></option>
         </select>
         <label for="nav-championship">Championship</label>
-        <select id="nav-championship" onchange="onNavChampionshipChange()" disabled>
-            <option value="">-- Select Championship --</option>
-        </select>
+        <div class="select-wrapper">
+            <select id="nav-championship" onchange="onNavChampionshipChange()" disabled>
+                <option value="">-- Select Championship --</option>
+            </select>
+        </div>
         <label for="nav-team">Team</label>
-        <select id="nav-team" onchange="onNavTeamChange()" disabled>
-            <option value="">-- Select Team --</option>
-        </select>
+        <div class="select-wrapper">
+            <select id="nav-team" onchange="onNavTeamChange()" disabled>
+                <option value="">-- Select Team --</option>
+            </select>
+        </div>
         <div id="nav-match-group" style="display:none;">
             <label for="nav-match" id="nav-match-label">Match</label>
-            <select id="nav-match" onchange="onNavMatchChange()" disabled>
-                <option value="">-- Select Match --</option>
-            </select>
+            <div class="select-wrapper">
+                <select id="nav-match" onchange="onNavMatchChange()" disabled>
+                    <option value="">-- Select Match --</option>
+                </select>
+            </div>
         </div>
         <div id="nav-actions" style="display:none; text-align:center; margin-top:10px;">
             <button id="nav-btn-analysis" onclick="openNavTeamAnalysis()" style="background:#043fb6; color:white; border:none; padding:8px 16px; border-radius:6px; font-size:13px; cursor:pointer;">

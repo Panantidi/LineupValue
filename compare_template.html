@@ -223,6 +223,27 @@ body {
             background: #f5f5f5;
             cursor: not-allowed;
         }
+        /* Custom ▼ arrow for Championship/Team/Match selects (matches Country dropdown) */
+        .team-nav-sidebar .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .team-nav-sidebar .select-wrapper select {
+            padding-right: 24px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        .team-nav-sidebar .select-wrapper::after {
+            content: "▼";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 9px;
+            color: #888;
+            pointer-events: none;
+        }
         .team-nav-sidebar .form-group {
             margin-bottom: 12px;
         }
@@ -318,22 +339,28 @@ body {
     </div>
     <div class="form-group">
         <label for="nav-championship">Championship</label>
-        <select id="nav-championship" onchange="onNavChampionshipChange()" disabled>
-            <option value="">-- Select Championship --</option>
-        </select>
+        <div class="select-wrapper">
+            <select id="nav-championship" onchange="onNavChampionshipChange()" disabled>
+                <option value="">-- Select Championship --</option>
+            </select>
+        </div>
     </div>
     <div class="form-group">
         <label for="nav-team">Team</label>
-        <select id="nav-team" onchange="onNavTeamChange()" disabled>
-            <option value="">-- Select Team --</option>
-        </select>
+        <div class="select-wrapper">
+            <select id="nav-team" onchange="onNavTeamChange()" disabled>
+                <option value="">-- Select Team --</option>
+            </select>
+        </div>
     </div>
     <div id="nav-match-group" style="display:none;">
         <div class="form-group">
             <label for="nav-match">Match</label>
-            <select id="nav-match" onchange="onNavMatchChange()" disabled>
-                <option value="">-- Select Match --</option>
-            </select>
+            <div class="select-wrapper">
+                <select id="nav-match" onchange="onNavMatchChange()" disabled>
+                    <option value="">-- Select Match --</option>
+                </select>
+            </div>
         </div>
     </div>
     <div id="nav-actions" style="display:none;">
