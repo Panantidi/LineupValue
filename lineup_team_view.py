@@ -313,15 +313,30 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     else:
         stadium_display = "–"
     
+    # Normalize player field names (Flashscore API: matches_played, goals, assists, yellow_cards, red_cards, minutes_played)
+    for p in players:
+        if "matches_played" in p and "apps" not in p:
+            p["apps"] = p["matches_played"]
+        if "goals" in p and "goal" not in p:
+            p["goal"] = p["goals"]
+        if "assists" in p and "assist" not in p:
+            p["assist"] = p["assists"]
+        if "yellow_cards" in p and "yellow_card" not in p:
+            p["yellow_card"] = p["yellow_cards"]
+        if "red_cards" in p and "red_card" not in p:
+            p["red_card"] = p["red_cards"]
+        if "minutes_played" in p and "min" not in p:
+            p["min"] = p["minutes_played"]
+
     # Calculate stats
     squad_size = len(players)
-    total_age = sum(int(p.get("age", 0)) for p in players if p.get("age", "").isdigit())
+    total_age = sum(int(p.get("age", 0)) for p in players if str(p.get("age", 0)).isdigit())
     avg_age = round(total_age / squad_size, 1) if squad_size > 0 else 0
-    total_apps = sum(int(p.get("apps", 0)) for p in players if p.get("apps", "").isdigit())
-    total_goals = sum(int(p.get("goal", 0)) for p in players if p.get("goal", "").isdigit())
-    total_assists = sum(int(p.get("assist", 0)) for p in players if p.get("assist", "").isdigit())
-    total_yellow = sum(int(p.get("yellow_card", 0)) for p in players if p.get("yellow_card", "").isdigit())
-    total_red = sum(int(p.get("red_card", 0)) for p in players if p.get("red_card", "").isdigit())
+    total_apps = sum(int(p.get("apps", 0)) for p in players if str(p.get("apps", 0)).isdigit())
+    total_goals = sum(int(p.get("goal", 0)) for p in players if str(p.get("goal", 0)).isdigit())
+    total_assists = sum(int(p.get("assist", 0)) for p in players if str(p.get("assist", 0)).isdigit())
+    total_yellow = sum(int(p.get("yellow_card", 0)) for p in players if str(p.get("yellow_card", 0)).isdigit())
+    total_red = sum(int(p.get("red_card", 0)) for p in players if str(p.get("red_card", 0)).isdigit())
     # starting_players calculated below after auto-calculation of impact_score
     total_value = round(sum(_parse_mv(p.get("market_value", 0)) for p in players) / 1_000_000.0, 1)
     
