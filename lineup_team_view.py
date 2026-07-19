@@ -1503,8 +1503,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <span id="nav-country-name">-- Select Country --</span>
                 <span class="nav-dropdown-arrow" style="margin-left:auto;">▼</span>
             </button>
-            <ul class="nav-dropdown-list" id="nav-country-list" role="listbox" style="display:none;"></ul>
         </div>
+        <!-- Country list lives in document.body (z-index escapes parent stacking context) -->
+        <ul class="nav-dropdown-list" id="nav-country-list" role="listbox" style="display:none;"></ul>
         <!-- hidden original select to keep onNavCountryChange() compatible -->
         <select id="nav-country" style="display:none;" onchange="onNavCountryChange()">
             <option value=""></option>
@@ -3023,6 +3024,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             function populateNavCountries() {{
                 const countrySelect = document.getElementById('nav-country');
                 const countryList = document.getElementById('nav-country-list');
+                // Move the country list to <body> so it escapes any parent stacking context
+                if (countryList && countryList.parentElement !== document.body) {{
+                    document.body.appendChild(countryList);
+                }}
                 const countries = Object.keys(navData).sort();
                 // Populate hidden native select (kept for compatibility with onNavCountryChange)
                 countrySelect.innerHTML = '<option value=""></option>';
