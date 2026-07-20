@@ -1717,7 +1717,54 @@ async def lineup_api_fixtures(team_id: str):
     from playwright.async_api import async_playwright
     from datetime import datetime, timedelta
 
-    # Return cached fixtures immediately (no TTL)
+    # PRIMARY: read fixtures[] directly from main team cache (populated by phase2_generic.py via Flashscore API).
+    # This is the fast path — 0 API calls, instant response.
+    try:
+        team_cache = _read_team_cache(team_id)
+        if team_cache and team_cache.get("fixtures"):
+            now = datetime.utcnow()
+            today_start = datetime(now.year, now.month, now.day, 0, 0, 0)
+            converted = []
+            for m in team_cache["fixtures"]:
+                # Convert "dd/mm" + "HH:MM" to "dd.mm HH:MM" for the existing client format
+                date_ddmm = m.get("date", "")
+                time_str = m.get("time", "")
+                dm = re.match(r"(\d{1,2})/(\d{2})", date_ddmm)
+                if not dm:
+                    continue
+                day, month = int(dm.group(1)), int(dm.group(2))
+                year = now.year if month >= now.month else now.year + 1
+                try:
+                    match_dt = datetime(year, month, day, 12, 0)
+                except ValueError:
+                    continue
+                if match_dt < today_start:
+                    continue  # past, skip
+                home = m.get("home_team", {})
+                away = m.get("away_team", {})
+                home_name = home.get("name", "") if isinstance(home, dict) else str(home or "")
+                away_name = away.get("name", "") if isinstance(away, dict) else str(away or "")
+                home_id = home.get("id", "") if isinstance(home, dict) else ""
+                away_id = away.get("id", "") if isinstance(away, dict) else ""
+                date_combined = f"{day:02d}.{month:02d}" + (f" {time_str}" if time_str else "")
+                converted.append({
+                    "mid": m.get("match_id", ""),
+                    "date": date_combined,
+                    "home": home_name,
+                    "away": away_name,
+                    "home_id": home_id,
+                    "away_id": away_id,
+                    "is_home": str(home_id) == str(team_id) if home_id else team_id.lower() in home_name.lower(),
+                    "url": "",
+                    "tournament_name_short": m.get("tournament_name_short", ""),
+                    "tournament_name_full": m.get("tournament_name_full", ""),
+                })
+            if converted:
+                return JSONResponse(content={"fixtures": converted, "team_id": team_id, "from_team_cache": True, "source": "flashscore_api"})
+    except Exception:
+        pass
+
+    # SECONDARY: legacy fixtures cache file
     cached = _read_fixtures_cache(team_id)
     if cached:
         return JSONResponse(content={"fixtures": cached, "team_id": team_id, "cached": True})
