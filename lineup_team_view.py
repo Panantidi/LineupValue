@@ -281,7 +281,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         return HTMLResponse(f"Error loading team data: {e}", status_code=500)
     
     team_name = data.get("team", {}).get("name", "Unknown")
-    team_emblem = data.get("team", {}).get("emblem", "")
+    # Team emblem: try "emblem" (old) or "image_path" (Flashscore) or data["image_path"] (top-level)
+    team_emblem = (
+        data.get("team", {}).get("emblem", "")
+        or data.get("team", {}).get("image_path", "")
+        or data.get("image_path", "")
+    )
     players = data.get("players", [])
     matches = data.get("matches", [])
     # Check if this is a national team (team name matches country name)
