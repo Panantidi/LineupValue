@@ -1305,33 +1305,23 @@ def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict 
 def prepare_team_data_version(team_id: str) -> dict:
     """Return cached data immediately, refresh in background.
 
-    User sees data instantly. Soccerway update happens asynchronously.
-    Next visit shows fresh data.
-    """
-    # Protected teams (managed by non-Soccerway source like Flashscore prefill):
-    # return the on-disk cache as-is, do NOT touch DB or start Soccerway refresh.
-    try:
-        import json as _json_v
-        with open("/home/openclaw/.openclaw/workspace/_protected_teams.json", "r") as _f:
-            _protected_v = set(_json_v.load(_f))
-        if team_id in _protected_v:
-            try:
-                cached = _read_team_cache(team_id)
-                if cached.get("players"):
-                    return cached
-            except Exception:
-                pass
-            # No usable on-disk cache: return empty so UI can show "no data"
-            return {"team": {"id": team_id, "name": team_id, "slug": team_id, "emblem": ""}, "players": [], "matches": [], "coach": {"name": "", "nationality": ""}, "stadium": ""}
-    except Exception:
-        pass
+    User sees data instantly. On-demand API refresh happens asynchronously:
+    - If cache is fresh (< 10 min), return as-is (no API call)
+    - If cache is stale, return current data + trigger background refresh from Flashscore API
+    - Next visit shows fresh data.
 
+    No Soccerway calls. No rate-limit risk for users.
+    """
     # Try to return existing version immediately
     current = _get_current_team_version(team_id)
     if current and current.get("data"):
         _write_team_cache(team_id, current["data"])
-        # Start background refresh (don't wait)
-        _start_team_version_refresh(team_id)
+        # Trigger background on-demand API refresh (only if cache is stale)
+        try:
+            from api_refresh import ensure_fresh_async
+            ensure_fresh_async(team_id)
+        except Exception:
+            pass
         return current["data"]
 
     # No version: try cache
@@ -1339,14 +1329,34 @@ def prepare_team_data_version(team_id: str) -> dict:
         cached = _read_team_cache(team_id)
         if cached.get("players"):
             _save_team_version(team_id, cached)
-            # Start background fetch
-            _start_team_version_refresh(team_id)
+            # Trigger background API refresh (only if stale)
+            try:
+                from api_refresh import ensure_fresh_async
+                ensure_fresh_async(team_id)
+            except Exception:
+                pass
             return cached
     except Exception:
         pass
-    
+
+    # No cache: try API refresh synchronously (first visit)
+    try:
+        from api_refresh import refresh_team, is_fresh
+        if not is_fresh(team_id):
+            if refresh_team(team_id, force=True):
+                cached = _read_team_cache(team_id)
+                if cached.get("players"):
+                    _save_team_version(team_id, cached)
+                    return cached
+    except Exception:
+        pass
+
     # No cache: start background fetch, return empty
-    _start_team_version_refresh(team_id)
+    try:
+        from api_refresh import ensure_fresh_async
+        ensure_fresh_async(team_id)
+    except Exception:
+        pass
     return {}
 
 
