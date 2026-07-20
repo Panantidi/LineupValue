@@ -308,11 +308,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     coach_name = coach.get("name", "–")
     coach_nationality = coach.get("nationality", "")
     coach_name_display = swap_name_order(coach_name) if coach_name != "–" else "–"
+    coach_flag_html = ""
+    if coach_nationality and coach_nationality != "–":
+        coach_flag_html = get_flag_html(coach_nationality)
+        if coach_flag_html == "–":
+            coach_flag_html = ""
+    coach_display_html = coach_name_display
+    if coach_flag_html and coach_flag_html.strip() and "flagcdn" in coach_flag_html:
+        coach_display_html = f'{coach_name_display} <span style="margin-left:6px;">{coach_flag_html}</span>'
     
     stadium_name = data.get("stadium", "") or data.get("team", {}).get("stadium", "")
-    stadium_city = data.get("team", {}).get("city", "")
+    stadium_city = data.get("city", "") or data.get("team", {}).get("city", "")
+    stadium_capacity = data.get("capacity", "") or data.get("team", {}).get("capacity", "")
+    # Format capacity as "12 800" with space
+    cap_str = ""
+    if stadium_capacity and str(stadium_capacity).strip() and str(stadium_capacity) not in ("0", "0.0", "?"):
+        try:
+            cap_int = int(str(stadium_capacity).replace(",", "").replace(" ", ""))
+            cap_str = f" {cap_int:,}".replace(",", " ")
+        except (ValueError, TypeError):
+            cap_str = ""
     if stadium_name and stadium_city:
-        stadium_display = f"{stadium_name} ({stadium_city})"
+        if cap_str:
+            stadium_display = f"{stadium_name} ({stadium_city}) / {cap_str.strip()}"
+        else:
+            stadium_display = f"{stadium_name} ({stadium_city})"
     elif stadium_name:
         stadium_display = stadium_name
     elif stadium_city:
@@ -587,8 +607,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         date_str = m.get("date", "")
         comp_short = m.get("tournament_name_short") or m.get("comp") or m.get("tournament") or ""
         comp_full = m.get("tournament_name_full") or _full_comp_name(comp_short)
-        home_t = m.get("home_team", "")
-        away_t = m.get("away_team", "")
+        # home_team/away_team may be dict (Flashscore) or string (old)
+        ht = m.get("home_team")
+        at = m.get("away_team")
+        if isinstance(ht, dict):
+            home_t = ht.get("name", "")
+        else:
+            home_t = ht or ""
+        if isinstance(at, dict):
+            away_t = at.get("name", "")
+        else:
+            away_t = at or ""
         score_str = m.get("score", "")
 
         # Tooltip: full tournament name + teams + score
@@ -1767,7 +1796,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </div>
                 <!-- Coach (left) + Stadium (right) below main table, auto-width, aligned to table edges -->
                 <div id="coach-stadium-bar" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;">
-                    <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_name_display}</div>
+                    <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_display_html}</div>
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
                 </div>
             </div>
