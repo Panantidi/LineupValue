@@ -970,7 +970,8 @@ body {
             navFixtures.forEach(function(f, i) {
                 var opt = document.createElement('option');
                 opt.value = i;
-                opt.textContent = f.date + '  ' + f.home + ' - ' + f.away;
+                var tShort = f.tournament_name_short ? '[' + f.tournament_name_short + '] ' : '';
+                opt.textContent = tShort + f.date + '  ' + f.home + ' - ' + f.away;
                 matchSelect.appendChild(opt);
             });
             matchSelect.disabled = false;

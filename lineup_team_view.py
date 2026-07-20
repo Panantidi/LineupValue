@@ -3358,7 +3358,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     navFixtures.forEach((f, i) => {{
                         const opt = document.createElement('option');
                         opt.value = i;
-                        opt.textContent = f.date + '  ' + f.home + ' - ' + f.away;
+                        const tShort = f.tournament_name_short ? '[' + f.tournament_name_short + '] ' : '';
+                        opt.textContent = tShort + f.date + '  ' + f.home + ' - ' + f.away;
                         matchSelect.appendChild(opt);
                     }});
                     matchSelect.disabled = false;
