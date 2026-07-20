@@ -133,6 +133,13 @@ def get_flag_html(country_name):
 
 def get_nat_html(p):
     """Return flag (club teams) or club badge (national teams)"""
+    # Try "country" first (Flashscore API field)
+    country = p.get("country", "") or p.get("country_name", "")
+    if country:
+        flag_html = get_flag_html(country)
+        if flag_html != "–" and "flagcdn" in flag_html:
+            return flag_html
+        return f'<span class="club-badge" data-tooltip="{country}">{country[:3].upper()}</span>'
     club = p.get("club", "")
     if club:
         club_logo = p.get("club_logo", "")
