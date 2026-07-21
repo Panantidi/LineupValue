@@ -845,6 +845,16 @@ async def auth_middleware(request: Request, call_next):
     if _ip_whitelisted(client_ip):
         request.state.username = "owner"
         request.state.is_admin = True
+        # Track admin panel visits as "last login" for the admin user.
+        if path == "/admin" or path.startswith("/admin/"):
+            try:
+                con = sqlite3.connect(DB_PATH)
+                con.execute("UPDATE users SET last_login=? WHERE username='admin'",
+                             (datetime.now(timezone.utc).isoformat(),))
+                con.commit()
+                con.close()
+            except Exception:
+                pass
         return await call_next(request)
     # Check session cookie
     session_cookie = request.cookies.get("fa_session")
