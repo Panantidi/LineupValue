@@ -487,19 +487,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     while len(last3_matches) < 3:
         last3_matches.append({"date": "", "comp": "", "url": ""})
 
-    # Missing player emoji by reason
-    def _missing_emoji(reason):
-        r = (reason or "").lower()
-        if any(kw in r for kw in ['red card']):
-            return '🟥', '#dc3545'
-        elif any(kw in r for kw in ['yellow card']):
-            return '🟨', '#ffc107'
-        elif any(kw in r for kw in ['loan']):
-            return '📄', '#6c757d'
-        elif any(kw in r for kw in ['international', 'duty']):
-            return '🛫', '#0d6efd'
-        else:  # injury, illness, broken, etc
-            return '❌', '#dc3545'
+    # Missing player emoji by reason. Returns (emoji, tooltip_text, color).
+    # `miss` is now a dict {emoji, reason, side} from phase2_generic._missing_emoji,
+    # not a plain string. Handle both shapes for backward compatibility with
+    # caches that were written before the schema was upgraded.
+    def _missing_emoji(miss):
+        if isinstance(miss, dict):
+            reason = miss.get("reason", "") or ""
+            r = reason.lower()
+        else:
+            reason = miss or ""
+            r = reason.lower()
+        if "red card" in r:
+            return '🟥', reason, '#dc3545'
+        if "yellow card" in r:
+            return '🟨', reason, '#d4a017'
+        if "loan" in r:
+            return '📄', reason, '#6c757d'
+        if "international" in r or "duty" in r:
+            return '🛫', reason, '#0d6efd'
+        # Default: injury, illness, broken, health, heart, etc → red X
+        return '❌', reason, '#dc3545'
 
     # Строим HTML-ячейки для last3 каждого игрока
     def _last3_cells(p):
@@ -524,8 +532,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             elif val == "SUB":
                 cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#e3a035;display:inline-block;vertical-align:middle;"></div></td>'
             elif miss:
-                emoji, color = _missing_emoji(miss)
-                cells += f'<td style="text-align:center;vertical-align:middle;" title="{miss}"><span style="font-size:14px;cursor:help;">{emoji}</span></td>'
+                emoji, reason, color = _missing_emoji(miss)
+                # Escape the reason for HTML attribute (handles quotes/apostrophes)
+                safe_reason = html_lib.escape(reason, quote=True)
+                cells += f'<td style="text-align:center;vertical-align:middle;cursor:help;" data-tooltip="{safe_reason}"><span style="font-size:14px;color:{color};">{emoji}</span></td>'
             else:
                 cells += '<td style="text-align:center;vertical-align:middle;"></td>'
         return cells
@@ -1387,6 +1397,33 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .last3-tooltip:hover::after {{
             opacity: 1;
             visibility: visible;
+        }}
+        /* Generic cell tooltip (used by missing-player ❌/🟥/🟨/📄/🛫 cells) */
+        td[data-tooltip] {{
+            position: relative;
+            cursor: help;
+        }}
+        td[data-tooltip]:hover::after {{
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.96);
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.25;
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+            opacity: 1;
+            visibility: visible;
+            pointer-events: none;
+            z-index: 100;
         }}
         .club-badge {{
             position: relative;
