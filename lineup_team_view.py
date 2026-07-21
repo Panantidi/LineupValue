@@ -3721,7 +3721,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
     <!-- FAQ Modal -->
     <div id="faq-host" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto;box-sizing:border-box;">
-        <div style="background:white;border-radius:12px;max-width:780px;width:100%;padding:24px 28px;box-shadow:0 10px 40px rgba(0,0,0,0.25);position:relative;">
+        <div style="background:white;border-radius:12px;max-width:930px;width:100%;padding:24px 28px;box-shadow:0 10px 40px rgba(0,0,0,0.25);position:relative;">
             <button type="button" onclick="toggleFaq()" style="position:absolute;top:12px;right:12px;background:transparent;border:none;font-size:24px;cursor:pointer;color:#888;line-height:1;padding:4px 10px;">&times;</button>
             <h2 style="margin:0 0 18px 0;color:#043fb6;font-size:22px;">📋 FREQUENTLY ASKED QUESTIONS</h2>
             <div style="font-size:14px;color:#333;line-height:1.6;">
