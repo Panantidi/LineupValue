@@ -1681,7 +1681,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <aside class="my-squads-sidebar" id="my-squads-sidebar">
         <div class="actions-bar" style="margin:0 0 10px 0;align-items:flex-start;flex-direction:column;gap:6px;">
             <button type="button" class="action-btn save-btn" id="save-btn" onclick="saveTeamState()">💾 Save</button>
-            <button type="button" class="action-btn update-btn" id="update-data-btn" onclick="updateData()" title="Fetch latest data from Soccerway">♻️ Update data</button>
             <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text}</span>
             <span id="save-message"></span>
         </div>
@@ -1784,6 +1783,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <h1 style="margin:0;font-size:24px;font-weight:600;color:white;">{team_name}</h1>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;">
+                        <button type="button" id="update-data-btn" class="header-action-btn" onclick="updateData()" title="Fetch latest data from Flashscore (manual refresh)">♻️ Refresh</button>
                         <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
                             <option value="Squad" style="color:#333;">All Squad</option>
                             <option value="Missing Players" style="color:#333;">Missing Players</option>
@@ -2201,9 +2201,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     ? '✅ Updated in ' + duration + 's' 
                     : '✓ Cache refreshed in ' + duration + 's';
                 if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
-                btn.innerHTML = '♻️ Update data';
+                btn.innerHTML = '♻️ Refresh';
                 btn.disabled = false;
-                
+
                 // Reload page immediately with cache-bust
                 const url = location.pathname + '?_v=' + Date.now();
                 window.location.href = url;
@@ -2212,7 +2212,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 console.error('[UpdateData] error:', e);
                 if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Error'); msgEl.style.color = '#dc3545'; }}
                 btn.disabled = false;
-                btn.innerHTML = '♻️ Update data';
+                btn.innerHTML = '♻️ Refresh';
             }}
         }}
 
@@ -3146,7 +3146,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                                 ? '✅ Auto-updated (was ' + duration + 'h old)'
                                 : '✓ Refreshed (was ' + duration + 'h old)';
                             if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
-                            if (btn) {{ btn.innerHTML = '♻️ Update data'; btn.disabled = false; }}
+                            if (btn) {{ btn.innerHTML = '♻️ Refresh'; btn.disabled = false; }}
                             // No reload: auto-update already saved fresh cache.
                             // Reloading would re-trigger the auto-update and create a reload loop.
                         }})
@@ -3154,7 +3154,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                             clearInterval(counterInterval);
                             console.log('[AutoUpdate] Failed:', err);
                             if (msgEl) {{ msgEl.textContent = '⚠️ Update failed'; msgEl.style.color = '#dc3545'; }}
-                            if (btn) {{ btn.innerHTML = '♻️ Update data'; btn.disabled = false; }}
+                            if (btn) {{ btn.innerHTML = '♻️ Refresh'; btn.disabled = false; }}
                         }});
                 }} else {{
                     // Cache is fresh, no auto-update needed. Background sync disabled
