@@ -182,12 +182,12 @@ def refresh_squad(team_id, slug, info):
                     "name": name,
                     "position": _map_position(grp_name),
                     "position_raw": grp_name,  # preserve original (debugging / fallback)
-                    "age": int(p["age"]) if p.get("age", "").isdigit() else None,
+                    "age": _clean_cell(p.get("age")),
                     "nationality": country,
                     "country": country,
                     "country_flag": _country_to_flag(country),
                     "number": p.get("number"),
-                    "market_value": None,  # filled by player_details
+                    "market_value": _clean_cell(None),  # filled by player_details
                     "matches_played": int(p["matches_played"]) if p.get("matches_played", "").isdigit() else 0,
                     "minutes_played": int(p["minutes_played"]) if p.get("minutes_played", "").isdigit() else 0,
                     "goals": int(p["goals_scored"]) if p.get("goals_scored", "").isdigit() else 0,
@@ -198,6 +198,43 @@ def refresh_squad(team_id, slug, info):
                     "tournament": tab_name,
                 })
     return players
+
+
+# --- Normalize empty cells ---
+# Jul 22 2026 — Senior Python Flask refactor.
+# Cache used to store None for missing Age / Market Value. The UI rendered
+# "None" as literal text. We now return "" so the template can render an
+# empty <td></td> cleanly. The contract:
+#     None         → ""     (was None)
+#     ""           → ""     (already empty)
+#     "–", "—", "?", "N/A" → ""  (placeholder chars also become empty)
+#     "23"         → 23     (numeric coercion when possible)
+#     "€5.2M"      → "€5.2M" (preserve formatted strings)
+def _clean_cell(value):
+    """Normalize a single cell value to '' (empty) or its real content.
+
+    Used for Age, Market Value, and any other optional field where the
+    template should render an empty cell instead of "None" / "–" / "?".
+    """
+    if value is None:
+        return ""
+    if isinstance(value, (int, float)):
+        if value == 0 or value != value:  # 0 or NaN
+            return ""
+        return value
+    s = str(value).strip()
+    if not s:
+        return ""
+    # Treat placeholder chars as empty
+    if s in ("–", "—", "-", "?", "N/A", "n/a", "none", "None", "null", "NULL"):
+        return ""
+    # Try numeric coercion
+    if s.isdigit():
+        return int(s)
+    try:
+        return float(s)
+    except ValueError:
+        return s
 
 
 # --- Country → flag URL ---
@@ -347,9 +384,14 @@ def refresh_player_details(player, delay=0.25):
     d = _fetch(full_url)
     if not d or not isinstance(d, dict):
         return
+    # market_value: keep real value, "" when missing (no "None" / "–")
     mv = d.get("market_value")
-    if mv:
+    if mv not in (None, "", 0, "0", "–", "—", "?", "N/A"):
         player["market_value"] = mv
+    elif "market_value" in player and player["market_value"] in (None, "", 0):
+        # Don't overwrite a real age/club value with empty; only clear if also empty.
+        # Use _clean_cell for consistency with the rest of the pipeline.
+        player["market_value"] = _clean_cell(mv)
     img = d.get("image_path")
     if img:
         player["image_path"] = img
