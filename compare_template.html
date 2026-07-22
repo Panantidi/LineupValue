@@ -102,7 +102,119 @@ body {
     min-width: 980px;
     width: 980px;
     border: none;
-    display: block;
+}
+
+/* ‼️ H2H button: absolute, vertical center between the two iframes. */
+.match-h2h-btn {
+    position: absolute;
+    /* Horizontally: centered on the 30px gap between the two iframes.
+       Each iframe is 980px wide; .compare-container gap=30px.
+       For a 2-iframe layout the gap center is at 980 + 15 = 995px from the left. */
+    left: 995px;
+    /* Vertically: aligned with the team name h1 in the gradient bar
+       (≈60-80px from the top of the iframe content area). */
+    top: 24px;
+    z-index: 100;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
+    color: white;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.match-h2h-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+.match-h2h-btn.active {
+    background: linear-gradient(to right, #dc3545 0%, #ff6b6b 100%);
+}
+
+/* H2H popup: 250x800px, sits below the ‼️ button. */
+.match-h2h-popup {
+    position: absolute;
+    left: calc(995px - 125px + 24px);  /* centered under the button */
+    top: 90px;                          /* below the button */
+    width: 250px;
+    max-height: 800px;
+    background: white;
+    color: #333;
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    z-index: 200;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.match-h2h-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+.match-h2h-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    border-radius: 4px;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+}
+.match-h2h-body {
+    overflow-y: auto;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    flex: 1;
+}
+.match-h2h-loading { color: #666; }
+.match-h2h-section { margin-bottom: 18px; }
+.match-h2h-section-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: #043fb6;
+    margin: 8px 0 4px 0;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 3px;
+}
+.match-h2h-stadium {
+    color: #555;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+.match-h2h-stadium .icon { color: #043fb6; font-weight: 700; margin-right: 3px; }
+.match-h2h-row {
+    display: grid;
+    grid-template-columns: 38px 12px 1fr 1fr 16px;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 0;
+    border-bottom: 1px solid #f3f3f3;
+    font-size: 11px;
+}
+.match-h2h-row .date { color: #666; font-size: 10px; }
+.match-h2h-row .tournament { color: #999; font-size: 9px; text-align: left; }
+.match-h2h-row .home { text-align: right; }
+.match-h2h-row .away { text-align: left; }
+.match-h2h-row .home.winner { font-weight: 700; }
+.match-h2h-row .away.winner { font-weight: 700; }
+.match-h2h-row .score { text-align: center; font-weight: 700; color: #333; }
+.match-h2h-row .result { text-align: center; font-size: 13px; }
     height: auto;
     overflow: visible;
     overflow-y: hidden;
@@ -392,6 +504,21 @@ body {
 <div class="compare-wrapper" id="scroll-wrapper">
 <div class="compare-container" id="frames-container">
     <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1&v=2" title="{{my_name}}" scrolling="no"></iframe>
+    <!-- ‼️ H2H button: positioned absolutely at vertical center between the two iframes.
+         Lazy-loads Flashscore /matches/h2h + /teams/results on first click. -->
+    <button id="match-h2h-toggle" class="match-h2h-btn" type="button" title="H2H + Last Matches" aria-label="H2H + Last Matches">‼️</button>
+    <!-- H2H popup: 250x800px, hidden by default. Filled lazily via fetchH2H(). -->
+    <div id="match-h2h-popup" class="match-h2h-popup" style="display:none;">
+        <div class="match-h2h-header">
+            <span id="match-h2h-title">H2H &amp; Last Matches</span>
+            <button type="button" class="match-h2h-close" onclick="toggleH2HPopup()" title="Close">✕</button>
+        </div>
+        <div id="match-h2h-body" class="match-h2h-body">
+            <div class="match-h2h-loading" style="padding:20px;text-align:center;color:#666;">
+                Click ‼️ to load H2H + Last Matches…
+            </div>
+        </div>
+    </div>
     <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}?embed=1&v=2" title="{{opponent_name}}" scrolling="no"></iframe>
 </div>
 </div>
@@ -1067,6 +1194,8 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         var host = document.getElementById('faq-host');
         if (host && host.style.display === 'flex') host.style.display = 'none';
+        var h2h = document.getElementById('match-h2h-popup');
+        if (h2h && h2h.style.display === 'flex') h2h.style.display = 'none';
     }
 });
 document.addEventListener('click', function(e) {
@@ -1074,6 +1203,174 @@ document.addEventListener('click', function(e) {
     if (host && host.style.display === 'flex' && e.target === host) {
         host.style.display = 'none';
     }
+});
+
+// ---------------------------------------------------------------------------
+// ‼️ H2H + Last Matches popup (Match mode)
+// Lazy-loads Flashscore data ONLY on the first button click. Subsequent
+// clicks toggle the popup using the cached payload (no extra API calls).
+// ---------------------------------------------------------------------------
+var h2hLoaded = false;          // have we fetched yet?
+var h2hMyName = '{{my_name}}';
+var h2hOppName = '{{opponent_name}}';
+var h2hMyId = '{{my_team_id}}';
+var h2hOppId = '{{opp_team_id}}';
+
+function toggleH2HPopup() {
+    var popup = document.getElementById('match-h2h-popup');
+    var btn = document.getElementById('match-h2h-toggle');
+    if (!popup || !btn) return;
+    var isVisible = popup.style.display === 'flex';
+    if (isVisible) {
+        popup.style.display = 'none';
+        btn.classList.remove('active');
+    } else {
+        popup.style.display = 'flex';
+        btn.classList.add('active');
+        if (!h2hLoaded) {
+            fetchH2H();
+        }
+    }
+}
+
+function fetchH2H() {
+    var body = document.getElementById('match-h2h-body');
+    if (!body) return;
+    body.innerHTML = '<div class="match-h2h-loading" style="padding:20px;text-align:center;color:#666;">⏳ Loading H2H + Last Matches…</div>';
+    var matchId = '{{match_id}}';
+    if (!matchId) {
+        body.innerHTML = '<div class="match-h2h-loading" style="padding:20px;text-align:center;color:#dc3545;">❌ No match_id in URL</div>';
+        return;
+    }
+    var url = '/lineup_ai/match/h2h/' + encodeURIComponent(matchId)
+        + '?my=' + encodeURIComponent(h2hMyId) + '&opp=' + encodeURIComponent(h2hOppId)
+        + '&_t=' + Date.now();
+    fetch(url, { cache: 'no-store' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            h2hLoaded = true;
+            renderH2H(data);
+        })
+        .catch(function(err) {
+            console.error('[H2H] fetch failed:', err);
+            body.innerHTML = '<div class="match-h2h-loading" style="padding:20px;text-align:center;color:#dc3545;">❌ ' + (err.message || 'Error') + '</div>';
+        });
+}
+
+function renderH2H(data) {
+    var body = document.getElementById('match-h2h-body');
+    if (!body) return;
+    if (!data || data.error) {
+        body.innerHTML = '<div class="match-h2h-loading" style="padding:20px;text-align:center;color:#dc3545;">❌ ' + (data && data.error || 'No data') + '</div>';
+        return;
+    }
+    var html = '';
+    // ---- Stadium block (H2H context) ----
+    if (data.stadium) {
+        var s = data.stadium;
+        html += '<div class="match-h2h-section">';
+        if (s.name) html += '<div class="match-h2h-stadium"><span class="icon">🏟</span>' + escH(s.name) + '</div>';
+        if (s.city) html += '<div class="match-h2h-stadium"><span class="icon">📍</span>' + escH(s.city) + '</div>';
+        if (s.capacity) html += '<div class="match-h2h-stadium"><span class="icon">🗣</span>' + escH(String(s.capacity)) + '</div>';
+        if (s.referee) html += '<div class="match-h2h-stadium"><span class="icon">⚖️</span>' + escH(s.referee) + '</div>';
+        html += '</div>';
+    }
+    // ---- H2H matches ----
+    if (data.h2h && data.h2h.length) {
+        html += '<div class="match-h2h-section">';
+        html += '<div class="match-h2h-section-title" style="text-align:center;background:#f0f0f0;padding:3px 0;margin-bottom:6px;">H2H</div>';
+        for (var i = 0; i < data.h2h.length; i++) {
+            html += renderH2HMatch(data.h2h[i]);
+        }
+        html += '</div>';
+    }
+    // ---- Last Matches: my team ----
+    if (data.last_my && data.last_my.length) {
+        html += '<div class="match-h2h-section">';
+        html += '<div class="match-h2h-section-title">Last Matches: ' + escH(h2hMyName) + '</div>';
+        for (var j = 0; j < data.last_my.length; j++) {
+            html += renderH2HMatch(data.last_my[j]);
+        }
+        html += '</div>';
+    }
+    // ---- Last Matches: opponent ----
+    if (data.last_opp && data.last_opp.length) {
+        html += '<div class="match-h2h-section">';
+        html += '<div class="match-h2h-section-title">Last Matches: ' + escH(h2hOppName) + '</div>';
+        for (var k = 0; k < data.last_opp.length; k++) {
+            html += renderH2HMatch(data.last_opp[k]);
+        }
+        html += '</div>';
+    }
+    if (!html) {
+        html = '<div class="match-h2h-loading" style="padding:20px;text-align:center;color:#666;">No data available.</div>';
+    }
+    body.innerHTML = html;
+}
+
+function renderH2HMatch(m) {
+    // m: {date, score, scores:{home,away}, home:{id,name}, away:{id,name}, tournament}
+    // Returns 3 rows: header (date+tournament+home+score+away+result) split into
+    // two stacked grid rows to match the visual spec:
+    //   row 1: [date  ] [score] [home]  [result]
+    //   row 2: [(tournament)] [away]
+    var homeName = (m.home && m.home.name) || 'Home';
+    var awayName = (m.away && m.away.name) || 'Away';
+    var homeScore = m.score_home;
+    var awayScore = m.score_away;
+    var date = m.date || '';
+    var tournament = (m.tournament || '').toUpperCase();
+    // Determine winner from my_team perspective
+    var mySide = m.my_side;  // 'home' | 'away' | null
+    var hs = parseInt(homeScore, 10);
+    var as = parseInt(awayScore, 10);
+    var homeWins = (hs > as);
+    var awayWins = (as > hs);
+    var draw = (hs === as) && !isNaN(hs);
+    // Result emoji relative to my team
+    var result = '';
+    if (!isNaN(hs) && !isNaN(as)) {
+        if (mySide === 'home') {
+            result = homeWins ? '🟩' : (awayWins ? '🟥' : '🟧');
+        } else if (mySide === 'away') {
+            result = awayWins ? '🟩' : (homeWins ? '🟥' : '🟧');
+        }
+    }
+    var html = '<div class="match-h2h-row" style="grid-template-columns: 38px 1fr 16px;">';
+    html += '<span class="date">' + escH(date) + '</span>';
+    html += '<span class="home' + (homeWins ? ' winner' : '') + '">' + escH(homeName) + '</span>';
+    html += '<span class="result">' + result + '</span>';
+    html += '</div>';
+    html += '<div class="match-h2h-row" style="grid-template-columns: 38px 12px 1fr 1fr 16px;">';
+    html += '<span></span>';
+    html += '<span class="score">' + (isNaN(hs) ? '?' : hs) + '</span>';
+    html += '<span class="away' + (awayWins ? ' winner' : '') + '">' + escH(awayName) + '</span>';
+    html += '<span></span>';
+    html += '<span></span>';
+    html += '</div>';
+    if (tournament) {
+        html += '<div class="match-h2h-row" style="grid-template-columns: 38px 1fr; padding-top:0;border-bottom:1px solid #eee;">';
+        html += '<span class="tournament">' + escH(tournament) + '</span>';
+        html += '<span></span>';
+        html += '</div>';
+    }
+    return html;
+}
+
+function escH(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Wire up the ‼️ button on DOMContentLoaded.
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('match-h2h-toggle');
+    if (btn) btn.addEventListener('click', toggleH2HPopup);
 });
 </script>
 

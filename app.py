@@ -1743,10 +1743,60 @@ def _write_fixtures_cache(team_id: str, fixtures: list):
     except:
         pass
 
+@app.get("/lineup_ai/match/h2h/{match_id}")
+async def lineup_match_h2h(match_id: str, my: str = "", opp: str = ""):
+    """H2H + Last Matches for the Match-mode ‼️ popup.
+
+    Jul 22 2026 — Senior Python Flask refactor.
+    Called ONLY on click of the ‼️ button in /lineup_ai/compare/{team_id}.
+    Three Flashscore endpoints (all lazy — no pre-fetch on page load):
+        GET /matches/h2h?match_id={id}
+        GET /teams/results?team_id={my_id}&page=1
+        GET /teams/results?team_id={opp_id}&page=1
+    Plus /teams/details for stadium info.
+
+    Query params:
+        my:  my team_id
+        opp: opponent team_id
+
+    Returns: JSON {stadium: {...}, h2h: [...], last_my: [...], last_opp: [...], error: ...}
+    """
+    if not match_id:
+        return {"stadium": {}, "h2h": [], "last_my": [], "last_opp": [], "error": "missing match_id"}
+    # Slug lookup: best-effort from leagues_data.json
+    my_slug = ""
+    opp_slug = ""
+    LEAGUES_FILE = "/home/openclaw/FormAlert/leagues_data.json"
+    try:
+        ld = json.load(open(LEAGUES_FILE))
+        for country, champs in ld.items():
+            for champ, teams in champs.items():
+                for t in teams:
+                    if t.get("id") == my:
+                        my_slug = t.get("slug", "")
+                    elif t.get("id") == opp:
+                        opp_slug = t.get("slug", "")
+    except Exception:
+        pass
+    # Delegate to api_refresh — runs the 4 HTTP calls (≈2-5s, only on click)
+    import api_refresh as _ar
+    try:
+        payload = _ar.fetch_match_h2h_payload(
+            match_id=match_id,
+            my_team_id=my or "",
+            opp_team_id=opp or "",
+            my_slug=my_slug or "",
+            opp_slug=opp_slug or "",
+        )
+    except Exception as e:
+        payload = {"stadium": {}, "h2h": [], "last_my": [], "last_opp": [], "error": str(e)}
+    return payload
+
+
 @app.get("/lineup_ai/api/fixtures/{team_id}")
 async def lineup_api_fixtures(team_id: str):
     """Fetch upcoming fixtures from Soccerway and return as JSON.
-    
+
     Returns:
         - 1 match happening today (if any)
         - 2 upcoming matches after today
@@ -2180,6 +2230,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     result = result.replace("{{my_name}}", home_name)
     result = result.replace("{{opponent_name}}", away_name)
     result = result.replace("{{mid}}", mid)
+    result = result.replace("{{match_id}}", mid)
     result = result.replace("{{stadium_text}}", stadium_text)
     result = result.replace("{{stadium_class}}", stadium_class)
     result = result.replace("{{neutral_suffix}}", neutral_suffix)

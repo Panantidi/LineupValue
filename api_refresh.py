@@ -911,3 +911,208 @@ def ensure_fresh_async(team_id):
         import threading
         t = threading.Thread(target=refresh_team, args=(team_id,), daemon=True)
         t.start()
+
+
+# ---------------------------------------------------------------------------
+# H2H + Last Matches (Match mode popup)
+# Jul 22 2026 — Senior Python Flask refactor.
+# Three Flashscore endpoints:
+#   GET /matches/h2h?match_id={id}
+#   GET /teams/results?team_id={id}&page=1
+# Plus the /teams/details for stadium/referee.
+# Called ONLY on click of the ‼️ button in Match mode — never at page load.
+# ---------------------------------------------------------------------------
+def _fetch_json(url):
+    """Helper: GET a JSON URL with our RapidAPI headers (skip SSL verify)."""
+    try:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = urllib.request.Request(url, headers=HEADERS)
+        body = urllib.request.urlopen(req, context=ctx, timeout=20).read()
+        return json.loads(body)
+    except Exception as e:
+        return {"_error": str(e)}
+
+
+def _parse_match_row(m, my_team_id):
+    """Convert a Flashscore match envelope into a UI-ready dict.
+
+    Real API shape (verified):
+        m = {
+            "match_id": "MgtcCHgC",
+            "timestamp": 1784282400,
+            "home_team": {"team_id": "2wZ...", "name": "Home"},
+            "away_team": {"team_id": "6qA...", "name": "Away"},
+            "scores": {"home": 2, "away": 1}
+        }
+
+    Args:
+        m: the raw match dict
+        my_team_id: which side is "ours" (sets my_side='home'/'away')
+    """
+    if not isinstance(m, dict):
+        return None
+    mid = m.get("match_id") or m.get("id")
+    home = m.get("home_team") or m.get("home") or {}
+    away = m.get("away_team") or m.get("away") or {}
+    if isinstance(home, str):
+        home = {"name": home}
+    if isinstance(away, str):
+        away = {"name": away}
+    home_id = (home.get("team_id") or home.get("id")) if isinstance(home, dict) else None
+    away_id = (away.get("team_id") or away.get("id")) if isinstance(away, dict) else None
+    home_name = (home.get("name") or home.get("short_name") or home.get("full_name") or "") if isinstance(home, dict) else str(home or "")
+    away_name = (away.get("name") or away.get("short_name") or away.get("full_name") or "") if isinstance(away, dict) else str(away or "")
+    # Score: API returns nested `scores` object (verified Jul 22 2026)
+    hs, aws = None, None
+    scores = m.get("scores")
+    if isinstance(scores, dict):
+        if scores.get("home") is not None:
+            hs = scores.get("home")
+        if scores.get("away") is not None:
+            aws = scores.get("away")
+    if hs is None or aws is None:
+        score_str = m.get("score") or ""
+        if "-" in str(score_str):
+            try:
+                ph, pa = str(score_str).split("-", 1)
+                if hs is None:
+                    hs = int(ph.strip())
+                if aws is None:
+                    aws = int(pa.strip())
+            except (ValueError, TypeError):
+                pass
+    ts = m.get("timestamp") or m.get("start_timestamp") or 0
+    date_str = ""
+    if ts:
+        try:
+            dt = datetime.fromtimestamp(int(ts))
+            date_str = dt.strftime("%d.%m.%y")
+        except (ValueError, TypeError, OSError):
+            pass
+    my_side = None
+    if my_team_id:
+        if str(home_id or "") == str(my_team_id):
+            my_side = "home"
+        elif str(away_id or "") == str(my_team_id):
+            my_side = "away"
+    return {
+        "match_id": mid,
+        "date": date_str,
+        "home": {"id": home_id, "name": home_name},
+        "away": {"id": away_id, "name": away_name},
+        "score_home": hs,
+        "score_away": aws,
+        "tournament": m.get("tournament_short") or m.get("tournament") or "",
+        "my_side": my_side,
+    }
+
+
+def fetch_h2h(match_id):
+    """Call Flashscore /matches/h2h?match_id={id} and return a list of normalized matches.
+
+    Returns:
+        list of dicts (see _parse_match_row) or [] on error.
+    """
+    if not match_id:
+        return []
+    url = f"https://{HOST}/api/flashscore/v2/matches/h2h?match_id={match_id}"
+    data = _fetch_json(url)
+    if not isinstance(data, list) or not data:
+        return []
+    out = []
+    for m in data:
+        row = _parse_match_row(m, None)
+        if row:
+            out.append(row)
+    # Newest first
+    return out
+
+
+def fetch_team_results(team_id, my_team_id=None, max_results=5):
+    """Call Flashscore /teams/results?team_id={id} and return last N matches.
+
+    Args:
+        team_id: the team whose results to fetch
+        my_team_id: which side is "ours" (for win/loss emoji)
+        max_results: limit on the number of returned matches (default 5)
+
+    Returns:
+        list of dicts (see _parse_match_row) or [] on error.
+    """
+    if not team_id:
+        return []
+    url = f"https://{HOST}/api/flashscore/v2/teams/results?team_id={team_id}&page=1"
+    data = _fetch_json(url)
+    if not isinstance(data, list) or not data:
+        return []
+    flat = []
+    for env in data:
+        if not isinstance(env, dict):
+            continue
+        tshort = env.get("name") or ""
+        tshort = _short_tournament(tshort) if "_short_tournament" in globals() else tshort
+        for m in env.get("matches", []) or []:
+            row = _parse_match_row(m, my_team_id or team_id)
+            if row:
+                # Augment with tournament from the envelope (env.name)
+                if not row.get("tournament"):
+                    row["tournament"] = tshort
+                flat.append(row)
+    # Sort by timestamp DESC
+    flat.sort(key=lambda x: int(m.get("timestamp", 0) if (m := x) else 0), reverse=True)
+    return flat[:max_results]
+
+
+def fetch_team_details_for_match(team_id, slug):
+    """Call Flashscore /teams/details for stadium info (used in H2H popup header)."""
+    if not team_id or not slug:
+        return {}
+    url = f"https://{HOST}/api/flashscore/v2/teams/details?team_url=%2Fteam%2F{slug}%2F{team_id}%2F"
+    data = _fetch_json(url)
+    if not isinstance(data, dict) or data.get("_error"):
+        return {}
+    return {
+        "name": data.get("name") or "",
+        "image_path": data.get("image_path") or "",
+        "stadium": data.get("stadium") or "",
+        "city": data.get("city") or "",
+        "capacity": data.get("capacity") or 0,
+    }
+
+
+def fetch_match_h2h_payload(match_id, my_team_id, opp_team_id, my_slug, opp_slug):
+    """Build the full H2H + Last Matches payload for the popup.
+
+    Performs (only on click):
+        1. /matches/h2h?match_id=...        → H2H history
+        2. /teams/results?team_id={my}     → Last matches of my team
+        3. /teams/results?team_id={opp}    → Last matches of opponent
+        4. /teams/details for both teams   → stadium (for the popup header)
+
+    Returns:
+        dict with keys: stadium, h2h, last_my, last_opp, error
+    """
+    payload = {"stadium": {}, "h2h": [], "last_my": [], "last_opp": [], "error": None}
+    try:
+        # 1. H2H history
+        h2h = fetch_h2h(match_id)
+        payload["h2h"] = h2h[:8]  # cap at 8 rows for the popup
+        # 2. Last matches for both teams (parallel would be nice but serial is fine for ~3 calls)
+        payload["last_my"] = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=5)
+        payload["last_opp"] = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=5)
+        # 3. Stadium (use the first available of either team)
+        my_details = fetch_team_details_for_match(my_team_id, my_slug) or {}
+        if not my_details:
+            my_details = fetch_team_details_for_match(opp_team_id, opp_slug) or {}
+        if my_details:
+            payload["stadium"] = {
+                "name": my_details.get("stadium") or "",
+                "city": my_details.get("city") or "",
+                "capacity": my_details.get("capacity") or 0,
+                "referee": "",  # not exposed by /teams/details
+            }
+    except Exception as e:
+        payload["error"] = str(e)
+    return payload
