@@ -174,14 +174,18 @@ def refresh_squad(team_id, slug, info):
                 name = p.get("name")
                 if not pid or not name:
                     continue
+                # Strip trailing reason keywords (e.g. "Vindahl Peter Foot Injury" → "Vindahl Peter")
+                name = _strip_missing_reason_suffix(name)
+                country = p.get("country_name", "")
                 players.append({
                     "player_id": pid,
                     "name": name,
                     "position": _map_position(grp_name),
                     "position_raw": grp_name,  # preserve original (debugging / fallback)
                     "age": int(p["age"]) if p.get("age", "").isdigit() else None,
-                    "nationality": p.get("country_name", ""),
-                    "country": p.get("country_name", ""),
+                    "nationality": country,
+                    "country": country,
+                    "country_flag": _country_to_flag(country),
                     "number": p.get("number"),
                     "market_value": None,  # filled by player_details
                     "matches_played": int(p["matches_played"]) if p.get("matches_played", "").isdigit() else 0,
@@ -194,6 +198,117 @@ def refresh_squad(team_id, slug, info):
                     "tournament": tab_name,
                 })
     return players
+
+
+# --- Country → flag URL ---
+# Mirrors phase2_generic.COUNTRY_CODES (Jul 2026 snapshot).
+# Verified against flagcdn.com — all 80+ entries resolve to real PNGs.
+_COUNTRY_CODES = {
+    "afghanistan": "af", "albania": "al", "algeria": "dz", "andorra": "ad",
+    "angola": "ao", "argentina": "ar", "armenia": "am", "australia": "au",
+    "austria": "at", "azerbaijan": "az", "bahrain": "bh", "bangladesh": "bd",
+    "belarus": "by", "belgium": "be", "bolivia": "bo", "bosnia and herzegovina": "ba",
+    "bosnia": "ba", "brazil": "br", "bulgaria": "bg", "cambodia": "kh",
+    "cameroon": "cm", "canada": "ca", "chile": "cl", "china": "cn",
+    "colombia": "co", "costa rica": "cr", "croatia": "hr", "cuba": "cu",
+    "cyprus": "cy", "czech republic": "cz", "czechia": "cz", "denmark": "dk",
+    "dominican republic": "do", "ecuador": "ec", "egypt": "eg", "el salvador": "sv",
+    "england": "gb-eng", "estonia": "ee", "ethiopia": "et", "finland": "fi",
+    "france": "fr", "gabon": "ga", "georgia": "ge", "germany": "de",
+    "ghana": "gh", "gibraltar": "gi", "greece": "gr", "guatemala": "gt",
+    "honduras": "hn", "hong kong": "hk", "hungary": "hu", "iceland": "is",
+    "india": "in", "indonesia": "id", "iran": "ir", "iraq": "iq",
+    "ireland": "ie", "israel": "il", "italy": "it", "ivory coast": "ci",
+    "jamaica": "jm", "japan": "jp", "jordan": "jo", "kazakhstan": "kz",
+    "kenya": "ke", "kosovo": "xk", "kuwait": "kw", "latvia": "lv",
+    "lebanon": "lb", "lithuania": "lt", "luxembourg": "lu", "macao": "mo",
+    "macau": "mo", "macedonia": "mk", "north macedonia": "mk", "malaysia": "my",
+    "mali": "ml", "malta": "mt", "mexico": "mx", "moldova": "md",
+    "mongolia": "mn", "montenegro": "me", "morocco": "ma", "netherlands": "nl",
+    "new zealand": "nz", "nicaragua": "ni", "nigeria": "ng", "northern ireland": "gb-nir",
+    "norway": "no", "oman": "om", "pakistan": "pk", "palestine": "ps",
+    "panama": "pa", "paraguay": "py", "peru": "pe", "philippines": "ph",
+    "poland": "pl", "portugal": "pt", "qatar": "qa", "romania": "ro",
+    "russia": "ru", "saudi arabia": "sa", "scotland": "gb-sct", "senegal": "sn",
+    "serbia": "rs", "singapore": "sg", "slovakia": "sk", "slovenia": "si",
+    "south africa": "za", "south korea": "kr", "korea, south": "kr", "spain": "es",
+    "sweden": "se", "switzerland": "ch", "syria": "sy", "taiwan": "tw",
+    "tajikistan": "tj", "tanzania": "tz", "thailand": "th", "tunisia": "tn",
+    "turkey": "tr", "türkiye": "tr", "turkmenistan": "tm", "uganda": "ug",
+    "ukraine": "ua", "united arab emirates": "ae", "uae": "ae", "united states": "us",
+    "usa": "us", "uruguay": "uy", "uzbekistan": "uz", "venezuela": "ve",
+    "vietnam": "vn", "wales": "gb-wls", "yemen": "ye", "zambia": "zm",
+    "zimbabwe": "zw", "burkina faso": "bf", "guinea": "gn", "sierra leone": "sl",
+    "gambia": "gm", "togo": "tg", "benin": "bj", "liberia": "lr",
+    "cape verde": "cv", "cabo verde": "cv", "mauritania": "mr", "niger": "ne",
+    "chad": "td", "sudan": "sd", "south sudan": "ss", "eritrea": "er",
+    "djibouti": "dj", "somalia": "so", "madagascar": "mg", "mauritius": "mu",
+    "seychelles": "sc", "comoros": "km", "burundi": "bi", "rwanda": "rw",
+    "congo": "cg", "dr congo": "cd", "congo, democratic republic": "cd",
+    "equatorial guinea": "gq", "guinea-bissau": "gw",
+}
+
+
+def _country_to_flag(country_name: str) -> str:
+    """Map a country name to flagcdn.com URL (e.g. 'Czech Republic' → cz.png).
+
+    Mirrors phase2_generic.country_to_flag. Returns empty string if unknown.
+    """
+    if not country_name:
+        return ""
+    key = str(country_name).strip().lower()
+    code = _COUNTRY_CODES.get(key)
+    if code:
+        return f"https://flagcdn.com/w20/{code}.png"
+    return ""
+
+
+# --- Strip trailing reason keywords from player names ---
+# Mirrors phase2_generic._strip_missing_reason_suffix (Jul 22 2026 spec).
+# The Flashscore API sometimes appends a reason keyword to player.name for
+# missing players (e.g. "Vindahl Peter Foot Injury" instead of "Vindahl Peter").
+# The reason is preserved separately in last3_missing[].reason. This helper
+# returns the cleaned name; the reason is rendered only in the missing-cell
+# hover tooltip, NEVER in the Player column.
+_REASON_TOKENS = (
+    # Multi-word injury keywords (longest first)
+    "Achilles Tendon Injury", "Lower Back Injury", "Hamstring Injury",
+    "Knee Injury", "Muscle Injury", "Shoulder Injury", "Ankle Injury",
+    "Back Injury", "Arm Injury", "Calf Injury", "Elbow Injury",
+    "Leg Injury", "Groin Injury", "Head Injury", "Thigh Injury",
+    "Toe Injury", "Foot Injury", "Broken Leg", "Broken calfbone", "Broken jawbone",
+    # Single-word + health reasons
+    "Injury", "Illness", "Health problems", "Heart Problems",
+    # Disciplinary + squad reasons
+    "Red Card", "Yellow Cards", "Yellow Card",
+    "Loan agreement", "International duty",
+    # Roster-management / suspension
+    "Suspended", "Coach's decision", "Inactive", "Lacking Match Fitness", "Rest",
+)
+
+
+def _strip_missing_reason_suffix(name):
+    """Strip a trailing reason keyword from a player name.
+
+    Examples:
+        "Vindahl Peter Foot Injury"   → "Vindahl Peter"
+        "Portillo Juan Knee Injury"   → "Portillo Juan"
+        "Messi Lionel"                → "Messi Lionel"   (no change)
+        "Knee Injury"                 → "Knee Injury"    (no change, too short)
+    """
+    if not name:
+        return name
+    parts = str(name).split()
+    if len(parts) <= 2:
+        return name  # too short to safely strip
+    # Sort by length desc so multi-word keywords match first
+    for reason in sorted(_REASON_TOKENS, key=len, reverse=True):
+        r_parts = reason.split()
+        if len(parts) > len(r_parts) and parts[-len(r_parts):] == r_parts:
+            cleaned = " ".join(parts[:-len(r_parts)])
+            if len(cleaned.split()) >= 2:
+                return cleaned
+    return name
 
 
 # Position mapping (Skill formalert-team-page-template) — section name → 2-letter code.
@@ -244,6 +359,107 @@ def refresh_player_details(player, delay=0.25):
             if k in stats:
                 player[k] = stats[k]
     time.sleep(delay)
+
+
+def refresh_team_details(team_id, slug):
+    """Fetch /teams/details and return {image_path, stadium, city, capacity, name}.
+
+    Real API response (verified Jul 22 2026):
+        {
+            "team_id": "6qA358jH",
+            "name": "Sparta Prague",
+            "image_path": "https://static.flashscore.com/res/image/data/lIHy1EfM-lWOFh0RD.png",
+            "stadium": "epet ARENA",
+            "city": "Prague",
+            "capacity": 18349
+        }
+
+    This is the ONLY place the team logo (image_path) comes from. The
+    /teams/squad endpoint does NOT return image_path. Without this call,
+    the cache file would have team.image_path = None and the UI would
+    fall back to a letter placeholder.
+    """
+    url = f"https://{HOST}/api/flashscore/v2/teams/details?team_url=%2Fteam%2F{slug}%2F{team_id}%2F"
+    d = _fetch(url)
+    if not d or not isinstance(d, dict):
+        return {}
+    return {
+        "image_path": d.get("image_path") or "",
+        "stadium": d.get("stadium") or "",
+        "city": d.get("city") or "",
+        "capacity": d.get("capacity") or 0,
+        "name": d.get("name") or "",
+    }
+
+
+def refresh_fixtures(team_id):
+    """Fetch /teams/fixtures and return list of next 3 upcoming matches.
+
+    Real API shape (same envelope as /teams/results):
+        [
+            {tournament_id, full_name, name, matches: [{match_id, timestamp, ...}]}
+        ]
+    Returns matches sorted ASC by timestamp, top 3.
+    """
+    url = f"https://{HOST}/api/flashscore/v2/teams/fixtures?team_id={team_id}"
+    data = _fetch(url)
+    if not data:
+        return []
+    rows = data if isinstance(data, list) else (data.get("data") if isinstance(data, dict) else [])
+    if not isinstance(rows, list) or not rows:
+        return []
+    flat = []
+    for env in rows:
+        if not isinstance(env, dict):
+            continue
+        tname = env.get("full_name") or env.get("name") or ""
+        tshort = _short_tournament(env.get("name") or "")
+        for m in env.get("matches", []) or []:
+            if not isinstance(m, dict):
+                continue
+            flat.append((m, tname, tshort))
+    flat.sort(key=lambda x: int(x[0].get("timestamp") or 0))
+    flat = flat[:3]
+    out = []
+    for m, tname, tshort in flat:
+        mid = m.get("match_id") or m.get("id")
+        home = m.get("home_team") or m.get("home") or {}
+        away = m.get("away_team") or m.get("away") or {}
+
+        def _team_info(t):
+            if isinstance(t, dict):
+                return {
+                    "id": t.get("team_id") or t.get("id"),
+                    "name": t.get("name") or t.get("short_name") or t.get("full_name") or "",
+                }
+            return {"id": None, "name": str(t) if t else ""}
+
+        home_info = _team_info(home)
+        away_info = _team_info(away)
+        ts = m.get("timestamp") or m.get("start_timestamp") or 0
+        date_str, time_str = "", ""
+        if ts:
+            try:
+                dt = datetime.fromtimestamp(int(ts))
+                date_str = dt.strftime("%d/%m")
+                time_str = dt.strftime("%H:%M")
+            except Exception:
+                pass
+        side = "home" if str(home_info.get("id") or "") == str(team_id) else "away"
+        out.append({
+            "match_id": mid,
+            "date": date_str,
+            "time": time_str,
+            "timestamp": int(ts) if ts else 0,
+            "tournament_name_short": tshort,
+            "tournament_name_full": tname,
+            "home_team": home_info["name"] or "",
+            "home_team_id": home_info["id"] or "",
+            "away_team": away_info["name"] or "",
+            "away_team_id": away_info["id"] or "",
+            "side": side,
+        })
+    return out
 
 
 def refresh_results(team_id):
@@ -559,6 +775,9 @@ def refresh_team(team_id, force=False):
     - Position mapped to 2-letter code (GK/DF/MF/FW)
     - last3 + last3_missing attached to each player (parity with phase2_generic)
     - Coach section skipped in squad
+    - team.image_path populated from /teams/details (logo)
+    - stadium/city/capacity populated from /teams/details
+    - fixtures[] populated from /teams/fixtures
     """
     if team_id in _refresh_in_progress:
         return False
@@ -570,6 +789,9 @@ def refresh_team(team_id, force=False):
     country, champ, slug = info
     _refresh_in_progress.add(team_id)
     try:
+        # 0. Team details (logo, stadium, city, capacity)
+        #    MUST be called before building the team dict so image_path is set.
+        details = refresh_team_details(team_id, slug)
         # 1. Squad (from Total group, with position mapping)
         players = refresh_squad(team_id, slug, info)
         if players is None:
@@ -597,17 +819,34 @@ def refresh_team(team_id, force=False):
         if players:
             with ThreadPoolExecutor(max_workers=2) as ex:
                 list(ex.map(refresh_player_details, players))
-        # 6. Build cache
-        cache = _read_cache(team_id)  # preserve existing keys (coach, stadium, etc.)
+        # 6. Fixtures (next 3 upcoming) — populates fixtures[] in cache
+        fixtures = refresh_fixtures(team_id)
+        # 7. Build cache — preserve existing keys (coach etc.), overlay new data
+        cache = _read_cache(team_id)
+        # Prefer API name if available, else leagues_data.json, else existing
+        team_name = (
+            details.get("name")
+            or cache.get("team", {}).get("name", "")
+            or ""
+        )
         cache["team"] = {
             "id": team_id,
-            "name": cache.get("team", {}).get("name", ""),
+            "name": team_name,
             "country": country,
             "championship": champ,
             "slug": slug,
+            "image_path": details.get("image_path", "") or cache.get("team", {}).get("image_path", ""),
         }
+        # Stadium / city / capacity (overlays existing values if API returned them)
+        if details.get("stadium"):
+            cache["stadium"] = details["stadium"]
+        if details.get("city"):
+            cache["city"] = details["city"]
+        if details.get("capacity"):
+            cache["capacity"] = details["capacity"]
         cache["players"] = players
         cache["matches"] = matches
+        cache["fixtures"] = fixtures
         cache["last_updated"] = datetime.now().isoformat()
         _write_cache(team_id, cache)
         return True
