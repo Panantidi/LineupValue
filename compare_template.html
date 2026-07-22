@@ -104,47 +104,49 @@ body {
     border: none;
 }
 
-/* ‼️ H2H button: absolute, vertical center between the two iframes. */
+/* ‼️ H2H button: compact (36px) circle, sitting on the gap between the two iframes
+   but NOT inside any header. Vertically aligned with the team-name h1. */
 .match-h2h-btn {
     position: absolute;
-    /* Horizontally: centered on the 30px gap between the two iframes.
-       Each iframe is 980px wide; .compare-container gap=30px.
-       For a 2-iframe layout the gap center is at 980 + 15 = 995px from the left. */
-    left: 995px;
-    /* Vertically: aligned with the team name h1 in the gradient bar
-       (≈60-80px from the top of the iframe content area). */
-    top: 24px;
+    /* Horizontally: center of the 30px gap between the two iframes
+       (each iframe is 980px wide → center is at 980 + 15 = 995px). */
+    left: 977px;            /* 980 - 18 (half of 36) + 15 (gap/2) = 977 */
+    /* Vertically: aligned with the team name h1 in the gradient bar. */
+    top: 18px;
     z-index: 100;
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: 2px solid #fff;
     background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
     color: white;
-    font-size: 22px;
+    font-size: 16px;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.4);
     transition: transform 0.15s, box-shadow 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
 }
 .match-h2h-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+    transform: scale(1.12);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.55);
 }
 .match-h2h-btn.active {
     background: linear-gradient(to right, #dc3545 0%, #ff6b6b 100%);
 }
 
-/* H2H popup: 250x800px, sits below the ‼️ button. */
+/* H2H popup: 600px wide (was 250px — too narrow), 720px tall.
+   Wider layout so team names wrap naturally and the winner is obvious. */
 .match-h2h-popup {
     position: absolute;
-    left: calc(995px - 125px + 24px);  /* centered under the button */
-    top: 90px;                          /* below the button */
-    width: 250px;
-    max-height: 800px;
+    /* Centered horizontally on the gap between the two iframes. */
+    left: 695px;            /* 995 - 300 (half of 600) = 695 */
+    top: 64px;              /* below the button */
+    width: 600px;
+    max-height: 720px;
     background: white;
     color: #333;
     border-radius: 10px;
@@ -153,68 +155,127 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 .match-h2h-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 12px;
+    padding: 10px 14px;
     background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
     color: white;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
 }
 .match-h2h-close {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.4);
     color: white;
     border-radius: 4px;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1;
 }
 .match-h2h-body {
     overflow-y: auto;
-    padding: 12px;
-    font-size: 12px;
-    line-height: 1.5;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.45;
     flex: 1;
 }
-.match-h2h-loading { color: #666; }
-.match-h2h-section { margin-bottom: 18px; }
+.match-h2h-loading { color: #666; padding: 20px; text-align: center; }
+
+/* Stadium block (top of popup) */
+.match-h2h-stadium {
+    background: #f5f7fb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: #444;
+    line-height: 1.7;
+}
+.match-h2h-stadium .icon { color: #043fb6; font-weight: 700; margin-right: 5px; }
+
+/* Section header (H2H / Last Matches: ...) */
 .match-h2h-section-title {
     font-weight: 700;
-    font-size: 13px;
+    font-size: 14px;
     color: #043fb6;
-    margin: 8px 0 4px 0;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 3px;
+    margin: 12px 0 6px 0;
+    border-bottom: 2px solid #043fb6;
+    padding-bottom: 4px;
 }
-.match-h2h-stadium {
-    color: #555;
-    font-size: 11px;
-    margin-bottom: 4px;
-}
-.match-h2h-stadium .icon { color: #043fb6; font-weight: 700; margin-right: 3px; }
+
+/* Match row: a single horizontal table with [date | home | score | away | result]
+   using grid. Wider columns so team names fit without truncation. */
 .match-h2h-row {
     display: grid;
-    grid-template-columns: 38px 12px 1fr 1fr 16px;
+    grid-template-columns: 60px 1fr 50px 1fr 30px;
     align-items: center;
-    gap: 2px;
-    padding: 3px 0;
-    border-bottom: 1px solid #f3f3f3;
-    font-size: 11px;
+    gap: 8px;
+    padding: 6px 4px;
+    border-bottom: 1px solid #eef0f4;
+    font-size: 13px;
+    background: white;
 }
-.match-h2h-row .date { color: #666; font-size: 10px; }
-.match-h2h-row .tournament { color: #999; font-size: 9px; text-align: left; }
-.match-h2h-row .home { text-align: right; }
-.match-h2h-row .away { text-align: left; }
-.match-h2h-row .home.winner { font-weight: 700; }
-.match-h2h-row .away.winner { font-weight: 700; }
-.match-h2h-row .score { text-align: center; font-weight: 700; color: #333; }
-.match-h2h-row .result { text-align: center; font-size: 13px; }
+.match-h2h-row:nth-child(even) { background: #fafbfd; }
+.match-h2h-row .date {
+    color: #666;
+    font-size: 11px;
+    font-weight: 500;
+}
+.match-h2h-row .home {
+    text-align: right;
+    color: #333;
+    padding-right: 4px;
+    word-break: break-word;
+}
+.match-h2h-row .away {
+    text-align: left;
+    color: #333;
+    padding-left: 4px;
+    word-break: break-word;
+}
+/* Winner is bold + colored green; loser is gray */
+.match-h2h-row .winner {
+    font-weight: 700;
+    color: #17843f;
+}
+.match-h2h-row .loser {
+    color: #999;
+}
+.match-h2h-row .score {
+    text-align: center;
+    font-weight: 700;
+    color: #222;
+    background: #f0f3f8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 14px;
+}
+.match-h2h-row .result {
+    text-align: center;
+    font-size: 16px;
+    line-height: 1;
+}
+.match-h2h-row .tournament {
+    grid-column: 2 / 5;
+    color: #999;
+    font-size: 10px;
+    text-align: right;
+    padding-right: 8px;
+    padding-top: 1px;
+    margin-top: -4px;
+    font-style: italic;
+}
+.match-h2h-row-empty {
+    /* Used as a thin separator after the tournament subtitle */
+    height: 4px;
+    border-bottom: 1px solid #eef0f4;
+}
     height: auto;
     overflow: visible;
     overflow-y: hidden;
@@ -504,19 +565,19 @@ body {
 <div class="compare-wrapper" id="scroll-wrapper">
 <div class="compare-container" id="frames-container">
     <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1&v=2" title="{{my_name}}" scrolling="no"></iframe>
-    <!-- ‼️ H2H button: positioned absolutely at vertical center between the two iframes.
-         Lazy-loads Flashscore /matches/h2h + /teams/results on first click. -->
+    <!-- ‼️ H2H button: compact 36px circle, sits in the gap between the two iframes
+         (NOT inside any header — see CSS for absolute positioning). Lazy-loads
+         Flashscore /matches/h2h + /teams/results on first click. -->
     <button id="match-h2h-toggle" class="match-h2h-btn" type="button" title="H2H + Last Matches" aria-label="H2H + Last Matches">‼️</button>
-    <!-- H2H popup: 250x800px, hidden by default. Filled lazily via fetchH2H(). -->
+    <!-- H2H popup: 600x720px (wider than 250 for readability), hidden by default.
+         Filled lazily via fetchH2H(). -->
     <div id="match-h2h-popup" class="match-h2h-popup" style="display:none;">
         <div class="match-h2h-header">
             <span id="match-h2h-title">H2H &amp; Last Matches</span>
             <button type="button" class="match-h2h-close" onclick="toggleH2HPopup()" title="Close">✕</button>
         </div>
         <div id="match-h2h-body" class="match-h2h-body">
-            <div class="match-h2h-loading" style="padding:20px;text-align:center;color:#666;">
-                Click ‼️ to load H2H + Last Matches…
-            </div>
+            <div class="match-h2h-loading">Click ‼️ to load H2H + Last Matches…</div>
         </div>
     </div>
     <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}?embed=1&v=2" title="{{opponent_name}}" scrolling="no"></iframe>
@@ -1265,94 +1326,93 @@ function renderH2H(data) {
         return;
     }
     var html = '';
-    // ---- Stadium block (H2H context) ----
+    // ---- Stadium block (popup header) ----
     if (data.stadium) {
         var s = data.stadium;
-        html += '<div class="match-h2h-section">';
-        if (s.name) html += '<div class="match-h2h-stadium"><span class="icon">🏟</span>' + escH(s.name) + '</div>';
-        if (s.city) html += '<div class="match-h2h-stadium"><span class="icon">📍</span>' + escH(s.city) + '</div>';
-        if (s.capacity) html += '<div class="match-h2h-stadium"><span class="icon">🗣</span>' + escH(String(s.capacity)) + '</div>';
-        if (s.referee) html += '<div class="match-h2h-stadium"><span class="icon">⚖️</span>' + escH(s.referee) + '</div>';
-        html += '</div>';
+        if (s.name || s.city || s.capacity || s.referee) {
+            html += '<div class="match-h2h-stadium">';
+            if (s.name) html += '<div><span class="icon">🏟</span>' + escH(s.name) + '</div>';
+            if (s.city) html += '<div><span class="icon">📍</span>' + escH(s.city) + '</div>';
+            if (s.capacity) html += '<div><span class="icon">🗣</span>' + escH(String(s.capacity)) + '</div>';
+            if (s.referee) html += '<div><span class="icon">⚖️</span>' + escH(s.referee) + '</div>';
+            html += '</div>';
+        }
     }
     // ---- H2H matches ----
     if (data.h2h && data.h2h.length) {
-        html += '<div class="match-h2h-section">';
-        html += '<div class="match-h2h-section-title" style="text-align:center;background:#f0f0f0;padding:3px 0;margin-bottom:6px;">H2H</div>';
+        html += '<div class="match-h2h-section-title" style="text-align:center;">H2H</div>';
         for (var i = 0; i < data.h2h.length; i++) {
             html += renderH2HMatch(data.h2h[i]);
         }
-        html += '</div>';
     }
     // ---- Last Matches: my team ----
     if (data.last_my && data.last_my.length) {
-        html += '<div class="match-h2h-section">';
         html += '<div class="match-h2h-section-title">Last Matches: ' + escH(h2hMyName) + '</div>';
         for (var j = 0; j < data.last_my.length; j++) {
             html += renderH2HMatch(data.last_my[j]);
         }
-        html += '</div>';
     }
     // ---- Last Matches: opponent ----
     if (data.last_opp && data.last_opp.length) {
-        html += '<div class="match-h2h-section">';
         html += '<div class="match-h2h-section-title">Last Matches: ' + escH(h2hOppName) + '</div>';
         for (var k = 0; k < data.last_opp.length; k++) {
             html += renderH2HMatch(data.last_opp[k]);
         }
-        html += '</div>';
     }
     if (!html) {
-        html = '<div class="match-h2h-loading" style="padding:20px;text-align:center;color:#666;">No data available.</div>';
+        html = '<div class="match-h2h-loading">No data available.</div>';
     }
     body.innerHTML = html;
 }
 
 function renderH2HMatch(m) {
-    // m: {date, score, scores:{home,away}, home:{id,name}, away:{id,name}, tournament}
-    // Returns 3 rows: header (date+tournament+home+score+away+result) split into
-    // two stacked grid rows to match the visual spec:
-    //   row 1: [date  ] [score] [home]  [result]
-    //   row 2: [(tournament)] [away]
+    // m: {date, score_home, score_away, home:{name}, away:{name}, tournament, my_side}
+    // Single grid row: [date | home | score | away | result], tournament underneath.
     var homeName = (m.home && m.home.name) || 'Home';
     var awayName = (m.away && m.away.name) || 'Away';
-    var homeScore = m.score_home;
-    var awayScore = m.score_away;
-    var date = m.date || '';
-    var tournament = (m.tournament || '').toUpperCase();
-    // Determine winner from my_team perspective
-    var mySide = m.my_side;  // 'home' | 'away' | null
-    var hs = parseInt(homeScore, 10);
-    var as = parseInt(awayScore, 10);
-    var homeWins = (hs > as);
-    var awayWins = (as > hs);
-    var draw = (hs === as) && !isNaN(hs);
-    // Result emoji relative to my team
+    var hs = parseInt(m.score_home, 10);
+    var as = parseInt(m.score_away, 10);
+    var isNum = !isNaN(hs) && !isNaN(as);
+    var homeWins = isNum && hs > as;
+    var awayWins = isNum && as > hs;
+    var draw = isNum && hs === as;
+    // Result emoji: based on my team perspective, neutral otherwise.
+    var mySide = m.my_side;
     var result = '';
-    if (!isNaN(hs) && !isNaN(as)) {
+    if (isNum) {
         if (mySide === 'home') {
             result = homeWins ? '🟩' : (awayWins ? '🟥' : '🟧');
         } else if (mySide === 'away') {
             result = awayWins ? '🟩' : (homeWins ? '🟥' : '🟧');
+        } else {
+            result = draw ? '🟧' : (homeWins ? '◀' : '▶');
         }
     }
-    var html = '<div class="match-h2h-row" style="grid-template-columns: 38px 1fr 16px;">';
-    html += '<span class="date">' + escH(date) + '</span>';
-    html += '<span class="home' + (homeWins ? ' winner' : '') + '">' + escH(homeName) + '</span>';
+    var homeCls = 'home';
+    var awayCls = 'away';
+    if (isNum) {
+        if (homeWins) { homeCls = 'home winner'; awayCls = 'away loser'; }
+        else if (awayWins) { homeCls = 'home loser'; awayCls = 'away winner'; }
+    }
+    var tournament = (m.tournament || '').trim();
+    var dateStr = m.date || '';
+    // Row 1: the match itself.
+    var html = '<div class="match-h2h-row">';
+    html += '<span class="date">' + escH(dateStr) + '</span>';
+    html += '<span class="' + homeCls + '">' + escH(homeName) + '</span>';
+    html += '<span class="score">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</span>';
+    html += '<span class="' + awayCls + '">' + escH(awayName) + '</span>';
     html += '<span class="result">' + result + '</span>';
     html += '</div>';
-    html += '<div class="match-h2h-row" style="grid-template-columns: 38px 12px 1fr 1fr 16px;">';
-    html += '<span></span>';
-    html += '<span class="score">' + (isNaN(hs) ? '?' : hs) + '</span>';
-    html += '<span class="away' + (awayWins ? ' winner' : '') + '">' + escH(awayName) + '</span>';
-    html += '<span></span>';
-    html += '<span></span>';
-    html += '</div>';
+    // Row 2: tournament subtitle (compact, italic, gray).
     if (tournament) {
-        html += '<div class="match-h2h-row" style="grid-template-columns: 38px 1fr; padding-top:0;border-bottom:1px solid #eee;">';
-        html += '<span class="tournament">' + escH(tournament) + '</span>';
+        html += '<div class="match-h2h-row" style="grid-template-columns: 60px 1fr; padding-top:0; padding-bottom:6px; border-bottom:1px solid #eef0f4;">';
         html += '<span></span>';
+        html += '<span style="color:#999; font-size:10px; font-style:italic; text-align:right; padding-right:38px;">' + escH(tournament) + '</span>';
         html += '</div>';
+    } else {
+        // Add a small spacer row to keep the section tidy.
+        html += '<div class="match-h2h-row-empty"></div>';
     }
     return html;
 }
