@@ -1009,11 +1009,12 @@ def _parse_match_row(m, my_team_id):
     }
 
 
-def fetch_h2h(match_id):
-    """Call Flashscore /matches/h2h?match_id={id} and return a list of normalized matches.
+def fetch_h2h(match_id, max_results=5):
+    """Call Flashscore /matches/h2h?match_id={id} and return the last N head-to-head matches.
 
     Returns:
         list of dicts (see _parse_match_row) or [] on error.
+        Newest first, capped at max_results (default 5).
     """
     if not match_id:
         return []
@@ -1026,8 +1027,9 @@ def fetch_h2h(match_id):
         row = _parse_match_row(m, None)
         if row:
             out.append(row)
-    # Newest first
-    return out
+    # Sort newest first by timestamp (DESC).
+    out.sort(key=lambda r: int(m.get("timestamp", 0) if (m := r) else 0), reverse=True)
+    return out[:max_results]
 
 
 def fetch_team_results(team_id, my_team_id=None, max_results=5):
@@ -1096,9 +1098,9 @@ def fetch_match_h2h_payload(match_id, my_team_id, opp_team_id, my_slug, opp_slug
     """
     payload = {"stadium": {}, "h2h": [], "last_my": [], "last_opp": [], "error": None}
     try:
-        # 1. H2H history
+        # 1. H2H history (already capped at 5 newest by fetch_h2h)
         h2h = fetch_h2h(match_id)
-        payload["h2h"] = h2h[:8]  # cap at 8 rows for the popup
+        payload["h2h"] = h2h
         # 2. Last matches for both teams (parallel would be nice but serial is fine for ~3 calls)
         payload["last_my"] = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=5)
         payload["last_opp"] = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=5)
