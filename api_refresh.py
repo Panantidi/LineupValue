@@ -1000,6 +1000,7 @@ def _parse_match_row(m, my_team_id):
     return {
         "match_id": mid,
         "date": date_str,
+        "timestamp": int(ts) if ts else 0,
         "home": {"id": home_id, "name": home_name},
         "away": {"id": away_id, "name": away_name},
         "score_home": hs,
@@ -1019,9 +1020,14 @@ def fetch_h2h(match_id, max_results=5, my_team_id="", opp_team_id=""):
     intersecting the /teams/results of both teams and keeping only
     matches where Sparta Prague played Slavia Prague (or vice versa).
 
+    Implementation note (bug fix Jul 22 2026):
+    Each /teams/results page only holds ~40-45 most recent matches (about
+    1 year for active clubs). For teams that play each other infrequently
+    the mutual games can be on later pages. We walk up to MAX_H2H_PAGES
+    pages per side until we have enough mutual matches.
+
     Args:
-        match_id: the current match_id (used as a hint / cache key only;
-            the actual H2H data comes from team results, not from this id)
+        match_id: the current match_id (hint only; not used to drive the API)
         max_results: cap on the returned list (default 5)
         my_team_id, opp_team_id: the two team_ids whose mutual history
             we want to display
@@ -1030,52 +1036,68 @@ def fetch_h2h(match_id, max_results=5, my_team_id="", opp_team_id=""):
         list of dicts (see _parse_match_row) — newest first, capped at
         max_results. Only matches that involved BOTH teams are included.
     """
+    MAX_H2H_PAGES = 5  # ~5*40 = 200 results per side ≈ 3-5 years of history
     if not my_team_id or not opp_team_id:
         return []
-    my_results = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=50)
-    opp_results = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=50)
-    # Build set of match_ids for the opponent.
+    # Page 1 first — fast path for teams that have very recent H2H.
+    my_results = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=200, max_pages=1)
+    opp_results = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=200, max_pages=1)
     opp_match_ids = {m.get("match_id") for m in opp_results if m.get("match_id")}
-    # Keep only my matches that are also in opp's history → real H2H.
-    h2h = []
-    for m in my_results:
-        if m.get("match_id") in opp_match_ids:
-            h2h.append(m)
+    h2h = [m for m in my_results if m.get("match_id") in opp_match_ids]
+    if len(h2h) >= max_results:
+        return h2h[:max_results]
+    # Walk additional pages (full 200-result window per page) until we
+    # have at least max_results mutual matches or run out of pages.
+    for page in range(2, MAX_H2H_PAGES + 1):
+        my_more = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=200, max_pages=page)
+        opp_more = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=200, max_pages=page)
+        # Refresh opp set with the larger window.
+        opp_match_ids = {m.get("match_id") for m in opp_more if m.get("match_id")}
+        # Add any newly-found mutual matches (in DESC order).
+        existing_ids = {m.get("match_id") for m in h2h}
+        for m in my_more:
+            if m.get("match_id") in opp_match_ids and m.get("match_id") not in existing_ids:
+                h2h.append(m)
+                existing_ids.add(m.get("match_id"))
         if len(h2h) >= max_results:
             break
-    return h2h
+    return h2h[:max_results]
 
 
-def fetch_team_results(team_id, my_team_id=None, max_results=5):
+def fetch_team_results(team_id, my_team_id=None, max_results=5, max_pages=1):
     """Call Flashscore /teams/results?team_id={id} and return last N matches.
 
     Args:
         team_id: the team whose results to fetch
         my_team_id: which side is "ours" (for win/loss emoji)
         max_results: limit on the number of returned matches (default 5)
+        max_pages: how many pages of the Flashscore results feed to walk
+            (default 1 ≈ ~40-45 most recent matches). Set higher for
+            deeper history.
 
     Returns:
         list of dicts (see _parse_match_row) or [] on error.
     """
     if not team_id:
         return []
-    url = f"https://{HOST}/api/flashscore/v2/teams/results?team_id={team_id}&page=1"
-    data = _fetch_json(url)
-    if not isinstance(data, list) or not data:
-        return []
     flat = []
-    for env in data:
-        if not isinstance(env, dict):
-            continue
-        tshort = env.get("name") or ""
-        tshort = _short_tournament(tshort) if "_short_tournament" in globals() else tshort
-        for m in env.get("matches", []) or []:
-            row = _parse_match_row(m, my_team_id or team_id)
-            if row:
-                # Augment with tournament from the envelope (env.name)
-                if not row.get("tournament"):
-                    row["tournament"] = tshort
-                flat.append(row)
+    for page in range(1, max_pages + 1):
+        url = f"https://{HOST}/api/flashscore/v2/teams/results?team_id={team_id}&page={page}"
+        data = _fetch_json(url)
+        if not isinstance(data, list) or not data:
+            break
+        for env in data:
+            if not isinstance(env, dict):
+                continue
+            tshort = env.get("name") or ""
+            tshort = _short_tournament(tshort) if "_short_tournament" in globals() else tshort
+            for m in env.get("matches", []) or []:
+                row = _parse_match_row(m, my_team_id or team_id)
+                if row:
+                    # Augment with tournament from the envelope (env.name)
+                    if not row.get("tournament"):
+                        row["tournament"] = tshort
+                    flat.append(row)
     # Sort by timestamp DESC
     flat.sort(key=lambda x: int(m.get("timestamp", 0) if (m := x) else 0), reverse=True)
     return flat[:max_results]
