@@ -1009,27 +1009,41 @@ def _parse_match_row(m, my_team_id):
     }
 
 
-def fetch_h2h(match_id, max_results=5):
-    """Call Flashscore /matches/h2h?match_id={id} and return the last N head-to-head matches.
+def fetch_h2h(match_id, max_results=5, my_team_id="", opp_team_id=""):
+    """Return the last N true head-to-head matches between my_team and opp_team.
+
+    Jul 22 2026 — the Flashscore /matches/h2h endpoint does NOT return
+    head-to-head games between two specific teams; it returns the full
+    match list of whatever tournament the match_id belongs to (e.g. 171
+    LaLiga matches for a LaLiga match_id). So we compute real H2H by
+    intersecting the /teams/results of both teams and keeping only
+    matches where Sparta Prague played Slavia Prague (or vice versa).
+
+    Args:
+        match_id: the current match_id (used as a hint / cache key only;
+            the actual H2H data comes from team results, not from this id)
+        max_results: cap on the returned list (default 5)
+        my_team_id, opp_team_id: the two team_ids whose mutual history
+            we want to display
 
     Returns:
-        list of dicts (see _parse_match_row) or [] on error.
-        Newest first, capped at max_results (default 5).
+        list of dicts (see _parse_match_row) — newest first, capped at
+        max_results. Only matches that involved BOTH teams are included.
     """
-    if not match_id:
+    if not my_team_id or not opp_team_id:
         return []
-    url = f"https://{HOST}/api/flashscore/v2/matches/h2h?match_id={match_id}"
-    data = _fetch_json(url)
-    if not isinstance(data, list) or not data:
-        return []
-    out = []
-    for m in data:
-        row = _parse_match_row(m, None)
-        if row:
-            out.append(row)
-    # Sort newest first by timestamp (DESC).
-    out.sort(key=lambda r: int(m.get("timestamp", 0) if (m := r) else 0), reverse=True)
-    return out[:max_results]
+    my_results = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=50)
+    opp_results = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=50)
+    # Build set of match_ids for the opponent.
+    opp_match_ids = {m.get("match_id") for m in opp_results if m.get("match_id")}
+    # Keep only my matches that are also in opp's history → real H2H.
+    h2h = []
+    for m in my_results:
+        if m.get("match_id") in opp_match_ids:
+            h2h.append(m)
+        if len(h2h) >= max_results:
+            break
+    return h2h
 
 
 def fetch_team_results(team_id, my_team_id=None, max_results=5):
@@ -1088,22 +1102,24 @@ def fetch_match_h2h_payload(match_id, my_team_id, opp_team_id, my_slug, opp_slug
     """Build the full H2H + Last Matches payload for the popup.
 
     Performs (only on click):
-        1. /matches/h2h?match_id=...        → H2H history
-        2. /teams/results?team_id={my}     → Last matches of my team
-        3. /teams/results?team_id={opp}    → Last matches of opponent
-        4. /teams/details for both teams   → stadium (for the popup header)
+        1. /teams/results for BOTH teams        → compute real H2H by
+           intersection (matches that involved BOTH teams)
+        2. /teams/details for one of the teams  → stadium (for the header)
+
+    Note: We previously tried /matches/h2h?match_id=... but that endpoint
+    returns the full match list of the parent tournament, not the head-to-
+    head history between the two teams. See fetch_h2h() for details.
 
     Returns:
         dict with keys: stadium, h2h, last_my, last_opp, error
     """
     payload = {"stadium": {}, "h2h": [], "last_my": [], "last_opp": [], "error": None}
     try:
-        # 1. H2H history (already capped at 5 newest by fetch_h2h)
-        h2h = fetch_h2h(match_id)
-        payload["h2h"] = h2h
-        # 2. Last matches for both teams (parallel would be nice but serial is fine for ~3 calls)
+        # 1. Last matches for both teams (also feeds H2H intersection)
         payload["last_my"] = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=5)
         payload["last_opp"] = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=5)
+        # 2. Real H2H = intersection of both teams' recent results
+        payload["h2h"] = fetch_h2h(match_id, max_results=5, my_team_id=my_team_id, opp_team_id=opp_team_id)
         # 3. Stadium (use the first available of either team)
         my_details = fetch_team_details_for_match(my_team_id, my_slug) or {}
         if not my_details:
