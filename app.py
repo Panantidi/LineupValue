@@ -1313,60 +1313,48 @@ def _fetch_fresh_team_data(team_id: str, base_data: dict | None = None) -> dict 
 
 
 def prepare_team_data_version(team_id: str) -> dict:
-    """Return cached data immediately, refresh in background.
+    """Return cached data immediately, never call API.
 
-    User sees data instantly. On-demand API refresh happens asynchronously:
-    - If cache is fresh (< 10 min), return as-is (no API call)
-    - If cache is stale, return current data + trigger background refresh from Flashscore API
-    - Next visit shows fresh data.
+    Jul 22 2026 — Senior Python Flask refactor: page renders from
+    `_live_cache_{team_id}.json` only. No background refresh, no
+    Flashscore API call, no Soccerway call. The page is purely
+    cache-driven. API is invoked ONLY when the user explicitly clicks
+    the "Update data" button (handled by /lineup_ai/api/fetch/{team_id}).
 
-    No Soccerway calls. No rate-limit risk for users.
+    Behaviour:
+    - If SQLite `team_data_versions` has an `is_current=1` row → use it.
+    - Else, fall back to the on-disk `_live_cache_{team_id}.json` file.
+    - If neither exists → return `{}` (UI shows "No data"). The user
+      must click "Update data" to populate.
+    - On every call the cache is also persisted back to disk so the
+      SQLite→file contract stays in sync (defensive write — costs ~5 ms).
     """
-    # Try to return existing version immediately
+    # 1) Preferred: SQLite current version
     current = _get_current_team_version(team_id)
     if current and current.get("data"):
-        _write_team_cache(team_id, current["data"])
-        # Trigger background on-demand API refresh (only if cache is stale)
+        # Defensive: write back to file (fast — no API, no network)
         try:
-            from api_refresh import ensure_fresh_async
-            ensure_fresh_async(team_id)
+            _write_team_cache(team_id, current["data"])
         except Exception:
             pass
         return current["data"]
 
-    # No version: try cache
+    # 2) Fallback: on-disk cache file
     try:
         cached = _read_team_cache(team_id)
-        if cached.get("players"):
-            _save_team_version(team_id, cached)
-            # Trigger background API refresh (only if stale)
+        if cached:
+            # Promote to SQLite so the next read is the fast path.
+            # Idempotent: _save_team_version is md5-hash deduplicated.
             try:
-                from api_refresh import ensure_fresh_async
-                ensure_fresh_async(team_id)
+                _save_team_version(team_id, cached)
             except Exception:
                 pass
             return cached
     except Exception:
         pass
 
-    # No cache: try API refresh synchronously (first visit)
-    try:
-        from api_refresh import refresh_team, is_fresh
-        if not is_fresh(team_id):
-            if refresh_team(team_id, force=True):
-                cached = _read_team_cache(team_id)
-                if cached.get("players"):
-                    _save_team_version(team_id, cached)
-                    return cached
-    except Exception:
-        pass
-
-    # No cache: start background fetch, return empty
-    try:
-        from api_refresh import ensure_fresh_async
-        ensure_fresh_async(team_id)
-    except Exception:
-        pass
+    # 3) Nothing on disk. Return empty — UI will render "No data" and
+    #    the user can click "Update data" to trigger a real API fetch.
     return {}
 
 
@@ -1567,51 +1555,95 @@ _fetch_in_progress = set()
 
 @app.get("/lineup_ai/api/fetch/{team_id}")
 async def lineup_api_fetch(team_id: str):
-    """Sync fetch - waits for completion and returns result with duration.
+    """Manual refresh — Flashscore API only.
+
+    Triggered by the "Update data" button on the team page. The page
+    itself never calls the API (cache-driven, see prepare_team_data_version).
+    This endpoint is the single entry point that talks to Flashscore.
+
+    Jul 22 2026 — replaced Soccerway fetch_team_live with
+    api_refresh.refresh_team (Flashscore, force=True).
+
     Returns {"changed": true/false, "duration_seconds": ..., "error": ...}.
     """
     import sys, json, hashlib, time
     sys.path.insert(0, "/home/openclaw/FormAlert")
-    from soccerway_live import _load_live_cache, _save_live_cache, fetch_team_live
+    from api_refresh import refresh_team
 
-    COMPARE_KEYS = ["team", "coach", "stadium", "players", "matches"]
+    # 1) Capture old-version hash BEFORE refresh so we can detect change.
+    #    Read both the SQLite current version and the on-disk cache file;
+    #    take the freshest one (highest last_updated / mtime).
+    old_hash = ""
+    try:
+        old_ver = _get_current_team_version(team_id)
+        if old_ver and old_ver.get("data"):
+            old_subset = {
+                k: old_ver["data"].get(k)
+                for k in ("team", "coach", "stadium", "players", "matches", "fixtures")
+            }
+            old_hash = hashlib.md5(
+                json.dumps(old_subset, sort_keys=True, ensure_ascii=False).encode()
+            ).hexdigest()
+        else:
+            old_cache = _read_team_cache(team_id)
+            if old_cache:
+                old_subset = {
+                    k: old_cache.get(k)
+                    for k in ("team", "coach", "stadium", "players", "matches", "fixtures")
+                }
+                old_hash = hashlib.md5(
+                    json.dumps(old_subset, sort_keys=True, ensure_ascii=False).encode()
+                ).hexdigest()
+    except Exception:
+        pass
 
-    # Если уже идёт обновление для этой команды — вернуть статус
+    # 2) Race protection — only one refresh per team at a time.
     if team_id in _fetch_in_progress:
         return JSONResponse(content={
             "changed": False,
             "error": "Fetch already in progress",
             "duration_seconds": 0,
         })
-
-    # Получить хэш текущего кэша (ДО обновления)
-    old_cache = _load_live_cache(team_id)
-    old_hash = ""
-    if old_cache:
-        old_subset = {k: old_cache.get(k) for k in COMPARE_KEYS}
-        old_hash = hashlib.md5(json.dumps(old_subset, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-
     _fetch_in_progress.add(team_id)
     start_time = time.time()
-    
+
     try:
-        # Синхронное обновление - ждём завершения
-        # Note: fetch_team_live itself saves to cache. Don't double-save here —
-        # for protected teams, fetch_team_live returns existing cache without
-        # touching disk, but app.py must not overwrite it.
-        fresh = await fetch_team_live(team_id, force_refresh=True)
-        duration_seconds = round(time.time() - start_time, 1)
-        
-        # Сравнить с предыдущим кэшем
-        new_cache = _load_live_cache(team_id)
+        # 3) Sync refresh from Flashscore API (force=True bypasses is_fresh TTL).
+        #    refresh_team writes _live_cache_{team_id}.json and returns True on success.
+        ok = await asyncio.to_thread(refresh_team, team_id, True)
+        if not ok:
+            return JSONResponse(content={
+                "changed": False,
+                "duration_seconds": round(time.time() - start_time, 1),
+                "error": "refresh_team returned False (no players, slug not found, or API error)",
+            }, status_code=502)
+
+        # 4) Promote fresh cache into SQLite (so prepare_team_data_version sees it).
+        try:
+            fresh_cache = _read_team_cache(team_id)
+            if fresh_cache:
+                _save_team_version(team_id, fresh_cache)
+        except Exception as e:
+            print(f"[fetch] failed to promote cache to SQLite for {team_id}: {e}")
+
+        # 5) Compute new hash for change detection.
         new_hash = ""
-        if new_cache:
-            new_subset = {k: new_cache.get(k) for k in COMPARE_KEYS}
-            new_hash = hashlib.md5(json.dumps(new_subset, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-        
+        try:
+            new_cache = _read_team_cache(team_id)
+            if new_cache:
+                new_subset = {
+                    k: new_cache.get(k)
+                    for k in ("team", "coach", "stadium", "players", "matches", "fixtures")
+                }
+                new_hash = hashlib.md5(
+                    json.dumps(new_subset, sort_keys=True, ensure_ascii=False).encode()
+                ).hexdigest()
+        except Exception:
+            pass
+
         return JSONResponse(content={
             "changed": old_hash != new_hash,
-            "duration_seconds": duration_seconds,
+            "duration_seconds": round(time.time() - start_time, 1),
             "error": None,
         })
     except Exception as e:
@@ -5162,29 +5194,43 @@ def _flash_clean():
         del _flash[k]
 
 
-def _render_admin(msg: str = "", page: int = 1, page_size: int = 50) -> str:
+def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
+                user_filter: str = "", ip_filter: str = "", action_filter: str = "") -> str:
+    """Render /admin with optional filters on access_log (Jul 22 2026)."""
     con = sqlite3.connect(DB_PATH)
-    
-    users = con.execute("SELECT id,username,is_admin,active,created_at,last_login,plain_password FROM users ORDER BY id").fetchall()
-    # Count logs EXCLUDING admin users (so Recent Activity shows only non-admin activity)
+
+    where_parts = ["(u.is_admin IS NULL OR u.is_admin = 0) AND al.username != 'owner'"]
+    params = []
+    if user_filter:
+        where_parts.append("al.username LIKE ?")
+        params.append("%" + user_filter + "%")
+    if ip_filter:
+        where_parts.append("al.ip LIKE ?")
+        params.append("%" + ip_filter + "%")
+    if action_filter:
+        where_parts.append("al.action LIKE ?")
+        params.append("%" + action_filter + "%")
+    where_sql = " AND ".join(where_parts)
+
     total_hits = con.execute(
         "SELECT COUNT(*) FROM access_log al "
         "LEFT JOIN users u ON u.username = al.username "
-        "WHERE u.is_admin IS NULL OR u.is_admin = 0"
+        "WHERE " + where_sql,
+        params
     ).fetchone()[0]
 
-    # Pagination
     offset = (page - 1) * page_size
     total_logs = total_hits
     total_pages = (total_logs + page_size - 1) // page_size
 
+    users = con.execute("SELECT id,username,is_admin,active,created_at,last_login,plain_password FROM users ORDER BY id").fetchall()
     logs = con.execute(
         "SELECT al.username,al.ip,al.path,al.action,al.details,al.timestamp "
         "FROM access_log al "
         "LEFT JOIN users u ON u.username = al.username "
-        "WHERE u.is_admin IS NULL OR u.is_admin = 0 "
+        "WHERE " + where_sql + " "
         "ORDER BY al.id DESC LIMIT ? OFFSET ?",
-        (page_size, offset)
+        params + [page_size, offset]
     ).fetchall()
     con.close()
 
