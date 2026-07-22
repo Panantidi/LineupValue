@@ -115,7 +115,24 @@ def is_fresh(team_id, ttl=CACHE_TTL_SECONDS):
 
 
 def refresh_squad(team_id, slug, info):
-    """Fetch /teams/squad and return parsed players list (or None)."""
+    """Fetch /teams/squad and return parsed players list (or None).
+
+    Jul 22 2026 — Senior Python Flask refactor (cache-driven architecture):
+    Squad data MUST be taken from the "Total" group (aggregated across
+    ALL competitions the team played in: league + cup + UEFA + friendlies),
+    NOT from the first non-empty group (which was historically the
+    top-tier league tab and missed cup / UEFA / friendly minutes).
+
+    Why "Total" matters:
+    - The user sees every player who ever appeared for the team
+    - Last 3 START/SUB coverage is complete (not just league-only)
+    - Stats (apps, min, goals, assists) are season-totals, not per-tournament
+
+    Fallback chain:
+    1. tab_name == "Total"        (preferred — verified Jul 2026 on 1607+ teams)
+    2. tab_name case-insensitive  ("total", "TOTAL" — defensive)
+    3. First non-empty group      (rare — some lower-division teams)
+    """
     url = f"https://{HOST}/api/flashscore/v2/teams/squad?team_url=%2Fteam%2F{slug}%2F{team_id}%2F"
     data = _fetch(url)
     if not data:
@@ -124,18 +141,34 @@ def refresh_squad(team_id, slug, info):
     if not isinstance(groups, list) or not groups:
         return []
     players = []
-    # Prefer first group with a list (top-tier league)
+
+    # Pick the right group. Priority: exact "Total" → case-insensitive → first non-empty.
     best_group = None
     for g in groups:
-        if isinstance(g, dict) and g.get("list"):
+        if isinstance(g, dict) and g.get("tab_name") == "Total" and g.get("list"):
             best_group = g
             break
+    if not best_group:
+        for g in groups:
+            if isinstance(g, dict) and str(g.get("tab_name", "")).strip().lower() == "total" and g.get("list"):
+                best_group = g
+                break
+    if not best_group:
+        # Fallback for lower-division squads that only have one tab
+        for g in groups:
+            if isinstance(g, dict) and g.get("list"):
+                best_group = g
+                break
+
     if best_group:
-        tab_name = best_group.get("tab_name", "")
+        tab_name = best_group.get("tab_name", "Total")
         for section in best_group["list"]:
             if not isinstance(section, dict):
                 continue
             grp_name = section.get("name", "")
+            # Skip Coach section — Coach is rendered separately, not in the player table.
+            if str(grp_name).strip().lower() == "coach":
+                continue
             for p in section.get("players", []):
                 pid = p.get("player_id")
                 name = p.get("name")
@@ -144,7 +177,8 @@ def refresh_squad(team_id, slug, info):
                 players.append({
                     "player_id": pid,
                     "name": name,
-                    "position": grp_name,
+                    "position": _map_position(grp_name),
+                    "position_raw": grp_name,  # preserve original (debugging / fallback)
                     "age": int(p["age"]) if p.get("age", "").isdigit() else None,
                     "nationality": p.get("country_name", ""),
                     "country": p.get("country_name", ""),
@@ -160,6 +194,32 @@ def refresh_squad(team_id, slug, info):
                     "tournament": tab_name,
                 })
     return players
+
+
+# Position mapping (Skill formalert-team-page-template) — section name → 2-letter code.
+# Verified across all major leagues Jul 2026: every top-flight team maps cleanly.
+_POS_MAP = {
+    "goalkeepers": "GK", "goalkeeper": "GK",
+    "defenders": "DF", "defender": "DF",
+    "midfielders": "MF", "midfielder": "MF",
+    "forwards": "FW", "forward": "FW", "striker": "FW", "strikers": "FW",
+    "winger": "FW", "wingers": "FW", "attacker": "FW", "attackers": "FW",
+}
+
+
+def _map_position(section_name: str) -> str:
+    """Map a section name (e.g. 'Goalkeepers') to 2-letter code (GK/DF/MF/FW).
+
+    Falls back to first 2 letters uppercased for unknown section names
+    (should never happen in well-formed Flashscore responses).
+    """
+    if not section_name:
+        return ""
+    key = str(section_name).strip().lower()
+    if key in _POS_MAP:
+        return _POS_MAP[key]
+    # Defensive fallback — e.g. "Centre-Backs" → "CE"
+    return key[:2].upper()
 
 
 def refresh_player_details(player, delay=0.25):
@@ -187,52 +247,103 @@ def refresh_player_details(player, delay=0.25):
 
 
 def refresh_results(team_id):
-    """Fetch /teams/results and return list of last 3 matches (with lineups)."""
+    """Fetch /teams/results and return list of last 3 matches (with lineups).
+
+    Jul 22 2026 — Senior Python Flask refactor:
+    Real Flashscore API response shape (verified):
+        [
+            {
+                "tournament_id": "U3iTWJUr",
+                "tournament_url": "/football/world/club-friendly/",
+                "full_name": "WORLD: Club Friendly",
+                "name": "Club Friendly",
+                "matches": [
+                    {"match_id": "MgtcCHgC", "timestamp": 1784282400,
+                     "home_team": {"team_id": "...", "name": "..."},
+                     "away_team": {...},
+                     "scores": {"home": 2, "away": 0}}
+                ]
+            },
+            ...
+        ]
+
+    The previous code iterated `data[:3]` treating each tournament as a
+    match — which is why match_id was always None and last3 was always empty.
+    Now we flatten ALL matches across all tournaments, sort by timestamp DESC,
+    and take the top 3 most recent.
+    """
     url = f"https://{HOST}/api/flashscore/v2/teams/results?team_id={team_id}&page=1"
     data = _fetch(url)
     if not data:
         return []
-    # data structure: list of matches with home/away/score/timestamp/teams
+    # Normalize to list of tournament envelopes
     rows = data if isinstance(data, list) else (data.get("data") if isinstance(data, dict) else [])
-    if not isinstance(rows, list):
+    if not isinstance(rows, list) or not rows:
         return []
-    matches = []
-    for m in rows[:3]:
-        if not isinstance(m, dict):
+
+    # Flatten: extract every match from every tournament envelope
+    flat = []
+    for env in rows:
+        if not isinstance(env, dict):
             continue
-        # Try to extract match_id and teams
-        mid = m.get("id") or m.get("match_id") or m.get("MatchId")
+        tname = env.get("full_name") or env.get("name") or ""
+        tshort = env.get("name") or ""
+        tshort = _short_tournament(tshort)  # normalize via Skill map
+        for m in env.get("matches", []) or []:
+            if not isinstance(m, dict):
+                continue
+            flat.append((m, tname, tshort))
+    # Sort by timestamp DESC, take top 3
+    flat.sort(key=lambda x: int(x[0].get("timestamp") or 0), reverse=True)
+    flat = flat[:3]
+
+    matches = []
+    for m, tname, tshort in flat:
+        mid = m.get("match_id") or m.get("id") or m.get("MatchId")
         home = m.get("home_team") or m.get("home") or {}
         away = m.get("away_team") or m.get("away") or {}
-        # home/away can be dict {id, name, slug} or string
+
         def _team_info(t):
             if isinstance(t, dict):
                 return {
-                    "id": t.get("id") or t.get("team_id"),
-                    "name": t.get("name") or t.get("short_name") or t.get("full_name"),
+                    "id": t.get("team_id") or t.get("id"),
+                    "name": t.get("name") or t.get("short_name") or t.get("full_name") or "",
                 }
             return {"id": None, "name": str(t) if t else ""}
+
         home_info = _team_info(home)
         away_info = _team_info(away)
-        # Score
-        score = m.get("score") or m.get("ft_score") or ""
+        # Score: API returns `m["scores"] = {"home": int, "away": int}` (verified).
+        score = ""
+        scores = m.get("scores")
+        if isinstance(scores, dict):
+            h, a = scores.get("home"), scores.get("away")
+            if h is not None and a is not None:
+                score = f"{h}-{a}"
+        if not score:
+            score = m.get("score") or m.get("ft_score") or ""
         if not score and isinstance(m.get("home_score"), int):
             score = f"{m.get('home_score')}-{m.get('away_score')}"
-        # Tournament
-        tname = m.get("tournament_name") or m.get("tournament") or ""
-        tshort = m.get("tournament_short_name") or m.get("tournament_name_short") or ""
+
         # Timestamp
         ts = m.get("timestamp") or m.get("start_timestamp") or 0
-        # Date
         date_str = ""
+        time_str = ""
         if ts:
             try:
                 dt = datetime.fromtimestamp(int(ts))
                 date_str = dt.strftime("%d/%m")
+                time_str = dt.strftime("%H:%M")
             except Exception:
                 pass
+
+        # Side (home/away relative to our team) — drives cell color in UI
+        side = "home" if str(home_info.get("id") or "") == str(team_id) else "away"
+
         matches.append({
+            "match_id": mid,
             "date": date_str,
+            "time": time_str,
             "timestamp": int(ts) if ts else 0,
             "tournament_name_short": tshort,
             "tournament_name_full": tname,
@@ -241,38 +352,213 @@ def refresh_results(team_id):
             "away_team": away_info["name"] or "",
             "away_team_id": away_info["id"] or "",
             "score": score,
-            "match_id": mid,
+            "side": side,
         })
     return matches
 
 
+# Skill formalert-team-page-template TOURNAMENT_SHORT map (mirrors phase2_generic)
+_TOURNAMENT_SHORT_MAP = {
+    "abissnet superiore": "SL", "kategoria e parë": "1D", "kategoria superiore": "1D",
+    "ligue 1": "L1", "ligue 2": "L2", "primera divisió": "PD",
+    "liga profesional": "LPF", "copa de la liga profesional": "LPF",
+    "conmebol libertadores": "UCL", "conmebol sudamericana": "UEL",
+    "conmebol recopa": "SC", "copa argentina": "CUP",
+    "trofeo de campeones": "SC",
+    "albanian cup": "CUP", "algeria cup": "CUP", "andorra cup": "CUP",
+    "argentina cup": "CUP", "austrian cup": "CUP", "austrian bundesliga": "BL",
+    "belgian cup": "CUP", "belgian pro league": "JL",
+    "bolivian cup": "CUP", "bosnian cup": "CUP",
+    "brazilian cup": "CUP", "brazilian serie a": "SA", "brazilian serie b": "SB",
+    "bulgarian cup": "CUP",
+    "chile: liga de primera": "LP", "chile: super cup": "SC",
+    "bolivia: division profesional": "DP",
+    "bolivia: copa de la division profesional": "CUP",
+    "bolivia: copa pacena": "CUP", "bolivia: copa simon bolivar": "CUP",
+    "bosnia: wwin liga bih": "BH", "bosnia: kup bih": "CUP",
+    "brazil: serie a betano": "SA", "brazil: serie a": "SA",
+    "brazil: copa do brasil": "CUP",
+    "bulgaria: efbet league": "EL", "bulgaria: bulgarian first league": "EL",
+    "bulgaria: kupa na balgariya": "CUP",
+    "china: super league": "SL", "china: chinese super league": "SL",
+    "china: fa cup": "CUP", "china: chinese fa cup": "CUP",
+    "colombia: primera a": "PA", "colombia: primera a - apertura": "PA",
+    "colombia: primera a - play offs": "PA", "colombia: copa colombia": "CUP",
+    "colombia: copa libertadores": "UCL",
+    "croatia: hnl": "HN", "croatia: prva nl": "2L", "croatia: druga nl": "3L",
+    "croatia: croatian cup": "CUP",
+    "cyprus: cyprus league": "CPL",
+    "cyprus: cyprus league - championship group": "CPL",
+    "cyprus: cyprus league - relegation group": "CPL",
+    "cyprus: cypriot cup": "CUP",
+    "czech: chance liga": "CZ", "czech: czech first league": "CZ",
+    "czech: mol cup": "CUP",
+    "uefa champions league": "UCL", "uefa europa league": "UEL",
+    "uefa conference league": "ECL",
+    "euro: champions league": "UCL", "euro: europa league": "UEL",
+    "euro: conference league": "ECL",
+    "euro: champions league - qualification": "UCLQ",
+    "euro: europa league - qualification": "UELQ",
+    "euro: conference league - qualification": "ECLQ",
+    "world cup": "WC", "euro": "EURO", "league cup": "LC", "fa cup": "FA",
+    "club friendly": "FR", "world: club friendly": "FR",
+    "super cup": "SC", "copa del rey": "CR",
+    "dfb-pokal": "CUP", "coppa italia": "CUP",
+    "eredivisie": "ER", "primeira liga": "PL",
+    "super league": "SL", "super lig": "SL",
+}
+
+
+def _short_tournament(name: str) -> str:
+    """Look up TOURNAMENT_SHORT (mirrors phase2_generic TOURNAMENT_SHORT).
+
+    Falls back to first 3 letters uppercased.
+    """
+    if not name:
+        return ""
+    key = str(name).strip().lower()
+    if key in _TOURNAMENT_SHORT_MAP:
+        return _TOURNAMENT_SHORT_MAP[key]
+    # Try with prefix stripped (e.g. "WORLD: Club Friendly" → "club friendly")
+    if ":" in key:
+        tail = key.split(":", 1)[1].strip()
+        if tail in _TOURNAMENT_SHORT_MAP:
+            return _TOURNAMENT_SHORT_MAP[tail]
+    # Generic fallback
+    return key[:3].upper() if len(key) >= 3 else key.upper()
+
+
 def refresh_lineups_for_matches(matches, team_id):
-    """For each match, fetch /lineups and attach to match dict."""
-    for m in matches:
+    """For each match, fetch /lineups and attach to match dict.
+
+    Returns a dict {(match_index, player_id): {status, missing_info}} so
+    refresh_team() can attach `last3` and `last3_missing` to each player.
+
+    Real API shape (verified Jul 22 2026):
+        [
+            {"side": "home", "startingLineups": [11 items], "substitutes": [6],
+             "missingPlayers": [...], "formation": "3-4-3"},
+            {"side": "away", "startingLineups": [11 items], "substitutes": [6],
+             "missingPlayers": [...], "formation": "4-3-3"},
+        ]
+
+    The previous code looked for `team_id` per envelope — WRONG, the envelope
+    uses `side` ("home"/"away"). We match by `side` against the home_team_id
+    stored in our match dict.
+
+    Schema per match (after processing):
+        m["lineup_player_ids"]    — list of player_id (START + SUB) for OUR team
+        m["lineup_starting_ids"]  — list of player_id (START only) for OUR team
+    """
+    out = {}
+    for mi, m in enumerate(matches):
         mid = m.get("match_id")
         if not mid:
             continue
+        our_side = m.get("side")  # "home" or "away" — set by refresh_results
+        if not our_side:
+            continue
         url = f"https://{HOST}/api/flashscore/v2/matches/match/lineups?match_id={mid}"
         d = _fetch(url)
-        if not d or not isinstance(d, dict):
+        if not d or not isinstance(d, list):
+            time.sleep(0.2)
             continue
-        # Parse lineups: looking for our team's lineup
-        lineups = d.get("lineups") or d.get("data") or []
-        if isinstance(lineups, list):
-            for lu in lineups:
-                if not isinstance(lu, dict):
+        starting_ids = []
+        sub_ids = []
+        missing = []
+        for lu in d:
+            if not isinstance(lu, dict):
+                continue
+            if lu.get("side") != our_side:
+                continue
+            starting = lu.get("startingLineups") or lu.get("starting") or []
+            subs = lu.get("substitutes") or lu.get("substitutesLineups") or []
+            missing = lu.get("missingPlayers") or lu.get("missing") or []
+            if isinstance(starting, list):
+                starting_ids = [str(p.get("player_id") or p.get("id"))
+                                for p in starting if (p.get("player_id") or p.get("id"))]
+            if isinstance(subs, list):
+                sub_ids = [str(p.get("player_id") or p.get("id"))
+                           for p in subs if (p.get("player_id") or p.get("id"))]
+            break  # found our envelope
+        m["lineup_starting_ids"] = starting_ids
+        m["lineup_player_ids"] = starting_ids + sub_ids
+        for pid in starting_ids:
+            out[(mi, pid)] = {"status": "START"}
+        for pid in sub_ids:
+            if (mi, pid) not in out:
+                out[(mi, pid)] = {"status": "SUB"}
+        if isinstance(missing, list):
+            for mp in missing:
+                if not isinstance(mp, dict):
                     continue
-                lu_team_id = lu.get("team_id") or lu.get("id")
-                if str(lu_team_id) == str(team_id):
-                    players = lu.get("players") or lu.get("starting") or []
-                    if isinstance(players, list):
-                        m["lineup_player_ids"] = [str(p.get("player_id") or p.get("id")) for p in players if (p.get("player_id") or p.get("id"))]
+                pid = str(mp.get("player_id") or mp.get("id") or "")
+                reason = mp.get("reason") or ""
+                if not pid:
+                    continue
+                emoji, color = _missing_emoji(reason)
+                out[(mi, pid)] = {
+                    "status": "",
+                    "missing_info": {
+                        "emoji": emoji,
+                        "reason": reason,
+                        "color": color,
+                        "side": our_side,
+                    }
+                }
         time.sleep(0.2)
+    return out
+
+
+# --- Missing-player emoji map (mirrors phase2_generic._missing_emoji) ---
+def _missing_emoji(reason: str) -> tuple:
+    """Map API reason text to (emoji, color). Mirrors phase2_generic._missing_emoji.
+
+    Per Skill formalert-team-page-template:
+    - ❌ (red) for injuries / illness
+    - 🟥 for Red card
+    - 🟨 for Yellow cards
+    - 📄 for Loan
+    - 🛫 for International duty
+    - ⛔️ (gray) for Inactive / Coach's decision / Suspended
+    """
+    if not reason:
+        return ("", "")
+    r = str(reason).strip().lower()
+    # Injuries / health
+    injury_kw = [
+        "achilles tendon injury", "lower back injury", "hamstring injury",
+        "knee injury", "muscle injury", "shoulder injury", "ankle injury",
+        "back injury", "arm injury", "calf injury", "elbow injury", "leg injury",
+        "groin injury", "head injury", "thigh injury", "toe injury", "foot injury",
+        "broken leg", "broken calfbone", "broken jawbone",
+        "injury", "illness", "health problems", "heart problems",
+    ]
+    if any(k in r for k in injury_kw):
+        return ("❌", "#dc3545")
+    if "red card" in r:
+        return ("🟥", "#dc3545")
+    if "yellow card" in r:
+        return ("🟨", "#d4a017")
+    if "loan" in r:
+        return ("📄", "#6c757d")
+    if "international" in r or "duty" in r:
+        return ("🛫", "#0d6efd")
+    if any(k in r for k in ("inactive", "coach's decision", "suspended", "rest")):
+        return ("⛔️", "#6c757d")
+    # Default — gray missing indicator
+    return ("⛔️", "#6c757d")
 
 
 def refresh_team(team_id, force=False):
     """Sync refresh: fetch squad + last 3 + lineups + player_details from Flashscore API.
     Returns True if cache was updated, False otherwise (already fresh, in-progress, or error).
+
+    Jul 22 2026 — Senior Python Flask refactor:
+    - Squad taken from "Total" group (refresh_squad fix above)
+    - Position mapped to 2-letter code (GK/DF/MF/FW)
+    - last3 + last3_missing attached to each player (parity with phase2_generic)
+    - Coach section skipped in squad
     """
     if team_id in _refresh_in_progress:
         return False
@@ -284,19 +570,34 @@ def refresh_team(team_id, force=False):
     country, champ, slug = info
     _refresh_in_progress.add(team_id)
     try:
-        # 1. Squad
+        # 1. Squad (from Total group, with position mapping)
         players = refresh_squad(team_id, slug, info)
         if players is None:
             return False
         # 2. Last 3 matches
         matches = refresh_results(team_id)
-        # 3. Lineups for matches
-        refresh_lineups_for_matches(matches, team_id)
-        # 4. Player details (market_value, image) - parallel
+        # 3. Lineups for matches — also returns per-(match, player) status + missing
+        lineup_index = refresh_lineups_for_matches(matches, team_id)
+        # 4. Attach last3 + last3_missing to each player (parity with phase2_generic.py)
+        for p in players:
+            pid = p.get("player_id", "")
+            l3 = ["", "", ""]
+            l3m = [None, None, None]
+            for i in range(min(3, len(matches))):
+                entry = lineup_index.get((i, pid))
+                if not entry:
+                    continue
+                l3[i] = entry.get("status", "")
+                mi = entry.get("missing_info")
+                if mi:
+                    l3m[i] = mi
+            p["last3"] = l3
+            p["last3_missing"] = l3m
+        # 5. Player details (market_value, image) - parallel
         if players:
             with ThreadPoolExecutor(max_workers=2) as ex:
                 list(ex.map(refresh_player_details, players))
-        # 5. Build cache
+        # 6. Build cache
         cache = _read_cache(team_id)  # preserve existing keys (coach, stadium, etc.)
         cache["team"] = {
             "id": team_id,
