@@ -491,9 +491,30 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     # `miss` is now a dict {emoji, reason, side} from phase2_generic._missing_emoji,
     # not a plain string. Handle both shapes for backward compatibility with
     # caches that were written before the schema was upgraded.
+    # Updated Jul 22 2026: roster-management / disciplinary reasons
+    # (Inactive / Coach's decision / Suspended / Rest) render as ⛔️ (gray)
+    # — NEVER as the red X default that was used for injuries. This is the
+    # hard rule from the skill: every missing player cell must show a
+    # meaningful emoji, and the emoji must match the reason.
     def _missing_emoji(miss):
         if isinstance(miss, dict):
             reason = miss.get("reason", "") or ""
+            # If the data-prep side already classified the emoji, trust it
+            pre_emoji = miss.get("emoji", "")
+            if pre_emoji:
+                r = reason.lower()
+                if pre_emoji == "🟥":
+                    return '🟥', reason, '#dc3545'
+                if pre_emoji == "🟨":
+                    return '🟨', reason, '#d4a017'
+                if pre_emoji == "📄":
+                    return '📄', reason, '#6c757d'
+                if pre_emoji == "🛫":
+                    return '🛫', reason, '#0d6efd'
+                if pre_emoji == "⛔️":
+                    return '⛔️', reason, '#6c757d'
+                # ❌ default for injuries/illness/broken
+                return '❌', reason, '#dc3545'
             r = reason.lower()
         else:
             reason = miss or ""
@@ -506,6 +527,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             return '📄', reason, '#6c757d'
         if "international" in r or "duty" in r:
             return '🛫', reason, '#0d6efd'
+        # Roster-management / disciplinary → ⛔️ (gray).
+        # Was previously a red X (injury default) — that was wrong because
+        # Inactive / Coach's decision are NOT injuries.
+        roster_kw = ("inactive", "coach's decision", "coaches decision",
+                     "suspended", "lacking match fitness", "rest")
+        if any(kw in r for kw in roster_kw):
+            return '⛔️', reason, '#6c757d'
         # Default: injury, illness, broken, health, heart, etc → red X
         return '❌', reason, '#dc3545'
 

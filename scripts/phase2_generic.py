@@ -99,13 +99,24 @@ def fetch(url, retries=2):
 # Reason keywords that the API sometimes appends to a player's `name` when
 # the player is missing from a match (e.g. "Portillo Juan Knee Injury").
 # The full set must match `_missing_emoji()` + the skill's reason-emoji map.
+# Updated Jul 22 2026: extended to include shoulder/back/arm/calf/elbow/leg
+# injuries, broken bone variants (Broken Leg / Broken calfbone / Broken jawbone),
+# and the roster-management / disciplinary reasons (Suspended / Inactive /
+# Coach's decision / Lacking Match Fitness / Rest) that render as ⛔️.
 _REASON_TOKENS = (
-    "Knee Injury", "Muscle Injury", "Hamstring Injury", "Achilles Tendon Injury",
-    "Lower Back Injury", "Head Injury", "Groin Injury", "Ankle Injury",
-    "Thigh Injury", "Toe Injury", "Foot Injury",
+    # Multi-word injury keywords (longest first)
+    "Achilles Tendon Injury", "Lower Back Injury", "Hamstring Injury",
+    "Knee Injury", "Muscle Injury", "Shoulder Injury", "Ankle Injury",
+    "Back Injury", "Arm Injury", "Calf Injury", "Elbow Injury",
+    "Leg Injury", "Groin Injury", "Head Injury", "Thigh Injury",
+    "Toe Injury", "Foot Injury", "Broken Leg", "Broken calfbone", "Broken jawbone",
+    # Single-word + health reasons
     "Injury", "Illness", "Health problems", "Heart Problems",
+    # Disciplinary + squad reasons
     "Red Card", "Yellow Cards", "Yellow Card",
     "Loan agreement", "International duty",
+    # Roster-management / suspension (rendered as ⛔️)
+    "Suspended", "Coach's decision", "Inactive", "Lacking Match Fitness", "Rest",
 )
 
 def _strip_missing_reason_suffix(name):
@@ -346,13 +357,21 @@ def fetch_fixtures(team_id):
 def _missing_emoji(reason):
     """Map a missing-player reason string to an emoji (per the user's spec).
     Returns (emoji, display_text) where display_text is the reason string.
-    If reason doesn't match a known category, returns ("", "") and the cell
-    stays empty (no emoji, no noise in UI).
+    If reason doesn't match a known category, returns ("⛔️", reason) for
+    roster-management / disciplinary reasons (Inactive, Coach's decision,
+    Suspended) so the cell is NEVER blank. This is the hard rule: every
+    missing player in a match must show a cell — either a circle (START/SUB)
+    or an emoji with reason tooltip.
     """
     if not reason:
         return ("", "")
     r = reason.lower()
     # Injury / Broken / Illness → red X
+    # Covers: Injury, Knee Injury, Thigh Injury, Shoulder Injury, Ankle Injury,
+    # Back Injury, Arm Injury, Calf Injury, Elbow Injury, Leg Injury,
+    # Hamstring Injury, Achilles Tendon Injury, Lower Back Injury, Head Injury,
+    # Groin Injury, Toe Injury, Foot Injury, Broken, Broken Leg,
+    # Broken calfbone, Broken jawbone, Illness, Health problems, Heart Problems
     injury_kw = ("injury", "broken", "illness", "health", "heart")
     if any(kw in r for kw in injury_kw):
         return ("❌", reason)
@@ -368,8 +387,14 @@ def _missing_emoji(reason):
     # International duty → airplane
     if "international" in r or "duty" in r:
         return ("🛫", reason)
-    # Inactive / Rest / Coach's decision / Lacking Match Fitness → no emoji (intentionally blank)
-    return ("", "")
+    # Roster-management / disciplinary → ⛔️ (was blank before Jul 22 2026).
+    # These MUST render an emoji with reason tooltip — NEVER a blank cell.
+    roster_kw = ("inactive", "coach's decision", "coaches decision",
+                 "suspended", "lacking match fitness", "rest")
+    if any(kw in r for kw in roster_kw):
+        return ("⛔️", reason)
+    # Unknown reason — render ⛔️ with reason so user can still see the actual text
+    return ("⛔️", reason)
 
 
 def fetch_lineups_for_match(match_id, team_id):
