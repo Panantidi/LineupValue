@@ -2113,6 +2113,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
         try:
             with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
                 leagues = json.load(f)
+            # 1. Try exact match (case-insensitive)
             for country, leagues_dict in leagues.items():
                 for league_name, teams in leagues_dict.items():
                     for team in teams:
@@ -2123,6 +2124,23 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                         break
                 if home_team_id:
                     break
+            # 2. Try substring match (home_name is contained in team name OR vice versa)
+            if not home_team_id:
+                for country, leagues_dict in leagues.items():
+                    for league_name, teams in leagues_dict.items():
+                        for team in teams:
+                            tn = team.get("name", "").lower()
+                            hn = home_name.lower()
+                            # Strip country suffix like "(Bra)" for comparison
+                            tn_clean = tn.split(" (")[0].strip()
+                            hn_clean = hn.split(" (")[0].strip()
+                            if tn_clean == hn_clean or tn_clean.startswith(hn_clean + " ") or hn_clean.startswith(tn_clean + " "):
+                                home_team_id = team.get("id", "")
+                                break
+                        if home_team_id:
+                            break
+                    if home_team_id:
+                        break
         except Exception:
             pass
 
@@ -2135,6 +2153,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
         try:
             with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
                 leagues = json.load(f)
+            # 1. Try exact match (case-insensitive)
             for country, leagues_dict in leagues.items():
                 for league_name, teams in leagues_dict.items():
                     for team in teams:
@@ -2145,12 +2164,28 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                         break
                 if away_team_id:
                     break
+            # 2. Try substring match
+            if not away_team_id:
+                for country, leagues_dict in leagues.items():
+                    for league_name, teams in leagues_dict.items():
+                        for team in teams:
+                            tn = team.get("name", "").lower()
+                            an = away_name.lower()
+                            tn_clean = tn.split(" (")[0].strip()
+                            an_clean = an.split(" (")[0].strip()
+                            if tn_clean == an_clean or tn_clean.startswith(an_clean + " ") or an_clean.startswith(tn_clean + " "):
+                                away_team_id = team.get("id", "")
+                                break
+                        if away_team_id:
+                            break
+                    if away_team_id:
+                        break
         except Exception:
             pass
 
     # If still no away_id, return error
     if not away_team_id:
-        error_msg = "<h2>Missing away_id for match comparison</h2><p>Please provide both home_id and away_id parameters.</p>"
+        error_msg = '<h2>Missing away_id for match comparison</h2><p>Please provide both home_id and away_id parameters. Could not resolve away team from away_name="' + away_name + '" (also not found in leagues_data.json).</p>'
         return HTMLResponse(content=error_msg, status_code=400)
 
     # --- Stadium: try to get actual match venue from Soccerway match page ---
