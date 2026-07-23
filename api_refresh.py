@@ -301,51 +301,104 @@ def _country_to_flag(country_name: str) -> str:
 
 
 # --- Strip trailing reason keywords from player names ---
-# Mirrors phase2_generic._strip_missing_reason_suffix (Jul 22 2026 spec).
+# Mirrors phase2_generic._strip_missing_reason_suffix (Jul 23 2026 spec).
 # The Flashscore API sometimes appends a reason keyword to player.name for
 # missing players (e.g. "Vindahl Peter Foot Injury" instead of "Vindahl Peter").
 # The reason is preserved separately in last3_missing[].reason. This helper
 # returns the cleaned name; the reason is rendered only in the missing-cell
 # hover tooltip, NEVER in the Player column.
+#
+# Jul 23 2026 — see skill formalert-team-page-template / `_strip_missing_reason_suffix`
+# for the full algorithm + the long list of token examples.
+# KEEP THIS LIST IN SYNC WITH phase2_generic._REASON_TOKENS.
 _REASON_TOKENS = (
-    # Multi-word injury keywords (longest first)
-    "Achilles Tendon Injury", "Lower Back Injury", "Hamstring Injury",
-    "Knee Injury", "Muscle Injury", "Shoulder Injury", "Ankle Injury",
-    "Back Injury", "Arm Injury", "Calf Injury", "Elbow Injury",
-    "Leg Injury", "Groin Injury", "Head Injury", "Thigh Injury",
-    "Toe Injury", "Foot Injury", "Broken Leg", "Broken calfbone", "Broken jawbone",
-    # Single-word + health reasons
-    "Injury", "Illness", "Health problems", "Heart Problems",
-    # Disciplinary + squad reasons
-    "Red Card", "Yellow Cards", "Yellow Card",
+    # Multi-word injury types (Flashscore API uses these verbatim)
+    "Achilles Tendon Injury", "Hamstring Injury", "Knee Injury",
+    "Muscle Injury", "Lower Back Injury", "Head Injury", "Groin Injury",
+    "Ankle Injury", "Thigh Injury", "Toe Injury", "Foot Injury",
+    "Calf Injury", "Shoulder Injury", "Hip Injury", "Neck Injury",
+    "Wrist Injury", "Hand Injury", "Finger Injury",
+    "Cruciate Ligament", "Cruciate Ligament Injury", "Medial Collateral Ligament",
+    "Broken Leg", "Broken Foot", "Broken Ankle", "Broken Arm", "Broken Nose",
+    "Broken Hand", "Broken Finger", "Fractured Rib",
+    "Concussion", "ACL Injury", "MCL Injury", "PCL Injury",
+    "Torn Muscle", "Torn Ligament", "Torn Meniscus", "Torn Hamstring",
+    "Stomach Flu", "Viral Infection", "Bacterial Infection",
+    "Heart Problems", "Health problems",
+    # Single-word body parts / surgery / status (NEW Jul 23 2026 — fixes
+    # "Joelinton Thigh", "Dos Santos Matthew Calf", "Bruninho Muscle")
+    "Muscle", "Thigh", "Calf", "Shoulder", "Groin", "Knee", "Hamstring",
+    "Achilles", "Achilles Tendon", "Ankle", "Foot", "Hip", "Neck",
+    "Wrist", "Hand", "Finger", "Back", "Rib", "Toe", "Elbow", "Leg", "Arm",
+    "Injury", "Illness", "Surgery", "Operation", "Rest",
+    "Yellow Cards", "Yellow Card", "Red Card",
+    "Suspended", "Suspension", "Banned",
+    "Personal Reasons", "Private Reasons", "Family Reasons",
     "Loan agreement", "International duty",
-    # Roster-management / suspension
-    "Suspended", "Coach's decision", "Inactive", "Lacking Match Fitness", "Rest",
+    "Not in squad", "Not in match squad", "Coach's decision",
+    "Inactive", "Resting", "Disciplinary",
+    "Lacking Match Fitness", "Rest",
 )
+
+# Date pattern (matches trailing " 01.08.2026" etc.) — Jul 23 2026.
+_DATE_PATTERN_RE = None  # lazy-compiled
+def _date_pattern():
+    global _DATE_PATTERN_RE
+    if _DATE_PATTERN_RE is None:
+        import re as _re
+        _DATE_PATTERN_RE = _re.compile(
+            r'\s+\d{1,2}[./\-]\d{1,2}[./\-]\d{2,4}\s*$'
+        )
+    return _DATE_PATTERN_RE
 
 
 def _strip_missing_reason_suffix(name):
-    """Strip a trailing reason keyword from a player name.
+    """Strip a trailing reason keyword (and optional date) from a player name.
 
-    Examples:
-        "Vindahl Peter Foot Injury"   → "Vindahl Peter"
-        "Portillo Juan Knee Injury"   → "Portillo Juan"
-        "Messi Lionel"                → "Messi Lionel"   (no change)
-        "Knee Injury"                 → "Knee Injury"    (no change, too short)
+    Examples (from real Jul 2026 cache data):
+        "Estêvão Hamstring Injury 01.08.2026"       → "Estêvão"
+        "Gittens Jamie Hamstring Injury 01.08.2026"  → "Gittens Jamie"
+        "Wesley Franca Muscle Injury 02.08.2026"     → "Wesley Franca"
+        "Joelinton Thigh"                             → "Joelinton"
+        "Miley Lewis Broken Leg 02.09.2026"           → "Miley Lewis"
+        "Hollerbach Benedict Achilles Tendon Injury 02.08.2026"
+                                                       → "Hollerbach Benedict"
+        "Agyekum Lawrence Shoulder"                   → "Agyekum Lawrence"
+        "Vindahl Peter Foot Injury"                   → "Vindahl Peter"
+        "Estêvão"                                     → "Estêvão"  (no reason)
+        "Neymar"                                      → "Neymar"    (no reason)
+
+    Algorithm:
+      1. Strip any trailing date first (e.g. " 01.08.2026").
+      2. While the last 1-4 tokens match a known reason token, strip them.
+      3. If we strip everything (e.g. name = "Thigh"), restore the original.
+      4. Otherwise return the cleaned name (1+ tokens).
     """
     if not name:
         return name
-    parts = str(name).split()
-    if len(parts) <= 2:
-        return name  # too short to safely strip
-    # Sort by length desc so multi-word keywords match first
-    for reason in sorted(_REASON_TOKENS, key=len, reverse=True):
-        r_parts = reason.split()
-        if len(parts) > len(r_parts) and parts[-len(r_parts):] == r_parts:
-            cleaned = " ".join(parts[:-len(r_parts)])
-            if len(cleaned.split()) >= 2:
-                return cleaned
-    return name
+    original = str(name)
+    # 1. Strip trailing date
+    name = _date_pattern().sub('', original).strip()
+    parts = name.split()
+    if not parts:
+        return original  # safety: don't return empty
+    # 2. Strip trailing reason tokens (try longest first)
+    for _ in range(4):  # max 4 reason words
+        if not parts:
+            break
+        matched = False
+        for reason in sorted(_REASON_TOKENS, key=len, reverse=True):
+            r_parts = reason.split()
+            if len(parts) >= len(r_parts) and parts[-len(r_parts):] == r_parts:
+                parts = parts[:-len(r_parts)]
+                matched = True
+                break
+        if not matched:
+            break
+    # 3. If we stripped everything, restore original
+    if not parts:
+        return original
+    return " ".join(parts)
 
 
 # Position mapping (Skill formalert-team-page-template) — section name → 2-letter code.
