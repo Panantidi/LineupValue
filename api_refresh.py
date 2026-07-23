@@ -999,8 +999,12 @@ def refresh_team(team_id, force=False):
             p["last3_missing"] = l3m
         # 5. Player details (market_value, image) - parallel
         if players:
+            # Jul 23 2026: pass force=force so ♻️ Refresh bypasses the 4h
+            # player_details TTL. Without this, ex.map defaulted to
+            # force=False and skipped every player when section was fresh,
+            # leaving the cache with empty MV values.
             with ThreadPoolExecutor(max_workers=2) as ex:
-                list(ex.map(refresh_player_details, players))
+                list(ex.map(lambda p: refresh_player_details(p, force=force), players))
             _mark_section_updated(team_id, "player_details")
         # 6. Fixtures (next 3 upcoming) — populates fixtures[] in cache
         fixtures = refresh_fixtures(team_id, force=force)
