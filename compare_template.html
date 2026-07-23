@@ -103,13 +103,14 @@ body {
     border: none;
 }
 
-/* ‼️ H2H button: compact (36px) circle, sitting on the gap between the two iframes
+/* 🆚 H2H button: compact (36px) circle, sitting on the gap between the two iframes
    but NOT inside any header. Vertically aligned with the team-name h1. */
 .match-h2h-btn {
     position: absolute;
     /* Horizontally: center of the 30px gap between the two iframes
-       (each iframe is 980px wide → center is at 980 + 15 = 995px). */
-    left: 977px;            /* 980 - 18 (half of 36) + 15 (gap/2) = 977 */
+       (each iframe is 980px wide → center is at 980 + 15 = 995px).
+       +10px shift to the right (Jul 23 2026 user request). */
+    left: 987px;            /* 980 - 18 (half of 36) + 15 (gap/2) + 10 = 987 */
     /* Vertically: aligned with the team name h1 in the gradient bar. */
     top: 18px;
     z-index: 100;
@@ -558,10 +559,10 @@ body {
 <div class="compare-wrapper" id="scroll-wrapper">
 <div class="compare-container" id="frames-container">
     <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1&v=2" title="{{my_name}}" scrolling="no"></iframe>
-    <!-- ‼️ H2H button: compact 36px circle, sits in the gap between the two iframes
+    <!-- 🆚 H2H button: compact 36px circle, sits in the gap between the two iframes
          (NOT inside any header — see CSS for absolute positioning). Lazy-loads
          Flashscore /matches/h2h + /teams/results on first click. -->
-    <button id="match-h2h-toggle" class="match-h2h-btn" type="button" title="H2H + Last Matches" aria-label="H2H + Last Matches">‼️</button>
+    <button id="match-h2h-toggle" class="match-h2h-btn" type="button" title="H2H + Last Matches" aria-label="H2H + Last Matches">🆚</button>
     <!-- H2H popup: 600x720px (wider than 250 for readability), hidden by default.
          Filled lazily via fetchH2H(). -->
     <div id="match-h2h-popup" class="match-h2h-popup" style="display:none;">
@@ -570,7 +571,7 @@ body {
             <button type="button" class="match-h2h-close" onclick="toggleH2HPopup()" title="Close">✕</button>
         </div>
         <div id="match-h2h-body" class="match-h2h-body">
-            <div class="match-h2h-loading">Click ‼️ to load H2H + Last Matches…</div>
+            <div class="match-h2h-loading">Click 🆚 to load H2H + Last Matches…</div>
         </div>
     </div>
     <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}?embed=1&v=2" title="{{opponent_name}}" scrolling="no"></iframe>
@@ -1260,7 +1261,7 @@ document.addEventListener('click', function(e) {
 });
 
 // ---------------------------------------------------------------------------
-// ‼️ H2H + Last Matches popup (Match mode)
+// 🆚 H2H + Last Matches popup (Match mode)
 // Lazy-loads Flashscore data ONLY on the first button click. Subsequent
 // clicks toggle the popup using the cached payload (no extra API calls).
 // ---------------------------------------------------------------------------
@@ -1420,7 +1421,7 @@ function escH(s) {
         .replace(/'/g, '&#39;');
 }
 
-// Wire up the ‼️ button on DOMContentLoaded.
+// Wire up the 🆚 button on DOMContentLoaded.
 document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('match-h2h-toggle');
     if (btn) btn.addEventListener('click', toggleH2HPopup);
