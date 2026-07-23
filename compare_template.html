@@ -18,31 +18,30 @@ body {
 .compare-header {
     position: relative;
     background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
-    padding: 10px 20px;
+    /* Match Team mode (.header in lineup_team_view.py) for visual consistency:
+       same gradient, same padding, same controls alignment, no shadow. */
+    padding: 16px 40px;
     text-align: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
 }
 .compare-header h2 { font-size: 20px; margin: 0; }
 .compare-header .stadium { font-size: 14px; opacity: 0.85; margin-top: 6px; text-align: center; }
 .compare-header .stadium.neutral { color: #ffc107; font-weight: 700; opacity: 1; }
 .compare-header-controls {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-left: auto;
 }
 .compare-header-left {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-right: auto;
 }
 .compare-header-left a,
 .compare-header-left button {
