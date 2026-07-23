@@ -596,7 +596,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <td style="text-align:center;padding:4px 2px;"><span class="player-number-circle" data-player-name="{player_display_name}" data-player-number="{p.get('number', '?')}" data-player-club="{team_name}" data-is-wc="{wc_attr}" onclick="toggleFavorite(this)" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#e9ecef;color:#495057;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">{p.get('number', '?')}</span></td>
                 <td style="text-align:center;">{get_nat_html(p)}</td>
                 <td class="player-name" style="white-space:nowrap;">{"<strong>" + player_display_name + df_fire + mf_lightning + star_impact + top_impact + (top_scorer_badge if (unique_goal_leader and player_display_name == unique_goal_leader) else "") + (top_assist_badge if (unique_assist_leader and player_display_name == unique_assist_leader) else "") + "</strong>" if (unique_goal_leader and player_display_name == unique_goal_leader) or (unique_assist_leader and player_display_name == unique_assist_leader) else player_display_name + df_fire + mf_lightning + star_impact + top_impact}</td>
-                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
+                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Doubt + Last yellow card">⚠️ Doubt + Last yellow card</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
                 <td style="text-align:center;padding:4px 2px;">{p["age"] if p.get("age") not in (None, "", 0) and str(p.get("age", "")).strip() not in ("–", "—", "-", "?", "N/A") else ""}</td>
                 <td style="text-align:center;">{p["market_value"] if p.get("market_value") not in (None, "", 0) and str(p.get("market_value", "")).strip() not in ("–", "—", "-", "?", "N/A") else ""}</td>
                 <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;text-align:center;padding:4px 2px;">{p.get("position", "–")}</td>
@@ -1783,7 +1783,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <h1 style="margin:0;font-size:24px;font-weight:600;color:white;">{team_name}</h1>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <button type="button" id="update-data-btn" class="header-action-btn" onclick="updateData()" title="Fetch latest data from Flashscore (manual refresh)">♻️ Refresh</button>
+                        <button type="button" id="update-data-btn" class="header-action-btn" onclick="updateData()" title="Fetch latest updates">♻️ Refresh</button>
+                        <span id="update-counter" style="color:rgba(255,255,255,0.85);font-size:13px;font-weight:500;min-width:60px;"></span>
                         <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
                             <option value="Squad" style="color:#333;">All Squad</option>
                             <option value="Missing Players" style="color:#333;">Missing Players</option>
@@ -2024,7 +2025,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         function showTooltip(el) {{ var t = el.querySelector('.tooltip-delay'); if(t){{ _tooltipTimer = setTimeout(function(){{ var r = el.getBoundingClientRect(); t.style.left = (r.left + r.width/2) + 'px'; t.style.top = (r.top - 8) + 'px'; t.style.transform = 'translate(-50%, -100%)'; t.style.visibility='visible'; t.style.opacity='1'; }}, 800); }} }}
         function hideTooltip(el) {{ if(_tooltipTimer){{ clearTimeout(_tooltipTimer); _tooltipTimer=null; }} var t = el.querySelector('.tooltip-delay'); if(t){{ t.style.opacity='0'; setTimeout(function(){{ t.style.visibility='hidden'; }}, 300); }} }}
         const MISSING_STATUSES = ['Injury', 'Red card', 'Yellow red card', 'Not playing (Called up)', 'Not playing (Other)'];
-        const DOUBTFUL_STATUSES = ['Doubt'];
+        const DOUBTFUL_STATUSES = ['Doubt', 'Doubt + Last yellow card'];
         const RETURNING_STATUSES = ['Return (Injury)', 'Return (Susp)', 'Return (Called up)', 'Return (Other)'];
         const TRANSFER_IN_STATUSES = ['New player'];
         const TRANSFER_OUT_STATUSES = ['Left the team'];
@@ -2175,19 +2176,19 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         async function updateData() {{
             const btn = document.getElementById('update-data-btn');
-            const msgEl = document.getElementById('save-message');
+            const counterEl = document.getElementById('update-counter');
             if (!btn || btn.disabled) return;
             btn.disabled = true;
             btn.innerHTML = '⏳ Updating...';
             const startTime = Date.now();
-            
-            // Запускаем счётчик вверх
+
+            // Счётчик — справа от ♻️ Refresh
             let seconds = 0;
             const counterInterval = setInterval(() => {{
                 seconds++;
-                if (msgEl) {{ msgEl.textContent = '🔄 ' + seconds + 's'; msgEl.style.color = '#667eea'; }}
+                if (counterEl) {{ counterEl.textContent = '🔄 ' + seconds + 's'; counterEl.style.color = 'rgba(255,255,255,0.85)'; }}
             }}, 1000);
-            
+
             try {{
                 const r = await fetch('/lineup_ai/api/fetch/' + TEAM_ID + '?_t=' + Date.now(), {{ cache: 'no-store' }});
                 clearInterval(counterInterval);
@@ -2195,12 +2196,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const data = await r.json();
                 console.log('[UpdateData] response:', data);
-                
+
                 const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-                const msg = data.changed 
-                    ? '✅ Updated in ' + duration + 's' 
+                const msg = data.changed
+                    ? '✅ Updated in ' + duration + 's'
                     : '✓ Cache refreshed in ' + duration + 's';
-                if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                if (counterEl) {{ counterEl.textContent = msg; counterEl.style.color = '#7ee787'; }}
                 btn.innerHTML = '♻️ Refresh';
                 btn.disabled = false;
 
@@ -2210,7 +2211,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }} catch (e) {{
                 clearInterval(counterInterval);
                 console.error('[UpdateData] error:', e);
-                if (msgEl) {{ msgEl.textContent = '❌ ' + (e.message || 'Error'); msgEl.style.color = '#dc3545'; }}
+                if (counterEl) {{ counterEl.textContent = '❌ ' + (e.message || 'Error'); counterEl.style.color = '#ff7b7b'; }}
                 btn.disabled = false;
                 btn.innerHTML = '♻️ Refresh';
             }}
@@ -3124,8 +3125,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     console.log('[AutoUpdate] Cache is stale (' + Math.round(CACHE_AGE_SECONDS/3600) + 'h), updating...');
                     var teamId = window.location.pathname.split('/').pop();
                     var btn = document.getElementById('update-data-btn');
-                    var msgEl = document.getElementById('save-message');
-                    
+                    var counterEl = document.getElementById('update-counter');
+
                     // Show updating indicator
                     if (btn) {{
                         btn.disabled = true;
@@ -3134,7 +3135,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     let seconds = 0;
                     const counterInterval = setInterval(function() {{
                         seconds++;
-                        if (msgEl) {{ msgEl.textContent = '🔄 ' + seconds + 's'; msgEl.style.color = '#667eea'; }}
+                        if (counterEl) {{ counterEl.textContent = '🔄 ' + seconds + 's'; counterEl.style.color = 'rgba(255,255,255,0.85)'; }}
                     }}, 1000);
                     
                     fetch('/lineup_ai/api/fetch/' + teamId + '?_t=' + Date.now(), {{ cache: 'no-store' }})
@@ -3142,10 +3143,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         .then(function(data) {{
                             clearInterval(counterInterval);
                             const duration = Math.round(CACHE_AGE_SECONDS / 3600);
-                            const msg = data.changed 
+                            const msg = data.changed
                                 ? '✅ Auto-updated (was ' + duration + 'h old)'
                                 : '✓ Refreshed (was ' + duration + 'h old)';
-                            if (msgEl) {{ msgEl.textContent = msg; msgEl.style.color = '#17843f'; }}
+                            if (counterEl) {{ counterEl.textContent = msg; counterEl.style.color = '#7ee787'; }}
                             if (btn) {{ btn.innerHTML = '♻️ Refresh'; btn.disabled = false; }}
                             // No reload: auto-update already saved fresh cache.
                             // Reloading would re-trigger the auto-update and create a reload loop.
@@ -3153,7 +3154,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         .catch(function(err) {{
                             clearInterval(counterInterval);
                             console.log('[AutoUpdate] Failed:', err);
-                            if (msgEl) {{ msgEl.textContent = '⚠️ Update failed'; msgEl.style.color = '#dc3545'; }}
+                            if (counterEl) {{ counterEl.textContent = '⚠️ Update failed'; counterEl.style.color = '#ff7b7b'; }}
                             if (btn) {{ btn.innerHTML = '♻️ Refresh'; btn.disabled = false; }}
                         }});
                 }} else {{
