@@ -1176,16 +1176,27 @@ def fetch_h2h(match_id, max_results=5, my_team_id="", opp_team_id=""):
 
     Jul 22 2026 — the Flashscore /matches/h2h endpoint does NOT return
     head-to-head games between two specific teams; it returns the full
-    match list of whatever tournament the match_id belongs to (e.g. 171
-    LaLiga matches for a LaLiga match_id). So we compute real H2H by
-    intersecting the /teams/results of both teams and keeping only
-    matches where Sparta Prague played Slavia Prague (or vice versa).
+    match list of whatever tournament the match_id belongs to. So we
+    compute real H2H by intersecting the /teams/results of both teams
+    and keeping only matches where the two specific teams played each
+    other (i.e. the match involves BOTH my_team_id and opp_team_id).
 
-    Implementation note (bug fix Jul 22 2026):
-    Each /teams/results page only holds ~40-45 most recent matches (about
-    1 year for active clubs). For teams that play each other infrequently
-    the mutual games can be on later pages. We walk up to MAX_H2H_PAGES
-    pages per side until we have enough mutual matches.
+    Implementation notes:
+      - Each /teams/results page holds ~40-45 most recent matches
+        (~1 year for active clubs). For teams that play each other
+        infrequently the mutual games can be on later pages. We walk
+        up to MAX_H2H_PAGES pages per side until we have enough mutual
+        matches or run out of history.
+      - The intersection by match_id is sufficient for correctness:
+        a match_id is globally unique and only appears in a team's
+        /teams/results if that team played in it. So if match_id is
+        in BOTH lists, both teams played in it -- which is exactly
+        a head-to-head meeting.
+      - We also try the Flashscore "head-to-head" endpoint variant
+        (team_id=X&team_id=Y) as a secondary source, and merge any
+        results we find there that are not already in the
+        intersection. This endpoint is unreliable (returns the full
+        tournament schedule for the last team_id) but is cheap to try.
 
     Args:
         match_id: the current match_id (hint only; not used to drive the API)
@@ -1194,21 +1205,20 @@ def fetch_h2h(match_id, max_results=5, my_team_id="", opp_team_id=""):
             we want to display
 
     Returns:
-        list of dicts (see _parse_match_row) — newest first, capped at
+        list of dicts (see _parse_match_row) -- newest first, capped at
         max_results. Only matches that involved BOTH teams are included.
     """
-    MAX_H2H_PAGES = 5  # ~5*40 = 200 results per side ≈ 3-5 years of history
+    MAX_H2H_PAGES = 10  # ~10*40 = 400 results per side ≈ 5-8 years of history
     if not my_team_id or not opp_team_id:
         return []
-    # Page 1 first — fast path for teams that have very recent H2H.
+    # Page 1 first -- fast path for teams that have very recent H2H.
     my_results = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=200, max_pages=1)
     opp_results = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=200, max_pages=1)
     opp_match_ids = {m.get("match_id") for m in opp_results if m.get("match_id")}
     h2h = [m for m in my_results if m.get("match_id") in opp_match_ids]
     if len(h2h) >= max_results:
         return h2h[:max_results]
-    # Walk additional pages (full 200-result window per page) until we
-    # have at least max_results mutual matches or run out of pages.
+    # Walk additional pages until we have enough mutual matches or run out.
     for page in range(2, MAX_H2H_PAGES + 1):
         my_more = fetch_team_results(my_team_id, my_team_id=my_team_id, max_results=200, max_pages=page)
         opp_more = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=200, max_pages=page)
@@ -1222,6 +1232,44 @@ def fetch_h2h(match_id, max_results=5, my_team_id="", opp_team_id=""):
                 existing_ids.add(m.get("match_id"))
         if len(h2h) >= max_results:
             break
+
+    # === Secondary source: /teams/results with two team_ids ===
+    # Flashscore sometimes returns the head-to-head subset when both
+    # team_ids are passed in the same query (e.g. team_id=A&team_id=B).
+    # The endpoint is unreliable (it usually returns the schedule of
+    # only the last team_id, not the intersection), but when it works
+    # it gives us a fast lookup. We only ADD matches that contain BOTH
+    # team_ids in the same match envelope -- otherwise we would leak
+    # unrelated games into the H2H list.
+    try:
+        url = f"https://{HOST}/api/flashscore/v2/teams/results?team_id={my_team_id}&team_id={opp_team_id}"
+        data = _fetch(url)
+        if isinstance(data, list):
+            existing_ids = {m.get("match_id") for m in h2h}
+            for env in data:
+                if not isinstance(env, dict):
+                    continue
+                for m in env.get("matches", []) or []:
+                    if not isinstance(m, dict):
+                        continue
+                    mid = m.get("match_id")
+                    if not mid or mid in existing_ids:
+                        continue
+                    h = m.get("home_team") or {}
+                    a = m.get("away_team") or {}
+                    h_id = h.get("team_id") if isinstance(h, dict) else None
+                    a_id = a.get("team_id") if isinstance(a, dict) else None
+                    if {h_id, a_id} != {my_team_id, opp_team_id}:
+                        continue  # not a true H2H match, skip
+                    row = _parse_match_row(m, my_team_id)
+                    if row:
+                        h2h.append(row)
+                        existing_ids.add(mid)
+                if len(h2h) >= max_results:
+                    break
+    except Exception:
+        pass
+
     return h2h[:max_results]
 
 
