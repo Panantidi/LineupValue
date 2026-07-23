@@ -1857,7 +1857,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">№</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Nat</th>
                         <th rowspan="2" style="width:200px;padding:0 2px;white-space:nowrap;">Player</th>
-                        <th rowspan="2" style="text-align:center;width:70px;padding:0;">Status</th>
+                        <th rowspan="2" style="text-align:center;width:70px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearStatus();return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear Status">✖️</button><span title="Status" style="font-size:10px;margin-top:2px;">Status</span></div></th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Age</th>
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;" title="Market Value">MV</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Pos</th>
@@ -2834,7 +2834,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         function clearColumn(colType) {{
             const checkboxClass = {{'squad': 'squad-checkbox', 'possible': 'xi-checkbox', 'start': 'starting-checkbox'}}[colType];
             if (!checkboxClass) return false;
-            
+
             const checkboxes = document.querySelectorAll('input[type="checkbox"].' + checkboxClass);
             checkboxes.forEach(cb => {{
                 if (cb.checked) {{
@@ -2851,6 +2851,28 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     cb.dispatchEvent(new Event('change'));
                 }}
             }});
+            return false;
+        }}
+
+        // Jul 23 2026 — Clear all player statuses back to "Available" (✅).
+        // Triggered by the ✖️ button in the STATUS column header.
+        // Mirrors the structure of clearColumn() above.
+        function clearStatus() {{
+            const selects = document.querySelectorAll('.status-select');
+            let count = 0;
+            selects.forEach(sel => {{
+                if (sel.value !== 'Available') {{
+                    sel.value = 'Available';
+                    // Reuse the existing onchange handler to refresh emoji + styling.
+                    if (typeof updateStatusIcon === 'function') {{
+                        updateStatusIcon(sel);
+                    }} else if (window.updateStatusIcon) {{
+                        window.updateStatusIcon(sel);
+                    }}
+                    count++;
+                }}
+            }});
+            console.log('[clearStatus] reset ' + count + ' player status(es) to Available');
             return false;
         }}
 
