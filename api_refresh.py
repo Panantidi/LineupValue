@@ -22,7 +22,17 @@ CACHE_DIR = "/home/openclaw/.openclaw/workspace"
 LEAGUES_FILE = "/home/openclaw/FormAlert/leagues_data.json"
 
 # --- Cache TTL ---
-CACHE_TTL_SECONDS = 600  # 10 minutes
+# --- Per-section TTL (Jul 23 2026) ---
+# Different data has different update frequency:
+# - Squad (transfers, ages) changes rarely -- refresh weekly
+# - Player details (MV, photos) changes even more rarely -- refresh monthly
+# - Last 3 results (matches + lineups) change after every game -- refresh daily
+# - Fixtures (next 3 upcoming) change after each match -- refresh daily
+CACHE_TTL_SECONDS = 600  # 10 minutes (overall default, used for is_fresh())
+SQUAD_TTL_SECONDS = 7 * 86400      # 7 days
+PLAYER_DETAILS_TTL_SECONDS = 30 * 86400  # 30 days
+RESULTS_TTL_SECONDS = 86400        # 1 day
+FIXTURES_TTL_SECONDS = 86400       # 1 day
 
 # --- Lock to prevent concurrent refreshes for the same team ---
 _refresh_in_progress = set()
@@ -106,6 +116,51 @@ def _cache_age_seconds(team_id):
         return None
 
 
+def _section_age_seconds(team_id, section_name):
+    """Return age of a specific section in seconds, or None if missing.
+
+    Jul 23 2026: per-section TTL for delta refresh. Tracks each
+    section's last-update timestamp in the cache file.
+    """
+    p = _cache_path(team_id)
+    if not os.path.exists(p):
+        return None
+    cache_age = _cache_age_seconds(team_id)
+    if cache_age is None:
+        return None
+    try:
+        with open(p, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        su = data.get('section_last_updated', {})
+        ts = su.get(section_name)
+        if not ts:
+            return cache_age
+        dt = datetime.fromisoformat(ts)
+        return (datetime.now() - dt).total_seconds()
+    except Exception:
+        return cache_age
+
+
+def _section_is_fresh(team_id, section_name, ttl_seconds):
+    """True if section age < ttl."""
+    age = _section_age_seconds(team_id, section_name)
+    if age is None:
+        return False
+    return age < ttl_seconds
+
+
+def _mark_section_updated(team_id, section_name):
+    """Stamp section_last_updated[section_name] = now()."""
+    try:
+        cache = _read_cache(team_id) or {}
+        su = cache.get('section_last_updated', {})
+        su[section_name] = datetime.now().isoformat()
+        cache['section_last_updated'] = su
+        _write_cache(team_id, cache)
+    except Exception as e:
+        print(f'[delta] WARN: could not mark {section_name} updated: {e}')
+
+
 def is_fresh(team_id, ttl=CACHE_TTL_SECONDS):
     """Return True if cache is fresh (age < TTL)."""
     age = _cache_age_seconds(team_id)
@@ -114,7 +169,7 @@ def is_fresh(team_id, ttl=CACHE_TTL_SECONDS):
     return age < ttl
 
 
-def refresh_squad(team_id, slug, info):
+def refresh_squad(team_id, slug, info, force=False):
     """Fetch /teams/squad and return parsed players list (or None).
 
     Jul 22 2026 — Senior Python Flask refactor (cache-driven architecture):
@@ -133,6 +188,13 @@ def refresh_squad(team_id, slug, info):
     2. tab_name case-insensitive  ("total", "TOTAL" — defensive)
     3. First non-empty group      (rare — some lower-division teams)
     """
+    # Delta refresh (Jul 23 2026): skip API call if squad is fresh.
+    if not force and _section_is_fresh(team_id, 'squad', SQUAD_TTL_SECONDS):
+        cache = _read_cache(team_id)
+        cached_players = (cache or {}).get('players', [])
+        if cached_players:
+            print(f'[delta] squad fresh, reusing {len(cached_players)} cached players (0 API calls)')
+            return list(cached_players)
     url = f"https://{HOST}/api/flashscore/v2/teams/squad?team_url=%2Fteam%2F{slug}%2F{team_id}%2F"
     data = _fetch(url)
     if not data:
@@ -427,8 +489,12 @@ def _map_position(section_name: str) -> str:
     return key[:2].upper()
 
 
-def refresh_player_details(player, delay=0.25):
+def refresh_player_details(player, delay=0.25, force=False):
     """Fetch /players/details and update market_value, image_path, etc."""
+    # Delta refresh (Jul 23 2026): skip per-player API call if section is fresh.
+    tid = player.get('_team_id', '')
+    if not force and tid and _section_is_fresh(tid, 'player_details', PLAYER_DETAILS_TTL_SECONDS):
+        return  # market_value/age already in cache
     purl = player.get("player_url", "")
     if not purl:
         return
@@ -456,7 +522,7 @@ def refresh_player_details(player, delay=0.25):
     time.sleep(delay)
 
 
-def refresh_team_details(team_id, slug):
+def refresh_team_details(team_id, slug, force=False):
     """Fetch /teams/details and return {image_path, stadium, city, capacity, name}.
 
     Real API response (verified Jul 22 2026):
@@ -487,7 +553,7 @@ def refresh_team_details(team_id, slug):
     }
 
 
-def refresh_fixtures(team_id):
+def refresh_fixtures(team_id, force=False):
     """Fetch /teams/fixtures and return list of next 3 upcoming matches.
 
     Real API shape (same envelope as /teams/results):
@@ -496,6 +562,13 @@ def refresh_fixtures(team_id):
         ]
     Returns matches sorted ASC by timestamp, top 3.
     """
+    # Delta refresh (Jul 23 2026): skip API call if fixtures are fresh.
+    if not force and _section_is_fresh(team_id, 'fixtures', FIXTURES_TTL_SECONDS):
+        cache = _read_cache(team_id)
+        cached = (cache or {}).get('fixtures', [])
+        if cached:
+            print(f'[delta] fixtures fresh, reusing {len(cached)} cached fixtures (0 API calls)')
+            return list(cached)
     url = f"https://{HOST}/api/flashscore/v2/teams/fixtures?team_id={team_id}"
     data = _fetch(url)
     if not data:
@@ -557,7 +630,7 @@ def refresh_fixtures(team_id):
     return out
 
 
-def refresh_results(team_id):
+def refresh_results(team_id, force=False):
     """Fetch /teams/results and return list of last 3 matches (with lineups).
 
     Jul 22 2026 — Senior Python Flask refactor:
@@ -583,6 +656,13 @@ def refresh_results(team_id):
     Now we flatten ALL matches across all tournaments, sort by timestamp DESC,
     and take the top 3 most recent.
     """
+    # Delta refresh (Jul 23 2026): skip API call if results are fresh.
+    if not force and _section_is_fresh(team_id, 'results', RESULTS_TTL_SECONDS):
+        cache = _read_cache(team_id)
+        cached_matches = (cache or {}).get('matches', [])
+        if cached_matches:
+            print(f'[delta] results fresh, reusing {len(cached_matches)} cached matches (0 API calls)')
+            return list(cached_matches)
     url = f"https://{HOST}/api/flashscore/v2/teams/results?team_id={team_id}&page=1"
     data = _fetch(url)
     if not data:
@@ -887,12 +967,19 @@ def refresh_team(team_id, force=False):
         # 0. Team details (logo, stadium, city, capacity)
         #    MUST be called before building the team dict so image_path is set.
         details = refresh_team_details(team_id, slug)
+        _mark_section_updated(team_id, "team_details")
         # 1. Squad (from Total group, with position mapping)
-        players = refresh_squad(team_id, slug, info)
+        players = refresh_squad(team_id, slug, info, force=force)
         if players is None:
             return False
+        # 1a. Mark squad as fresh and pass _team_id to each player so
+        #     refresh_player_details can also skip when fresh.
+        for p in players:
+            p["_team_id"] = team_id
+        _mark_section_updated(team_id, "squad")
         # 2. Last 3 matches
-        matches = refresh_results(team_id)
+        matches = refresh_results(team_id, force=force)
+        _mark_section_updated(team_id, "results")
         # 3. Lineups for matches — also returns per-(match, player) status + missing
         lineup_index = refresh_lineups_for_matches(matches, team_id)
         # 4. Attach last3 + last3_missing to each player (parity with phase2_generic.py)
@@ -914,8 +1001,10 @@ def refresh_team(team_id, force=False):
         if players:
             with ThreadPoolExecutor(max_workers=2) as ex:
                 list(ex.map(refresh_player_details, players))
+            _mark_section_updated(team_id, "player_details")
         # 6. Fixtures (next 3 upcoming) — populates fixtures[] in cache
-        fixtures = refresh_fixtures(team_id)
+        fixtures = refresh_fixtures(team_id, force=force)
+        _mark_section_updated(team_id, "fixtures")
         # 7. Build cache — preserve existing keys (coach etc.), overlay new data
         cache = _read_cache(team_id)
         # Prefer API name if available, else leagues_data.json, else existing
