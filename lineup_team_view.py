@@ -1599,7 +1599,61 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
 
 
-<script src="/icons/status-icons.js?v=3"></script>
+<script src="/icons/status-icons.js?v=4"></script>
+<!-- Inline fallback (Jul 23 2026): mirrors icons/status-icons.js inline so it
+     works even if the browser caches a stale version of the external file.
+     Hard refresh (Ctrl+Shift+R) still helps. -->
+<script>
+(function() {{
+  if (window.STATUS_EMOJI && window.updateStatusIcon) return;
+  var STATUS_EMOJI = {{
+    "Available": "✅",
+    "Doubt": "❓",
+    "Doubt + Last yellow card": "⚠️",
+    "Injury": "❌",
+    "Red card": "🟥",
+    "Yellow red card": "🟥",
+    "Last Yellow card": "🟨",
+    "Not playing (Called up)": "✈️",
+    "Not playing (Other)": "🚫",
+    "Return (Injury)": "🔙",
+    "Return (Susp)": "🔙",
+    "Return (Called up)": "🔙",
+    "Return (Other)": "🔙",
+    "New player": "🆕",
+    "Left the team": "🚪"
+  }};
+  window.updateStatusIcon = function(s) {{
+    var val = s.value;
+    var wrapper = s.parentElement;
+    var display = wrapper.querySelector(".status-emoji-display");
+    if (display && STATUS_EMOJI[val]) display.textContent = STATUS_EMOJI[val];
+    var row = wrapper.closest("tr");
+    if (!row) return;
+    var player = row.querySelector("td.player-name");
+    if (!player) return;
+    player.classList.remove("status-red","status-green","status-orange");
+    player.style.color = ""; player.style.fontWeight = ""; player.style.textDecoration = "";
+    var x = ["Injury","Red card","Yellow red card","Not playing (Called up)","Not playing (Other)","Left the team"];
+    var g = ["Return (Injury)","Return (Susp)","Return (Called up)","Return (Other)","New player"];
+    var d = ["Doubt", "Doubt + Last yellow card"];
+    if (x.indexOf(val) !== -1) player.classList.add("status-red");
+    else if (g.indexOf(val) !== -1) player.classList.add("status-green");
+    else if (d.indexOf(val) !== -1) {{
+      player.style.color = "#5F5D58";
+      player.style.fontWeight = "bold";
+      player.style.textDecoration = "underline";
+    }}
+  }};
+  document.addEventListener("DOMContentLoaded", function() {{
+    document.querySelectorAll(".status-select").forEach(function(s) {{
+      var v = s.value;
+      var d = s.parentElement.querySelector(".status-emoji-display");
+      if (d && STATUS_EMOJI[v]) d.textContent = STATUS_EMOJI[v];
+    }});
+  }});
+}})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="/static/favorites.js?v=7"></script>
 
