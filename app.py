@@ -2289,6 +2289,78 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
         # Normal: match at home team's stadium
         stadium_text = home_stadium or ""
 
+    # --- Jul 23 2026: extract match metadata (date, league, round, stadium)
+    # from the team's fixtures cache so the H2H popup can show a centered
+    # header block: "26.07.2026 19:00 / Slovenia Prva liga - Round 2 / 🏟 ...".
+    # We look in the home team's cache first, then the away team's cache.
+    match_date = ""
+    match_league = ""
+    match_round = ""
+    match_stadium = ""
+    try:
+        for lookup_id in (home_team_id, away_team_id):
+            if not lookup_id:
+                continue
+            cache_path = os.path.join(cache_dir, f"_live_cache_{lookup_id}.json")
+            if not os.path.exists(cache_path):
+                continue
+            with open(cache_path) as fh:
+                tc = json.load(fh)
+            for fx in (tc.get("fixtures") or []):
+                if str(fx.get("match_id", "")) == str(mid):
+                    # date: stored as "dd/mm" — convert to "dd.mm.YYYY HH:MM"
+                    date_raw = fx.get("date", "")
+                    time_str = fx.get("time", "")
+                    dm = re.match(r"(\d{1,2})/(\d{2})", date_raw)
+                    if dm:
+                        day, month = int(dm.group(1)), int(dm.group(2))
+                        # Pick a sensible year: same year, or next year if month < now
+                        now_y = datetime.utcnow().year
+                        now_m = datetime.utcnow().month
+                        year = now_y if month >= now_m else now_y + 1
+                        match_date = f"{day:02d}.{month:02d}.{year}"
+                        if time_str:
+                            match_date += f" {time_str}"
+                    # league = full tournament name; round = stage
+                    match_league = (fx.get("tournament_name_full") or
+                                    fx.get("tournament_name_short") or
+                                    fx.get("tournament") or "").strip()
+                    # round: if API exposes round_name, use it; else "Round N"
+                    rd = (fx.get("round_name") or "").strip()
+                    if not rd:
+                        rn = fx.get("round")
+                        if rn:
+                            rd = f"Round {rn}"
+                    match_round = rd
+                    # stadium: prefer the explicit venue (Soccerway /teams/details),
+                    # else fall back to the home team's stadium from cache.
+                    venue_raw = (fx.get("venue") or fx.get("stadium") or "").strip()
+                    city_raw = (fx.get("city") or "").strip()
+                    cap_raw = fx.get("capacity")
+                    if venue_raw:
+                        if city_raw and city_raw.lower() not in venue_raw.lower():
+                            venue_line = f"{venue_raw} ({city_raw})"
+                        else:
+                            venue_line = venue_raw
+                        if cap_raw:
+                            try:
+                                cap_clean = str(cap_raw).replace(" ", "").replace("\u00a0", "")
+                                cap_n = int(cap_clean)
+                                cap_fmt = f"{cap_n:,}".replace(",", " ")
+                                venue_line += f" / {cap_fmt}"
+                            except Exception:
+                                pass
+                        match_stadium = venue_line
+                    elif home_stadium:
+                        # Fallback: home team's stadium (already loaded by
+                        # lineup_compare from /teams/details cache).
+                        match_stadium = home_stadium
+                    break
+            if match_date or match_league:
+                break
+    except Exception:
+        pass
+
     # --- Render template ---
     with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
         template = f.read()
@@ -2303,6 +2375,16 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     result = result.replace("{{stadium_text}}", stadium_text)
     result = result.replace("{{stadium_class}}", stadium_class)
     result = result.replace("{{neutral_suffix}}", neutral_suffix)
+    # Jul 23 2026: inject match metadata for H2H popup header.
+    # Use a small HTML escaper to prevent template injection (team names
+    # can contain quotes / angle brackets if entered by hand).
+    import html as _html
+    def _safe(s):
+        return _html.escape(str(s or ""), quote=True)
+    result = result.replace("{{match_date}}", _safe(match_date))
+    result = result.replace("{{match_league}}", _safe(match_league))
+    result = result.replace("{{match_round}}", _safe(match_round))
+    result = result.replace("{{match_stadium}}", _safe(match_stadium))
 
     return HTMLResponse(content=result)
 

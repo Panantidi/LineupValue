@@ -187,6 +187,36 @@ body {
 }
 .match-h2h-loading { color: #666; padding: 20px; text-align: center; }
 
+/* Match header (centered date / league / stadium / referee) — Jul 23 2026.
+   Sits at the top of the popup body, above the H2H and Last Matches lists. */
+.match-h2h-match-header {
+    text-align: center;
+    padding: 14px 12px 12px 12px;
+    border-bottom: 1px solid #e0e3eb;
+    background: #f6f8fc;
+}
+.match-h2h-match-header .mhmh-date {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1d2b;
+    margin-bottom: 4px;
+}
+.match-h2h-match-header .mhmh-league {
+    font-size: 12px;
+    color: #5b6172;
+    margin-bottom: 6px;
+}
+.match-h2h-match-header .mhmh-stadium {
+    font-size: 12px;
+    color: #2d3344;
+    margin-bottom: 2px;
+}
+.match-h2h-match-header .mhmh-referee {
+    font-size: 11px;
+    color: #6c7280;
+    margin-top: 2px;
+}
+
 /* Stadium block (top of popup) */
 .match-h2h-stadium {
     background: #f5f7fb;
@@ -1270,6 +1300,16 @@ var h2hMyName = '{{my_name}}';
 var h2hOppName = '{{opponent_name}}';
 var h2hMyId = '{{my_team_id}}';
 var h2hOppId = '{{opp_team_id}}';
+// Jul 23 2026: match metadata for popup header (date, league, round, stadium).
+// Injected server-side from the chosen fixture in the team's cache.
+var matchMeta = {
+    date:     '{{match_date}}',
+    league:   '{{match_league}}',
+    round:    '{{match_round}}',
+    stadium:  '{{match_stadium}}',
+    home_name: '{{my_name}}',
+    away_name: '{{opponent_name}}'
+};
 
 function toggleH2HPopup() {
     var popup = document.getElementById('match-h2h-popup');
@@ -1320,17 +1360,30 @@ function renderH2H(data) {
         return;
     }
     var html = '';
-    // ---- Stadium block (popup header) ----
-    if (data.stadium) {
-        var s = data.stadium;
-        if (s.name || s.city || s.capacity || s.referee) {
-            html += '<div class="match-h2h-stadium">';
-            if (s.name) html += '<div><span class="icon">🏟</span>' + escH(s.name) + '</div>';
-            if (s.city) html += '<div><span class="icon">📍</span>' + escH(s.city) + '</div>';
-            if (s.capacity) html += '<div><span class="icon">🗣</span>' + escH(String(s.capacity)) + '</div>';
-            if (s.referee) html += '<div><span class="icon">⚖️</span>' + escH(s.referee) + '</div>';
-            html += '</div>';
+    // ---- Match header (centered: date, league+round, stadium, referee) ----
+    // Jul 23 2026: centered header layout per user spec.
+    //   Line 1: match date + time (e.g. "26.07.2026 19:00")
+    //   Line 2: tournament + round (e.g. "Slovenia Prva liga - Round 2")
+    //   Line 3: 🏟 stadium (city) / capacity
+    //   Line 4: ⚖️ referee (if available)
+    var matchDate = (typeof matchMeta !== 'undefined' && matchMeta.date) || '';
+    var matchLeague = (typeof matchMeta !== 'undefined' && matchMeta.league) || '';
+    var matchRound = (typeof matchMeta !== 'undefined' && matchMeta.round) || '';
+    var matchStadium = (typeof matchMeta !== 'undefined' && matchMeta.stadium) || '';
+    var hasHeader = matchDate || matchLeague || matchRound || matchStadium;
+    if (hasHeader) {
+        html += '<div class="match-h2h-match-header">';
+        if (matchDate) html += '<div class="mhmh-date">' + escH(matchDate) + '</div>';
+        var leagueLine = (matchLeague ? matchLeague : '') +
+                         (matchLeague && matchRound ? ' - ' : '') +
+                         (matchRound ? matchRound : '');
+        if (leagueLine) html += '<div class="mhmh-league">' + escH(leagueLine) + '</div>';
+        if (matchStadium) html += '<div class="mhmh-stadium">🏟 ' + escH(matchStadium) + '</div>';
+        // Referee (if the API provides it via data.stadium.referee)
+        if (data.stadium && data.stadium.referee) {
+            html += '<div class="mhmh-referee">⚖️ ' + escH(data.stadium.referee) + '</div>';
         }
+        html += '</div>';
     }
     // ---- H2H matches ----
     if (data.h2h && data.h2h.length) {
@@ -1339,16 +1392,18 @@ function renderH2H(data) {
             html += renderH2HMatch(data.h2h[i]);
         }
     }
-    // ---- Last Matches: my team ----
+    // ---- Last Matches: home ----
     if (data.last_my && data.last_my.length) {
-        html += '<div class="match-h2h-section-title">Last Matches: ' + escH(h2hMyName) + '</div>';
+        var homeTitle = (typeof matchMeta !== 'undefined' && matchMeta.home_name) || h2hMyName || 'Home';
+        html += '<div class="match-h2h-section-title">Last Matches: ' + escH(homeTitle) + '</div>';
         for (var j = 0; j < data.last_my.length; j++) {
             html += renderH2HMatch(data.last_my[j]);
         }
     }
-    // ---- Last Matches: opponent ----
+    // ---- Last Matches: away ----
     if (data.last_opp && data.last_opp.length) {
-        html += '<div class="match-h2h-section-title">Last Matches: ' + escH(h2hOppName) + '</div>';
+        var awayTitle = (typeof matchMeta !== 'undefined' && matchMeta.away_name) || h2hOppName || 'Away';
+        html += '<div class="match-h2h-section-title">Last Matches: ' + escH(awayTitle) + '</div>';
         for (var k = 0; k < data.last_opp.length; k++) {
             html += renderH2HMatch(data.last_opp[k]);
         }
@@ -1360,8 +1415,12 @@ function renderH2H(data) {
 }
 
 function renderH2HMatch(m) {
-    // m: {date, score_home, score_away, home:{name}, away:{name}, tournament, my_side}
-    // Single grid row: [date | home | score | away | result], tournament underneath.
+    // m: {date, score_home, score_away, home:{name}, away:{name}, tournament, tournament_short, my_side}
+    // Jul 23 2026 (user spec): single compact line per match.
+    //   "18.04.26 (PRV) — Radomlje 0 : 3 Koper 🟩"
+    //   - date: short DD.MM.YY
+    //   - tournament: short code in parentheses (e.g. PRV, UPL, EPL)
+    //   - winner bold+green, loser gray (color via CSS .winner/.loser)
     var homeName = (m.home && m.home.name) || 'Home';
     var awayName = (m.away && m.away.name) || 'Away';
     var hs = parseInt(m.score_home, 10);
@@ -1370,7 +1429,6 @@ function renderH2HMatch(m) {
     var homeWins = isNum && hs > as;
     var awayWins = isNum && as > hs;
     var draw = isNum && hs === as;
-    // Result emoji: based on my team perspective, neutral otherwise.
     var mySide = m.my_side;
     var result = '';
     if (isNum) {
@@ -1388,26 +1446,32 @@ function renderH2HMatch(m) {
         if (homeWins) { homeCls = 'home winner'; awayCls = 'away loser'; }
         else if (awayWins) { homeCls = 'home loser'; awayCls = 'away winner'; }
     }
-    var tournament = (m.tournament || '').trim();
+    // Date: prefer short format "DD.MM.YY" if m.date is in YYYY-MM-DD or DD.MM.YYYY
     var dateStr = m.date || '';
-    // Row 1: the match itself.
-    var html = '<div class="match-h2h-row">';
-    html += '<span class="date">' + escH(dateStr) + '</span>';
-    html += '<span class="' + homeCls + '">' + escH(homeName) + '</span>';
-    html += '<span class="score">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</span>';
-    html += '<span class="' + awayCls + '">' + escH(awayName) + '</span>';
-    html += '<span class="result">' + result + '</span>';
-    html += '</div>';
-    // Row 2: tournament subtitle (compact, italic, gray).
-    if (tournament) {
-        html += '<div class="match-h2h-row" style="grid-template-columns: 60px 1fr; padding-top:0; padding-bottom:6px; border-bottom:1px solid #eef0f4;">';
-        html += '<span></span>';
-        html += '<span style="color:#999; font-size:10px; font-style:italic; text-align:right; padding-right:38px;">' + escH(tournament) + '</span>';
-        html += '</div>';
-    } else {
-        // Add a small spacer row to keep the section tidy.
-        html += '<div class="match-h2h-row-empty"></div>';
+    var dateShort = dateStr;
+    var ddmmyyyy = dateStr.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+    if (ddmmyyyy) {
+        var yy = ddmmyyyy[3].length === 4 ? ddmmyyyy[3].slice(2) : ddmmyyyy[3];
+        dateShort = ddmmyyyy[1].padStart(2, '0') + '.' + ddmmyyyy[2].padStart(2, '0') + '.' + yy;
     }
+    // Tournament short code: prefer m.tournament_short, fall back to first word of m.tournament
+    var tShort = m.tournament_short || '';
+    if (!tShort && m.tournament) {
+        // Take first word, uppercase first 3-4 letters (e.g. "Premier league" -> "PRL")
+        var firstWord = String(m.tournament).split(/[\s\-]/)[0] || '';
+        tShort = firstWord.substring(0, 4).toUpperCase();
+    }
+    var html = '<div class="match-h2h-row">';
+    html += '<span class="date">' + escH(dateShort) + '</span>';
+    if (tShort) {
+        html += ' <span class="tournament-short">(' + escH(tShort) + ')</span>';
+    }
+    html += ' &mdash; ';
+    html += '<span class="' + homeCls + '">' + escH(homeName) + '</span>';
+    html += ' <span class="score">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</span>';
+    html += ' <span class="' + awayCls + '">' + escH(awayName) + '</span>';
+    html += ' <span class="result">' + result + '</span>';
+    html += '</div>';
     return html;
 }
 
