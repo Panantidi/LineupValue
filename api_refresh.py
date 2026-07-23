@@ -121,12 +121,19 @@ def _section_age_seconds(team_id, section_name):
 
     Jul 23 2026: per-section TTL for delta refresh. Tracks each
     section's last-update timestamp in the cache file.
+
+    Jul 23 2026 (bugfix, after revert to 4ee98a7): when
+    section_last_updated[section_name] is missing (never set OR
+    explicitly deleted), this function previously fell back to
+    returning cache_age (the file mtime). That was wrong: a
+    freshly refreshed cache file where section_last_updated was
+    wiped would have mtime=0s, so any missing section would
+    appear "fresh" and be silently skipped. Now missing sections
+    return None, which makes _section_is_fresh() return False
+    (forcing the API call).
     """
     p = _cache_path(team_id)
     if not os.path.exists(p):
-        return None
-    cache_age = _cache_age_seconds(team_id)
-    if cache_age is None:
         return None
     try:
         with open(p, 'r', encoding='utf-8') as f:
@@ -134,15 +141,15 @@ def _section_age_seconds(team_id, section_name):
         su = data.get('section_last_updated', {})
         ts = su.get(section_name)
         if not ts:
-            return cache_age
+            return None  # never refreshed, treat as stale
         dt = datetime.fromisoformat(ts)
         return (datetime.now() - dt).total_seconds()
     except Exception:
-        return cache_age
+        return None
 
 
 def _section_is_fresh(team_id, section_name, ttl_seconds):
-    """True if section age < ttl."""
+    """True if section age < ttl. None age (never refreshed) -> False."""
     age = _section_age_seconds(team_id, section_name)
     if age is None:
         return False
@@ -189,7 +196,12 @@ def refresh_squad(team_id, slug, info, force=False):
     3. First non-empty group      (rare — some lower-division teams)
     """
     # Delta refresh (Jul 23 2026): skip API call if squad is fresh.
-    if not force and _section_is_fresh(team_id, 'squad', SQUAD_TTL_SECONDS):
+    # Jul 23 2026 (user feedback, after revert to 4ee98a7): force=True
+    # should NOT bypass the section TTL. The user clicked ♻️ Refresh
+    # twice in a row and observed API calls firing on the second
+    # click. Now: force=True only bypasses the outer 10-min is_fresh()
+    # guard; per-section TTLs (1d/30d/...) are always enforced.
+    if _section_is_fresh(team_id, 'squad', SQUAD_TTL_SECONDS):
         cache = _read_cache(team_id)
         cached_players = (cache or {}).get('players', [])
         if cached_players:
@@ -492,8 +504,9 @@ def _map_position(section_name: str) -> str:
 def refresh_player_details(player, delay=0.25, force=False):
     """Fetch /players/details and update market_value, image_path, etc."""
     # Delta refresh (Jul 23 2026): skip per-player API call if section is fresh.
+    # force=True no longer bypasses this check — see refresh_squad comment.
     tid = player.get('_team_id', '')
-    if not force and tid and _section_is_fresh(tid, 'player_details', PLAYER_DETAILS_TTL_SECONDS):
+    if tid and _section_is_fresh(tid, 'player_details', PLAYER_DETAILS_TTL_SECONDS):
         return  # market_value/age already in cache
     purl = player.get("player_url", "")
     if not purl:
@@ -563,7 +576,8 @@ def refresh_fixtures(team_id, force=False):
     Returns matches sorted ASC by timestamp, top 3.
     """
     # Delta refresh (Jul 23 2026): skip API call if fixtures are fresh.
-    if not force and _section_is_fresh(team_id, 'fixtures', FIXTURES_TTL_SECONDS):
+    # force=True no longer bypasses this check — see refresh_squad comment.
+    if _section_is_fresh(team_id, 'fixtures', FIXTURES_TTL_SECONDS):
         cache = _read_cache(team_id)
         cached = (cache or {}).get('fixtures', [])
         if cached:
@@ -657,7 +671,8 @@ def refresh_results(team_id, force=False):
     and take the top 3 most recent.
     """
     # Delta refresh (Jul 23 2026): skip API call if results are fresh.
-    if not force and _section_is_fresh(team_id, 'results', RESULTS_TTL_SECONDS):
+    # force=True no longer bypasses this check — see refresh_squad comment.
+    if _section_is_fresh(team_id, 'results', RESULTS_TTL_SECONDS):
         cache = _read_cache(team_id)
         cached_matches = (cache or {}).get('matches', [])
         if cached_matches:
