@@ -1,6 +1,7 @@
 var STATUS_EMOJI = {
   "Available": "\u2705",
   "Doubt": "\u2753",
+  "Doubt + Last yellow card": "\u26A0\uFE0F",
   "Injury": "\u274C",
   "Red card": "\uD83D\uDFE5",
   "Yellow red card": "\uD83D\uDFE5",
@@ -32,9 +33,12 @@ function updateStatusIcon(s) {
   player.style.textDecoration = "";
   var x = ["Injury","Red card","Yellow red card","Not playing (Called up)","Not playing (Other)","Left the team"];
   var g = ["Return (Injury)","Return (Susp)","Return (Called up)","Return (Other)","New player"];
+  // Doubt treatments (Jul 23 2026): both ❓ Doubt and ⚠️ Doubt + Last yellow card
+  // get the same gray + bold + underline styling on the player name.
+  var d = ["Doubt", "Doubt + Last yellow card"];
   if (x.indexOf(val) !== -1) player.classList.add("status-red");
   else if (g.indexOf(val) !== -1) player.classList.add("status-green");
-  else if (val === "Doubt") {
+  else if (d.indexOf(val) !== -1) {
     player.style.color = "#5F5D58";
     player.style.fontWeight = "bold";
     player.style.textDecoration = "underline";
