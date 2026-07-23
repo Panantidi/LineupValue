@@ -239,68 +239,66 @@ body {
     padding-bottom: 4px;
 }
 
-/* Match row: a single horizontal table with [date | home | score | away | result]
-   using grid. Wider columns so team names fit without truncation. */
+/* Match row: Jul 23 2026 — single compact line per match.
+   "15.02.26 (PRE) — Kilmarnock 2 : 3 Celtic 🟥"
+   Uses flex with white-space:nowrap so the whole row stays
+   on one line. Elements wrap their inner text as needed but
+   the row itself never breaks. */
 .match-h2h-row {
-    display: grid;
-    grid-template-columns: 60px 1fr 50px 1fr 30px;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 4px;
+    gap: 6px;
+    padding: 6px 8px;
     border-bottom: 1px solid #eef0f4;
     font-size: 13px;
     background: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .match-h2h-row:nth-child(even) { background: #fafbfd; }
 .match-h2h-row .date {
     color: #666;
     font-size: 11px;
     font-weight: 500;
+    flex-shrink: 0;
+}
+.match-h2h-row .tournament-short {
+    color: #6c7280;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
 }
 .match-h2h-row .home {
-    text-align: right;
     color: #333;
-    padding-right: 4px;
-    word-break: break-word;
+    flex: 1 1 auto;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .match-h2h-row .away {
-    text-align: left;
     color: #333;
-    padding-left: 4px;
-    word-break: break-word;
-}
-/* Winner is bold + colored green; loser is gray */
-.match-h2h-row .winner {
-    font-weight: 700;
-    color: #17843f;
-}
-.match-h2h-row .loser {
-    color: #999;
+    flex: 1 1 auto;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .match-h2h-row .score {
-    text-align: center;
+    color: #1a1d2b;
     font-weight: 700;
-    color: #222;
-    background: #f0f3f8;
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 14px;
+    font-size: 13px;
+    flex-shrink: 0;
+    min-width: 50px;
+    text-align: center;
 }
 .match-h2h-row .result {
+    flex-shrink: 0;
+    font-size: 14px;
+    min-width: 22px;
     text-align: center;
-    font-size: 16px;
-    line-height: 1;
 }
-.match-h2h-row .tournament {
-    grid-column: 2 / 5;
-    color: #999;
-    font-size: 10px;
-    text-align: right;
-    padding-right: 8px;
-    padding-top: 1px;
-    margin-top: -4px;
-    font-style: italic;
-}
+.match-h2h-row .winner { color: #1a7a3a; font-weight: 700; }
+.match-h2h-row .loser { color: #999; }
 .match-h2h-row-empty {
     /* Used as a thin separator after the tournament subtitle */
     height: 4px;
