@@ -1778,7 +1778,32 @@ async def lineup_match_h2h(match_id: str, my: str = "", opp: str = ""):
                         opp_slug = t.get("slug", "")
     except Exception:
         pass
-    # Delegate to api_refresh — runs the 4 HTTP calls (≈2-5s, only on click)
+
+    # === 24-hour file cache (Jul 22 2026) ===
+    # H2H data is historical (matches that already happened), so it
+    # doesn't change frequently. We cache the full payload for 24h
+    # to avoid burning FlashScore API quota (240 req/min cap) on
+    # repeated clicks of the ‼️ button.
+    import os, time
+    CACHE_DIR = "/home/openclaw/.openclaw/workspace"
+    CACHE_TTL = 86400  # 24 hours in seconds
+    cache_key = "_h2h_cache_{m}_{my}_{opp}.json".format(
+        m=match_id, my=my or "_", opp=opp or "_"
+    )
+    cache_path = os.path.join(CACHE_DIR, cache_key)
+    # 1. Try cache
+    if os.path.exists(cache_path):
+        try:
+            age = time.time() - os.path.getmtime(cache_path)
+            if age < CACHE_TTL:
+                cached = json.load(open(cache_path))
+                cached["_cache_age_seconds"] = int(age)
+                cached["_cache_hit"] = True
+                return cached
+        except Exception:
+            pass  # corrupt cache → fall through to fetch
+
+    # 2. Fetch from FlashScore
     import api_refresh as _ar
     try:
         payload = _ar.fetch_match_h2h_payload(
@@ -1790,6 +1815,15 @@ async def lineup_match_h2h(match_id: str, my: str = "", opp: str = ""):
         )
     except Exception as e:
         payload = {"stadium": {}, "h2h": [], "last_my": [], "last_opp": [], "error": str(e)}
+    # 3. Save to cache (only if no error from the API)
+    if not payload.get("error"):
+        try:
+            payload["_cached_at"] = int(time.time())
+            with open(cache_path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False)
+        except Exception:
+            pass
+    payload["_cache_hit"] = False
     return payload
 
 
