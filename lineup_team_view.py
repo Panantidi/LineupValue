@@ -3116,53 +3116,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
         }}
 
-        // === Background live-data sync: disabled in embed mode ===
-        var IS_EMBED = window.location.search.indexOf('embed=1') !== -1;
-        if (!IS_EMBED) {{
-            (function() {{
-                // Check if cache is stale (> 6 hours) and auto-update
-                if (CACHE_AGE_SECONDS !== null && CACHE_AGE_SECONDS > CACHE_TTL_SECONDS) {{
-                    console.log('[AutoUpdate] Cache is stale (' + Math.round(CACHE_AGE_SECONDS/3600) + 'h), updating...');
-                    var teamId = window.location.pathname.split('/').pop();
-                    var btn = document.getElementById('update-data-btn');
-                    var counterEl = document.getElementById('update-counter');
-
-                    // Show updating indicator
-                    if (btn) {{
-                        btn.disabled = true;
-                        btn.innerHTML = '⏳ Auto-updating...';
-                    }}
-                    let seconds = 0;
-                    const counterInterval = setInterval(function() {{
-                        seconds++;
-                        if (counterEl) {{ counterEl.textContent = '🔄 ' + seconds + 's'; counterEl.style.color = 'rgba(255,255,255,0.85)'; }}
-                    }}, 1000);
-                    
-                    fetch('/lineup_ai/api/fetch/' + teamId + '?_t=' + Date.now(), {{ cache: 'no-store' }})
-                        .then(function(r) {{ return r.json(); }})
-                        .then(function(data) {{
-                            clearInterval(counterInterval);
-                            const duration = Math.round(CACHE_AGE_SECONDS / 3600);
-                            const msg = data.changed
-                                ? '✅ Auto-updated (was ' + duration + 'h old)'
-                                : '✓ Refreshed (was ' + duration + 'h old)';
-                            if (counterEl) {{ counterEl.textContent = msg; counterEl.style.color = '#7ee787'; }}
-                            if (btn) {{ btn.innerHTML = '♻️ Refresh'; btn.disabled = false; }}
-                            // No reload: auto-update already saved fresh cache.
-                            // Reloading would re-trigger the auto-update and create a reload loop.
-                        }})
-                        .catch(function(err) {{
-                            clearInterval(counterInterval);
-                            console.log('[AutoUpdate] Failed:', err);
-                            if (counterEl) {{ counterEl.textContent = '⚠️ Update failed'; counterEl.style.color = '#ff7b7b'; }}
-                            if (btn) {{ btn.innerHTML = '♻️ Refresh'; btn.disabled = false; }}
-                        }});
-                }} else {{
-                    // Cache is fresh, no auto-update needed. Background sync disabled
-                    // to avoid reload loops when other users update the cache.
-                }}
-            }})();
-        }}
+        // === Auto-update DISABLED (Jul 22 2026) ===
+        // User wants manual-only mode. The ♻️ Refresh button is the
+        // single entry point for fetching fresh data from FlashScore.
+        // No background sync, no reload loops, no auto-fetch on stale cache.
+        // CACHE_AGE_SECONDS / CACHE_TTL_SECONDS are still computed for
+        // the cache badge in the sidebar; they just no longer trigger
+        // an automatic API call.
 
     // Export for iframe communication (Match mode)
     // Store reference to inner function before exporting to avoid recursion
