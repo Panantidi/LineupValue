@@ -2205,8 +2205,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 btn.innerHTML = '♻️ Refresh';
                 btn.disabled = false;
 
-                // Reload page immediately with cache-bust
-                const url = location.pathname + '?_v=' + Date.now();
+                // Reload page immediately with cache-bust.
+                // IMPORTANT (Jul 23 2026): preserve ?embed=1 if present.
+                // Without it, Match mode iframes lose the .embed-mode class
+                // on the body, the .team-nav-sidebar becomes visible, and
+                // the user sees a SECOND sidebar in Match mode.
+                const url = location.pathname + location.search.replace(/^[^?]*\?/, '?_v=' + Date.now() + '&') + (location.search ? '' : '?_v=' + Date.now());
                 window.location.href = url;
             }} catch (e) {{
                 clearInterval(counterInterval);
