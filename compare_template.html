@@ -1415,12 +1415,18 @@ function renderH2H(data) {
 function renderH2HMatch(m) {
     // m: {date, score_home, score_away, home:{name}, away:{name}, tournament, tournament_short, my_side}
     // Jul 23 2026 (user spec): single compact line per match.
-    //   "18.04.26 (PRV) — Radomlje 0 : 3 Koper 🟩"
+    //   "15.02.26 (PRE) Kilmarnock 2 : 3 Celtic 🟥"
     //   - date: short DD.MM.YY
     //   - tournament: short code in parentheses (e.g. PRV, UPL, EPL)
+    //   - country suffix "(Ned)", "(Sco)" etc. stripped from team names
     //   - winner bold+green, loser gray (color via CSS .winner/.loser)
-    var homeName = (m.home && m.home.name) || 'Home';
-    var awayName = (m.away && m.away.name) || 'Away';
+    //   - no em-dash separator (Jul 23 2026 update: user wants clean line)
+    function stripCountry(name) {
+        // Remove "(Ned)", "(Sco)", "(Hun)", "(3-letter country code)" etc.
+        return String(name || '').replace(/\s*\([A-Z][a-zA-Z]{0,3}\)\s*$/, '').trim();
+    }
+    var homeName = stripCountry((m.home && m.home.name) || 'Home');
+    var awayName = stripCountry((m.away && m.away.name) || 'Away');
     var hs = parseInt(m.score_home, 10);
     var as = parseInt(m.score_away, 10);
     var isNum = !isNaN(hs) && !isNaN(as);
@@ -1464,7 +1470,7 @@ function renderH2HMatch(m) {
     if (tShort) {
         html += ' <span class="tournament-short">(' + escH(tShort) + ')</span>';
     }
-    html += ' &mdash; ';
+    html += ' ';
     html += '<span class="' + homeCls + '">' + escH(homeName) + '</span>';
     html += ' <span class="score">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</span>';
     html += ' <span class="' + awayCls + '">' + escH(awayName) + '</span>';
