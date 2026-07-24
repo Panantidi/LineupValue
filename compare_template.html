@@ -1370,8 +1370,8 @@ function renderH2H(data) {
     // Jul 23 2026: centered header layout per user spec.
     //   Line 1: match date + time (e.g. "26.07.2026 19:00")
     //   Line 2: tournament + round (e.g. "Slovenia Prva liga - Round 2")
-    //   Line 3: 🏟 stadium (city) / capacity
-    //   Line 4: ⚖️ referee (if available)
+    //   Line 3: stadium (city) - capacity    (e.g. "Swissporarena (Luzern) - 16 800")
+    //   Line 4: referee (if available)
     var matchDate = (typeof matchMeta !== 'undefined' && matchMeta.date) || '';
     var matchLeague = (typeof matchMeta !== 'undefined' && matchMeta.league) || '';
     var matchRound = (typeof matchMeta !== 'undefined' && matchMeta.round) || '';
@@ -1384,7 +1384,7 @@ function renderH2H(data) {
                          (matchLeague && matchRound ? ' - ' : '') +
                          (matchRound ? matchRound : '');
         if (leagueLine) html += '<div class="mhmh-league">' + escH(leagueLine) + '</div>';
-        if (matchStadium) html += '<div class="mhmh-stadium">🏟 ' + escH(matchStadium) + '</div>';
+        if (matchStadium) html += '<div class="mhmh-stadium">' + escH(matchStadium) + '</div>';
         // Referee (if the API provides it via data.stadium.referee)
         if (data.stadium && data.stadium.referee) {
             html += '<div class="mhmh-referee">⚖️ ' + escH(data.stadium.referee) + '</div>';

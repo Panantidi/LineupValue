@@ -2415,6 +2415,18 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     match_league = ""
     match_round = ""
     match_stadium = ""
+    # Jul 24 2026: the home team's cache (loaded from /teams/results) does
+    # NOT carry the match-specific venue — the API exposes that only via
+    # /matches/details. We try to fetch it here so the H2H popup header
+    # shows "Thermoplan Arena (Luzern) - 16 800" for THIS specific match,
+    # not the home team's home stadium "Swissporarena". Failure is fine —
+    # we fall back to home_stadium below.
+    match_venue_data = {}
+    try:
+        import api_refresh as _ar
+        match_venue_data = _ar.fetch_match_venue(mid) or {}
+    except Exception:
+        pass
     try:
         for lookup_id in (home_team_id, away_team_id):
             if not lookup_id:
@@ -2450,11 +2462,19 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                         if rn:
                             rd = f"Round {rn}"
                     match_round = rd
-                    # stadium: prefer the explicit venue (Soccerway /teams/details),
-                    # else fall back to the home team's stadium from cache.
-                    venue_raw = (fx.get("venue") or fx.get("stadium") or "").strip()
-                    city_raw = (fx.get("city") or "").strip()
-                    cap_raw = fx.get("capacity")
+                    # stadium: prefer the explicit venue from
+                    # /matches/details (match-specific, e.g. Thermoplan
+                    # Arena for this Luzern-Thun match even though
+                    # Luzern's home is Swissporarena). Fall back to
+                    # the fixture's venue, then the home team's stadium.
+                    if match_venue_data and match_venue_data.get("name"):
+                        venue_raw = (match_venue_data.get("name") or "").strip()
+                        city_raw = (match_venue_data.get("city") or "").strip()
+                        cap_raw = match_venue_data.get("capacity")
+                    else:
+                        venue_raw = (fx.get("venue") or fx.get("stadium") or "").strip()
+                        city_raw = (fx.get("city") or "").strip()
+                        cap_raw = fx.get("capacity")
                     if venue_raw:
                         if city_raw and city_raw.lower() not in venue_raw.lower():
                             venue_line = f"{venue_raw} ({city_raw})"
@@ -2465,7 +2485,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                                 cap_clean = str(cap_raw).replace(" ", "").replace("\u00a0", "")
                                 cap_n = int(cap_clean)
                                 cap_fmt = f"{cap_n:,}".replace(",", " ")
-                                venue_line += f" / {cap_fmt}"
+                                venue_line += f" - {cap_fmt}"
                             except Exception:
                                 pass
                         match_stadium = venue_line

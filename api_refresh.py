@@ -1338,13 +1338,46 @@ def fetch_team_details_for_match(team_id, slug):
     }
 
 
+def fetch_match_venue(match_id):
+    """Call Flashscore /matches/details and return the match-specific venue.
+
+    Jul 24 2026: we used to read stadium from /teams/details (which gives
+    the team's HOME stadium), but the H2H popup header must show the
+    stadium where THIS MATCH is actually being played. The match-level
+    venue can differ from the team's home stadium (e.g. Luzern's home
+    is Swissporarena, but a specific match may be played at Thermoplan
+    Arena). /matches/details exposes this as `venue.{name,city,capacity}`.
+
+    Returns:
+        dict {name, city, capacity, referee} or {} on error / missing.
+    """
+    if not match_id:
+        return {}
+    url = f"https://{HOST}/api/flashscore/v2/matches/details?match_id={match_id}"
+    data = _fetch_json(url)
+    if not isinstance(data, dict) or data.get("_error"):
+        return {}
+    venue = data.get("venue") or {}
+    if not isinstance(venue, dict):
+        venue = {}
+    return {
+        "name": venue.get("name") or "",
+        "city": venue.get("city") or "",
+        "capacity": venue.get("capacity") or 0,
+        "referee": data.get("referee") or "",
+    }
+
+
 def fetch_match_h2h_payload(match_id, my_team_id, opp_team_id, my_slug, opp_slug):
     """Build the full H2H + Last Matches payload for the popup.
 
     Performs (only on click):
         1. /teams/results for BOTH teams        → compute real H2H by
            intersection (matches that involved BOTH teams)
-        2. /teams/details for one of the teams  → stadium (for the header)
+        2. /matches/details for THIS match      → match-specific venue
+           (the stadium where this specific match is being played)
+        3. /teams/details (fallback)            → team's home stadium,
+           used only if /matches/details has no venue.
 
     Note: We previously tried /matches/h2h?match_id=... but that endpoint
     returns the full match list of the parent tournament, not the head-to-
@@ -1360,17 +1393,23 @@ def fetch_match_h2h_payload(match_id, my_team_id, opp_team_id, my_slug, opp_slug
         payload["last_opp"] = fetch_team_results(opp_team_id, my_team_id=opp_team_id, max_results=5)
         # 2. Real H2H = intersection of both teams' recent results
         payload["h2h"] = fetch_h2h(match_id, max_results=5, my_team_id=my_team_id, opp_team_id=opp_team_id)
-        # 3. Stadium (use the first available of either team)
-        my_details = fetch_team_details_for_match(my_team_id, my_slug) or {}
-        if not my_details:
-            my_details = fetch_team_details_for_match(opp_team_id, opp_slug) or {}
-        if my_details:
-            payload["stadium"] = {
-                "name": my_details.get("stadium") or "",
-                "city": my_details.get("city") or "",
-                "capacity": my_details.get("capacity") or 0,
-                "referee": "",  # not exposed by /teams/details
-            }
+        # 3. Match-specific venue (the actual stadium for THIS match)
+        venue = fetch_match_venue(match_id)
+        # 4. Fallback to team's home stadium if /matches/details had no
+        #    venue (older matches, cancelled, etc.)
+        if not venue.get("name"):
+            my_details = fetch_team_details_for_match(my_team_id, my_slug) or {}
+            if not my_details:
+                my_details = fetch_team_details_for_match(opp_team_id, opp_slug) or {}
+            if my_details:
+                venue = {
+                    "name": my_details.get("stadium") or "",
+                    "city": my_details.get("city") or "",
+                    "capacity": my_details.get("capacity") or 0,
+                    "referee": "",
+                }
+        if venue and venue.get("name"):
+            payload["stadium"] = venue
     except Exception as e:
         payload["error"] = str(e)
     return payload
