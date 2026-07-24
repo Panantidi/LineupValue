@@ -286,6 +286,115 @@ def _log_access(username: str, ip: str, path: str, action: str, details: str = "
         pass
 
 
+def _extract_path_details(path: str) -> str:
+    """Extract a short human-readable description of what this path did.
+
+    Jul 24 2026: the Details column in /admin was always empty
+    because the view-event logger was passing details="". We now
+    extract the team name (or match header) from the live cache
+    files so an admin looking at Recent Activity can tell what
+    the user actually opened without grepping team_ids.
+
+    Args:
+        path: URL path, e.g. "/lineup_ai/pKS9M7R7"
+
+    Returns:
+        A short string like "Ferencvaros" (team name), or "" if
+        we can't determine it.
+    """
+    try:
+        import re as _re
+        from urllib.parse import urlparse, parse_qs
+        u = urlparse(path)
+        seg = [s for s in u.path.split('/') if s]
+        if not seg:
+            return ""
+        # /lineup_ai/<team_id>            -> team name
+        # /lineup_ai/snapshots/<team_id>  -> team name
+        # /lineup_ai/compare/<team_id>    -> team name
+        # /lineup_ai/api/squad/<team_id>  -> team name
+        # /lineup_ai/api/fixtures/<team_id> -> team name
+        # /lineup_ai/match_save/<match_id> -> team names from query
+        # /lineup_ai/match/h2h/<match_id> -> team names from query
+        if len(seg) >= 2 and seg[0] == "lineup_ai":
+            sub = seg[1]
+            if sub in ("api",):
+                # /lineup_ai/api/<kind>/<team_id>
+                if len(seg) >= 4:
+                    team_id = seg[3]
+                else:
+                    return ""
+            elif sub in ("snapshots", "compare"):
+                if len(seg) >= 3:
+                    team_id = seg[2]
+                else:
+                    return ""
+            elif sub == "match_save":
+                # /lineup_ai/match_save/<match_id>?home=...&away=...
+                qs = parse_qs(u.query)
+                h = qs.get("home_name", qs.get("home", [""]))[0]
+                a = qs.get("away_name", qs.get("away", [""]))[0]
+                if h and a:
+                    return f"{h} vs {a}"
+                elif h:
+                    return h
+                elif a:
+                    return a
+                return ""
+            elif sub == "match":
+                # /lineup_ai/match/h2h/<match_id>?my=<id>&opp=<id>
+                # Resolve both team names from their respective live
+                # caches. Falls back to the raw id if a cache is missing.
+                qs = parse_qs(u.query)
+                my_id = qs.get("my", [""])[0]
+                opp_id = qs.get("opp", [""])[0]
+                my_name = _extract_path_details(f"/lineup_ai/{my_id}") if my_id else ""
+                opp_name = _extract_path_details(f"/lineup_ai/{opp_id}") if opp_id else ""
+                if my_name and opp_name:
+                    return f"{my_name} vs {opp_name}"
+                elif my_name:
+                    return my_name
+                elif opp_name:
+                    return opp_name
+                return ""
+            else:
+                # /lineup_ai/<team_id> directly
+                team_id = seg[1]
+        else:
+            return ""
+        # Resolve team name from live cache.
+        # Cache layout (see api_refresh.refresh_team):
+        #   {
+        #     "team": {"id": ..., "name": "Ferencvaros", "country": "..."},
+        #     "stadium": "...",
+        #     "matches": [...],
+        #     "players": [...],
+        #     "fixtures": [...],
+        #     ...
+        #   }
+        # The team name is nested under "team.name", not at the
+        # top level. We also surface the country so the admin
+        # can disambiguate (e.g. "Ferencvaros (HUN)").
+        cache_path = f"/home/openclaw/.openclaw/workspace/_live_cache_{team_id}.json"
+        if not os.path.exists(cache_path):
+            return f"team={team_id}"
+        try:
+            with open(cache_path) as fh:
+                tc = json.load(fh)
+        except Exception:
+            return f"team={team_id}"
+        team_obj = tc.get("team") or {}
+        name = (team_obj.get("name") or "").strip()
+        country = (team_obj.get("country") or "").strip()
+        if name and country:
+            return f"{name} ({country})"
+        elif name:
+            return name
+        return f"team={team_id}"
+    except Exception:
+        return ""
+
+
 def _log_view_throttled(username: str, ip: str, path: str, min_interval: int = 60) -> None:
     """Like _log_access(action="view") but suppresses duplicate rows.
 
@@ -296,7 +405,14 @@ def _log_view_throttled(username: str, ip: str, path: str, min_interval: int = 6
     table would fill up with 20+ rows per user visit. With
     min_interval=60s, repeated views of the same path by the same
     user within a minute are dropped. The first view always logs.
+
+    Jul 24 2026 (later same day): the Details column was always
+    empty ("") because the logger didn't pass a details value.
+    We now resolve the team name (or "A vs B" for match pages)
+    via _extract_path_details() so the admin panel shows what
+    the user actually opened.
     """
+    details = _extract_path_details(path)
     try:
         con = sqlite3.connect(DB_PATH)
         # Check the most recent matching row
@@ -320,7 +436,7 @@ def _log_view_throttled(username: str, ip: str, path: str, min_interval: int = 6
         con.execute(
             "INSERT INTO access_log (username, ip, path, action, details, timestamp) "
             "VALUES (?,?,?,?,?,?)",
-            (username, ip, path, "view", "", datetime.now(timezone.utc).isoformat()),
+            (username, ip, path, "view", details, datetime.now(timezone.utc).isoformat()),
         )
         con.commit()
         con.close()
