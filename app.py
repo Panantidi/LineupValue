@@ -286,6 +286,48 @@ def _log_access(username: str, ip: str, path: str, action: str, details: str = "
         pass
 
 
+def _log_view_throttled(username: str, ip: str, path: str, min_interval: int = 60) -> None:
+    """Like _log_access(action="view") but suppresses duplicate rows.
+
+    Jul 24 2026: every /lineup_ai/<team_id> page load would otherwise
+    generate one access_log row, and the team page itself issues
+    several internal AJAX calls (squad / fixtures / compare / etc.)
+    on a single page render — so without throttling the access_log
+    table would fill up with 20+ rows per user visit. With
+    min_interval=60s, repeated views of the same path by the same
+    user within a minute are dropped. The first view always logs.
+    """
+    try:
+        con = sqlite3.connect(DB_PATH)
+        # Check the most recent matching row
+        row = con.execute(
+            "SELECT timestamp FROM access_log "
+            "WHERE username=? AND path=? AND action='view' "
+            "ORDER BY id DESC LIMIT 1",
+            (username, path),
+        ).fetchone()
+        if row:
+            try:
+                last = datetime.fromisoformat(row[0])
+                if last.tzinfo is None:
+                    last = last.replace(tzinfo=timezone.utc)
+                age = (datetime.now(timezone.utc) - last).total_seconds()
+                if age < min_interval:
+                    con.close()
+                    return
+            except Exception:
+                pass  # if timestamp parse fails, just log anyway
+        con.execute(
+            "INSERT INTO access_log (username, ip, path, action, details, timestamp) "
+            "VALUES (?,?,?,?,?,?)",
+            (username, ip, path, "view", "", datetime.now(timezone.utc).isoformat()),
+        )
+        con.commit()
+        con.close()
+    except Exception:
+        pass
+
+
 def cleanup_old_access_logs(keep: int = 300, threshold_mult: int = 2) -> int:
     """Delete everything from access_log except the newest `keep` rows,
     but only when the table is over `threshold_mult * keep` rows.
@@ -881,12 +923,32 @@ def _flash_cleanup():
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
+    client_ip = request.client.host if request.client else ""
+    # Jul 24 2026: log /lineup_ai/* view events EVEN on the public skip
+    # path. Without this, only /login (action=login) and /admin (admin
+    # events) are recorded in access_log, so the /admin Recent Activity
+    # panel misses all "user opened a team page" events. We only log
+    # when there is a valid session cookie (real logged-in user); if
+    # the cookie is missing or invalid we still let the request through
+    # anonymously because /lineup_ai/* is intentionally public.
+    if path.startswith("/lineup_ai") and not path.endswith(".json"):
+        session_cookie = request.cookies.get("fa_session")
+        if session_cookie:
+            user_info = _parse_session_token(session_cookie)
+            if user_info:
+                # Mirror the username onto request.state so the route
+                # handler (and any downstream code) can read it as
+                # if the request had gone through the full auth path.
+                request.state.username = user_info[0]
+                request.state.is_admin = user_info[1]
+                # Throttled so the team page's many internal AJAX calls
+                # (squad / fixtures / compare) do not flood access_log.
+                _log_view_throttled(user_info[0], client_ip, path)
     # Skip auth for public paths and static assets needed by external services
     if (path in PUBLIC_PATHS or path.startswith("/icons/") or path.startswith("/vision_uploads/")
             or path.startswith("/api/favorites") or path.startswith("/lineup_ai")):
         return await call_next(request)
     # Check IP whitelist
-    client_ip = request.client.host if request.client else ""
     if _ip_whitelisted(client_ip):
         request.state.username = "owner"
         request.state.is_admin = True
