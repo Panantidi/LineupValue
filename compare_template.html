@@ -189,63 +189,51 @@ body {
 }
 .match-h2h-loading { color: #666; padding: 20px; text-align: center; }
 
-/* Match header (Championship + Date/Stadium/Referee rows) — Jul 24 2026.
+/* Match header (Championship heading + Date/Stadium/Referee rows) — Jul 24 2026.
    Sits at the top of the popup body, above the H2H and Last Matches lists.
-   Per user spec, the whole block is left-aligned and the four lines
-   share a single text style (size / weight / color) so the header
-   reads as one uniform block:
-     RUSSIA. PREMIER LEAGUE
-     24.07.2026 · 19:00
-     VEB Arena (Moscow) · 30,457
-     Referee: Abrosimov I. */
+   Per user spec (v5):
+     RUSSIA. PREMIER LEAGUE        <- centered, uppercase, brand blue
+     24.07.2026 · 19:00            <- centered, regular weight
+     VEB Arena (Moscow) · 30,457   <- centered, regular weight
+     Referee: Abrosimov I.         <- centered, "Referee:" inline
+
+   Note: v5.1 (commit cf7b790) tried a uniform left-aligned look where
+   all four lines shared the same font / size / color, but the user
+   reverted to the v5 centered+uppercase form. The current block is
+   therefore identical to v5 (commit e50ce8c) so we don't accumulate
+   stillborn layout iterations in the CSS history. */
 .match-h2h-match-header {
-    text-align: left;
+    text-align: center;
     padding: 12px 14px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     margin-bottom: 10px;
-    /* Single text style for all 4 lines: same font-family, same
-       size, same weight, same color. The previous v5 used a
-       different weight / color / size for the championship
-       heading, but the user wants the four lines to look
-       visually identical except for content. */
     font-size: 13px;
-    font-weight: 400;
     color: #1e293b;
     line-height: 1.7;
 }
 .match-h2h-match-header .mhmh-championship {
-    /* Championship line: same style as the rest of the block.
-       .toUpperCase() in JS still capitalizes the text content,
-       but the font / color / size / weight is uniform. */
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-    letter-spacing: 0;
-    margin: 0;
-    text-transform: none;
+    font-size: 14px;
+    font-weight: 800;
+    color: #043fb6;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
 }
 .match-h2h-match-header .mhmh-row {
-    margin: 0;
+    margin: 2px 0;
 }
 .match-h2h-match-header .mhmh-value {
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
+    color: #0f172a;
 }
 .match-h2h-match-header .mhmh-label-inline {
-    /* Inline "Referee:" label — same color/size/weight as the
-       value, just the colon and a space separate it. */
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-    margin-right: 0;
+    color: #043fb6;
+    font-weight: 700;
+    margin-right: 4px;
 }
 .match-h2h-match-header .mhmh-value-inline {
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
+    color: #0f172a;
 }
 /* Legacy single-line classes (kept for backward compat with v3
    centered header in case the renderer falls back). */
@@ -1418,18 +1406,17 @@ function renderH2H(data) {
         return;
     }
     var html = '';
-    // ---- Match header (Championship + Date/Stadium/Referee rows) ----
+    // ---- Match header (Championship heading + Date/Stadium/Referee rows) ----
     // Jul 24 2026: per user spec, the header is rendered as:
     //     RUSSIA. PREMIER LEAGUE
     //     24.07.2026 · 19:00
     //     VEB Arena (Moscow) · 30,457
     //     Referee: Abrosimov I.
-    // The block is left-aligned and all four lines share the same
-    // font size / weight / color (uniform text style). The
-    // championship is uppercased because that is how the user
-    // wrote it in the spec, but the styling is identical to the
-    // other three lines. Stadium capacity uses comma
-    // thousand-separator (30,457) per user spec, not space.
+    // Championship is a centered uppercase heading in brand blue,
+    // the other three lines are centered regular text with the
+    // "Referee:" label still in brand blue inline. Stadium capacity
+    // uses comma thousand-separator (30,457) per user spec, not
+    // space. Middle dot (·) separates venue from capacity.
     var matchDate = (typeof matchMeta !== 'undefined' && matchMeta.date) || '';
     var matchLeague = (typeof matchMeta !== 'undefined' && matchMeta.league) || '';
     var matchRound = (typeof matchMeta !== 'undefined' && matchMeta.round) || '';
