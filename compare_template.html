@@ -142,11 +142,13 @@ body {
    Wider layout so team names wrap naturally and the winner is obvious. */
 .match-h2h-popup {
     position: absolute;
-    /* Centered horizontally on the gap between the two iframes. */
-    left: 695px;            /* 995 - 300 (half of 600) = 695 */
+    /* Centered horizontally on the gap between the two iframes.
+       Width 560px (was 600); 1980/2 - 560/2 = 710 left offset. */
+    left: 710px;
     top: 64px;              /* below the button */
-    width: 600px;
-    max-height: 720px;
+    width: 560px;
+    height: 800px;          /* explicit height per user spec (was max-height:720) */
+    max-height: 90vh;       /* but cap by viewport so it never overflows the screen */
     background: white;
     color: #333;
     border-radius: 10px;
