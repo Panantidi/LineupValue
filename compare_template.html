@@ -275,6 +275,7 @@ body {
     text-align: right;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
 }
 .match-h2h-row .away {
     color: #333;
@@ -282,6 +283,19 @@ body {
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
+}
+/* Center group: wraps home + score + away so the score sits in the
+   visual middle of the row, regardless of how wide date / tShort /
+   result are. flex:1 1 auto lets it consume all remaining space;
+   justify-content:center keeps the score centered within the group. */
+.h2h-center-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
 }
 .match-h2h-row .score {
     color: #1a1d2b;
@@ -1470,10 +1484,15 @@ function renderH2HMatch(m) {
     if (tShort) {
         html += ' <span class="tournament-short">(' + escH(tShort) + ')</span>';
     }
-    html += ' ';
+    // Home / score / away wrapped in a center-aligned group so the score
+    // is visually in the middle of the row. The group itself takes all
+    // remaining horizontal space, so long team names are still truncated
+    // by the .home/.away overflow:hidden / text-overflow:ellipsis rules.
+    html += ' <span class="h2h-center-group">';
     html += '<span class="' + homeCls + '">' + escH(homeName) + '</span>';
     html += ' <span class="score">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</span>';
     html += ' <span class="' + awayCls + '">' + escH(awayName) + '</span>';
+    html += '</span>';
     html += ' <span class="result">' + result + '</span>';
     html += '</div>';
     return html;
