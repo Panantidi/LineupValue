@@ -2485,7 +2485,10 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                                 cap_clean = str(cap_raw).replace(" ", "").replace("\u00a0", "")
                                 cap_n = int(cap_clean)
                                 cap_fmt = f"{cap_n:,}".replace(",", " ")
-                                venue_line += f" - {cap_fmt}"
+                                # Jul 24 2026: separator changed from " - " to ", "
+                                # per user spec for the new label/value header
+                                # layout ("Stadium — VEB Arena (Moscow), 30 457").
+                                venue_line += f", {cap_fmt}"
                             except Exception:
                                 pass
                         match_stadium = venue_line
