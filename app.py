@@ -385,13 +385,10 @@ def _extract_path_details(path: str) -> str:
             return f"team={team_id}"
         team_obj = tc.get("team") or {}
         name = (team_obj.get("name") or "").strip()
-        # Jul 24 2026: user wants Details to show team name only,
-        # no "(Country)" suffix. The country was tried twice (in
-        # commits 8616ecf and 267940c->1199bcc revert->revert
-        # cycle) and the user keeps asking to drop it. The Path
-        # column already carries the team_id so disambiguation
-        # is not the column's job.
-        if name:
+        country = (team_obj.get("country") or "").strip()
+        if name and country:
+            return f"{name} ({country})"
+        elif name:
             return name
         return f"team={team_id}"
     except Exception:
