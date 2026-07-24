@@ -110,7 +110,7 @@ body {
     /* Horizontally: center of the 30px gap between the two iframes
        (each iframe is 980px wide → center is at 980 + 15 = 995px).
        +10px shift to the right (Jul 23 2026 user request). */
-    left: 987px;            /* 980 - 18 (half of 36) + 15 (gap/2) + 10 = 987 */
+    left: 985px;            /* 980 - 18 (half of 36) + 15 (gap/2) + 10 - 2 = 985 (Jul 23: -2px left) */
     /* Vertically: aligned with the team name h1 in the gradient bar. */
     top: 18px;
     z-index: 100;
@@ -302,6 +302,12 @@ body {
     width: 60px;
     padding-left: 8px;
     padding-right: 8px;
+}
+.match-h2h-row .result-cell {
+    text-align: center;
+    font-size: 14px;
+    width: 24px;
+    padding-left: 4px;
 }
 .match-h2h-row .winner { color: #1a7a3a; font-weight: 700; }
 .match-h2h-row .loser { color: #999; }
@@ -1385,22 +1391,22 @@ function renderH2H(data) {
         }
         html += '</div>';
     }
-    // ---- H2H matches ----
+    // ---- H2H matches (no result emoji per user spec) ----
     if (data.h2h && data.h2h.length) {
         html += '<div class="match-h2h-section-title">H2H</div>';
-        html += renderH2HMatchList(data.h2h, 'h2h_');
+        html += renderH2HMatchList(data.h2h, 'h2h_', false);
     }
-    // ---- Last Matches: home ----
+    // ---- Last Matches: home (with result emoji) ----
     if (data.last_my && data.last_my.length) {
         var homeTitle = (typeof matchMeta !== 'undefined' && matchMeta.home_name) || h2hMyName || 'Home';
         html += '<div class="match-h2h-section-title">Last Matches: ' + escH(homeTitle) + '</div>';
-        html += renderH2HMatchList(data.last_my, 'lmy_');
+        html += renderH2HMatchList(data.last_my, 'lmy_', true);
     }
-    // ---- Last Matches: away ----
+    // ---- Last Matches: away (with result emoji) ----
     if (data.last_opp && data.last_opp.length) {
         var awayTitle = (typeof matchMeta !== 'undefined' && matchMeta.away_name) || h2hOppName || 'Away';
         html += '<div class="match-h2h-section-title">Last Matches: ' + escH(awayTitle) + '</div>';
-        html += renderH2HMatchList(data.last_opp, 'lop_');
+        html += renderH2HMatchList(data.last_opp, 'lop_', true);
     }
     if (!html) {
         html = '<div class="match-h2h-loading">No data available.</div>';
@@ -1408,7 +1414,7 @@ function renderH2H(data) {
     body.innerHTML = html;
 }
 
-function renderH2HMatch(m) {
+function renderH2HMatch(m, showResult) {
     // Render a single match as TABLE CELLS (no wrapping <div class="match-h2h-row">)
     // so that all rows in a section share the same column widths, and the
     // score sits in the same vertical position in every row. Called from
@@ -1420,7 +1426,9 @@ function renderH2HMatch(m) {
     //   - tournament: short code in parentheses (e.g. PRV, UPL, EPL)
     //   - country suffix "(Ned)", "(Sco)" etc. stripped from team names
     //   - winner bold+green, loser gray (color via CSS .winner/.loser)
-    //   - no em-dash separator, no result emoji (Jul 23 2026)
+    //   - no em-dash separator
+    //   - showResult=true  -> append 🟩/🟥/🟧 result emoji (Last Matches)
+    //   - showResult=false -> no emoji (H2H)
     function stripCountry(name) {
         return String(name || '').replace(/\s*\([A-Z][a-zA-Z]{0,3}\)\s*$/, '').trim();
     }
@@ -1432,12 +1440,17 @@ function renderH2HMatch(m) {
     var homeWins = isNum && hs > as;
     var awayWins = isNum && as > hs;
     var draw = isNum && hs === as;
-    // Jul 23 2026: H2H rows no longer show a result emoji (was 🟩/🟥/🟧).
-    // The win/loss is already implied by the .winner/.loser classes on
-    // the team name cells (winner = green+bold, loser = gray), and the
-    // match score is enough on its own. Removing the emoji column makes
-    // every row 1 column shorter and easier to scan.
+    var mySide = m.my_side;
     var result = '';
+    if (showResult && isNum) {
+        if (mySide === 'home') {
+            result = homeWins ? '🟩' : (awayWins ? '🟥' : '🟧');
+        } else if (mySide === 'away') {
+            result = awayWins ? '🟩' : (homeWins ? '🟥' : '🟧');
+        } else {
+            result = draw ? '🟧' : (homeWins ? '◀' : '▶');
+        }
+    }
     var homeCls = 'home';
     var awayCls = 'away';
     if (isNum) {
@@ -1458,9 +1471,10 @@ function renderH2HMatch(m) {
         var firstWord = String(m.tournament).split(/[\s\-]/)[0] || '';
         tShort = firstWord.substring(0, 4).toUpperCase();
     }
-    // Build a <tr> with 5 <td>s so the table's column widths are shared
-    // across every row in the section. This is what makes the score column
-    // vertically aligned across all matches in the same section.
+    // Build a <tr> with cells. Result cell is only added when showResult
+    // is true so the H2H table has 5 columns and the Last Matches table
+    // has 6 columns. Each section uses its own table, so the column
+    // count is independent -- H2H rows are slightly more compact.
     var cells = '';
     cells += '<td class="date-cell">' + escH(dateShort) + '</td>';
     if (tShort) {
@@ -1471,18 +1485,26 @@ function renderH2HMatch(m) {
     cells += '<td class="home-cell ' + homeCls + '">' + escH(homeName) + '</td>';
     cells += '<td class="score-cell">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</td>';
     cells += '<td class="away-cell ' + awayCls + '">' + escH(awayName) + '</td>';
+    if (showResult) {
+        cells += '<td class="result-cell">' + result + '</td>';
+    }
     return '<tr class="match-h2h-row">' + cells + '</tr>';
 }
 
-function renderH2HMatchList(matches, idPrefix) {
+function renderH2HMatchList(matches, idPrefix, showResult) {
     // Wrap a list of matches in a <table class="match-h2h-table"> so that
     // all rows share the same column widths. The table is rendered
     // as display:table with explicit column widths (see CSS), so the
-    // score cell (column 4) lines up vertically across every row.
+    // score cell lines up vertically across every row.
+    //
+    // showResult: when true, appends a result emoji column
+    // (🟩/🟥/🟧 based on m.my_side perspective) to each row.
+    //   - H2H:  false (user wants clean rows in head-to-head)
+    //   - Last Matches: true (user wants the per-match result marker)
     if (!matches || !matches.length) return '';
     var html = '<table class="match-h2h-table" id="' + idPrefix + 'tbl">';
     for (var i = 0; i < matches.length; i++) {
-        html += renderH2HMatch(matches[i]);
+        html += renderH2HMatch(matches[i], showResult);
     }
     html += '</table>';
     return html;
