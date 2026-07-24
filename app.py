@@ -385,12 +385,10 @@ def _extract_path_details(path: str) -> str:
             return f"team={team_id}"
         team_obj = tc.get("team") or {}
         name = (team_obj.get("name") or "").strip()
-        # Jul 24 2026: user asked to drop the "(Country)" suffix.
-        # The country was added in commit 8616ecf for disambiguation
-        # but the user finds the parens noisy in the Details column.
-        # The Path column still carries the team_id, so the admin
-        # can always tell which exact team was opened.
-        if name:
+        country = (team_obj.get("country") or "").strip()
+        if name and country:
+            return f"{name} ({country})"
+        elif name:
             return name
         return f"team={team_id}"
     except Exception:
