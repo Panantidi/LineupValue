@@ -286,6 +286,51 @@ def _log_access(username: str, ip: str, path: str, action: str, details: str = "
         pass
 
 
+def cleanup_old_access_logs(keep: int = 300, threshold_mult: int = 2) -> int:
+    """Delete everything from access_log except the newest `keep` rows,
+    but only when the table is over `threshold_mult * keep` rows.
+
+    Jul 24 2026 — user explicitly asked to drop the cap-only-threshold
+    from /admin: "Старые данные можешь не хранить ... чтобы не
+    забивать память". Keeps the most recent `keep` rows (default 300,
+    matching the /admin cap from commit 9d18f5b) and DELETEs the rest.
+
+    The threshold_mult guard means the DELETE only fires when the table
+    is at least 2x the keep size (600 rows by default), so admin_panel
+    does not hit SQLite with a DELETE on every single page load — the
+    cleanup runs roughly once per ~300 new events.
+
+    Returns the number of rows deleted (0 if nothing to do).
+
+    Owner rows are deleted too — owner is the service account, not a
+    real user, so the cap applies uniformly.
+    """
+    threshold = keep * threshold_mult
+    con = sqlite3.connect(DB_PATH)
+    try:
+        cur = con.execute("SELECT COUNT(*) FROM access_log")
+        total = cur.fetchone()[0]
+        if total <= threshold:
+            return 0
+        # Find the id of the (keep+1)th newest row -- everything
+        # with a smaller or equal id is older and must be removed,
+        # leaving exactly the newest `keep` rows untouched.
+        #   ORDER BY id DESC LIMIT 1 OFFSET keep
+        #     -> skip the first `keep` rows (newest), return the
+        #        (keep+1)th newest row.
+        cutoff = con.execute(
+            "SELECT id FROM access_log ORDER BY id DESC LIMIT 1 OFFSET ?",
+            (keep,),
+        ).fetchone()
+        if not cutoff:
+            return 0
+        cur = con.execute("DELETE FROM access_log WHERE id <= ?", (cutoff[0],))
+        con.commit()
+        return cur.rowcount
+    finally:
+        con.close()
+
+
 def ensure_db():
     con = sqlite3.connect(DB_PATH)
     con.execute(
@@ -5626,6 +5671,16 @@ async def admin_panel(request: Request, p: int = 1, period: str = "all",
         raise HTTPException(status_code=403)
     _flash_clean()
     msg = _flash_get(request.query_params.get("f", ""))
+    # Jul 24 2026: lazy GC of access_log — keep only the newest 300 rows
+    # (matches the /admin cap from commit 9d18f5b). We trigger the cleanup
+    # only when the table is more than 2x the keep threshold (600 rows),
+    # so the DELETE does not fire on every single page load — it fires
+    # roughly once per ~300 new events. The function itself is a no-op
+    # when the table is already small.
+    try:
+        cleanup_old_access_logs(keep=300)
+    except Exception:
+        pass
     return HTMLResponse(_render_admin(msg, page=p, period=period,
                                        user_filter=user, ip_filter=ip, action_filter=action))
 
