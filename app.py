@@ -2451,10 +2451,32 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                         match_date = f"{day:02d}.{month:02d}.{year}"
                         if time_str:
                             match_date += f" {time_str}"
-                    # league = full tournament name; round = stage
-                    match_league = (fx.get("tournament_name_full") or
-                                    fx.get("tournament_name_short") or
-                                    fx.get("tournament") or "").strip()
+                    # league = full tournament name; round = stage.
+                    # Jul 24 2026: per user spec, the championship line in the
+                    # H2H popup header is rendered as UPPERCASE with a period
+                    # after the country name, e.g. "RUSSIA. PREMIER LEAGUE"
+                    # (not "RUSSIA: Premier League"). The uppercase is applied
+                    # by the JS renderer via .toUpperCase() (so we keep the
+                    # original case in the source data for any other consumer
+                    # that wants title case). The colon-to-period swap is done
+                    # here so all callers (including any future
+                    # non-JS-rendered views) see the same form.
+                    _raw_league = (fx.get("tournament_name_full") or
+                                   fx.get("tournament_name_short") or
+                                   fx.get("tournament") or "").strip()
+                    # First occurrence of ":" after a country-shaped prefix
+                    # (1-20 caps) becomes a period. e.g.
+                    #   "RUSSIA: Premier League"        -> "RUSSIA. Premier League"
+                    #   "SWITZERLAND: Super League"      -> "SWITZERLAND. Super League"
+                    #   "NORTH MACEDONIA: First League"  -> "NORTH MACEDONIA. First League"
+                    # We also allow spaces in the country prefix for compound
+                    # country names. The captured group is reused as-is.
+                    _league_norm = _re.sub(
+                        r'^([A-Z][A-Z\s]{1,30}):\s*',
+                        lambda m: m.group(1) + '. ',
+                        _raw_league,
+                    )
+                    match_league = _league_norm
                     # round: if API exposes round_name, use it; else "Round N"
                     rd = (fx.get("round_name") or "").strip()
                     if not rd:
@@ -2484,11 +2506,13 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                             try:
                                 cap_clean = str(cap_raw).replace(" ", "").replace("\u00a0", "")
                                 cap_n = int(cap_clean)
-                                cap_fmt = f"{cap_n:,}".replace(",", " ")
-                                # Jul 24 2026: separator changed from " - " to ", "
-                                # per user spec for the new label/value header
-                                # layout ("Stadium — VEB Arena (Moscow), 30 457").
-                                venue_line += f", {cap_fmt}"
+                                # Jul 24 2026: per user spec, the stadium capacity
+                                # uses a comma with NO space (30,457) — not "30 457"
+                                # as in the previous v4. The form is rendered as
+                                # "VEB Arena (Moscow) · 30,457" with a middle-dot
+                                # separator between the venue and the capacity.
+                                cap_fmt = f"{cap_n:,}"
+                                venue_line += f" \u00b7 {cap_fmt}"
                             except Exception:
                                 pass
                         match_stadium = venue_line

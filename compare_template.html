@@ -189,43 +189,45 @@ body {
 }
 .match-h2h-loading { color: #666; padding: 20px; text-align: center; }
 
-/* Match header (label/value: Date, Championship, Stadium, Referee) — Jul 24 2026.
+/* Match header (Championship heading + Date/Stadium/Referee rows) — Jul 24 2026.
    Sits at the top of the popup body, above the H2H and Last Matches lists.
-   Each row is a flex line with [bold label] [—] [regular value], so the
-   header reads as a small key/value table:
-     Date         — 24.07.2026 19:00
-     Championship — RUSSIA: Premier League
-     Stadium      — VEB Arena (Moscow), 30 457
-     Referee      — Abrosimov I. */
+   Per user spec:
+     RUSSIA. PREMIER LEAGUE        <- centered, uppercase, brand blue
+     24.07.2026 · 19:00            <- centered, regular weight
+     VEB Arena (Moscow) · 30,457   <- centered, regular weight
+     Referee: Abrosimov I.         <- centered, "Referee:" bold inline */
 .match-h2h-match-header {
-    text-align: left;
+    text-align: center;
     padding: 12px 14px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     margin-bottom: 10px;
-    font-size: 12px;
+    font-size: 13px;
     color: #1e293b;
     line-height: 1.7;
 }
-.match-h2h-match-header .mhmh-row {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-}
-.match-h2h-match-header .mhmh-label {
-    font-weight: 700;
+.match-h2h-match-header .mhmh-championship {
+    font-size: 14px;
+    font-weight: 800;
     color: #043fb6;
-    flex: 0 0 105px;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
 }
-.match-h2h-match-header .mhmh-sep {
-    color: #94a3b8;
-    flex: 0 0 auto;
+.match-h2h-match-header .mhmh-row {
+    margin: 2px 0;
 }
 .match-h2h-match-header .mhmh-value {
     color: #0f172a;
-    flex: 1 1 auto;
-    word-break: break-word;
+}
+.match-h2h-match-header .mhmh-label-inline {
+    color: #043fb6;
+    font-weight: 700;
+    margin-right: 4px;
+}
+.match-h2h-match-header .mhmh-value-inline {
+    color: #0f172a;
 }
 /* Legacy single-line classes (kept for backward compat with v3
    centered header in case the renderer falls back). */
@@ -1398,17 +1400,17 @@ function renderH2H(data) {
         return;
     }
     var html = '';
-    // ---- Match header (label/value: Date, Championship, Stadium, Referee) ----
-    // Jul 24 2026: per user spec, header is rendered as 4 label/value
-    // lines stacked vertically:
-    //   Date         — 24.07.2026 19:00
-    //   Championship — RUSSIA: Premier League
-    //   Stadium      — VEB Arena (Moscow), 30 457
-    //   Referee      — Abrosimov I.
-    // Labels are bold, values are regular weight. The stadium capacity
-    // separator is ", " (comma) per user spec — the previous " - "
-    // form was rejected as reading like a subtraction. The referee line
-    // is shown only when data.stadium.referee is non-empty.
+    // ---- Match header (Championship header + Date/Stadium/Referee rows) ----
+    // Jul 24 2026: per user spec, the header is rendered as:
+    //     RUSSIA. PREMIER LEAGUE
+    //     24.07.2026 · 19:00
+    //     VEB Arena (Moscow) · 30,457
+    //     Referee: Abrosimov I.
+    // Championship is a centered uppercase heading, the other
+    // three lines are label/value with a middle dot (·) between
+    // the value components and either a middle dot or a colon
+    // (Referee:) for the label. Stadium capacity uses comma
+    // thousand-separator (30,457) per user spec, not space.
     var matchDate = (typeof matchMeta !== 'undefined' && matchMeta.date) || '';
     var matchLeague = (typeof matchMeta !== 'undefined' && matchMeta.league) || '';
     var matchRound = (typeof matchMeta !== 'undefined' && matchMeta.round) || '';
@@ -1417,33 +1419,28 @@ function renderH2H(data) {
     var hasHeader = matchDate || matchLeague || matchStadium || referee;
     if (hasHeader) {
         html += '<div class="match-h2h-match-header">';
+        // Championship (centered uppercase heading)
+        if (matchLeague) {
+            var champLine = matchLeague + (matchRound ? ' — ' + matchRound : '');
+            html += '<div class="mhmh-championship">' + escH(champLine.toUpperCase()) + '</div>';
+        }
+        // Date · time
         if (matchDate) {
             html += '<div class="mhmh-row">'
-                 +  '<span class="mhmh-label">Date</span>'
-                 +  '<span class="mhmh-sep">—</span>'
                  +  '<span class="mhmh-value">' + escH(matchDate) + '</span>'
                  +  '</div>';
         }
-        if (matchLeague) {
-            var champLine = matchLeague + (matchRound ? ' — ' + matchRound : '');
-            html += '<div class="mhmh-row">'
-                 +  '<span class="mhmh-label">Championship</span>'
-                 +  '<span class="mhmh-sep">—</span>'
-                 +  '<span class="mhmh-value">' + escH(champLine) + '</span>'
-                 +  '</div>';
-        }
+        // Stadium · capacity
         if (matchStadium) {
             html += '<div class="mhmh-row">'
-                 +  '<span class="mhmh-label">Stadium</span>'
-                 +  '<span class="mhmh-sep">—</span>'
                  +  '<span class="mhmh-value">' + escH(matchStadium) + '</span>'
                  +  '</div>';
         }
+        // Referee: name
         if (referee) {
             html += '<div class="mhmh-row">'
-                 +  '<span class="mhmh-label">Referee</span>'
-                 +  '<span class="mhmh-sep">—</span>'
-                 +  '<span class="mhmh-value">' + escH(referee) + '</span>'
+                 +  '<span class="mhmh-label-inline">Referee:</span>'
+                 +  '<span class="mhmh-value-inline">' + escH(referee) + '</span>'
                  +  '</div>';
         }
         html += '</div>';
