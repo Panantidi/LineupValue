@@ -244,7 +244,7 @@ body {
 
 /* Match row: Jul 23 2026 — table-based layout so the score sits in
    the same vertical column across every row in a section.
-   "15.02.26 (PRE) Kilmarnock 2 : 3 Celtic 🟥"
+   "15.02.26 (PRE) Kilmarnock 2 : 3 Celtic"
    All rows of a section sit in a <table class="match-h2h-table">
    (display:table) with fixed-width columns, so the score column
    lines up vertically regardless of team name length. */
@@ -302,12 +302,6 @@ body {
     width: 60px;
     padding-left: 8px;
     padding-right: 8px;
-}
-.match-h2h-row .result-cell {
-    text-align: center;
-    font-size: 14px;
-    width: 24px;
-    padding-left: 4px;
 }
 .match-h2h-row .winner { color: #1a7a3a; font-weight: 700; }
 .match-h2h-row .loser { color: #999; }
@@ -1421,12 +1415,12 @@ function renderH2HMatch(m) {
     // renderH2HMatchList which wraps the cells in a table container.
     //
     // Jul 23 2026 (user spec): single compact line per match.
-    //   "15.02.26 (PRE) Kilmarnock 2 : 3 Celtic 🟥"
+    //   "15.02.26 (PRE) Kilmarnock 2 : 3 Celtic"
     //   - date: short DD.MM.YY
     //   - tournament: short code in parentheses (e.g. PRV, UPL, EPL)
     //   - country suffix "(Ned)", "(Sco)" etc. stripped from team names
     //   - winner bold+green, loser gray (color via CSS .winner/.loser)
-    //   - no em-dash separator
+    //   - no em-dash separator, no result emoji (Jul 23 2026)
     function stripCountry(name) {
         return String(name || '').replace(/\s*\([A-Z][a-zA-Z]{0,3}\)\s*$/, '').trim();
     }
@@ -1438,17 +1432,12 @@ function renderH2HMatch(m) {
     var homeWins = isNum && hs > as;
     var awayWins = isNum && as > hs;
     var draw = isNum && hs === as;
-    var mySide = m.my_side;
+    // Jul 23 2026: H2H rows no longer show a result emoji (was 🟩/🟥/🟧).
+    // The win/loss is already implied by the .winner/.loser classes on
+    // the team name cells (winner = green+bold, loser = gray), and the
+    // match score is enough on its own. Removing the emoji column makes
+    // every row 1 column shorter and easier to scan.
     var result = '';
-    if (isNum) {
-        if (mySide === 'home') {
-            result = homeWins ? '🟩' : (awayWins ? '🟥' : '🟧');
-        } else if (mySide === 'away') {
-            result = awayWins ? '🟩' : (homeWins ? '🟥' : '🟧');
-        } else {
-            result = draw ? '🟧' : (homeWins ? '◀' : '▶');
-        }
-    }
     var homeCls = 'home';
     var awayCls = 'away';
     if (isNum) {
@@ -1482,7 +1471,6 @@ function renderH2HMatch(m) {
     cells += '<td class="home-cell ' + homeCls + '">' + escH(homeName) + '</td>';
     cells += '<td class="score-cell">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</td>';
     cells += '<td class="away-cell ' + awayCls + '">' + escH(awayName) + '</td>';
-    cells += '<td class="result-cell">' + result + '</td>';
     return '<tr class="match-h2h-row">' + cells + '</tr>';
 }
 
