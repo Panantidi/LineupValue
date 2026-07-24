@@ -5408,12 +5408,34 @@ def _flash_clean():
 
 
 def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
-                user_filter: str = "", ip_filter: str = "", action_filter: str = "") -> str:
-    """Render /admin with optional filters on access_log (Jul 22 2026)."""
+                user_filter: str = "", ip_filter: str = "", action_filter: str = "",
+                period: str = "all") -> str:
+    """Render /admin with optional filters on access_log (Jul 22 2026).
+
+    period: time-window filter. One of '1d', '3d', '7d', 'all' (default).
+      - '1d'  = last 24 hours
+      - '3d'  = last 3 days   (Jul 24 2026, user request: "последние 3 дня")
+      - '7d'  = last 7 days
+      - 'all' = no time filter (every row, oldest possible match still wins)
+    Filters by access_log.timestamp >= NOW - window.
+    """
+    from datetime import datetime, timezone, timedelta
     con = sqlite3.connect(DB_PATH)
+
+    period_seconds = {
+        '1d': 86400,
+        '3d': 3 * 86400,
+        '7d': 7 * 86400,
+    }.get(period)
+    since_iso = None
+    if period_seconds is not None:
+        since_iso = (datetime.now(timezone.utc) - timedelta(seconds=period_seconds)).isoformat()
 
     where_parts = ["al.username != 'owner'"]
     params = []
+    if since_iso:
+        where_parts.append("al.timestamp >= ?")
+        params.append(since_iso)
     if user_filter:
         where_parts.append("al.username LIKE ?")
         params.append("%" + user_filter + "%")
@@ -5494,7 +5516,27 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
         prev_class = "disabled" if page == 1 else ""
         next_class = "disabled" if page == total_pages else ""
         last_class = "disabled" if page == total_pages else ""
-        pagination = f'<div class="pg"><a href="/admin?p=1" class="{first_class}">«</a> <a href="/admin?p={prev_page}" class="{prev_class}">‹</a> <span>Page {page} of {total_pages}</span> <a href="/admin?p={next_page}" class="{next_class}">›</a> <a href="/admin?p={total_pages}" class="{last_class}">»</a></div>'
+        # Preserve all non-page query params in the pagination links
+        # so changing the page doesn't drop the period/user/ip/action
+        # filters that the user picked.
+        from urllib.parse import urlencode
+        base_qs = {"period": period, "user": user_filter,
+                   "ip": ip_filter, "action": action_filter}
+        def _page_href(n: int) -> str:
+            qs = dict(base_qs)
+            qs["p"] = n
+            return "/admin?" + urlencode(qs)
+        pagination = f'<div class="pg"><a href="{_page_href(1)}" class="{first_class}">«</a> <a href="{_page_href(prev_page)}" class="{prev_class}">‹</a> <span>Page {page} of {total_pages}</span> <a href="{_page_href(next_page)}" class="{next_class}">›</a> <a href="{_page_href(total_pages)}" class="{last_class}">»</a></div>'
+
+    # Preserved query string for the period-filter buttons ("1 day / 3 days
+    # / 7 days / All") so the user's user/ip/action filters survive a
+    # period change.
+    from urllib.parse import urlencode
+    period_qs = urlencode({k: v for k, v in {
+        "user": user_filter, "ip": ip_filter, "action": action_filter,
+        "p": page,
+    }.items() if v})
+    pq = ("&" + period_qs) if period_qs else ""
 
     msg_html = f'<div class="msg">{msg}</div>' if msg else ""
 
@@ -5524,6 +5566,9 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
 .gbox{{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}}
 .gbox input{{background:#334155;border:1px solid #475569;color:#e2e8f0;padding:6px 10px;border-radius:6px;font-size:13px;width:160px;outline:none}}
 .gbox input::placeholder{{color:#64748b}}
+.pf{{display:inline-block;padding:4px 10px;margin-left:4px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#94a3b8;text-decoration:none;font-size:11px;cursor:pointer}}
+.pf:hover{{background:#334155;color:#e2e8f0}}
+.pf.on{{background:#667eea;color:#fff;border-color:#667eea;font-weight:600}}
 .pwd{{cursor:pointer;color:#6ee7b7;font-weight:600}}
 .g{{color:#94a3b8}}
 </style></head><body>
@@ -5542,7 +5587,15 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
 </div>
 <table><thead><tr><th>ID</th><th>Login</th><th>Password</th><th>Role</th><th>Status</th><th>Created</th><th>Last Login</th><th>Actions</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
-<div class="cd"><h2>Recent Activity ({total_logs})</h2>
+<div class="cd"><h2 style="display:flex;justify-content:space-between;align-items:center;">
+  <span>Recent Activity ({total_logs})</span>
+  <span style="font-size:11px;text-transform:none;letter-spacing:0;">
+    <a href="/admin?period=1d{pq}" class="pf{' on' if period == '1d' else ''}">1 day</a>
+    <a href="/admin?period=3d{pq}" class="pf{' on' if period == '3d' else ''}">3 days</a>
+    <a href="/admin?period=7d{pq}" class="pf{' on' if period == '7d' else ''}">7 days</a>
+    <a href="/admin?period=all{pq}" class="pf{' on' if period == 'all' else ''}">All</a>
+  </span>
+</h2>
 <table><thead><tr><th>Time</th><th>User</th><th>IP</th><th>Path</th><th>Action</th><th>Details</th></tr></thead>
 <tbody>{lrows}</tbody></table>
 {pagination}
@@ -5551,12 +5604,14 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
 
 
 @app.get("/admin")
-async def admin_panel(request: Request, p: int = 1):
+async def admin_panel(request: Request, p: int = 1, period: str = "all",
+                      user: str = "", ip: str = "", action: str = ""):
     if not getattr(request.state, "is_admin", False):
         raise HTTPException(status_code=403)
     _flash_clean()
     msg = _flash_get(request.query_params.get("f", ""))
-    return HTMLResponse(_render_admin(msg, page=p))
+    return HTMLResponse(_render_admin(msg, page=p, period=period,
+                                       user_filter=user, ip_filter=ip, action_filter=action))
 
 
 @app.post("/admin/gen")
