@@ -5454,8 +5454,24 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
         params
     ).fetchone()[0]
 
+    # Jul 24 2026: cap the visible activity at MAX_LOG_ROWS newest entries
+    # (user spec: "не хочу видеть историю свыше 300 последних действий").
+    # Older events are still in the DB but not shown in /admin. Anything
+    # older than the 300th-newest row is dropped from the panel entirely
+    # — the user explicitly does not want to scroll through 360+ pages
+    # of stale /lineup_ai/track "view" events.
+    from urllib.parse import urlencode
+    MAX_LOG_ROWS = 300
+    shown_hits = min(total_hits, MAX_LOG_ROWS)
+    dropped = total_hits - shown_hits  # > 0 only when period='all'
+
     offset = (page - 1) * page_size
-    total_logs = total_hits
+    # If the requested page is past the cap, clamp to the last valid page.
+    max_page = (shown_hits + page_size - 1) // page_size if shown_hits else 1
+    if page > max_page:
+        page = max_page
+        offset = (page - 1) * page_size
+    total_logs = shown_hits
     total_pages = (total_logs + page_size - 1) // page_size
 
     users = con.execute("SELECT id,username,is_admin,active,created_at,last_login,plain_password FROM users ORDER BY id").fetchall()
@@ -5588,7 +5604,7 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
 <table><thead><tr><th>ID</th><th>Login</th><th>Password</th><th>Role</th><th>Status</th><th>Created</th><th>Last Login</th><th>Actions</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
 <div class="cd"><h2 style="display:flex;justify-content:space-between;align-items:center;">
-  <span>Recent Activity ({total_logs})</span>
+  <span>Recent Activity ({total_logs}{(' — showing newest 300 of ' + str(total_hits) + ' events') if dropped else ''})</span>
   <span style="font-size:11px;text-transform:none;letter-spacing:0;">
     <a href="/admin?period=1d{pq}" class="pf{' on' if period == '1d' else ''}">1 day</a>
     <a href="/admin?period=3d{pq}" class="pf{' on' if period == '3d' else ''}">3 days</a>
