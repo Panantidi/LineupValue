@@ -1039,6 +1039,17 @@ async def login_submit(username: str = Form(...), password: str = Form(...), nex
         return HTMLResponse(html, status_code=401)
     # Valid credentials — set session cookie and redirect
     is_admin = bool(row[2])
+    # Jul 24 2026: log the successful login as action="login" so it shows
+    # up in /admin Recent Activity. Before this fix, /login never wrote
+    # to access_log at all, so the admin panel only ever saw "view"
+    # events from /lineup_ai/track. Now we record one login event per
+    # successful POST /login, and last_login is bumped automatically
+    # by _log_access (it checks action == "login").
+    try:
+        client_ip = request.client.host if request.client else "?"
+    except Exception:
+        client_ip = "?"
+    _log_access(username, client_ip, "/login", "login")
     token = _make_session_token(username, is_admin)
     response = RedirectResponse(url=next or "/", status_code=303)
     response.set_cookie(
@@ -5401,7 +5412,7 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
     """Render /admin with optional filters on access_log (Jul 22 2026)."""
     con = sqlite3.connect(DB_PATH)
 
-    where_parts = ["(u.is_admin IS NULL OR u.is_admin = 0) AND al.username != 'owner'"]
+    where_parts = ["al.username != 'owner'"]
     params = []
     if user_filter:
         where_parts.append("al.username LIKE ?")
