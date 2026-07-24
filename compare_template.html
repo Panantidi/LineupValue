@@ -237,79 +237,75 @@ body {
     margin: 12px 0 6px 0;
     border-bottom: 2px solid #043fb6;
     padding-bottom: 4px;
+    text-align: center;
 }
 
-/* Match row: Jul 23 2026 — single compact line per match.
-   "15.02.26 (PRE) — Kilmarnock 2 : 3 Celtic 🟥"
-   Uses flex with white-space:nowrap so the whole row stays
-   on one line. Elements wrap their inner text as needed but
-   the row itself never breaks. */
+/* Match row: Jul 23 2026 — table-based layout so the score sits in
+   the same vertical column across every row in a section.
+   "15.02.26 (PRE) Kilmarnock 2 : 3 Celtic 🟥"
+   All rows of a section sit in a <table class="match-h2h-table">
+   (display:table) with fixed-width columns, so the score column
+   lines up vertically regardless of team name length. */
+.match-h2h-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin: 0 0 4px 0;
+}
 .match-h2h-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
-    border-bottom: 1px solid #eef0f4;
-    font-size: 13px;
+    display: table-row;
     background: white;
+}
+.match-h2h-row:nth-child(even) { background: #fafbfd; }
+.match-h2h-row td {
+    padding: 6px 4px;
+    font-size: 13px;
+    vertical-align: middle;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.match-h2h-row:nth-child(even) { background: #fafbfd; }
-.match-h2h-row .date {
+.match-h2h-row .date-cell {
     color: #666;
     font-size: 11px;
     font-weight: 500;
-    flex-shrink: 0;
+    width: 56px;
+    text-align: right;
+    padding-right: 6px;
 }
-.match-h2h-row .tournament-short {
+.match-h2h-row .tshort-cell {
     color: #6c7280;
     font-size: 11px;
     font-weight: 500;
-    flex-shrink: 0;
-}
-.match-h2h-row .home {
-    color: #333;
-    flex: 1 1 auto;
-    text-align: right;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-}
-.match-h2h-row .away {
-    color: #333;
-    flex: 1 1 auto;
+    width: 48px;
     text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
+    padding-left: 2px;
+    padding-right: 2px;
 }
-/* Center group: wraps home + score + away so the score sits in the
-   visual middle of the row, regardless of how wide date / tShort /
-   result are. flex:1 1 auto lets it consume all remaining space;
-   justify-content:center keeps the score centered within the group. */
-.h2h-center-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex: 1 1 auto;
-    justify-content: center;
-    min-width: 0;
+.match-h2h-row .home-cell {
+    color: #333;
+    text-align: right;
+    width: auto;
 }
-.match-h2h-row .score {
+.match-h2h-row .away-cell {
+    color: #333;
+    text-align: left;
+    width: auto;
+}
+.match-h2h-row .score-cell {
     color: #1a1d2b;
     font-weight: 700;
     font-size: 13px;
-    flex-shrink: 0;
-    min-width: 50px;
     text-align: center;
+    width: 60px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
-.match-h2h-row .result {
-    flex-shrink: 0;
-    font-size: 14px;
-    min-width: 22px;
+.match-h2h-row .result-cell {
     text-align: center;
+    font-size: 14px;
+    width: 24px;
+    padding-left: 4px;
 }
 .match-h2h-row .winner { color: #1a7a3a; font-weight: 700; }
 .match-h2h-row .loser { color: #999; }
@@ -317,10 +313,6 @@ body {
     /* Used as a thin separator after the tournament subtitle */
     height: 4px;
     border-bottom: 1px solid #eef0f4;
-}
-    height: auto;
-    overflow: visible;
-    overflow-y: hidden;
 }
 .team-divider {
     width: 2px;
@@ -1399,26 +1391,20 @@ function renderH2H(data) {
     }
     // ---- H2H matches ----
     if (data.h2h && data.h2h.length) {
-        html += '<div class="match-h2h-section-title" style="text-align:center;">H2H</div>';
-        for (var i = 0; i < data.h2h.length; i++) {
-            html += renderH2HMatch(data.h2h[i]);
-        }
+        html += '<div class="match-h2h-section-title">H2H</div>';
+        html += renderH2HMatchList(data.h2h, 'h2h_');
     }
     // ---- Last Matches: home ----
     if (data.last_my && data.last_my.length) {
         var homeTitle = (typeof matchMeta !== 'undefined' && matchMeta.home_name) || h2hMyName || 'Home';
         html += '<div class="match-h2h-section-title">Last Matches: ' + escH(homeTitle) + '</div>';
-        for (var j = 0; j < data.last_my.length; j++) {
-            html += renderH2HMatch(data.last_my[j]);
-        }
+        html += renderH2HMatchList(data.last_my, 'lmy_');
     }
     // ---- Last Matches: away ----
     if (data.last_opp && data.last_opp.length) {
         var awayTitle = (typeof matchMeta !== 'undefined' && matchMeta.away_name) || h2hOppName || 'Away';
         html += '<div class="match-h2h-section-title">Last Matches: ' + escH(awayTitle) + '</div>';
-        for (var k = 0; k < data.last_opp.length; k++) {
-            html += renderH2HMatch(data.last_opp[k]);
-        }
+        html += renderH2HMatchList(data.last_opp, 'lop_');
     }
     if (!html) {
         html = '<div class="match-h2h-loading">No data available.</div>';
@@ -1427,16 +1413,19 @@ function renderH2H(data) {
 }
 
 function renderH2HMatch(m) {
-    // m: {date, score_home, score_away, home:{name}, away:{name}, tournament, tournament_short, my_side}
+    // Render a single match as TABLE CELLS (no wrapping <div class="match-h2h-row">)
+    // so that all rows in a section share the same column widths, and the
+    // score sits in the same vertical position in every row. Called from
+    // renderH2HMatchList which wraps the cells in a table container.
+    //
     // Jul 23 2026 (user spec): single compact line per match.
     //   "15.02.26 (PRE) Kilmarnock 2 : 3 Celtic 🟥"
     //   - date: short DD.MM.YY
     //   - tournament: short code in parentheses (e.g. PRV, UPL, EPL)
     //   - country suffix "(Ned)", "(Sco)" etc. stripped from team names
     //   - winner bold+green, loser gray (color via CSS .winner/.loser)
-    //   - no em-dash separator (Jul 23 2026 update: user wants clean line)
+    //   - no em-dash separator
     function stripCountry(name) {
-        // Remove "(Ned)", "(Sco)", "(Hun)", "(3-letter country code)" etc.
         return String(name || '').replace(/\s*\([A-Z][a-zA-Z]{0,3}\)\s*$/, '').trim();
     }
     var homeName = stripCountry((m.home && m.home.name) || 'Home');
@@ -1464,7 +1453,7 @@ function renderH2HMatch(m) {
         if (homeWins) { homeCls = 'home winner'; awayCls = 'away loser'; }
         else if (awayWins) { homeCls = 'home loser'; awayCls = 'away winner'; }
     }
-    // Date: prefer short format "DD.MM.YY" if m.date is in YYYY-MM-DD or DD.MM.YYYY
+    // Date: prefer short format "DD.MM.YY"
     var dateStr = m.date || '';
     var dateShort = dateStr;
     var ddmmyyyy = dateStr.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
@@ -1472,29 +1461,40 @@ function renderH2HMatch(m) {
         var yy = ddmmyyyy[3].length === 4 ? ddmmyyyy[3].slice(2) : ddmmyyyy[3];
         dateShort = ddmmyyyy[1].padStart(2, '0') + '.' + ddmmyyyy[2].padStart(2, '0') + '.' + yy;
     }
-    // Tournament short code: prefer m.tournament_short, fall back to first word of m.tournament
+    // Tournament short code
     var tShort = m.tournament_short || '';
     if (!tShort && m.tournament) {
-        // Take first word, uppercase first 3-4 letters (e.g. "Premier league" -> "PRL")
         var firstWord = String(m.tournament).split(/[\s\-]/)[0] || '';
         tShort = firstWord.substring(0, 4).toUpperCase();
     }
-    var html = '<div class="match-h2h-row">';
-    html += '<span class="date">' + escH(dateShort) + '</span>';
+    // Build a <tr> with 5 <td>s so the table's column widths are shared
+    // across every row in the section. This is what makes the score column
+    // vertically aligned across all matches in the same section.
+    var cells = '';
+    cells += '<td class="date-cell">' + escH(dateShort) + '</td>';
     if (tShort) {
-        html += ' <span class="tournament-short">(' + escH(tShort) + ')</span>';
+        cells += '<td class="tshort-cell">(' + escH(tShort) + ')</td>';
+    } else {
+        cells += '<td class="tshort-cell"></td>';
     }
-    // Home / score / away wrapped in a center-aligned group so the score
-    // is visually in the middle of the row. The group itself takes all
-    // remaining horizontal space, so long team names are still truncated
-    // by the .home/.away overflow:hidden / text-overflow:ellipsis rules.
-    html += ' <span class="h2h-center-group">';
-    html += '<span class="' + homeCls + '">' + escH(homeName) + '</span>';
-    html += ' <span class="score">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</span>';
-    html += ' <span class="' + awayCls + '">' + escH(awayName) + '</span>';
-    html += '</span>';
-    html += ' <span class="result">' + result + '</span>';
-    html += '</div>';
+    cells += '<td class="home-cell ' + homeCls + '">' + escH(homeName) + '</td>';
+    cells += '<td class="score-cell">' + (isNaN(hs) ? '?' : hs) + ' : ' + (isNaN(as) ? '?' : as) + '</td>';
+    cells += '<td class="away-cell ' + awayCls + '">' + escH(awayName) + '</td>';
+    cells += '<td class="result-cell">' + result + '</td>';
+    return '<tr class="match-h2h-row">' + cells + '</tr>';
+}
+
+function renderH2HMatchList(matches, idPrefix) {
+    // Wrap a list of matches in a <table class="match-h2h-table"> so that
+    // all rows share the same column widths. The table is rendered
+    // as display:table with explicit column widths (see CSS), so the
+    // score cell (column 4) lines up vertically across every row.
+    if (!matches || !matches.length) return '';
+    var html = '<table class="match-h2h-table" id="' + idPrefix + 'tbl">';
+    for (var i = 0; i < matches.length; i++) {
+        html += renderH2HMatch(matches[i]);
+    }
+    html += '</table>';
     return html;
 }
 
