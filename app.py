@@ -5566,7 +5566,11 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
     lrows = ""
     for l in logs:
         un, ip, path, act, det, ts = l
-        lrows += f"<tr><td>{_fmt_msk(ts)}</td><td>{un}</td><td>{ip or ''}</td><td>{path}</td><td>{act}</td><td class='g'>{det or ''}</td></tr>"
+        # Jul 24 2026: per-cell la-* classes for the .ra-table fixed-width
+        # CSS rule (see <style>). title="..." attribute on every cell so
+        # the user can still see the full value on hover when it is
+        # truncated by text-overflow:ellipsis.
+        lrows += f"<tr><td class='la-time' title='{html_escape(ts)}'>{_fmt_msk(ts)}</td><td class='la-user' title='{html_escape(un)}'>{un}</td><td class='la-ip' title='{html_escape(ip or '')}'>{ip or ''}</td><td class='la-path' title='{html_escape(path)}'>{path}</td><td class='la-action' title='{html_escape(act)}'>{act}</td><td class='la-details g' title='{html_escape(det or '')}'>{det or ''}</td></tr>"
 
     # Pagination controls
     prev_page = max(1, page - 1)
@@ -5616,6 +5620,19 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 table{{width:100%;border-collapse:collapse;font-size:13px}}
 th{{text-align:left;padding:8px 10px;background:#334155;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.5px}}
 td{{padding:8px 10px;border-bottom:1px solid #334155}}tr:hover{{background:#334155}}
+/* Jul 24 2026: Recent Activity table only. Without nowrap the long paths
+   (/lineup_ai/compare/hpHBTd64?home_id=pKS9M7R7&away_id=dhOKTHGA) wrap to
+   multiple lines. With .ra-table table-layout:fixed + these column widths,
+   every row sits on exactly one line and overflowing text is truncated
+   with an ellipsis. Users table is left alone (auto layout, no ellipsis). */
+.ra-table{{table-layout:fixed}}
+.ra-table td{{padding:6px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.ra-table td.la-time{{width:130px}}
+.ra-table td.la-user{{width:120px}}
+.ra-table td.la-ip{{width:110px}}
+.ra-table td.la-path{{max-width:0;width:auto}}
+.ra-table td.la-action{{width:90px}}
+.ra-table td.la-details{{max-width:0;width:auto}}
 .b{{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}}
 .b-a{{background:#7c3aed;color:#fff}}.b-u{{background:#1e40af;color:#93c5fd}}
 .b-on{{background:#065f46;color:#6ee7b7}}.b-off{{background:#7f1d1d;color:#fca5a5}}
@@ -5657,7 +5674,7 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
     <a href="/admin?period=all{pq}" class="pf{' on' if period == 'all' else ''}">All</a>
   </span>
 </h2>
-<table><thead><tr><th>Time</th><th>User</th><th>IP</th><th>Path</th><th>Action</th><th>Details</th></tr></thead>
+<table class="ra-table"><thead><tr><th>Time</th><th>User</th><th>IP</th><th>Path</th><th>Action</th><th>Details</th></tr></thead>
 <tbody>{lrows}</tbody></table>
 {pagination}
 </div>
