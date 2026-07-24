@@ -1279,7 +1279,11 @@ def fetch_team_results(team_id, my_team_id=None, max_results=5, max_pages=1):
     Args:
         team_id: the team whose results to fetch
         my_team_id: which side is "ours" (for win/loss emoji)
-        max_results: limit on the number of returned matches (default 5)
+        max_results: limit on the number of returned matches (default 5).
+            When the caller walks multiple pages (max_pages>1) the function
+            returns ALL matches from the visited pages — i.e. the cap
+            applies only to the SINGLE-PAGE default. The caller can still
+            slice the result with [:max_results] after the walk.
         max_pages: how many pages of the Flashscore results feed to walk
             (default 1 ≈ ~40-45 most recent matches). Set higher for
             deeper history.
@@ -1308,7 +1312,12 @@ def fetch_team_results(team_id, my_team_id=None, max_results=5, max_pages=1):
                         row["tournament"] = tshort
                     flat.append(row)
     # Sort by timestamp DESC
-    flat.sort(key=lambda x: int(m.get("timestamp", 0) if (m := x) else 0), reverse=True)
+    flat.sort(key=lambda x: int(x.get("timestamp", 0) or 0), reverse=True)
+    # When walking multiple pages, do NOT cap at max_results — the caller
+    # asked for "all matches on max_pages pages". The default 5 stays
+    # untouched for single-page callers (the historical default behavior).
+    if max_pages > 1:
+        return flat
     return flat[:max_results]
 
 
