@@ -1329,7 +1329,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             color: #333;
             background: #f8f9fc;
         }}
-        .bulk-lineup-controls textarea {{
+        .bulk-lineup-controls textarea, #bulk-lineup-text {{
             flex: 1;
             min-height: 58px;
             border: 1px solid #d5d9e8;
@@ -1821,7 +1821,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     </div>
                 </div>
                 <div class="bulk-lineup-text-row" style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;">
-                    <textarea id="bulk-lineup-text" placeholder="Paste players" style="flex:1;min-height:60px;resize:vertical;"></textarea>
+                    <div id="bulk-lineup-text" contenteditable="true" placeholder="Paste players" style="flex:1;min-height:60px;resize:vertical;border:1px solid #d5d9e8;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.35;font-family:inherit;overflow:auto;white-space:pre-wrap;background:white;"></div>
                     <div id="vision-lineup-stats" class="vision-lineup-stats" style="display:none;min-width:120px;font-size:12px;color:#555;line-height:1.6;">
                         <div>Total: <span id="vision-total-count">0</span> players</div>
                         <div style="color:#17843f;">Found: <span id="vision-found-count">0</span> players</div>
@@ -2431,6 +2431,20 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             recalcValueComparison();
         }}
 
+        function bulkRenderEditable(tokens, notFound, ambiguous) {{
+            const el = document.getElementById('bulk-lineup-text');
+            if (!el) return;
+            const esc = (s) => String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const nfSet = new Set(notFound.map(nf => nf.raw));
+            const ambSet = new Set(ambiguous.map(a => a.parsed.raw));
+            const html = tokens.map(t => {{
+                if (nfSet.has(t)) return '<div style="color:#dc3545;font-weight:700;">' + esc(t) + ' — NOT FOUND</div>';
+                if (ambSet.has(t)) return '<div style="color:#f59e0b;font-weight:700;">' + esc(t) + ' — AMBIGUOUS</div>';
+                return '<div>' + esc(t) + '</div>';
+            }}).join('');
+            el.innerHTML = html;
+        }}
+
         function bulkRenderReport(total, found, notFound, ambiguous) {{
             const el = document.getElementById('bulk-lineup-report');
             if (!el) return;
@@ -2493,13 +2507,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             bulkRefreshStats();
             bulkRenderReport(tokens.length, found, notFound, ambiguous);
             bulkRenderAmbiguous(ambiguous, mode);
+            bulkRenderEditable(tokens, notFound, ambiguous);
             return {{ total: tokens.length, found: found, notFound: notFound.length, ambiguous: ambiguous.length }};
         }}
 
         function applyBulkLineup() {{
             const textEl = document.getElementById('bulk-lineup-text');
             const modeEl = document.getElementById('bulk-lineup-mode');
-            const tokens = bulkParseInput(textEl ? textEl.value : '');
+            const tokens = bulkParseInput(textEl ? textEl.innerText : '');
             const mode = modeEl ? modeEl.value : 'possible';
             applyBulkLineupFromTokens(tokens, mode);
         }}
@@ -2557,7 +2572,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const json = await res.json();
                 if (!json.ok) throw new Error(json.error || 'vision failed');
                 const names = Array.isArray(json.players) ? json.players : [];
-                if (textEl) textEl.value = names.join('\\n');
+                if (textEl) textEl.innerText = names.join('\\n');
                 const currentMode2 = modeEl ? modeEl.value : 'possible';
                 const result = applyBulkLineupFromTokens(names, currentMode2);
                 if (statusEl) {{
