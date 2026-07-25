@@ -2327,7 +2327,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         function bulkParseInput(text) {{
             return String(text || '')
-                .split(/[,;\\n\\r]+|\s+-\s+/g)
+                .split(/[,;/\\n\\r]+|\s+-\s+/g)
                 .map(x => x.trim())
                 .filter(Boolean);
         }}
