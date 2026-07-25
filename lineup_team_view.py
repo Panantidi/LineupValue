@@ -1282,14 +1282,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             margin: 0 0 12px 0;
             font-size: 13px;
             font-weight: 700;
-            /* Jul 24 2026: per user spec, the banner is the same
-               width as the main table. .main-table > .table-container
-               is 964px (see line 908), and .info-bar-* blocks
-               (lines 1887-1915) also use width:964px + max-width:100%
-               + box-sizing:border-box for the same reason. The
-               banner now matches so it visually sits flush with
-               the table it describes. */
-            width: 964px;
+            /* Jul 24 2026: per user spec, the banner width was set
+               to 964px first, then user asked for 922px. The two
+               values are visually similar (42px difference, ~4%)
+               but the user specifically asked for 922px. The
+               .info-bar-* blocks (lines 1887-1915) use 964px, so
+               the snapshot banner is now slightly narrower than
+               the info bars. If a future request is to align
+               these, the answer is 964px not 922px. */
+            width: 922px;
             max-width: 100%;
             box-sizing: border-box;
         }}
