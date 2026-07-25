@@ -85,8 +85,124 @@ def _write_cache(team_id, data):
     os.rename(tmp, p)
 
 
+_slug_cache = {}
+
+
+def _verify_slug_via_api(team_id: str, slug: str) -> bool:
+    """Hit /teams/details with the given slug and report whether it
+    actually points to this team.
+
+    Jul 24 2026: when leagues_data.json has the wrong slug (e.g. 'oviedo'
+    for Real Oviedo, where the working slug is 'real-oviedo'),
+    /teams/details returns an empty list 200. We use this fact to
+    detect a stale slug without making the user click refresh
+    twice. The /teams/details endpoint returns:
+      - dict with team_id == our id   -> slug is correct
+      - dict with team_id != our id   -> slug belongs to a different team
+      - []                             -> slug is wrong (no such team page)
+      - other (error, etc)             -> treat as inconclusive
+    Returns True only if API confirms the slug resolves to OUR team_id.
+    """
+    try:
+        from urllib.parse import quote
+        url = f"https://{HOST}/api/flashscore/v2/teams/details?team_url=%2Fteam%2F{quote(slug, safe='')}%2F{team_id}%2F"
+        d = _fetch(url, retries=1)
+        if isinstance(d, dict) and d.get('team_id') == team_id:
+            return True
+        return False
+    except Exception:
+        return False
+
+
+def _try_discover_slug(team_id: str) -> str | None:
+    """Last-resort fallback: try several likely slug patterns.
+
+    Jul 24 2026: when leagues_data.json has the wrong slug (e.g. 'oviedo'
+    instead of 'real-oviedo'), the user gets a 502. As of this commit
+    we don't blindly trust the stored slug — _get_team_info() now
+    verifies it via API first. But if leagues_data.json is missing
+    the team entirely (or has an empty slug), we still need ONE
+    working URL. The patterns below cover the common cases:
+
+      - team_id as slug:                /team/{id}/{id}/
+      - lowercase team name:            /team/{name}/{id}/
+      - lowercase team name with '-'s:  /team/{name-with-dashes}/{id}/
+      - lowercase team name (no spaces): /team/{namenoslash}/{id}/
+
+    Each pattern is tested by /teams/details. The first one whose
+    response has team_id == our id wins. None if all fail.
+
+    Note: this is a brute-force fallback and costs N extra API
+    calls (typically 2-4) per team on the first refresh after
+    a stale slug. After it succeeds, the discovered slug is
+    cached in _slug_cache so subsequent refreshes are free.
+    """
+    from urllib.parse import quote
+    patterns = [team_id]
+    # Try common slug patterns. The team name is in the cache file
+    # (already refreshed once) or leagues_data.json. We try both.
+    name_candidates = []
+    try:
+        cache = _read_cache(team_id)
+        if cache and (cache.get('team') or {}).get('name'):
+            name_candidates.append((cache['team']['name']))
+    except Exception:
+        pass
+    try:
+        with open(LEAGUES_FILE) as f:
+            ld = json.load(f)
+        for country, champs in ld.items():
+            for champ, teams in champs.items():
+                for t in teams:
+                    if t.get('id') == team_id and t.get('name'):
+                        name_candidates.append(t['name'])
+                        break
+    except Exception:
+        pass
+
+    for name in name_candidates:
+        n = name.strip()
+        patterns.append(n)                          # 'Real Oviedo'
+        patterns.append(n.lower())                  # 'real oviedo'
+        patterns.append(n.lower().replace(' ', '-'))   # 'real-oviedo'
+        patterns.append(n.lower().replace(' ', ''))    # 'realoviedo'
+        # 'Dundee Utd' <-> 'Dundee United' swap (common shorthand)
+        if 'utd' in n.lower():
+            patterns.append(n.lower().replace('utd', 'united'))
+        if 'united' in n.lower():
+            patterns.append(n.lower().replace('united', 'utd'))
+
+    seen = set()
+    patterns = [p for p in patterns if p and not (p in seen or seen.add(p))]
+
+    for slug in patterns:
+        try:
+            url = f"https://{HOST}/api/flashscore/v2/teams/details?team_url=%2Fteam%2F{quote(slug, safe='')}%2F{team_id}%2F"
+            d = _fetch(url, retries=1)
+            if isinstance(d, dict) and d.get('team_id') == team_id:
+                return slug
+        except Exception:
+            continue
+    return None
+
+
 def _get_team_info(team_id):
-    """Find team info in leagues_data.json. Returns (country, champ, slug) or None."""
+    """Find team info in leagues_data.json. Returns (country, champ, slug) or None.
+
+    Jul 24 2026 (bugfix): Real Oviedo / Dundee Utd were returning a
+    False slug from leagues_data.json (e.g. 'oviedo' instead of
+    'real-oviedo'), which caused /teams/details to return [] and the
+    whole refresh to fail with 502. The new behavior is:
+
+      1. Look up team in leagues_data.json (fast path, ~99% of calls)
+      2. If found but slug field is missing/empty, treat as no slug
+      3. If found WITH a slug, verify it via API. If it doesn't
+         resolve to our team_id, log a warning and fall through.
+      4. If the entry doesn't exist OR the slug didn't verify, try
+         one last fallback: use team_id as slug (works for the
+         ~5% of teams missing from leagues_data.json).
+      5. If everything fails, return None (caller bails out).
+    """
     if team_id in _slug_cache:
         return _slug_cache[team_id]
     try:
@@ -94,13 +210,33 @@ def _get_team_info(team_id):
             ld = json.load(f)
     except Exception:
         return None
+    candidate = None
     for country, champs in ld.items():
         for champ, teams in champs.items():
             for t in teams:
                 if t.get("id") == team_id:
-                    info = (country, champ, t.get("slug") or team_id)
-                    _slug_cache[team_id] = info
-                    return info
+                    candidate = (country, champ, t.get("slug") or "")
+                    break
+            if candidate:
+                break
+        if candidate:
+            break
+    if candidate:
+        country, champ, slug = candidate
+        if slug and _verify_slug_via_api(team_id, slug):
+            info = (country, champ, slug)
+            _slug_cache[team_id] = info
+            return info
+        # Slug present but stale. Don't trust it.
+        if slug:
+            print(f'[slug] stale slug {slug!r} for {team_id} ({country}/{champ}); trying fallback')
+    # Last-resort: try team_id as slug
+    fallback = _try_discover_slug(team_id)
+    if fallback:
+        # We don't know country/champ but we have a working slug.
+        info = ('?', '?', fallback)
+        _slug_cache[team_id] = info
+        return info
     _slug_cache[team_id] = None
     return None
 
@@ -210,6 +346,17 @@ def refresh_squad(team_id, slug, info, force=False):
     url = f"https://{HOST}/api/flashscore/v2/teams/squad?team_url=%2Fteam%2F{slug}%2F{team_id}%2F"
     data = _fetch(url)
     if not data:
+        # Jul 24 2026: previously returned None here, which made
+        # refresh_team bail out with 502 (the UI showed ❌ HTTP 502).
+        # The actual cause was that the RapidAPI host returns []
+        # (an empty list, HTTP 200) for teams whose squad data is
+        # not yet in their database — e.g. Genclerbirligi. This is
+        # NOT a transient error, it's a permanent "no squad data
+        # for this team" answer, so we return [] (empty player
+        # list) and let the team page render with no player table
+        # rather than failing the entire refresh.
+        if data == []:
+            return []
         return None
     groups = data if isinstance(data, list) else (data.get("data") if isinstance(data, dict) else [])
     if not isinstance(groups, list) or not groups:
