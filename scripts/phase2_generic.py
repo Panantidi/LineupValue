@@ -499,21 +499,22 @@ def fetch_fixtures(team_id):
 
 
 def fetch_lineups_for_match(match_id, team_id):
-    """Fetch lineups for a match, returning {player_id: "START"|"SUB"}.
+    """Fetch lineups for a match, returning ({player_id: "START"|"SUB"}, set of captain player_ids).
     Also populates the module-level `_last_missing` side-channel so
     `process_team` can attach missing-data info to the right player+match
     position in the cache.
     """
     if not match_id:
-        return {}
+        return {}, set()
     url = f"https://{HOST}/api/flashscore/v2/matches/match/lineups?match_id={match_id}"
     d = fetch(url)
     if not d:
-        return {}
+        return {}, set()
     lineups = d if isinstance(d, list) else (d.get("data") if isinstance(d, dict) else [])
     if not isinstance(lineups, list):
-        return {}
+        return {}, set()
     result = {}
+    captains = set()
     for lu in lineups:
         if not isinstance(lu, dict):
             continue
@@ -525,6 +526,8 @@ def fetch_lineups_for_match(match_id, team_id):
                 pid = str(p.get("player_id") or p.get("id", ""))
                 if pid:
                     result[pid] = "START"
+                    if p.get("is_captain"):
+                        captains.add(pid)
         for p in bench:
             if isinstance(p, dict):
                 pid = str(p.get("player_id") or p.get("id", ""))
@@ -540,7 +543,7 @@ def fetch_lineups_for_match(match_id, team_id):
             reason = mp.get("reason", "") or ""
             emoji, _ = _missing_emoji(reason)
             _last_missing[pid] = {"emoji": emoji, "reason": reason, "side": side}
-    return result
+    return result, captains
 
 
 def fetch_team_details(team_id, slug):
@@ -592,10 +595,11 @@ def process_team(team_id, slug, team_name, our_team_id):
     squad_ids = {p["player_id"] for p in players}
     last3_per_player = {p["player_id"]: ["", "", ""] for p in players}
     last3_missing_per_player = {p["player_id"]: [None, None, None] for p in players}
+    last3_captain_per_player = {p["player_id"]: [False, False, False] for p in players}
     for i, m in enumerate(matches):
         if not m.get("match_id"):
             continue
-        all_lineups = fetch_lineups_for_match(m["match_id"], our_team_id)
+        all_lineups, match_captains = fetch_lineups_for_match(m["match_id"], our_team_id)
         # Look up missing side-channel — keyed by player_id
         for pid, status in all_lineups.items():
             if pid in squad_ids:
@@ -603,6 +607,10 @@ def process_team(team_id, slug, team_name, our_team_id):
                 # If player START/SUB, clear the missing slot (participation wins)
                 if pid in _last_missing:
                     del _last_missing[pid]
+        # Mark captain status for the i-th last match (only counts when player was START)
+        for pid in match_captains:
+            if pid in squad_ids and last3_per_player[pid][i] == "START":
+                last3_captain_per_player[pid][i] = True
         # Now any remaining _last_missing entries that match a squad player
         # are missing (didn't appear in starting or bench)
         for pid in list(_last_missing.keys()):
@@ -610,12 +618,13 @@ def process_team(team_id, slug, team_name, our_team_id):
                 last3_missing_per_player[pid][i] = _last_missing[pid]
         ours = sum(1 for pid in all_lineups if pid in squad_ids)
         ours_missing = sum(1 for pid in _last_missing if pid in squad_ids)
-        print(f"  match {i+1}: {len(all_lineups)} lineups, {ours} ours, {ours_missing} missing", flush=True)
+        print(f"  match {i+1}: {len(all_lineups)} lineups, {ours} ours, {ours_missing} missing, {len(match_captains)} captain", flush=True)
         # IMPORTANT: clear _last_missing between matches so they don't bleed
         _last_missing.clear()
     for p in players:
         p["last3"] = last3_per_player.get(p["player_id"], ["", "", ""])
         p["last3_missing"] = last3_missing_per_player.get(p["player_id"], [None, None, None])
+        p["last3_captain"] = last3_captain_per_player.get(p["player_id"], [False, False, False])
 
     print(f"  fixtures...", flush=True)
     fixtures = fetch_fixtures(team_id)

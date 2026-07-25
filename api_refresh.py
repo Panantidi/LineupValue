@@ -1019,6 +1019,7 @@ def refresh_lineups_for_matches(matches, team_id):
         starting_ids = []
         sub_ids = []
         missing = []
+        captain_ids = []
         for lu in d:
             if not isinstance(lu, dict):
                 continue
@@ -1030,17 +1031,21 @@ def refresh_lineups_for_matches(matches, team_id):
             if isinstance(starting, list):
                 starting_ids = [str(p.get("player_id") or p.get("id"))
                                 for p in starting if (p.get("player_id") or p.get("id"))]
+                captain_ids = [str(p.get("player_id") or p.get("id"))
+                               for p in starting
+                               if (p.get("player_id") or p.get("id")) and p.get("is_captain")]
             if isinstance(subs, list):
                 sub_ids = [str(p.get("player_id") or p.get("id"))
                            for p in subs if (p.get("player_id") or p.get("id"))]
             break  # found our envelope
         m["lineup_starting_ids"] = starting_ids
         m["lineup_player_ids"] = starting_ids + sub_ids
+        m["lineup_captain_ids"] = captain_ids
         for pid in starting_ids:
-            out[(mi, pid)] = {"status": "START"}
+            out[(mi, pid)] = {"status": "START", "is_captain": pid in captain_ids}
         for pid in sub_ids:
             if (mi, pid) not in out:
-                out[(mi, pid)] = {"status": "SUB"}
+                out[(mi, pid)] = {"status": "SUB", "is_captain": False}
         if isinstance(missing, list):
             for mp in missing:
                 if not isinstance(mp, dict):
@@ -1149,16 +1154,20 @@ def refresh_team(team_id, force=False):
             pid = p.get("player_id", "")
             l3 = ["", "", ""]
             l3m = [None, None, None]
+            l3c = [False, False, False]
             for i in range(min(3, len(matches))):
                 entry = lineup_index.get((i, pid))
                 if not entry:
                     continue
                 l3[i] = entry.get("status", "")
+                if l3[i] == "START" and entry.get("is_captain"):
+                    l3c[i] = True
                 mi = entry.get("missing_info")
                 if mi:
                     l3m[i] = mi
             p["last3"] = l3
             p["last3_missing"] = l3m
+            p["last3_captain"] = l3c
         # 5. Player details (market_value, image) - parallel
         if players:
             # Jul 23 2026: pass force=force so ♻️ Refresh bypasses the 4h
