@@ -1759,15 +1759,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div id="comparison-table" style="display:flex;flex-direction:column;gap:8px;">
         <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:10px 12px;display:flex;align-items:center;justify-content:flex-start;min-height:42px;">
             <span id="cmp-val-pct-impact" style="font-size:15px;font-weight:600;">–</span>
-            <span style="font-size:12px;margin-left:6px;position:relative;display:inline-block;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><span style="font-weight:600;color:#dc3545;">Starting XI</span> 🆚 <span style="font-weight:600;color:#667eea;">Possible XI</span><span class="tooltip-delay" style="visibility:hidden;opacity:0;transition:opacity 0.3s;position:fixed;background:#333;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;white-space:nowrap;z-index:9999;pointer-events:none;">&gt;8% = possible odds move</span></span>
+            <span style="font-size:12px;margin-left:6px;position:relative;display:inline-block;" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"><span style="font-weight:600;color:#dc3545;">Starting XI</span> — <span style="font-weight:600;color:#667eea;">Possible XI</span><span class="tooltip-delay" style="visibility:hidden;opacity:0;transition:opacity 0.3s;position:fixed;background:#333;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;white-space:nowrap;z-index:9999;pointer-events:none;">&gt;8% = possible odds move</span></span>
         </div>
         <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:10px 12px;display:flex;align-items:center;justify-content:flex-start;min-height:42px;">
             <span id="cmp-sxi-pct-impact" style="font-size:15px;font-weight:600;">–</span>
-            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#dc3545;">Starting XI</span> 🆚 <span style="font-weight:600;color:#000;">Last Match</span></span>
+            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#dc3545;">Starting XI</span> — <span style="font-weight:600;color:#000;">Last Match</span></span>
         </div>
         <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:10px 12px;display:flex;align-items:center;justify-content:flex-start;min-height:42px;">
             <span id="cmp-pxi-pct-impact" style="font-size:15px;font-weight:600;">–</span>
-            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#667eea;">Possible XI</span> 🆚 <span style="font-weight:600;color:#000;">Last Match</span></span>
+            <span style="font-size:12px;margin-left:6px;"><span style="font-weight:600;color:#667eea;">Possible XI</span> — <span style="font-weight:600;color:#000;">Last Match</span></span>
         </div>
     </div>
     </div>
@@ -3837,7 +3837,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <p style="margin:4px 0;">Use the 👥 Add Lineups feature. You can paste text (separated by commas) or upload an image — the system uses AI to detect and match the lineup from the image to squad list.</p>
 
                 <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">6. Can I compare lineups?</h3>
-                <p style="margin:4px 0;">Yes! You can compare:<br>Starting XI 🆚 Possible XI — See how the predicted lineup stacks up against the actual lineup (Δ8% = possible odds move).<br>Starting XI 🆚 Last Match — Compare starting lineup with the previous game.<br>Possible XI 🆚 Last Match — Evaluate the predicted lineup with the previous game.</p>
+                <p style="margin:4px 0;">Yes! You can compare:<br>Starting XI — Possible XI — See how the predicted lineup stacks up against the actual lineup (Δ8% = possible odds move).<br>Starting XI — Last Match — Compare starting lineup with the previous game.<br>Possible XI — Last Match — Evaluate the predicted lineup with the previous game.</p>
 
                 <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">7. What are the requirements for a player to receive a badge?</h3>
                 <p style="margin:4px 0;">Minimum of 10 matches or 900 minutes played (excluding Top Scorer and Top Assist). Badges are assigned based on current calculations at the time of viewing.</p>

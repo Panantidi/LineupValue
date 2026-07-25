@@ -1322,7 +1322,7 @@ body {
             <p style="margin:4px 0;">Use the 👥 Add Lineups feature. You can paste text (separated by commas) or upload an image — the system uses AI to detect and match the lineup from the image to squad list.</p>
 
             <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">6. Can I compare lineups?</h3>
-            <p style="margin:4px 0;">Yes! You can compare:<br>Starting XI 🆚 Possible XI — See how the predicted lineup stacks up against the actual lineup (Δ8% = possible odds move).<br>Starting XI 🆚 Last Match — Compare starting lineup with the previous game.<br>Possible XI 🆚 Last Match — Evaluate the predicted lineup with the previous game.</p>
+            <p style="margin:4px 0;">Yes! You can compare:<br>Starting XI — Possible XI — See how the predicted lineup stacks up against the actual lineup (Δ8% = possible odds move).<br>Starting XI — Last Match — Compare starting lineup with the previous game.<br>Possible XI — Last Match — Evaluate the predicted lineup with the previous game.</p>
 
             <h3 style="color:#043fb6;margin:18px 0 6px 0;font-size:15px;">7. What are the requirements for a player to receive a badge?</h3>
             <p style="margin:4px 0;">Minimum of 10 matches or 900 minutes played (excluding Top Scorer and Top Assist). Badges are assigned based on current calculations at the time of viewing.</p>
@@ -1362,7 +1362,7 @@ document.addEventListener('click', function(e) {
 });
 
 // ---------------------------------------------------------------------------
-// 🆚 H2H + Last Matches popup (Match mode)
+// — H2H + Last Matches popup (Match mode)
 // Lazy-loads Flashscore data ONLY on the first button click. Subsequent
 // clicks toggle the popup using the cached payload (no extra API calls).
 // ---------------------------------------------------------------------------
@@ -1607,7 +1607,7 @@ function escH(s) {
         .replace(/'/g, '&#39;');
 }
 
-// Wire up the 🆚 button on DOMContentLoaded.
+// Wire up the — button on DOMContentLoaded.
 document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('match-h2h-toggle');
     if (btn) btn.addEventListener('click', toggleH2HPopup);
