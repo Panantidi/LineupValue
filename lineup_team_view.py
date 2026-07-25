@@ -2448,11 +2448,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         function bulkRenderReport(total, found, notFound, ambiguous) {{
             const el = document.getElementById('bulk-lineup-report');
             if (!el) return;
-            const esc = (s) => String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             let html = '';
-            if (notFound && notFound.length) {{
-                html += notFound.map(nf => '<div class="not-found">' + esc(nf.raw) + ' — NOT FOUND</div>').join('');
-            }}
             if (ambiguous && ambiguous.length) html += '<div>Ambiguous: ' + ambiguous.length + ' — choose below</div>';
             el.innerHTML = html;
         }}
