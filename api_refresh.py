@@ -40,6 +40,14 @@ _refresh_in_progress = set()
 # --- Slug cache (populated lazily) ---
 _slug_cache = {}
 
+# --- Coach side-channel (populated by refresh_squad, read by refresh_team) ---
+# Jul 25 2026: /teams/squad returns coach in a "Coach" group separate from
+# the player positions. refresh_squad writes coach_data here, refresh_team
+# reads it and writes to cache["coach"]. Dict (not list) because the value
+# itself is a dict {name, nationality} and dict.update is cleaner than list
+# mutation.
+_last_squad_coach = {"data": None}
+
 
 def _get_ssl():
     ctx = ssl.create_default_context()
@@ -383,12 +391,23 @@ def refresh_squad(team_id, slug, info, force=False):
 
     if best_group:
         tab_name = best_group.get("tab_name", "Total")
+        coach_data = None  # Jul 25 2026: capture Coach from same squad group
         for section in best_group["list"]:
             if not isinstance(section, dict):
                 continue
             grp_name = section.get("name", "")
-            # Skip Coach section — Coach is rendered separately, not in the player table.
+            # Jul 25 2026: extract coach from Coach section BEFORE skipping.
+            # The API returns coach in a separate group named "Coach" with one
+            # player entry. Previously skipped with no replacement.
             if str(grp_name).strip().lower() == "coach":
+                for cp in section.get("players", []) or []:
+                    if not isinstance(cp, dict):
+                        continue
+                    coach_data = {
+                        "name": cp.get("name", "").strip(),
+                        "nationality": cp.get("country_name", "").strip(),
+                    }
+                    break
                 continue
             for p in section.get("players", []):
                 pid = p.get("player_id")
@@ -418,6 +437,10 @@ def refresh_squad(team_id, slug, info, force=False):
                     "player_url": p.get("player_url", ""),
                     "tournament": tab_name,
                 })
+    # Jul 25 2026: attach coach_data as a side-channel return value
+    # (caller in refresh_team() reads it and writes to cache["coach"]).
+    # Stash on a module-level list so the tuple stays simple.
+    _last_squad_coach["data"] = coach_data
     return players
 
 
@@ -1136,6 +1159,7 @@ def refresh_team(team_id, force=False):
         details = refresh_team_details(team_id, slug)
         _mark_section_updated(team_id, "team_details")
         # 1. Squad (from Total group, with position mapping)
+        _last_squad_coach["data"] = None  # Jul 25 2026: reset before call
         players = refresh_squad(team_id, slug, info, force=force)
         if players is None:
             return False
@@ -1203,6 +1227,12 @@ def refresh_team(team_id, force=False):
             cache["city"] = details["city"]
         if details.get("capacity"):
             cache["capacity"] = details["capacity"]
+        # Jul 25 2026: coach from /teams/squad (side-channel _last_squad_coach
+        # set by refresh_squad). API returns coach in a separate group
+        # "Coach" with one player entry. Only overwrite if API returned a
+        # real name — never clobber existing coach with empty.
+        if _last_squad_coach.get("data") and _last_squad_coach["data"].get("name"):
+            cache["coach"] = _last_squad_coach["data"]
         cache["players"] = players
         cache["matches"] = matches
         cache["fixtures"] = fixtures
