@@ -552,11 +552,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         for i, val in enumerate(last3[:3]):
             miss = missing[i] if i < len(missing) else None
             is_capt = captains[i] if i < len(captains) else False
-            if val == "START":
-                if is_capt:
-                    cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;" title="Captain"><span style="color:white;font-size:12px;line-height:1;">✓</span></div></td>'
-                else:
-                    cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
+            if is_capt:
+                # Jul 25 2026: captain takes priority — green circle with white
+                # check mark in every last3 cell where the player was captain,
+                # regardless of START/SUB/missing. User spec: "видеть кто был
+                # капитаном в каждой из последних трех игр".
+                cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;" title="Captain"><span style="color:white;font-size:12px;line-height:1;">✓</span></div></td>'
+            elif val == "START":
+                cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#17843f;display:inline-block;vertical-align:middle;"></div></td>'
             elif val == "SUB":
                 cells += '<td style="text-align:center;vertical-align:middle;"><div style="width:20px;height:20px;border-radius:50%;background:#e3a035;display:inline-block;vertical-align:middle;"></div></td>'
             elif miss:
