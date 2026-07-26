@@ -1050,16 +1050,26 @@ body {
             countryList.appendChild(li);
         });
         // Auto-select current country based on team_id.
-        // Prefer the first championship in navData (top-tier league) over mirror copies
-        // like Albania Cup / Super Cup that also contain this team.
+        // Jul 25 2026: scan ALL championships under the country, not just the first.
+        // Previously this only checked Object.keys(navData[country])[0], which works
+        // when the team is in the top-tier league (e.g. France > Ligue 1) but FAILS
+        // for teams in a second/third championship (e.g. France > Ligue 2 — St
+        // Etienne, Reims, etc. were never auto-selected because the firstChamp was
+        // always "Ligue 1" which doesn't contain them).
         var foundCountry = null;
         for (var country in navData) {
             if (navData.hasOwnProperty(country)) {
-                var firstChamp = Object.keys(navData[country])[0];
-                if (firstChamp && navData[country][firstChamp].some(function(t) { return t.id === CURRENT_TEAM_ID; })) {
-                    foundCountry = country;
-                    break;
+                var champs = navData[country];
+                if (!champs || typeof champs !== 'object') continue;
+                for (var champ in champs) {
+                    if (champs.hasOwnProperty(champ) && Array.isArray(champs[champ])) {
+                        if (champs[champ].some(function(t) { return t.id === CURRENT_TEAM_ID; })) {
+                            foundCountry = country;
+                            break;
+                        }
+                    }
                 }
+                if (foundCountry) break;
             }
         }
         if (foundCountry) {

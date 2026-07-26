@@ -3285,15 +3285,24 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     countryList.appendChild(li);
                 }});
                 // Auto-select current country based on team_id.
-                // Prefer the first championship in navData (top-tier league) over mirror copies
-                // like Albania Cup / Super Cup that also contain this team.
+                // Jul 25 2026: scan ALL championships under the country, not just the first.
+                // Previously this only checked Object.keys(leagues)[0], which works when
+                // the team is in the top-tier league (e.g. France > Ligue 1) but FAILS
+                // for teams in a second/third championship (e.g. France > Ligue 2 — St
+                // Etienne, Reims, etc. were never auto-selected because the firstChamp
+                // was always "Ligue 1" which doesn't contain them).
                 let foundCountry = null;
                 for (const [country, leagues] of Object.entries(navData)) {{
-                    const firstChamp = Object.keys(leagues)[0];
-                    if (firstChamp && leagues[firstChamp].some(t => t.id === CURRENT_TEAM_ID)) {{
-                        foundCountry = country;
-                        break;
+                    if (!leagues || typeof leagues !== 'object') continue;
+                    // Iterate championships in navData insertion order (top-tier first)
+                    // and accept the FIRST match.
+                    for (const champ of Object.keys(leagues)) {{
+                        if (leagues[champ] && leagues[champ].some(t => t.id === CURRENT_TEAM_ID)) {{
+                            foundCountry = country;
+                            break;
+                        }}
                     }}
+                    if (foundCountry) break;
                 }}
                 if (foundCountry) {{
                     selectCountry(foundCountry);
