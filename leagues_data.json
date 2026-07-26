@@ -1860,6 +1860,116 @@
         "slug": "st-pauli",
         "image_path": "https://static.flashscore.com/res/image/data/QZX02wCr-lrmFNGea.png"
       }
+    ],
+    "2. Bundesliga": [
+      {
+        "id": "pp38UXK8",
+        "name": "Arminia Bielefeld",
+        "slug": "arminia-bielefeld",
+        "image_path": "https://static.flashscore.com/res/image/data/jXtrQQFG-GOBDm2OL.png"
+      },
+      {
+        "id": "8Y2m6ADe",
+        "name": "Bochum",
+        "slug": "Bochum",
+        "image_path": "https://static.flashscore.com/res/image/data/nyouWtil-86lnAaq9.png"
+      },
+      {
+        "id": "QqLCC3il",
+        "name": "Braunschweig",
+        "slug": "Braunschweig",
+        "image_path": "https://static.flashscore.com/res/image/data/jTPygLBr-rBP4Wuhs.png"
+      },
+      {
+        "id": "S0hPB9rA",
+        "name": "Darmstadt",
+        "slug": "Darmstadt",
+        "image_path": "https://static.flashscore.com/res/image/data/OMSIO9hl-hnEPJbbt.png"
+      },
+      {
+        "id": "ne1oL3y7",
+        "name": "Dusseldorf",
+        "slug": "Dusseldorf",
+        "image_path": "https://static.flashscore.com/res/image/data/ph4pnOh5-Qmnf8wEL.png"
+      },
+      {
+        "id": "6in2Eknb",
+        "name": "Elversberg",
+        "slug": "Elversberg",
+        "image_path": "https://static.flashscore.com/res/image/data/MiyVhgyB-QsgNMFNg.png"
+      },
+      {
+        "id": "CCQGbik8",
+        "name": "Greuther Furth",
+        "slug": "greuther-furth",
+        "image_path": "https://static.flashscore.com/res/image/data/pMG4FDyB-KfqGWN71.png"
+      },
+      {
+        "id": "dfNCCCzS",
+        "name": "Hannover",
+        "slug": "Hannover",
+        "image_path": "https://static.flashscore.com/res/image/data/IXGhyAcM-n7lWn9DL.png"
+      },
+      {
+        "id": "2y0u8Wrq",
+        "name": "Hertha Berlin",
+        "slug": "hertha-berlin",
+        "image_path": "https://static.flashscore.com/res/image/data/dQALRIjl-M145xF2s.png"
+      },
+      {
+        "id": "63WsD2ei",
+        "name": "Holstein Kiel",
+        "slug": "holstein-kiel",
+        "image_path": "https://static.flashscore.com/res/image/data/0bzaORYA-EcK7yLm6.png"
+      },
+      {
+        "id": "naWckLmC",
+        "name": "Kaiserslautern",
+        "slug": "Kaiserslautern",
+        "image_path": "https://static.flashscore.com/res/image/data/bR7hiYFG-xW7EDdNP.png"
+      },
+      {
+        "id": "EB3q7jbk",
+        "name": "Karlsruher SC",
+        "slug": "Karlsruher",
+        "image_path": "https://static.flashscore.com/res/image/data/69eisaGG-Qmnf8wEL.png"
+      },
+      {
+        "id": "YFuz2RLm",
+        "name": "Magdeburg",
+        "slug": "Magdeburg",
+        "image_path": "https://static.flashscore.com/res/image/data/4E1l0ze5-r5trb9zO.png"
+      },
+      {
+        "id": "6FDqshzF",
+        "name": "Nurnberg",
+        "slug": "Nurnberg",
+        "image_path": "https://static.flashscore.com/res/image/data/rNxwlyGG-ncmj9JbF.png"
+      },
+      {
+        "id": "G2Op923t",
+        "name": "Paderborn",
+        "slug": "Paderborn",
+        "image_path": "https://static.flashscore.com/res/image/data/Yu5IOeyB-Qmnf8wEL.png"
+      },
+      {
+        "id": "zedZaSL7",
+        "name": "Preussen Munster",
+        "slug": "preussen-munster",
+        "image_path": "https://static.flashscore.com/res/image/data/n5LRFeFa-l0tw4N82.png"
+      },
+      {
+        "id": "zL1YsOi1",
+        "name": "SG Dynamo Dresden",
+        "slug": "Dresden",
+        "image_path": "https://static.flashscore.com/res/image/data/hKpC3M9r-Uc6mqkrq.png"
+      },
+      {
+        "id": "0Ija0Ej9",
+        "name": "Schalke",
+        "slug": "Schalke",
+        "image_path": "https://static.flashscore.com/res/image/data/b1q14jZg-I7p2Damb.png"
+      }
     ]
   },
   "Italy": {
