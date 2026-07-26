@@ -2523,76 +2523,10 @@
   "Russia": {
     "Premier League": [
       {
-        "id": "vsXou9m7",
-        "name": "Zenit",
-        "slug": "zenit-st-petersburg",
-        "image_path": "https://static.flashscore.com/res/image/data/tQeqxuil-fwTrvtzQ.png"
-      },
-      {
-        "id": "dz6KeNj3",
-        "name": "Krasnodar",
-        "slug": "krasnodar",
-        "image_path": "https://static.flashscore.com/res/image/data/MJrPauil-vTLj5hDm.png"
-      },
-      {
-        "id": "Sjs63WfK",
-        "name": "Lokomotiv Moscow",
-        "slug": "lokomotiv-moscow",
-        "image_path": "https://static.flashscore.com/res/image/data/4dVn6ugl-MZsLC2vU.png"
-      },
-      {
-        "id": "IXVkvT2D",
-        "name": "Spartak Moscow",
-        "slug": "spartak-moscow",
-        "image_path": "https://static.flashscore.com/res/image/data/ptwMGPDa-jqo4GJye.png"
-      },
-      {
-        "id": "l0r24CuE",
-        "name": "CSKA Moscow",
-        "slug": "cska-moscow",
-        "image_path": "https://static.flashscore.com/res/image/data/OhjmaZkl-IJ0hG48b.png"
-      },
-      {
-        "id": "2cJYOpxn",
-        "name": "Baltika",
-        "slug": "baltika",
-        "image_path": "https://static.flashscore.com/res/image/data/GIpYcdjl-xzIYVtuE.png"
-      },
-      {
-        "id": "AFWA2jAQ",
-        "name": "Dynamo Moscow",
-        "slug": "dynamo-moscow",
-        "image_path": "https://static.flashscore.com/res/image/data/bHzWScwS-WrST4g30.png"
-      },
-      {
-        "id": "t482C620",
-        "name": "Rubin Kazan",
-        "slug": "rubin-kazan",
-        "image_path": "https://static.flashscore.com/res/image/data/A7QaOL9r-Cj3YnyW9.png"
-      },
-      {
         "id": "bJGqkoet",
         "name": "Akhmat Grozny",
         "slug": "akhmat-grozny",
         "image_path": "https://static.flashscore.com/res/image/data/0bbTp0Zg-pGHenz7m.png"
-      },
-      {
-        "id": "GbznhOLi",
-        "name": "FK Rostov",
-        "slug": "fk-rostov",
-        "image_path": "https://static.flashscore.com/res/image/data/j3v69SwS-CpEF1IjD.png"
-      },
-      {
-        "id": "SKAE94nJ",
-        "name": "Krylya Sovetov",
-        "slug": "krylya-sovetov-samara",
-        "image_path": "https://static.flashscore.com/res/image/data/vN3BxGHG-fk3kvOUP.png"
-      },
-      {
-        "id": "Q19CngBE",
-        "name": "Orenburg",
-        "slug": "orenburg",
-        "image_path": "https://static.flashscore.com/res/image/data/SGQbHBAr-2aQho05a.png"
       },
       {
         "id": "6qPFRkGT",
@@ -2601,22 +2535,88 @@
         "image_path": "https://static.flashscore.com/res/image/data/hEACysBr-pKNNHowf.png"
       },
       {
+        "id": "2cJYOpxn",
+        "name": "Baltika",
+        "slug": "baltika",
+        "image_path": "https://static.flashscore.com/res/image/data/GIpYcdjl-xzIYVtuE.png"
+      },
+      {
+        "id": "l0r24CuE",
+        "name": "CSKA Moscow",
+        "slug": "cska-moscow",
+        "image_path": "https://static.flashscore.com/res/image/data/OhjmaZkl-IJ0hG48b.png"
+      },
+      {
         "id": "6T0lbAmI",
         "name": "Dynamo Makhachkala",
         "slug": "dynamo-makhachkala",
         "image_path": "https://static.flashscore.com/res/image/data/hhmz7SCr-ddrVAaIL.png"
       },
       {
-        "id": "IFM1GxUm",
-        "name": "Pari NN",
-        "slug": "pari-nizhny-novgorod",
-        "image_path": "https://static.flashscore.com/res/image/data/dU6JGFBr-vsiJUDoK.png"
+        "id": "AFWA2jAQ",
+        "name": "Dynamo Moscow",
+        "slug": "dynamo-moscow",
+        "image_path": "https://static.flashscore.com/res/image/data/bHzWScwS-WrST4g30.png"
       },
       {
-        "id": "OAtyZ41T",
-        "name": "Sochi",
-        "slug": "pfc-sochi",
-        "image_path": "https://static.flashscore.com/res/image/data/0x3sIue5-Srennq2k.png"
+        "id": "GbznhOLi",
+        "name": "FK Rostov",
+        "slug": "fk-rostov",
+        "image_path": "https://static.flashscore.com/res/image/data/j3v69SwS-CpEF1IjD.png"
+      },
+      {
+        "id": "KK7VWueJ",
+        "name": "Fakel Voronezh",
+        "slug": "fakel-voronezh",
+        "image_path": "https://static.flashscore.com/res/image/data/6PxIDuxS-xS55LjqJ.png"
+      },
+      {
+        "id": "dz6KeNj3",
+        "name": "Krasnodar",
+        "slug": "krasnodar",
+        "image_path": "https://static.flashscore.com/res/image/data/MJrPauil-vTLj5hDm.png"
+      },
+      {
+        "id": "SKAE94nJ",
+        "name": "Krylya Sovetov",
+        "slug": "krylya-sovetov-samara",
+        "image_path": "https://static.flashscore.com/res/image/data/vN3BxGHG-fk3kvOUP.png"
+      },
+      {
+        "id": "Sjs63WfK",
+        "name": "Lokomotiv Moscow",
+        "slug": "lokomotiv-moscow",
+        "image_path": "https://static.flashscore.com/res/image/data/4dVn6ugl-MZsLC2vU.png"
+      },
+      {
+        "id": "Q19CngBE",
+        "name": "Orenburg",
+        "slug": "orenburg",
+        "image_path": "https://static.flashscore.com/res/image/data/SGQbHBAr-2aQho05a.png"
+      },
+      {
+        "id": "nHLtKDh0",
+        "name": "Rodina Moscow",
+        "slug": "rodina-moscow",
+        "image_path": "https://static.flashscore.com/res/image/data/lOAzsQfM-Cn9ZORqk.png"
+      },
+      {
+        "id": "t482C620",
+        "name": "Rubin Kazan",
+        "slug": "rubin-kazan",
+        "image_path": "https://static.flashscore.com/res/image/data/A7QaOL9r-Cj3YnyW9.png"
+      },
+      {
+        "id": "IXVkvT2D",
+        "name": "Spartak Moscow",
+        "slug": "spartak-moscow",
+        "image_path": "https://static.flashscore.com/res/image/data/ptwMGPDa-jqo4GJye.png"
+      },
+      {
+        "id": "vsXou9m7",
+        "name": "Zenit",
+        "slug": "zenit-st-petersburg",
+        "image_path": "https://static.flashscore.com/res/image/data/tQeqxuil-fwTrvtzQ.png"
       }
     ],
     "FNL": [
@@ -2639,12 +2639,6 @@
         "image_path": "https://static.flashscore.com/res/image/data/YcqQjmeM-YaM6mDZH.png"
       },
       {
-        "id": "KK7VWueJ",
-        "name": "Fakel Voronezh",
-        "slug": "fakel-voronezh",
-        "image_path": "https://static.flashscore.com/res/image/data/6PxIDuxS-xS55LjqJ.png"
-      },
-      {
         "id": "2Pe820zN",
         "name": "Kamaz",
         "slug": "Kamaz",
@@ -2663,16 +2657,16 @@
         "image_path": "https://static.flashscore.com/res/image/data/fZQfQZ9r-x6zoSAoA.png"
       },
       {
+        "id": "IFM1GxUm",
+        "name": "Pari NN",
+        "slug": "pari-nizhny-novgorod",
+        "image_path": "https://static.flashscore.com/res/image/data/dU6JGFBr-vsiJUDoK.png"
+      },
+      {
         "id": "MDRmvfBr",
         "name": "R. Volgograd",
         "slug": "r-volgograd",
         "image_path": "https://static.flashscore.com/res/image/data/feWuxcjl-2DyrOlFn.png"
-      },
-      {
-        "id": "nHLtKDh0",
-        "name": "Rodina Moscow",
-        "slug": "rodina-moscow",
-        "image_path": "https://static.flashscore.com/res/image/data/lOAzsQfM-Cn9ZORqk.png"
       },
       {
         "id": "AH8JSQ4S",
@@ -2697,6 +2691,12 @@
         "name": "Shinnik Yaroslavl",
         "slug": "shinnik-yaroslavl",
         "image_path": "https://static.flashscore.com/res/image/data/4ddGsRCa-rB3ucgaU.png"
+      },
+      {
+        "id": "OAtyZ41T",
+        "name": "Sochi",
+        "slug": "pfc-sochi",
+        "image_path": "https://static.flashscore.com/res/image/data/0x3sIue5-Srennq2k.png"
       },
       {
         "id": "6y3HOkJ7",
