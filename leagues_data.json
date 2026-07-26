@@ -1298,6 +1298,152 @@
         "slug": "liverpool",
         "image_path": "https://static.flashscore.com/res/image/data/Gr0cGteM-KCp4zq5F.png"
       }
+    ],
+    "Championship": [
+      {
+        "id": "SWk4muv7",
+        "name": "Birmingham",
+        "slug": "Birmingham",
+        "image_path": "https://static.flashscore.com/res/image/data/KSNoT4h5-fuIfr9AH.png"
+      },
+      {
+        "id": "6Nl8nagD",
+        "name": "Blackburn",
+        "slug": "Blackburn",
+        "image_path": "https://static.flashscore.com/res/image/data/vRmKVWEa-ImMEe0UF.png"
+      },
+      {
+        "id": "MahqU27I",
+        "name": "Bristol City",
+        "slug": "bristol-city",
+        "image_path": "https://static.flashscore.com/res/image/data/MkAAqpGG-OdaWmcNh.png"
+      },
+      {
+        "id": "fXf5mQ7t",
+        "name": "Charlton",
+        "slug": "Charlton",
+        "image_path": "https://static.flashscore.com/res/image/data/ba3RUOf5-6FckE7BN.png"
+      },
+      {
+        "id": "GOvB22xg",
+        "name": "Coventry",
+        "slug": "Coventry",
+        "image_path": "https://static.flashscore.com/res/image/data/hnpi9tgl-UuasdTpt.png"
+      },
+      {
+        "id": "Iug0YO0Q",
+        "name": "Derby",
+        "slug": "Derby",
+        "image_path": "https://static.flashscore.com/res/image/data/QsZBqwZA-4YcXd6yA.png"
+      },
+      {
+        "id": "S66R0t75",
+        "name": "Hull",
+        "slug": "hull-city",
+        "image_path": "https://static.flashscore.com/res/image/data/jL2Nk4Fa-bJFnYpTt.png"
+      },
+      {
+        "id": "thqhB2MB",
+        "name": "Ipswich",
+        "slug": "Ipswich",
+        "image_path": "https://static.flashscore.com/res/image/data/zm5vbmDa-0C98slBk.png"
+      },
+      {
+        "id": "KrrdAMyI",
+        "name": "Leicester",
+        "slug": "Leicester",
+        "image_path": "https://static.flashscore.com/res/image/data/Em1CYqYg-UNZg5BP0.png"
+      },
+      {
+        "id": "6F0lvLNC",
+        "name": "Middlesbrough",
+        "slug": "Middlesbrough",
+        "image_path": "https://static.flashscore.com/res/image/data/Ongu1qAr-MgUZUr6h.png"
+      },
+      {
+        "id": "6uz2cJBL",
+        "name": "Millwall",
+        "slug": "Millwall",
+        "image_path": "https://static.flashscore.com/res/image/data/C8aMqcXg-prpZfVqU.png"
+      },
+      {
+        "id": "Qo6off6p",
+        "name": "Norwich",
+        "slug": "Norwich",
+        "image_path": "https://static.flashscore.com/res/image/data/CY8Xm4wS-tCGtX12c.png"
+      },
+      {
+        "id": "vgOBT43c",
+        "name": "Oxford Utd",
+        "slug": "oxford-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/pOi6f7Xg-6qsP6K6r.png"
+      },
+      {
+        "id": "zckREQFJ",
+        "name": "Portsmouth",
+        "slug": "Portsmouth",
+        "image_path": "https://static.flashscore.com/res/image/data/rBGcCgeM-nkTKkN30.png"
+      },
+      {
+        "id": "x8IDVcbi",
+        "name": "Preston",
+        "slug": "Preston",
+        "image_path": "https://static.flashscore.com/res/image/data/vFaP2idM-KSOT8pKJ.png"
+      },
+      {
+        "id": "lrMHUHDc",
+        "name": "QPR",
+        "slug": "QPR",
+        "image_path": "https://static.flashscore.com/res/image/data/fyLxbkgl-z9YsXKZd.png"
+      },
+      {
+        "id": "MeKPSerA",
+        "name": "Sheffield Utd",
+        "slug": "sheffield-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/Gb50BgCr-K2FpWLH3.png"
+      },
+      {
+        "id": "llcCvIcG",
+        "name": "Sheffield Wed",
+        "slug": "sheffield-wed",
+        "image_path": "https://static.flashscore.com/res/image/data/p4PzLIfM-KxUliwTt.png"
+      },
+      {
+        "id": "WdKOwxDM",
+        "name": "Southampton",
+        "slug": "Southampton",
+        "image_path": "https://static.flashscore.com/res/image/data/fmA9gnyB-raLYxovi.png"
+      },
+      {
+        "id": "hSUajdSS",
+        "name": "Stoke",
+        "slug": "stoke-city",
+        "image_path": "https://static.flashscore.com/res/image/data/2T9PgKcM-KpUCBoUk.png"
+      },
+      {
+        "id": "K6xezbY7",
+        "name": "Swansea",
+        "slug": "Swansea",
+        "image_path": "https://static.flashscore.com/res/image/data/baRwZ4dM-Ozj3JWKn.png"
+      },
+      {
+        "id": "UmMRoGzp",
+        "name": "Watford",
+        "slug": "Watford",
+        "image_path": "https://static.flashscore.com/res/image/data/C2N3btil-QHkJrpz6.png"
+      },
+      {
+        "id": "CCBWpzjj",
+        "name": "West Brom",
+        "slug": "west-brom",
+        "image_path": "https://static.flashscore.com/res/image/data/zDuImRwS-ImMEe0UF.png"
+      },
+      {
+        "id": "IgO7K1ZA",
+        "name": "Wrexham",
+        "slug": "Wrexham",
+        "image_path": "https://static.flashscore.com/res/image/data/xh7dXaf5-OxoAKHbA.png"
+      }
     ]
   },
   "Finland": {
