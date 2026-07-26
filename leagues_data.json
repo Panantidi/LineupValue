@@ -1486,6 +1486,122 @@
         "slug": "toulouse",
         "image_path": "https://static.flashscore.com/res/image/data/ImntO9e5-COxgbCEm.png"
       }
+    ],
+    "Ligue 2": [
+      {
+        "id": "lKkBAsxF",
+        "name": "Amiens",
+        "slug": "amiens-sc",
+        "image_path": "https://static.flashscore.com/res/image/data/fNCnbTAr-lriTEOfc.png"
+      },
+      {
+        "id": "25dB6Eto",
+        "name": "Annecy",
+        "slug": "Annecy",
+        "image_path": "https://static.flashscore.com/res/image/data/Cf86VVZA-YaxdL9.png"
+      },
+      {
+        "id": "AZwK8L6R",
+        "name": "Bastia",
+        "slug": "Bastia",
+        "image_path": "https://static.flashscore.com/res/image/data/8SAIZdh5-h6Qq9y.png"
+      },
+      {
+        "id": "IL4RHuFr",
+        "name": "Boulogne",
+        "slug": "Boulogne",
+        "image_path": "https://static.flashscore.com/res/image/data/tCb0GrGG-b9h6Tf.png"
+      },
+      {
+        "id": "IRuMRua1",
+        "name": "Clermont",
+        "slug": "Clermont",
+        "image_path": "https://static.flashscore.com/res/image/data/O6jfFPdM-tjFQy6.png"
+      },
+      {
+        "id": "tAAobNse",
+        "name": "Dunkerque",
+        "slug": "Dunkerque",
+        "image_path": "https://static.flashscore.com/res/image/data/dEAWDdil-O8yOVk.png"
+      },
+      {
+        "id": "UgPj1p1N",
+        "name": "Grenoble",
+        "slug": "Grenoble",
+        "image_path": "https://static.flashscore.com/res/image/data/82GLHAg5-Q5NSJF.png"
+      },
+      {
+        "id": "QDfKl36E",
+        "name": "Guingamp",
+        "slug": "Guingamp",
+        "image_path": "https://static.flashscore.com/res/image/data/zaeIimFa-nDL04H.png"
+      },
+      {
+        "id": "E1wDrLsJ",
+        "name": "Laval",
+        "slug": "Laval",
+        "image_path": "https://static.flashscore.com/res/image/data/fRpBUaFG-vHcbmp.png"
+      },
+      {
+        "id": "ER0NeOOp",
+        "name": "Le Mans",
+        "slug": "le-mans",
+        "image_path": "https://static.flashscore.com/res/image/data/tfs3LdDa-6eLumV.png"
+      },
+      {
+        "id": "Eyf00syR",
+        "name": "Montpellier",
+        "slug": "Montpellier",
+        "image_path": "https://static.flashscore.com/res/image/data/4QDVStDa-n3xBmV.png"
+      },
+      {
+        "id": "dnIrsS0A",
+        "name": "Nancy",
+        "slug": "Nancy",
+        "image_path": "https://static.flashscore.com/res/image/data/hI59rDzS-Q15G9l.png"
+      },
+      {
+        "id": "6NOhR4cm",
+        "name": "Pau FC",
+        "slug": "pau",
+        "image_path": "https://static.flashscore.com/res/image/data/pCJOEbwS-4hEPxF.png"
+      },
+      {
+        "id": "2kM6ufaS",
+        "name": "Red Star",
+        "slug": "red-star",
+        "image_path": "https://static.flashscore.com/res/image/data/CO33NAcM-pEpm23.png"
+      },
+      {
+        "id": "tItR6sEf",
+        "name": "Reims",
+        "slug": "Reims",
+        "image_path": "https://static.flashscore.com/res/image/data/4Sf2DneM-x6KhF6.png"
+      },
+      {
+        "id": "0pOdQOCg",
+        "name": "Rodez",
+        "slug": "Rodez",
+        "image_path": "https://static.flashscore.com/res/image/data/lMOGXJf5-lrqg4w.png"
+      },
+      {
+        "id": "z5PJrrtm",
+        "name": "Rouen",
+        "slug": "Rouen",
+        "image_path": "https://static.flashscore.com/res/image/data/805jlZfM-fw1PIW.png"
+      },
+      {
+        "id": "YL2QybFe",
+        "name": "St Etienne",
+        "slug": "st-etienne",
+        "image_path": "https://static.flashscore.com/res/image/data/b7wgpIDa-8Ca53M.png"
+      },
+      {
+        "id": "fsfAHubD",
+        "name": "Troyes",
+        "slug": "Troyes",
+        "image_path": "https://static.flashscore.com/res/image/data/OpHyYkgl-McvX4b.png"
+      }
     ]
   },
   "Germany": {
