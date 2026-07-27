@@ -3299,8 +3299,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     const li = document.createElement('li');
                     li.setAttribute('data-value', country);
                     li.setAttribute('role', 'option');
-                    const flagHtml = getFlagHtml(country);
-                    li.innerHTML = (flagHtml || '') + ' ' + country + ' ';
+                    // No getFlagHtml in this template — show plain text only.
+                    li.textContent = country + ' ';
                     if (window.countryFavorites) {{
                         li.appendChild(window.countryFavorites.buildStarButton(country));
                     }}
@@ -3333,6 +3333,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (foundCountry) {{
                     selectCountry(foundCountry);
                 }}
+
+                // Re-populate list when a favorite is added/removed so the
+                // country that was just starred moves to the top in real time.
+                document.addEventListener('countryFavoritesChanged', function() {{
+                    var wasOpen = countryList.style.display === 'block';
+                    populateNavCountries();
+                    if (wasOpen) {{
+                        countryList.style.display = 'block';
+                        trigger.setAttribute('aria-expanded', 'true');
+                    }}
+                }});
             }}
 
             function selectCountry(country) {{
