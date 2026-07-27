@@ -1151,6 +1151,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             margin-top: 4px;
         }}
         body.embed-mode .team-nav-sidebar {{ display: none !important; }}
+        /* Country favorites — star button */
+        .country-fav-star {{
+            display: inline-block;
+            width: 18px;
+            text-align: center;
+            cursor: pointer;
+            color: #cbd5e0;
+            font-size: 14px;
+            line-height: 1;
+            margin-left: 6px;
+            text-decoration: none;
+            user-select: none;
+            vertical-align: middle;
+        }}
+        .country-fav-star:hover {{ color: #fbbf24; }}
+        .country-fav-star.is-fav {{ color: #f59e0b; }}
         /* Custom country dropdown (replaces native <select> to allow flag images) */
         .nav-country-dropdown {{
             position: relative;
@@ -1670,6 +1686,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="/static/favorites.js?v=7"></script>
+<script src="/static/country_favorites.js?v=1"></script>
 
 </head>
 <body class="{('embed-mode' if embed else '')}">
@@ -3263,7 +3280,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (countryList && countryList.parentElement !== document.body) {{
                     document.body.appendChild(countryList);
                 }}
-                const countries = Object.keys(navData).sort();
+                // Jul 26 2026: country favorites — favorites first, alphabetical after.
+                // Each row has a ☆/★ button that toggles favorite (localStorage).
+                const countries = window.countryFavorites
+                    ? window.countryFavorites.sortCountries(Object.keys(navData))
+                    : Object.keys(navData).sort();
                 // Populate hidden native select (kept for compatibility with onNavCountryChange)
                 countrySelect.innerHTML = '<option value=""></option>';
                 // Populate custom dropdown list with flag images
@@ -3274,12 +3295,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     option.value = country;
                     option.textContent = country;
                     countrySelect.appendChild(option);
-                    // Visible list item with flag
+                    // Visible list item: flag + name + star (all inline)
                     const li = document.createElement('li');
                     li.setAttribute('data-value', country);
                     li.setAttribute('role', 'option');
-                    li.innerHTML = '<span>' + country + '</span>';
-                    li.onclick = function() {{
+                    const flagHtml = getFlagHtml(country);
+                    li.innerHTML = (flagHtml || '') + ' ' + country + ' ';
+                    if (window.countryFavorites) {{
+                        li.appendChild(window.countryFavorites.buildStarButton(country));
+                    }}
+                    li.onclick = function(ev) {{
+                        if (ev.target && ev.target.classList && ev.target.classList.contains('country-fav-star')) return;
                         selectCountry(country);
                     }};
                     countryList.appendChild(li);

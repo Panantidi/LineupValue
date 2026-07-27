@@ -536,6 +536,22 @@ body {
             background: #2e7af8;
         }
 
+        /* Country favorites — star button */
+        .country-fav-star {
+            display: inline-block;
+            width: 18px;
+            text-align: center;
+            cursor: pointer;
+            color: #cbd5e0;
+            font-size: 14px;
+            line-height: 1;
+            margin-left: 6px;
+            text-decoration: none;
+            user-select: none;
+            vertical-align: middle;
+        }
+        .country-fav-star:hover { color: #fbbf24; }
+        .country-fav-star.is-fav { color: #f59e0b; }
         /* Custom country dropdown (replaces native <select> to allow flag images) */
         .nav-country-dropdown {
             position: relative;
@@ -997,6 +1013,7 @@ body {
     };
 })();
 </script>
+<script src="/static/country_favorites.js?v=1"></script>
 
 <script>
 (function() {
@@ -1034,7 +1051,10 @@ body {
         if (countryList && countryList.parentElement !== document.body) {
             document.body.appendChild(countryList);
         }
-        var countries = Object.keys(navData).sort();
+        // Jul 26 2026: country favorites — favorites first, alphabetical after.
+        var countries = window.countryFavorites
+            ? window.countryFavorites.sortCountries(Object.keys(navData))
+            : Object.keys(navData).sort();
         countrySelect.innerHTML = '<option value=""></option>';
         countryList.innerHTML = '';
         countries.forEach(function(country) {
@@ -1045,8 +1065,15 @@ body {
             var li = document.createElement('li');
             li.setAttribute('data-value', country);
             li.setAttribute('role', 'option');
-            li.innerHTML = '<span>' + country + '</span>';
-            li.onclick = function() { selectCountry(country); };
+            var flagHtml = getFlagHtml(country);
+            li.innerHTML = (flagHtml || '') + ' ' + country + ' ';
+            if (window.countryFavorites) {
+                li.appendChild(window.countryFavorites.buildStarButton(country));
+            }
+            li.onclick = function(ev) {
+                if (ev.target && ev.target.classList && ev.target.classList.contains('country-fav-star')) return;
+                selectCountry(country);
+            };
             countryList.appendChild(li);
         });
         // Auto-select current country based on team_id.
