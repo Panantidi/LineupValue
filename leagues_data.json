@@ -2903,12 +2903,6 @@
         "image_path": "https://static.flashscore.com/res/image/data/SvAe0DxS-4YF9PAyB.png"
       },
       {
-        "id": "O6FowKBc",
-        "name": "Cultural Leonesa",
-        "slug": "leonesa",
-        "image_path": "https://static.flashscore.com/res/image/data/UNSRimZg-WAOkzK99.png"
-      },
-      {
         "id": "OEsEpExD",
         "name": "Eibar",
         "slug": "Eibar",
@@ -2933,12 +2927,6 @@
         "image_path": "https://static.flashscore.com/res/image/data/8AhQm2xS-pEzOUfJL.png"
       },
       {
-        "id": "UytPaaEP",
-        "name": "Huesca",
-        "slug": "Huesca",
-        "image_path": "https://static.flashscore.com/res/image/data/UwzkXAxS-EkA5g8Rs.png"
-      },
-      {
         "id": "IyRQC2vM",
         "name": "Las Palmas",
         "slug": "las-palmas",
@@ -2957,12 +2945,6 @@
         "image_path": "https://static.flashscore.com/res/image/data/pSBNl3eM-rmDEjevK.png"
       },
       {
-        "id": "48Z7G1Sf",
-        "name": "Mirandes",
-        "slug": "Mirandes",
-        "image_path": "https://static.flashscore.com/res/image/data/0pN1qrxS-ns1CJmLE.png"
-      },
-      {
         "id": "SzYzw34K",
         "name": "Oviedo",
         "slug": "real-oviedo"
@@ -2978,12 +2960,6 @@
         "name": "Valladolid",
         "slug": "Valladolid",
         "image_path": "https://static.flashscore.com/res/image/data/pCJjU8yB-htRvrFH6.png"
-      },
-      {
-        "id": "za7D2lO5",
-        "name": "Zaragoza",
-        "slug": "Zaragoza",
-        "image_path": "https://static.flashscore.com/res/image/data/xAVdihZA-EykfZB0Q.png"
       }
     ]
   },
