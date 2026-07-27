@@ -3276,6 +3276,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             function populateNavCountries() {{
                 const countrySelect = document.getElementById('nav-country');
                 const countryList = document.getElementById('nav-country-list');
+                const trigger = document.getElementById('nav-country-trigger');
                 // Move the country list to <body> so it escapes any parent stacking context
                 if (countryList && countryList.parentElement !== document.body) {{
                     document.body.appendChild(countryList);

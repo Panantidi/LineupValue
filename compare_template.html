@@ -1047,6 +1047,7 @@ body {
     function populateNavCountries() {
         var countrySelect = document.getElementById('nav-country');
         var countryList = document.getElementById('nav-country-list');
+        var trigger = document.getElementById('nav-country-trigger');
         // Move the country list to <body> so it escapes any parent stacking context
         if (countryList && countryList.parentElement !== document.body) {
             document.body.appendChild(countryList);
@@ -1065,8 +1066,8 @@ body {
             var li = document.createElement('li');
             li.setAttribute('data-value', country);
             li.setAttribute('role', 'option');
-            var flagHtml = getFlagHtml(country);
-            li.innerHTML = (flagHtml || '') + ' ' + country + ' ';
+            // No getFlagHtml in this template — show plain text only.
+            li.textContent = country + ' ';
             if (window.countryFavorites) {
                 li.appendChild(window.countryFavorites.buildStarButton(country));
             }
