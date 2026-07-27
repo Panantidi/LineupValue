@@ -2851,6 +2851,140 @@
         "name": "Oviedo",
         "slug": "real-oviedo"
       }
+    ],
+    "LaLiga2": [
+      {
+        "id": "UirAofN6",
+        "name": "Albacete",
+        "slug": "Albacete",
+        "image_path": "https://static.flashscore.com/res/image/data/M9tNPVfM-4297a0ys.png"
+      },
+      {
+        "id": "nF2Vy2D0",
+        "name": "Almeria",
+        "slug": "Almeria",
+        "image_path": "https://static.flashscore.com/res/image/data/8C5Bj3wS-nDyT2xMM.png"
+      },
+      {
+        "id": "O6ucWgAa",
+        "name": "Andorra",
+        "slug": "fc-andorra",
+        "image_path": "https://static.flashscore.com/res/image/data/AqQKdNHG-p6WBruc4.png"
+      },
+      {
+        "id": "vTxTEFi6",
+        "name": "Burgos CF",
+        "slug": "burgos-cf",
+        "image_path": "https://static.flashscore.com/res/image/data/0AalHeAr-0ME49KyM.png"
+      },
+      {
+        "id": "hdWjLJUJ",
+        "name": "Cadiz CF",
+        "slug": "Cadiz",
+        "image_path": "https://static.flashscore.com/res/image/data/0Q4qMJeM-EPWyZtpb.png"
+      },
+      {
+        "id": "QyHHzdwl",
+        "name": "Castellon",
+        "slug": "Castellon",
+        "image_path": "https://static.flashscore.com/res/image/data/lxWg57g5-zBFXR8iF.png"
+      },
+      {
+        "id": "xpWAk3h6",
+        "name": "Ceuta",
+        "slug": "ad-ceuta",
+        "image_path": "https://static.flashscore.com/res/image/data/xIxIQ3f5-xpqBFn5c.png"
+      },
+      {
+        "id": "CWuejruc",
+        "name": "Cordoba",
+        "slug": "Cordoba",
+        "image_path": "https://static.flashscore.com/res/image/data/SvAe0DxS-4YF9PAyB.png"
+      },
+      {
+        "id": "O6FowKBc",
+        "name": "Cultural Leonesa",
+        "slug": "leonesa",
+        "image_path": "https://static.flashscore.com/res/image/data/UNSRimZg-WAOkzK99.png"
+      },
+      {
+        "id": "Q51ZzMS6",
+        "name": "Dep. A Coruna",
+        "slug": "dep-a-coruna",
+        "image_path": "https://static.flashscore.com/res/image/data/48MvoXdM-hlsaa9q3.png"
+      },
+      {
+        "id": "OEsEpExD",
+        "name": "Eibar",
+        "slug": "Eibar",
+        "image_path": "https://static.flashscore.com/res/image/data/CvetxaAr-4U3vjZKk.png"
+      },
+      {
+        "id": "69w4Rb2d",
+        "name": "Gijon",
+        "slug": "Gijon",
+        "image_path": "https://static.flashscore.com/res/image/data/n9PvyJhl-IDZgZhUt.png"
+      },
+      {
+        "id": "EXuxl1xP",
+        "name": "Granada CF",
+        "slug": "granada-cf",
+        "image_path": "https://static.flashscore.com/res/image/data/8AhQm2xS-pEzOUfJL.png"
+      },
+      {
+        "id": "UytPaaEP",
+        "name": "Huesca",
+        "slug": "Huesca",
+        "image_path": "https://static.flashscore.com/res/image/data/UwzkXAxS-EkA5g8Rs.png"
+      },
+      {
+        "id": "IyRQC2vM",
+        "name": "Las Palmas",
+        "slug": "las-palmas",
+        "image_path": "https://static.flashscore.com/res/image/data/44xPoqHG-d6gaf9ua.png"
+      },
+      {
+        "id": "Mi0rXQg7",
+        "name": "Leganes",
+        "slug": "Leganes",
+        "image_path": "https://static.flashscore.com/res/image/data/IqhNyYjl-Q3zX1dyT.png"
+      },
+      {
+        "id": "25tIqYiJ",
+        "name": "Malaga",
+        "slug": "Malaga",
+        "image_path": "https://static.flashscore.com/res/image/data/b7abRme5-MTxwaw7C.png"
+      },
+      {
+        "id": "48Z7G1Sf",
+        "name": "Mirandes",
+        "slug": "Mirandes",
+        "image_path": "https://static.flashscore.com/res/image/data/0pN1qrxS-ns1CJmLE.png"
+      },
+      {
+        "id": "nVpEwOrl",
+        "name": "Racing Santander",
+        "slug": "racing-santander",
+        "image_path": "https://static.flashscore.com/res/image/data/COqz35Ar-MsWrauH8.png"
+      },
+      {
+        "id": "UJOGLItN",
+        "name": "Real Sociedad B",
+        "slug": "real-sociedad",
+        "image_path": "https://static.flashscore.com/res/image/data/d0CDHeh5-U144u08h.png"
+      },
+      {
+        "id": "zkpajjvm",
+        "name": "Valladolid",
+        "slug": "Valladolid",
+        "image_path": "https://static.flashscore.com/res/image/data/pCJjU8yB-htRvrFH6.png"
+      },
+      {
+        "id": "za7D2lO5",
+        "name": "Zaragoza",
+        "slug": "Zaragoza",
+        "image_path": "https://static.flashscore.com/res/image/data/xAVdihZA-EykfZB0Q.png"
+      }
     ]
   },
   "Sweden": {
