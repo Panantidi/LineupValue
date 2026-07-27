@@ -1183,13 +1183,18 @@ body {
             return;
         }
 
-        var championships = Object.keys(navData[country]).sort();
-        // Prefer the first championship in the iteration order from navData (top-tier league).
-        // The old code picked the last sorted one, which often landed on Super Cup / Country Cup.
+        // Jul 26 2026: render championships in navData insertion order
+        // (top-tier first, lower tiers after, cups/super-cups last).
+        // Previously this used Object.keys(...).sort() which is
+        // ALPHABETICAL — and that pushed "Albanian Cup", "Super Cup",
+        // "Division Profesional" etc. ahead of the real top-tier league.
+        // The insertion order in leagues_data.json is maintained by hand
+        // (e.g. England = ["Premier League", "Championship"]), so we
+        // trust it as the source of truth for "highest league first".
+        var championships = Object.keys(navData[country]);
         var currentChamp = null;
-        var champKeys = Object.keys(navData[country]);
-        for (var i = 0; i < champKeys.length; i++) {
-            var ch = champKeys[i];
+        for (var i = 0; i < championships.length; i++) {
+            var ch = championships[i];
             if (navData[country][ch].some(function(t) { return t.id === CURRENT_TEAM_ID; })) {
                 currentChamp = ch;
                 break;
