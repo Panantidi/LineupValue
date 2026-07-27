@@ -2088,6 +2088,118 @@
         "slug": "pisa",
         "image_path": "https://static.flashscore.com/res/image/data/CzC5XtGG-GMOw3SI3.png"
       }
+    ],
+    "Serie B": [
+      {
+        "id": "WtT3GZCk",
+        "name": "Audace Cerignola",
+        "slug": ""
+      },
+      {
+        "id": "A332L1f5",
+        "name": "Avellino",
+        "slug": ""
+      },
+      {
+        "id": "xIkUr2vO",
+        "name": "Bari",
+        "slug": ""
+      },
+      {
+        "id": "hG4fg4z3",
+        "name": "Carrarese",
+        "slug": ""
+      },
+      {
+        "id": "GnizyMB7",
+        "name": "Catanzaro",
+        "slug": ""
+      },
+      {
+        "id": "xddf1qfh",
+        "name": "Cesena",
+        "slug": ""
+      },
+      {
+        "id": "0ESCnI1H",
+        "name": "Empoli",
+        "slug": ""
+      },
+      {
+        "id": "hUuJfYbb",
+        "name": "Entella",
+        "slug": ""
+      },
+      {
+        "id": "pfo9H1Wp",
+        "name": "Frosinone",
+        "slug": ""
+      },
+      {
+        "id": "hKSfjtsQ",
+        "name": "Juve Stabia",
+        "slug": ""
+      },
+      {
+        "id": "plvm35Pu",
+        "name": "L.R. Vicenza",
+        "slug": ""
+      },
+      {
+        "id": "z7WK5Pwb",
+        "name": "Mantova",
+        "slug": ""
+      },
+      {
+        "id": "MBn63swN",
+        "name": "Modena",
+        "slug": ""
+      },
+      {
+        "id": "4YSMlwj7",
+        "name": "Monza",
+        "slug": ""
+      },
+      {
+        "id": "2gUwEtrE",
+        "name": "Padova",
+        "slug": ""
+      },
+      {
+        "id": "n38Nktmn",
+        "name": "Palermo",
+        "slug": ""
+      },
+      {
+        "id": "WW0i6v4C",
+        "name": "Pescara",
+        "slug": ""
+      },
+      {
+        "id": "6ulJbMCe",
+        "name": "Reggiana",
+        "slug": ""
+      },
+      {
+        "id": "nJbCGx2U",
+        "name": "Sampdoria",
+        "slug": ""
+      },
+      {
+        "id": "re6VD39b",
+        "name": "Spezia",
+        "slug": ""
+      },
+      {
+        "id": "W02MZDnp",
+        "name": "Sudtirol",
+        "slug": ""
+      },
+      {
+        "id": "MkPmVv50",
+        "name": "Venezia",
+        "slug": ""
+      }
     ]
   },
   "Kazakhstan": {
