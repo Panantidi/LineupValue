@@ -74,7 +74,7 @@ def get_flag_html(country_name):
         'Faroe Islands': 'fo', 'Finland': 'fi', 'France': 'fr', 'French Guiana': 'gf', 'French Polynesia': 'pf',
         'Gabon': 'ga', 'Gambia': 'gm',
         'Guadeloupe': 'gp', 'Guam': 'gu',
-        'Georgia': 'ge', 'Germany': 'de', 'Ghana': 'gh', 'Greece': 'gr',
+        'Georgia': 'ge', 'Germany': 'de', 'Ghana': 'gh', 'Gibraltar': 'gi', 'Greece': 'gr',
         'Grenada': 'gd', 'Guatemala': 'gt', 'Guinea': 'gn', 'Guinea-Bissau': 'gw',
         'Guyana': 'gy', 'Haiti': 'ht', 'Honduras': 'hn', 'Hong Kong': 'hk', 'Hungary': 'hu',
         'Iceland': 'is', 'India': 'in', 'Indonesia': 'id', 'Iran': 'ir',
