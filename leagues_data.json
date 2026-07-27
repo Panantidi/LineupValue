@@ -1549,6 +1549,12 @@
         "image_path": "https://static.flashscore.com/res/image/data/WS3wfTzS-4v5cIBqb.png"
       },
       {
+        "id": "ER0NeOOp",
+        "name": "Le Mans",
+        "slug": "le-mans",
+        "image_path": "https://static.flashscore.com/res/image/data/tfs3LdDa-6eLumV.png"
+      },
+      {
         "id": "IBmris38",
         "name": "Lens",
         "slug": "lens",
@@ -1579,22 +1585,10 @@
         "image_path": "https://static.flashscore.com/res/image/data/AwlBhPfM-AcP8ZdxL.png"
       },
       {
-        "id": "4v0yqlWc",
-        "name": "Metz",
-        "slug": "metz",
-        "image_path": "https://static.flashscore.com/res/image/data/4MoVp0h5-Chl7XNKI.png"
-      },
-      {
         "id": "2PIvr8o4",
         "name": "Monaco",
         "slug": "monaco",
         "image_path": "https://static.flashscore.com/res/image/data/GzvUVteM-0SFGJsPk.png"
-      },
-      {
-        "id": "veuetnGG",
-        "name": "Nantes",
-        "slug": "nantes",
-        "image_path": "https://static.flashscore.com/res/image/data/nZSxLDZA-YBWLmubi.png"
       },
       {
         "id": "YagoQJpq",
@@ -1631,26 +1625,20 @@
         "name": "Toulouse",
         "slug": "toulouse",
         "image_path": "https://static.flashscore.com/res/image/data/ImntO9e5-COxgbCEm.png"
+      },
+      {
+        "id": "fsfAHubD",
+        "name": "Troyes",
+        "slug": "Troyes",
+        "image_path": "https://static.flashscore.com/res/image/data/OpHyYkgl-McvX4b.png"
       }
     ],
     "Ligue 2": [
-      {
-        "id": "lKkBAsxF",
-        "name": "Amiens",
-        "slug": "amiens-sc",
-        "image_path": "https://static.flashscore.com/res/image/data/fNCnbTAr-lriTEOfc.png"
-      },
       {
         "id": "25dB6Eto",
         "name": "Annecy",
         "slug": "Annecy",
         "image_path": "https://static.flashscore.com/res/image/data/Cf86VVZA-YaxdL9.png"
-      },
-      {
-        "id": "AZwK8L6R",
-        "name": "Bastia",
-        "slug": "Bastia",
-        "image_path": "https://static.flashscore.com/res/image/data/8SAIZdh5-h6Qq9y.png"
       },
       {
         "id": "IL4RHuFr",
@@ -1663,6 +1651,12 @@
         "name": "Clermont",
         "slug": "Clermont",
         "image_path": "https://static.flashscore.com/res/image/data/O6jfFPdM-tjFQy6.png"
+      },
+      {
+        "id": "dIvQQaE7",
+        "name": "Dijon",
+        "slug": "Dijon",
+        "image_path": "https://static.flashscore.com/res/image/data/zXp1wTyS-6qsP6K6r.png"
       },
       {
         "id": "tAAobNse",
@@ -1689,10 +1683,10 @@
         "image_path": "https://static.flashscore.com/res/image/data/fRpBUaFG-vHcbmp.png"
       },
       {
-        "id": "ER0NeOOp",
-        "name": "Le Mans",
-        "slug": "le-mans",
-        "image_path": "https://static.flashscore.com/res/image/data/tfs3LdDa-6eLumV.png"
+        "id": "4v0yqlWc",
+        "name": "Metz",
+        "slug": "metz",
+        "image_path": "https://static.flashscore.com/res/image/data/4MoVp0h5-Chl7XNKI.png"
       },
       {
         "id": "Eyf00syR",
@@ -1705,6 +1699,12 @@
         "name": "Nancy",
         "slug": "Nancy",
         "image_path": "https://static.flashscore.com/res/image/data/hI59rDzS-Q15G9l.png"
+      },
+      {
+        "id": "veuetnGG",
+        "name": "Nantes",
+        "slug": "nantes",
+        "image_path": "https://static.flashscore.com/res/image/data/nZSxLDZA-YBWLmubi.png"
       },
       {
         "id": "6NOhR4cm",
@@ -1731,22 +1731,16 @@
         "image_path": "https://static.flashscore.com/res/image/data/lMOGXJf5-lrqg4w.png"
       },
       {
-        "id": "z5PJrrtm",
-        "name": "Rouen",
-        "slug": "Rouen",
-        "image_path": "https://static.flashscore.com/res/image/data/805jlZfM-fw1PIW.png"
+        "id": "jPojkLXK",
+        "name": "Sochaux",
+        "slug": "Sochaux",
+        "image_path": "https://static.flashscore.com/res/image/data/KdVDxUg5-GU4hlIMk.png"
       },
       {
         "id": "YL2QybFe",
         "name": "St Etienne",
         "slug": "st-etienne",
         "image_path": "https://static.flashscore.com/res/image/data/b7wgpIDa-8Ca53M.png"
-      },
-      {
-        "id": "fsfAHubD",
-        "name": "Troyes",
-        "slug": "Troyes",
-        "image_path": "https://static.flashscore.com/res/image/data/OpHyYkgl-McvX4b.png"
       }
     ]
   },
