@@ -2406,6 +2406,88 @@
         "slug": "afs",
         "image_path": "https://static.flashscore.com/res/image/data/WKwNeGGG-0STJGQ2k.png"
       }
+    ],
+    "Liga Portugal 2": [
+      {
+        "id": "GrRgeTHo",
+        "name": "Academico Viseu",
+        "slug": ""
+      },
+      {
+        "id": "vsToxqA5",
+        "name": "Chaves",
+        "slug": ""
+      },
+      {
+        "id": "t4p0iC41",
+        "name": "Feirense",
+        "slug": ""
+      },
+      {
+        "id": "8AHslu7F",
+        "name": "Felgueiras",
+        "slug": ""
+      },
+      {
+        "id": "AceEgPi5",
+        "name": "Leiria",
+        "slug": ""
+      },
+      {
+        "id": "jPr7ndS8",
+        "name": "Leixoes",
+        "slug": ""
+      },
+      {
+        "id": "thZLLx6g",
+        "name": "Lusitania FC",
+        "slug": ""
+      },
+      {
+        "id": "noguvetP",
+        "name": "Maritimo",
+        "slug": ""
+      },
+      {
+        "id": "tA7VEKwU",
+        "name": "Oliveirense",
+        "slug": ""
+      },
+      {
+        "id": "SKFZK1yG",
+        "name": "Os Belenenses",
+        "slug": ""
+      },
+      {
+        "id": "hxT1f5xa",
+        "name": "Pacos Ferreira",
+        "slug": ""
+      },
+      {
+        "id": "lGALDDtR",
+        "name": "Penafiel",
+        "slug": ""
+      },
+      {
+        "id": "6ecm9Xlr",
+        "name": "Portimonense",
+        "slug": ""
+      },
+      {
+        "id": "0YgpqHGj",
+        "name": "SC Farense",
+        "slug": ""
+      },
+      {
+        "id": "8jQErKhN",
+        "name": "Torreense",
+        "slug": ""
+      },
+      {
+        "id": "baN9J93D",
+        "name": "Vizela",
+        "slug": ""
+      }
     ]
   },
   "Russia": {
