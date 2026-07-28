@@ -4203,6 +4203,68 @@
         "slug": "rangers",
         "image_path": "https://static.flashscore.com/res/image/data/v7C7fDfM-fFCBVa82.png"
       }
+    ],
+    "Championship": [
+      {
+        "id": "KWzLBhEq",
+        "name": "Airdrieonians",
+        "slug": ""
+      },
+      {
+        "id": "bNZOACTk",
+        "name": "Alloa",
+        "slug": ""
+      },
+      {
+        "id": "prrz4Uze",
+        "name": "Arbroath",
+        "slug": ""
+      },
+      {
+        "id": "ruTxaWrd",
+        "name": "Ayr",
+        "slug": ""
+      },
+      {
+        "id": "Eg3xY5eg",
+        "name": "Dunfermline",
+        "slug": ""
+      },
+      {
+        "id": "0xXZ4G63",
+        "name": "Morton",
+        "slug": ""
+      },
+      {
+        "id": "d8M05zM9",
+        "name": "Partick Thistle",
+        "slug": ""
+      },
+      {
+        "id": "zaL44fyG",
+        "name": "Queen of South",
+        "slug": ""
+      },
+      {
+        "id": "xluR9CrL",
+        "name": "Queen's Park",
+        "slug": ""
+      },
+      {
+        "id": "YJUiAWcR",
+        "name": "Raith",
+        "slug": ""
+      },
+      {
+        "id": "vouS5j6r",
+        "name": "Ross County",
+        "slug": ""
+      },
+      {
+        "id": "dWY6Y9zr",
+        "name": "Stenhousemuir",
+        "slug": ""
+      }
     ]
   },
   "South Korea": {
