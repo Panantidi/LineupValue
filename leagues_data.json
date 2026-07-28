@@ -779,6 +779,93 @@
         "slug": "westerlo",
         "image_path": "https://static.flashscore.com/res/image/data/UBF0fxBr-8GmkY6iJ.png"
       }
+    ],
+    "Challenger Pro League": [
+      {
+        "id": "KQtAqOh9",
+        "name": "Anderlecht U23",
+        "slug": ""
+      },
+      {
+        "id": "EaOtKH1f",
+        "name": "Beerschot VA",
+        "slug": ""
+      },
+      {
+        "id": "QaqfE8WE",
+        "name": "Beveren",
+        "slug": ""
+      },
+      {
+        "id": "Sv4ZCy7s",
+        "name": "Club Brugge KV U23",
+        "slug": ""
+      },
+      {
+        "id": "roazgtic",
+        "name": "Eupen",
+        "slug": ""
+      },
+      {
+        "id": "dzxbDoFi",
+        "name": "Francs Borains",
+        "slug": ""
+      },
+      {
+        "id": "x2i5p4w3",
+        "name": "Genk U23",
+        "slug": ""
+      },
+      {
+        "id": "6qX8q0TR",
+        "name": "Gent U23",
+        "slug": ""
+      },
+      {
+        "id": "UFrQHnFi",
+        "name": "K. Lierse S.K.",
+        "slug": ""
+      },
+      {
+        "id": "2o6njvyG",
+        "name": "Kortrijk",
+        "slug": ""
+      },
+      {
+        "id": "8EyXqyoo",
+        "name": "Lommel SK",
+        "slug": ""
+      },
+      {
+        "id": "dz4pAvEq",
+        "name": "OC Charleroi",
+        "slug": ""
+      },
+      {
+        "id": "nPGA80Sn",
+        "name": "Patro Eisden",
+        "slug": ""
+      },
+      {
+        "id": "llsHlZZh",
+        "name": "RFC Liege",
+        "slug": ""
+      },
+      {
+        "id": "2eOrQDea",
+        "name": "RWDM Brussels",
+        "slug": ""
+      },
+      {
+        "id": "69jQvOhE",
+        "name": "Seraing",
+        "slug": ""
+      },
+      {
+        "id": "dvKQ8GzO",
+        "name": "Sporting Lokeren",
+        "slug": ""
+      }
     ]
   },
   "Denmark": {
