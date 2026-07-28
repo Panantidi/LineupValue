@@ -4128,6 +4128,108 @@
         "slug": "trabzonspor",
         "image_path": "https://static.flashscore.com/res/image/data/AmS7XBYA-MobtE80i.png"
       }
+    ],
+    "1. Lig": [
+      {
+        "id": "8AShqI0G",
+        "name": "Adana Demirspor",
+        "slug": ""
+      },
+      {
+        "id": "EHdgkFvm",
+        "name": "Amedspor",
+        "slug": ""
+      },
+      {
+        "id": "8rZvLOl2",
+        "name": "Bandirmaspor",
+        "slug": ""
+      },
+      {
+        "id": "tAyqUIUd",
+        "name": "Bodrumspor",
+        "slug": ""
+      },
+      {
+        "id": "WpwUHfZ0",
+        "name": "Boluspor",
+        "slug": ""
+      },
+      {
+        "id": "0vne21BK",
+        "name": "Corum",
+        "slug": ""
+      },
+      {
+        "id": "rPvKSntq",
+        "name": "Erokspor",
+        "slug": ""
+      },
+      {
+        "id": "xQZ3CpVE",
+        "name": "Erzurumspor",
+        "slug": ""
+      },
+      {
+        "id": "ENFkH8NH",
+        "name": "Hatayspor",
+        "slug": ""
+      },
+      {
+        "id": "pQPEA10Q",
+        "name": "Igdir FK",
+        "slug": ""
+      },
+      {
+        "id": "bwbQIDxd",
+        "name": "Istanbulspor AS",
+        "slug": ""
+      },
+      {
+        "id": "tOinx4lk",
+        "name": "Keciorengucu",
+        "slug": ""
+      },
+      {
+        "id": "K0zmTxp3",
+        "name": "Manisa FK",
+        "slug": ""
+      },
+      {
+        "id": "dQVdH97o",
+        "name": "Pendikspor",
+        "slug": ""
+      },
+      {
+        "id": "2Jzfymql",
+        "name": "Sakaryaspor",
+        "slug": ""
+      },
+      {
+        "id": "fNtKGmxb",
+        "name": "Sariyer",
+        "slug": ""
+      },
+      {
+        "id": "A9gDc83I",
+        "name": "Serik Spor",
+        "slug": ""
+      },
+      {
+        "id": "OvblvwLr",
+        "name": "Sivasspor",
+        "slug": ""
+      },
+      {
+        "id": "tvvIEKkc",
+        "name": "Umraniyespor",
+        "slug": ""
+      },
+      {
+        "id": "6o783Ei5",
+        "name": "Vanspor FK",
+        "slug": ""
+      }
     ]
   },
   "Scotland": {
