@@ -2092,6 +2092,108 @@
         "slug": "heracles",
         "image_path": "https://static.flashscore.com/res/image/data/0KH1euzB-vuxu3x67.png"
       }
+    ],
+    "Eerste Divisie": [
+      {
+        "id": "IsK0b0aI",
+        "name": "Almere City",
+        "slug": ""
+      },
+      {
+        "id": "QRyYgO7J",
+        "name": "Cambuur",
+        "slug": ""
+      },
+      {
+        "id": "naL1J006",
+        "name": "De Graafschap",
+        "slug": ""
+      },
+      {
+        "id": "4IzxgrNP",
+        "name": "Den Bosch",
+        "slug": ""
+      },
+      {
+        "id": "lAgLCkT3",
+        "name": "Den Haag",
+        "slug": ""
+      },
+      {
+        "id": "fT0n14Vt",
+        "name": "Dordrecht",
+        "slug": ""
+      },
+      {
+        "id": "YJaj0Opm",
+        "name": "Eindhoven FC",
+        "slug": ""
+      },
+      {
+        "id": "Stafar0g",
+        "name": "FC Emmen",
+        "slug": ""
+      },
+      {
+        "id": "SQGBcMU5",
+        "name": "Helmond",
+        "slug": ""
+      },
+      {
+        "id": "lKIgIV5b",
+        "name": "Jong AZ",
+        "slug": ""
+      },
+      {
+        "id": "GncWwxTm",
+        "name": "Jong Ajax",
+        "slug": ""
+      },
+      {
+        "id": "8Au8eRom",
+        "name": "Jong PSV",
+        "slug": ""
+      },
+      {
+        "id": "2J6mntb0",
+        "name": "Jong Utrecht",
+        "slug": ""
+      },
+      {
+        "id": "YPQnAtpC",
+        "name": "Maastricht",
+        "slug": ""
+      },
+      {
+        "id": "40amSqFn",
+        "name": "Oss",
+        "slug": ""
+      },
+      {
+        "id": "6FRTNZ8p",
+        "name": "Roda",
+        "slug": ""
+      },
+      {
+        "id": "UNA6IKFC",
+        "name": "Venlo",
+        "slug": ""
+      },
+      {
+        "id": "xdFA0eGc",
+        "name": "Vitesse",
+        "slug": ""
+      },
+      {
+        "id": "lvM1vra5",
+        "name": "Waalwijk",
+        "slug": ""
+      },
+      {
+        "id": "6u3qag0G",
+        "name": "Willem II",
+        "slug": ""
+      }
     ]
   },
   "Norway": {
