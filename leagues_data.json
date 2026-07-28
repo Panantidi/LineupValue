@@ -3107,6 +3107,58 @@
         "slug": "zurich",
         "image_path": "https://static.flashscore.com/res/image/data/CYNaAjjl-zFgN5luK.png"
       }
+    ],
+    "Challenge League": [
+      {
+        "id": "ULGuGvHA",
+        "name": "Aarau",
+        "slug": ""
+      },
+      {
+        "id": "02GQPeUk",
+        "name": "Bellinzona",
+        "slug": ""
+      },
+      {
+        "id": "2yxbMEDr",
+        "name": "Etoile-Carouge",
+        "slug": ""
+      },
+      {
+        "id": "bLZ0mfR0",
+        "name": "Lausanne Ouchy",
+        "slug": ""
+      },
+      {
+        "id": "I3q2AOtB",
+        "name": "Rapperswil-Jona",
+        "slug": ""
+      },
+      {
+        "id": "QazpbJWT",
+        "name": "Stade Nyonnais",
+        "slug": ""
+      },
+      {
+        "id": "G6Ih9GOj",
+        "name": "Vaduz",
+        "slug": ""
+      },
+      {
+        "id": "0ztGo01i",
+        "name": "Wil",
+        "slug": ""
+      },
+      {
+        "id": "E5KUOFqd",
+        "name": "Xamax",
+        "slug": ""
+      },
+      {
+        "id": "EmTlpboA",
+        "name": "Yverdon",
+        "slug": ""
+      }
     ]
   },
   "USA": {
