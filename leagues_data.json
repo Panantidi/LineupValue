@@ -3031,6 +3031,88 @@
         "slug": "vasteras-sk",
         "image_path": "https://static.flashscore.com/res/image/data/EoKG3N9r-hIhPvFFi.png"
       }
+    ],
+    "Superettan": [
+      {
+        "id": "Ye5hqs2o",
+        "name": "Brage",
+        "slug": ""
+      },
+      {
+        "id": "UqSsAaf1",
+        "name": "Falkenberg",
+        "slug": ""
+      },
+      {
+        "id": "zio11QjR",
+        "name": "Helsingborg",
+        "slug": ""
+      },
+      {
+        "id": "YPU3LPlp",
+        "name": "Landskrona",
+        "slug": ""
+      },
+      {
+        "id": "6uxp41R8",
+        "name": "Ljungskile",
+        "slug": ""
+      },
+      {
+        "id": "IeUA8Do2",
+        "name": "Nordic United",
+        "slug": ""
+      },
+      {
+        "id": "tpjDEBbi",
+        "name": "Norrkoping",
+        "slug": ""
+      },
+      {
+        "id": "KGgIJkAd",
+        "name": "Oddevold",
+        "slug": ""
+      },
+      {
+        "id": "xAfs9rq1",
+        "name": "Orebro",
+        "slug": ""
+      },
+      {
+        "id": "KQEAENtF",
+        "name": "Oster",
+        "slug": ""
+      },
+      {
+        "id": "dvUkoqAQ",
+        "name": "Ostersund",
+        "slug": ""
+      },
+      {
+        "id": "hAcM0NH6",
+        "name": "Sandviken",
+        "slug": ""
+      },
+      {
+        "id": "fmfHDVDc",
+        "name": "Sundsvall",
+        "slug": ""
+      },
+      {
+        "id": "KYqn82b7",
+        "name": "Trelleborg",
+        "slug": ""
+      },
+      {
+        "id": "IyeZrg23",
+        "name": "Varberg",
+        "slug": ""
+      },
+      {
+        "id": "djzjJdOb",
+        "name": "Varnamo",
+        "slug": ""
+      }
     ]
   },
   "Switzerland": {
