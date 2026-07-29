@@ -579,6 +579,120 @@
         "slug": "grazer-ak",
         "image_path": "https://static.flashscore.com/res/image/data/Ofc3ZzXg-6ThU2T3B.png"
       }
+    ],
+    "2. Liga": [
+      {
+        "id": "jVlL3vb5",
+        "name": "A. Salzburg",
+        "short_name": "AUS",
+        "image_path": "https://static.flashscore.com/res/image/data/zc8roBU0-Mi5ow9UB.png",
+        "slug": "a-salzburg"
+      },
+      {
+        "id": "QeqBIlht",
+        "name": "ASK Voitsberg",
+        "short_name": "VOI",
+        "image_path": "https://static.flashscore.com/res/image/data/tjcSuXUH-jZyVkUNQ.png",
+        "slug": "ask-voitsberg"
+      },
+      {
+        "id": "Yk4H6LHn",
+        "name": "Admira",
+        "short_name": "ADM",
+        "image_path": "https://static.flashscore.com/res/image/data/YsgubpRq-IeGa2GZS.png",
+        "slug": "admira"
+      },
+      {
+        "id": "YHWHwmRf",
+        "name": "Amstetten",
+        "short_name": "AMS",
+        "image_path": "https://static.flashscore.com/res/image/data/6LlkJQ86-WrCAZ10R.png",
+        "slug": "amstetten"
+      },
+      {
+        "id": "C4FBQHlQ",
+        "name": "Austria Vienna (Am)",
+        "short_name": "AUS",
+        "image_path": "https://static.flashscore.com/res/image/data/Sd0q4K86-lUkqx2Vt.png",
+        "slug": "austria-vienna"
+      },
+      {
+        "id": "KIrFH87n",
+        "name": "BW Linz",
+        "short_name": "BWL",
+        "image_path": "https://static.flashscore.com/res/image/data/n5kuM0le-6ovmkrPK.png",
+        "slug": "bw-linz"
+      },
+      {
+        "id": "fmD86L0H",
+        "name": "Bregenz",
+        "short_name": "BRE",
+        "image_path": "https://static.flashscore.com/res/image/data/drBC2oSq-j7w80JIM.png",
+        "slug": "sw-bregenz"
+      },
+      {
+        "id": "Eez3RKEM",
+        "name": "First Vienna",
+        "short_name": "FIR",
+        "image_path": "https://static.flashscore.com/res/image/data/juPKMHne-rXAAgEQl.png",
+        "slug": "first-vienna"
+      },
+      {
+        "id": "r9HwRaWH",
+        "name": "Floridsdorfer AC",
+        "short_name": "FLO",
+        "image_path": "https://static.flashscore.com/res/image/data/GA7DDj5k-QXZc2TGK.png",
+        "slug": "floridsdorfer-ac-wien"
+      },
+      {
+        "id": "6i1ocvXH",
+        "name": "Hertha Wels",
+        "short_name": "HER",
+        "image_path": "https://static.flashscore.com/res/image/data/lvRZjIoe-vu2f5NKt.png",
+        "slug": "hertha-wels"
+      },
+      {
+        "id": "SUpSZy5K",
+        "name": "Kapfenberg",
+        "short_name": "KAP",
+        "image_path": "https://static.flashscore.com/res/image/data/Ykbq8eRq-pvWT1yik.png",
+        "slug": "kapfenberg"
+      },
+      {
+        "id": "Cv27lapN",
+        "name": "Liefering",
+        "short_name": "LIE",
+        "image_path": "https://static.flashscore.com/res/image/data/dS087jU0-YJAF7SCl.png",
+        "slug": "fc-liefering"
+      },
+      {
+        "id": "Yuu4T0aG",
+        "name": "SK Rapid II",
+        "short_name": "SKR",
+        "image_path": "https://static.flashscore.com/res/image/data/MBqli36k-6aNeTNbl.png",
+        "slug": "sk-rapid-ii"
+      },
+      {
+        "id": "8KA7Qw1U",
+        "name": "St. Polten",
+        "short_name": "POL",
+        "image_path": "https://static.flashscore.com/res/image/data/IypiOsiC-6LImwhxm.png",
+        "slug": "st-polten"
+      },
+      {
+        "id": "8IZ6QvUS",
+        "name": "Sturm Graz II",
+        "short_name": "STU",
+        "image_path": "https://static.flashscore.com/res/image/data/GhM2JMjC-4vXXTTpn.png",
+        "slug": "sturm-graz-ii"
+      },
+      {
+        "id": "lpgpkEdJ",
+        "name": "Wacker Innsbruck",
+        "short_name": "WAC",
+        "image_path": "https://static.flashscore.com/res/image/data/2gbEAfQq-UsfS2kBR.png",
+        "slug": "wacker-innsbruck"
+      }
     ]
   },
   "Belarus": {
