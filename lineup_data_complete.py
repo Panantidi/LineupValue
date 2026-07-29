@@ -59,7 +59,7 @@ def load_complete_hierarchy():
         "switzerland_super-league": ("Switzerland", "Super League"),
         "turkey_super-lig": ("Turkey", "Super Lig"),
         "usa_mls": ("USA", "MLS"),
-        "world_world-championship": ("World", "World Championship"),
+        "world_world-championship": ("World", "National Teams"),
     }
     
     used_team_ids = set()
