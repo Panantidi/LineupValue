@@ -6261,6 +6261,120 @@
         "slug": "fk-pardubice",
         "image_path": "https://static.flashscore.com/res/image/data/hOmCt1g5-xvzZpWMB.png"
       }
+    ],
+    "ChNL": [
+      {
+        "id": "tKH71vSe",
+        "name": "Dukla Prague",
+        "short_name": "DUK",
+        "image_path": "https://static.flashscore.com/res/image/data/OvcsIy96-CtnsVjSe.png",
+        "slug": "dukla-prague"
+      },
+      {
+        "id": "hER2FTE0",
+        "name": "FK Ceska Lipa",
+        "short_name": "FK",
+        "image_path": "https://static.flashscore.com/res/image/data/00LYn1Pq-OjCQTjvC.png",
+        "slug": "fk-ceska-lipa"
+      },
+      {
+        "id": "IwI0Uusk",
+        "name": "Jihlava",
+        "short_name": "JIH",
+        "image_path": "https://static.flashscore.com/res/image/data/0zfTzHPq-EmT4W6Vn.png",
+        "slug": "jihlava"
+      },
+      {
+        "id": "dKoDZLRL",
+        "name": "Karvina",
+        "short_name": "KAR",
+        "image_path": "https://static.flashscore.com/res/image/data/nNAX91iT-zoI0gGvN.png",
+        "slug": "mfk-karvina"
+      },
+      {
+        "id": "G6BH9wIP",
+        "name": "Kromeriz",
+        "short_name": "KRO",
+        "image_path": "https://static.flashscore.com/res/image/data/Q5RQIZA6-xG5XGJFM.png",
+        "slug": "kromeriz"
+      },
+      {
+        "id": "0EDHzr4L",
+        "name": "Opava",
+        "short_name": "OPA",
+        "image_path": "https://static.flashscore.com/res/image/data/IF1KbDS0-GhXTKbk2.png",
+        "slug": "opava"
+      },
+      {
+        "id": "jH9Q3eAa",
+        "name": "Ostrava B",
+        "short_name": "OVA",
+        "image_path": "https://static.flashscore.com/res/image/data/fy8pIF5k-ImS10TSo.png",
+        "slug": "ostrava"
+      },
+      {
+        "id": "UL3SitR7",
+        "name": "Pribram",
+        "short_name": "PRI",
+        "image_path": "https://static.flashscore.com/res/image/data/Sh6cZl86-CvmBxoek.png",
+        "slug": "pribram"
+      },
+      {
+        "id": "Gtztv1X8",
+        "name": "Prostejov",
+        "short_name": "PRO",
+        "image_path": "https://static.flashscore.com/res/image/data/EaPnShUH-4AZVVSiI.png",
+        "slug": "prostejov"
+      },
+      {
+        "id": "Q7o2x7yO",
+        "name": "SK Kladno",
+        "short_name": "SK",
+        "image_path": "https://static.flashscore.com/res/image/data/GMxT9Joe-dtrVaP64.png",
+        "slug": "sk-kladno"
+      },
+      {
+        "id": "Y5UWItte",
+        "name": "Slavia Prague B",
+        "short_name": "SLA",
+        "image_path": "https://static.flashscore.com/res/image/data/86lYkgWH-8nl9JmVC.png",
+        "slug": "slavia-prague-b"
+      },
+      {
+        "id": "Ac5V8ZVI",
+        "name": "Taborsko",
+        "short_name": "TAB",
+        "image_path": "https://static.flashscore.com/res/image/data/AiU6aone-UeTvOSmN.png",
+        "slug": "taborsko"
+      },
+      {
+        "id": "I5Wfcy3m",
+        "name": "Trinec",
+        "short_name": "TRI",
+        "image_path": "https://static.flashscore.com/res/image/data/tCSjWGme-nL16QaDh.png",
+        "slug": "trinec"
+      },
+      {
+        "id": "nsGIGP38",
+        "name": "Usti nad Labem",
+        "short_name": "UST",
+        "image_path": "https://static.flashscore.com/res/image/data/GKRnuHR0-COhULTck.png",
+        "slug": "usti-nad-labem"
+      },
+      {
+        "id": "xjRqQOmL",
+        "name": "Vlasim",
+        "short_name": "VLA",
+        "image_path": "https://static.flashscore.com/res/image/data/SvzOf5le-ULpLdDOG.png",
+        "slug": "vlasim"
+      },
+      {
+        "id": "xWWzm0zj",
+        "name": "Zizkov",
+        "short_name": "ZIZ",
+        "image_path": "https://static.flashscore.com/res/image/data/0Y55NiVH-nLRH8RJu.png",
+        "slug": "zizkov"
+      }
     ]
   },
   "Ecuador": {
