@@ -10693,5 +10693,93 @@
         "slug": "tukums-2000"
       }
     ]
+  },
+  "Iceland": {
+    "Besta deild karla": [
+      {
+        "id": "zgqsIZWO",
+        "name": "Akranes",
+        "short_name": "AKR",
+        "image_path": "https://static.flashscore.com/res/image/data/8CTyl3Sq-4hhcealo.png",
+        "slug": "akranes"
+      },
+      {
+        "id": "QZVKceIg",
+        "name": "Breidablik",
+        "short_name": "BRE",
+        "image_path": "https://static.flashscore.com/res/image/data/Q7O0ncS0-vHTRibQp.png",
+        "slug": "breidablik"
+      },
+      {
+        "id": "K2xtlHng",
+        "name": "Fram",
+        "short_name": "FRA",
+        "image_path": "https://static.flashscore.com/res/image/data/nDrV2BUH-fL3dmxxd.png",
+        "slug": "fram"
+      },
+      {
+        "id": "pUN0xwIt",
+        "name": "Hafnarfjordur",
+        "short_name": "HAF",
+        "image_path": "https://static.flashscore.com/res/image/data/E1fFcbQq-Qi0YyGMJ.png",
+        "slug": "hafnarfjordur"
+      },
+      {
+        "id": "bBbO3SSG",
+        "name": "KA Akureyri",
+        "short_name": "AKU",
+        "image_path": "https://static.flashscore.com/res/image/data/fDcCL986-IP5ctvAE.png",
+        "slug": "ka-akureyri"
+      },
+      {
+        "id": "6aYykcXn",
+        "name": "KR Reykjavik",
+        "short_name": "KRR",
+        "image_path": "https://static.flashscore.com/res/image/data/GYKvpgU0-GYYKuYKt.png",
+        "slug": "kr-reykjavik"
+      },
+      {
+        "id": "d2pwJFHI",
+        "name": "Keflavik",
+        "short_name": "KEF",
+        "image_path": "https://static.flashscore.com/res/image/data/6RNlMnXH-bF7g2MXI.png",
+        "slug": "keflavik"
+      },
+      {
+        "id": "40ut6U2b",
+        "name": "Stjarnan",
+        "short_name": "STJ",
+        "image_path": "https://static.flashscore.com/res/image/data/EHiZF8VH-YN8EDTQs.png",
+        "slug": "stjarnan"
+      },
+      {
+        "id": "GQqlHPRS",
+        "name": "Thor Akureyri",
+        "short_name": "THO",
+        "image_path": "https://static.flashscore.com/res/image/data/lrOWQH8k-88ByecJ3.png",
+        "slug": "thor-akureyri"
+      },
+      {
+        "id": "GdxJccH5",
+        "name": "Valur",
+        "short_name": "VAL",
+        "image_path": "https://static.flashscore.com/res/image/data/ML7RLHoe-Ygk9vlHE.png",
+        "slug": "valur"
+      },
+      {
+        "id": "OjVBxqyo",
+        "name": "Vestmannaeyjar",
+        "short_name": "VES",
+        "image_path": "https://static.flashscore.com/res/image/data/6V9s9clC-GhaBLUZO.png",
+        "slug": "ibv-vestmannaeyjar"
+      },
+      {
+        "id": "hdKpCN4d",
+        "name": "Vikingur Reykjavik",
+        "short_name": "VIK",
+        "image_path": "https://static.flashscore.com/res/image/data/QsV2lrBN-ATBUwpjA.png",
+        "slug": "vikingur-reykjavik"
+      }
+    ]
   }
 }
