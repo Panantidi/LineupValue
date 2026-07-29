@@ -671,8 +671,15 @@ def _map_position(section_name: str) -> str:
     return key[:2].upper()
 
 
-def refresh_player_details(player, delay=0.25, force=False):
-    """Fetch /players/details and update market_value, image_path, etc."""
+def refresh_player_details(player, delay=0.25, force=False, is_national=False):
+    """Fetch /players/details and update market_value, image_path, etc.
+
+    Jul 28 2026: also capture current club + club logo from
+    /players/details, but ONLY for national-team players. For club-
+    team players, d.team is their own club (Manchester City for a
+    Manchester City player) which we do NOT want to render in the
+    Nat column — that's where the player's nationality flag belongs.
+    """
     # Delta refresh (Jul 23 2026): skip per-player API call if section is fresh.
     # force=True no longer bypasses this check — see refresh_squad comment.
     tid = player.get('_team_id', '')
@@ -703,19 +710,20 @@ def refresh_player_details(player, delay=0.25, force=False):
             if k in stats:
                 player[k] = stats[k]
     # Jul 28 2026: capture player's CURRENT CLUB from /players/details
-    # for national-team display (e.g. Austria > "Werder Bremen" with badge).
-    # Flashscore's /squad endpoint stores the player's club under
-    # `country_name` for national teams (which breaks the flag column).
-    # /players/details has a clean `team.{name,image_path}` split, so
-    # we use that instead and stash it for lineup_team_view.get_nat_html().
-    team_info = d.get("team") or {}
-    if isinstance(team_info, dict):
-        club_name = team_info.get("name") or ""
-        club_logo = team_info.get("image_path") or ""
-        if club_name:
-            player["club"] = club_name
-        if club_logo:
-            player["club_logo"] = club_logo
+    # for national-team display ONLY (e.g. Austria > "Werder Bremen"
+    # with badge). For club-team players we deliberately skip this:
+    # d.team is their own club (Manchester City for a Manchester City
+    # player), which would collide with the flag-rendering logic in
+    # lineup_team_view.get_nat_html step 1 (club-logo branch).
+    if is_national:
+        team_info = d.get("team") or {}
+        if isinstance(team_info, dict):
+            club_name = team_info.get("name") or ""
+            club_logo = team_info.get("image_path") or ""
+            if club_name:
+                player["club"] = club_name
+            if club_logo:
+                player["club_logo"] = club_logo
     time.sleep(delay)
 
 
@@ -1212,8 +1220,14 @@ def refresh_team(team_id, force=False):
             # player_details TTL. Without this, ex.map defaulted to
             # force=False and skipped every player when section was fresh,
             # leaving the cache with empty MV values.
+            # Jul 28 2026: pass is_national so club-team players don't get
+            # their own club written into player["club"] (which would
+            # route them through the club-logo branch instead of the
+            # nationality flag branch in get_nat_html).
+            championship = info[1] if isinstance(info, tuple) else ""
+            is_national = championship == "National Teams"
             with ThreadPoolExecutor(max_workers=2) as ex:
-                list(ex.map(lambda p: refresh_player_details(p, force=force), players))
+                list(ex.map(lambda p: refresh_player_details(p, force=force, is_national=is_national), players))
             _mark_section_updated(team_id, "player_details")
         # 6. Fixtures (next 3 upcoming) — populates fixtures[] in cache
         fixtures = refresh_fixtures(team_id, force=force)
