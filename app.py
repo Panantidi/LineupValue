@@ -980,6 +980,39 @@ def _parse_session_token(token: str) -> tuple[str, bool] | None:
         return (username, admin_str == "1")
     except Exception:
         return None
+# Jul 29 2026: cache for user active-status so deactivate takes effect within TTL.
+# Without this, deactivated users keep their cookie valid until 30-day expiry.
+import time as _time_mod
+
+_active_user_cache: dict[str, tuple[bool, float]] = {}
+_ACTIVE_USER_TTL = 5.0  # seconds
+
+def _is_user_active(username: str) -> bool:
+    """Return True if user exists and active=1. Cached for _ACTIVE_USER_TTL sec."""
+    if not username:
+        return False
+    now = _time_mod.time()
+    cached = _active_user_cache.get(username)
+    if cached and (now - cached[1]) < _ACTIVE_USER_TTL:
+        return cached[0]
+    try:
+        import sqlite3 as _sq
+        con = _sq.connect(DB_PATH)
+        row = con.execute("SELECT active FROM users WHERE username=?", (username,)).fetchone()
+        con.close()
+        active = bool(row[0]) if row else False
+    except Exception:
+        # DB error: fail closed — assume inactive to be safe
+        active = False
+    _active_user_cache[username] = (active, now)
+    return active
+
+def _invalidate_active_user_cache(username: str | None = None) -> None:
+    """Clear cached active status. Called by admin_toggle for instant effect."""
+    if username is None:
+        _active_user_cache.clear()
+    elif username in _active_user_cache:
+        del _active_user_cache[username]
 
 # IPs that bypass auth completely (owner VPN + direct)
 IP_WHITELIST = {
@@ -1051,7 +1084,8 @@ async def auth_middleware(request: Request, call_next):
         session_cookie = request.cookies.get("fa_session")
         if session_cookie:
             user_info = _parse_session_token(session_cookie)
-            if user_info:
+            # Jul 29 2026: skip deactivated users for /lineup_ai logging too.
+            if user_info and _is_user_active(user_info[0]):
                 # Mirror the username onto request.state so the route
                 # handler (and any downstream code) can read it as
                 # if the request had gone through the full auth path.
@@ -1084,10 +1118,18 @@ async def auth_middleware(request: Request, call_next):
     user_info = None
     if session_cookie:
         user_info = _parse_session_token(session_cookie)
+        # Jul 29 2026: reject sessions for deactivated users (active=0)
+        if user_info and not _is_user_active(user_info[0]):
+            user_info = None
+            # Clear the stale cookie so the browser stops sending it.
+            _ = session_cookie  # keep linter happy
     if not user_info:
         # Redirect to login page with return URL
         from urllib.parse import quote
-        return RedirectResponse(url=f"/login?next={quote(path)}", status_code=302)
+        resp = RedirectResponse(url=f"/login?next={quote(path)}", status_code=302)
+        # Jul 29 2026: tell the browser to drop the now-invalid session cookie.
+        resp.delete_cookie("fa_session", path="/")
+        return resp
     request.state.username = user_info[0]
     request.state.is_admin = user_info[1]
     # Block /admin for non-admin users
@@ -5965,6 +6007,8 @@ async def admin_delete(uid: int, request: Request):
         return RedirectResponse(f"/admin?f={k}", status_code=303)
     if row:
         con.execute("DELETE FROM users WHERE id=?", (uid,)); con.commit()
+        # Jul 29 2026: clear active-status cache so deleted user can't reuse session.
+        _invalidate_active_user_cache(row[0])
         _log_access(getattr(request.state,"username",""), request.client.host if request.client else "", "/admin", "delete_user", row[0])
     con.close()
     k = _flash_set("User deleted" if row else "User not found")
@@ -5980,6 +6024,9 @@ async def admin_toggle(uid: int, request: Request):
     if row:
         nv = 0 if row[1] else 1
         con.execute("UPDATE users SET active=? WHERE id=?", (nv, uid)); con.commit()
+        # Jul 29 2026: clear the active-status cache so deactivation takes
+        # effect immediately (no need to wait up to 5 sec for TTL).
+        _invalidate_active_user_cache(row[0])
         _log_access(getattr(request.state,"username",""), request.client.host if request.client else "", "/admin", "toggle", f"{row[0]} {'activated' if nv else 'deactivated'}")
     con.close()
     return RedirectResponse("/admin", status_code=303)
