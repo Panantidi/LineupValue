@@ -1055,6 +1055,92 @@
         "slug": "viborg",
         "image_path": "https://static.flashscore.com/res/image/data/x6fRQ5GG-fevSzE3L.png"
       }
+    ],
+    "1st Division": [
+      {
+        "id": "WbdPB0Ft",
+        "name": "AB Copenhagen",
+        "short_name": "COP",
+        "image_path": "https://static.flashscore.com/res/image/data/fsJgFLVH-AejU64a9.png",
+        "slug": "ab-copenhagen"
+      },
+      {
+        "id": "U1YrLdqI",
+        "name": "Aalborg",
+        "short_name": "AAL",
+        "image_path": "https://static.flashscore.com/res/image/data/YLd6bHA6-jDG0G1yS.png",
+        "slug": "aalborg"
+      },
+      {
+        "id": "SSAFo9GE",
+        "name": "Aarhus Fremad",
+        "short_name": "AAR",
+        "image_path": "https://static.flashscore.com/res/image/data/ULYay2gT-IDqsYBbo.png",
+        "slug": "aarhus-fremad"
+      },
+      {
+        "id": "pbQ9wvan",
+        "name": "Esbjerg",
+        "short_name": "ESB",
+        "image_path": "https://static.flashscore.com/res/image/data/lMsj0QVH-82YZVz8L.png",
+        "slug": "esbjerg"
+      },
+      {
+        "id": "Aab5vJaC",
+        "name": "Fredericia",
+        "short_name": "FRE",
+        "image_path": "https://static.flashscore.com/res/image/data/nyr2KdSq-byo7KUDM.png",
+        "slug": "fredericia"
+      },
+      {
+        "id": "tUY4mtrj",
+        "name": "Hillerod",
+        "short_name": "HIL",
+        "image_path": "https://static.flashscore.com/res/image/data/Kv34C8U0-xGLUwWGK.png",
+        "slug": "hillerod"
+      },
+      {
+        "id": "zuD4T1wG",
+        "name": "Hobro",
+        "short_name": "HOB",
+        "image_path": "https://static.flashscore.com/res/image/data/pfvjRQ7k-YyU41NPI.png",
+        "slug": "hobro"
+      },
+      {
+        "id": "KOYrUtos",
+        "name": "Hvidovre IF",
+        "short_name": "HVI",
+        "image_path": "https://static.flashscore.com/res/image/data/tA90N9UH-UusW87Jh.png",
+        "slug": "hvidovre-if"
+      },
+      {
+        "id": "O2O78xUB",
+        "name": "Koge",
+        "short_name": "KOG",
+        "image_path": "https://static.flashscore.com/res/image/data/b7zfzdRq-dMuamJsA.png",
+        "slug": "koge"
+      },
+      {
+        "id": "WEnExcUO",
+        "name": "Kolding IF",
+        "short_name": "KOL",
+        "image_path": "https://static.flashscore.com/res/image/data/SvwGEkSq-4x8Qtham.png",
+        "slug": "kolding-if"
+      },
+      {
+        "id": "Mmkx9baa",
+        "name": "Vejle",
+        "short_name": "VEJ",
+        "image_path": "https://static.flashscore.com/res/image/data/8phbUhUH-lvRNDH7M.png",
+        "slug": "vejle"
+      },
+      {
+        "id": "AmWVFgcN",
+        "name": "Vendsyssel",
+        "short_name": "VEN",
+        "image_path": "https://static.flashscore.com/res/image/data/hOWvhQkC-fqnveyq4.png",
+        "slug": "vendsyssel"
+      }
     ]
   },
   "England": {
@@ -1522,6 +1608,78 @@
         "name": "VPS",
         "slug": "vps",
         "image_path": "https://static.flashscore.com/res/image/data/bcIjLOZA-WYtEUtB2.png"
+      }
+    ],
+    "Ykkosliiga": [
+      {
+        "id": "8neI5tJn",
+        "name": "Ekenas",
+        "short_name": "EKE",
+        "image_path": "https://static.flashscore.com/res/image/data/ttWqumBN-xIKZWgDK.png",
+        "slug": "ekenas"
+      },
+      {
+        "id": "6oug4RRc",
+        "name": "Haka",
+        "short_name": "HAK",
+        "image_path": "https://static.flashscore.com/res/image/data/zwE32vjT-KtjRAU38.png",
+        "slug": "haka"
+      },
+      {
+        "id": "Kj4IX8v9",
+        "name": "JaPS",
+        "short_name": "JAP",
+        "image_path": "https://static.flashscore.com/res/image/data/6TOBnG5k-Qw3xVJJf.png",
+        "slug": "japs"
+      },
+      {
+        "id": "69Jb7MZL",
+        "name": "Jippo",
+        "short_name": "JIP",
+        "image_path": "https://static.flashscore.com/res/image/data/ve86t8gT-fceHlku2.png",
+        "slug": "jippo"
+      },
+      {
+        "id": "zsgwCpdF",
+        "name": "KTP",
+        "short_name": "KTP",
+        "image_path": "https://static.flashscore.com/res/image/data/SSSFJmWH-6clVGmml.png",
+        "slug": "ktp"
+      },
+      {
+        "id": "pv9Nf2KF",
+        "name": "KaPa",
+        "short_name": "KAP",
+        "image_path": "https://static.flashscore.com/res/image/data/04J8yfCN-nTLUUUol.png",
+        "slug": "kapa"
+      },
+      {
+        "id": "8K9IG0Td",
+        "name": "Klubi 04",
+        "short_name": "KLU",
+        "image_path": "https://static.flashscore.com/res/image/data/h29AXrne-joSKJXz3.png",
+        "slug": "klubi-04"
+      },
+      {
+        "id": "Ch9A601r",
+        "name": "Mikkeli",
+        "short_name": "MIK",
+        "image_path": "https://static.flashscore.com/res/image/data/UJ9G5AUH-Q3zjC5H3.png",
+        "slug": "mikkeli"
+      },
+      {
+        "id": "QPvrRboH",
+        "name": "PK-35",
+        "short_name": "PK-",
+        "image_path": "https://static.flashscore.com/res/image/data/KxbXb686-fXc0KYv8.png",
+        "slug": "pk-35"
+      },
+      {
+        "id": "bNXdwSBE",
+        "name": "SJK Akatemia",
+        "short_name": "SJK",
+        "image_path": "https://static.flashscore.com/res/image/data/WKzHTA86-U1tWtrt0.png",
+        "slug": "sjk-akatemia"
       }
     ]
   },
@@ -2718,6 +2876,120 @@
         "name": "Viking",
         "slug": "viking",
         "image_path": "https://static.flashscore.com/res/image/data/bcQTJyeM-xvniPjZd.png"
+      }
+    ],
+    "OBOS-ligaen": [
+      {
+        "id": "bJZUbRjF",
+        "name": "Asane",
+        "short_name": "ASA",
+        "image_path": "https://static.flashscore.com/res/image/data/fT9AzYA6-8GFqX8UN.png",
+        "slug": "asane"
+      },
+      {
+        "id": "pvMoTnGj",
+        "name": "Bryne",
+        "short_name": "BRY",
+        "image_path": "https://static.flashscore.com/res/image/data/W4ZvENPq-MgUxY1Yb.png",
+        "slug": "bryne"
+      },
+      {
+        "id": "0t64gHeU",
+        "name": "Egersund",
+        "short_name": "EGE",
+        "image_path": "https://static.flashscore.com/res/image/data/U5KiOX86-CnaifEtT.png",
+        "slug": "egersund"
+      },
+      {
+        "id": "l8zGY8hT",
+        "name": "Haugesund",
+        "short_name": "HAU",
+        "image_path": "https://static.flashscore.com/res/image/data/tEPovwXH-xYzsuAmf.png",
+        "slug": "haugesund"
+      },
+      {
+        "id": "0dRn3lhG",
+        "name": "Hodd",
+        "short_name": "HOD",
+        "image_path": "https://static.flashscore.com/res/image/data/Kp4gF45k-l4CNNEgH.png",
+        "slug": "hodd"
+      },
+      {
+        "id": "EcKec6pj",
+        "name": "Kongsvinger",
+        "short_name": "KON",
+        "image_path": "https://static.flashscore.com/res/image/data/M1OvEKoe-rBZMyoNK.png",
+        "slug": "kongsvinger"
+      },
+      {
+        "id": "xO9cNjg4",
+        "name": "Lyn",
+        "short_name": "LYN",
+        "image_path": "https://static.flashscore.com/res/image/data/67CukePq-GEWDK90d.png",
+        "slug": "lyn"
+      },
+      {
+        "id": "WYUjbnVq",
+        "name": "Moss",
+        "short_name": "MOS",
+        "image_path": "https://static.flashscore.com/res/image/data/AFrhGyme-KCWYNnak.png",
+        "slug": "moss"
+      },
+      {
+        "id": "6mNsUS0p",
+        "name": "Odd",
+        "short_name": "ODD",
+        "image_path": "https://static.flashscore.com/res/image/data/Q1iktvQq-xvniPjZd.png",
+        "slug": "odd"
+      },
+      {
+        "id": "bBV1xQEk",
+        "name": "Ranheim",
+        "short_name": "RAN",
+        "image_path": "https://static.flashscore.com/res/image/data/lUXRXIA6-CnVD4YXr.png",
+        "slug": "ranheim"
+      },
+      {
+        "id": "tM5lsElg",
+        "name": "Raufoss",
+        "short_name": "RAU",
+        "image_path": "https://static.flashscore.com/res/image/data/A9TgaUT0-lbBUyKsP.png",
+        "slug": "raufoss"
+      },
+      {
+        "id": "QRtP7D9b",
+        "name": "Sandnes",
+        "short_name": "SAN",
+        "image_path": "https://static.flashscore.com/res/image/data/CGAJ91T0-pjxqSmk4.png",
+        "slug": "sandnes"
+      },
+      {
+        "id": "r5la287M",
+        "name": "Sogndal",
+        "short_name": "SOG",
+        "image_path": "https://static.flashscore.com/res/image/data/25aKBIR0-hW1rdNob.png",
+        "slug": "sogndal"
+      },
+      {
+        "id": "CbXNfZvn",
+        "name": "Stabaek",
+        "short_name": "STA",
+        "image_path": "https://static.flashscore.com/res/image/data/Aqn1UYTH-A1TIJ1Y1.png",
+        "slug": "stabaek"
+      },
+      {
+        "id": "0fy38o8r",
+        "name": "Strommen",
+        "short_name": "STR",
+        "image_path": "https://static.flashscore.com/res/image/data/8QOPdMkC-CnVD4YXr.png",
+        "slug": "strommen"
+      },
+      {
+        "id": "GS7ehkOT",
+        "name": "Stromsgodset",
+        "short_name": "STR",
+        "image_path": "https://static.flashscore.com/res/image/data/jPjLpine-E5rgQKuN.png",
+        "slug": "stromsgodset"
       }
     ]
   },
@@ -7337,6 +7609,78 @@
         "name": "Sligo Rovers",
         "slug": "sligo-rovers",
         "image_path": "https://static.flashscore.com/res/image/data/WtX1g1HG-4zJqyaPk.png"
+      }
+    ],
+    "Division 1": [
+      {
+        "id": "86GBzS0c",
+        "name": "Athlone",
+        "short_name": "ATH",
+        "image_path": "https://static.flashscore.com/res/image/data/d0lskvkC-4zJqyaPk.png",
+        "slug": "athlone"
+      },
+      {
+        "id": "tILQLU1o",
+        "name": "Bray",
+        "short_name": "BRA",
+        "image_path": "https://static.flashscore.com/res/image/data/dImgH36k-xjjGj3mS.png",
+        "slug": "bray"
+      },
+      {
+        "id": "KCdAvVnh",
+        "name": "Cobh Ramblers",
+        "short_name": "COB",
+        "image_path": "https://static.flashscore.com/res/image/data/E7lOwf6k-vsDgPoBk.png",
+        "slug": "cobh-ramblers"
+      },
+      {
+        "id": "QeO2kTWA",
+        "name": "Cork City",
+        "short_name": "COR",
+        "image_path": "https://static.flashscore.com/res/image/data/rH3nTQ76-fDNxAbVO.png",
+        "slug": "cork-city"
+      },
+      {
+        "id": "E7DwJSo4",
+        "name": "Finn Harps",
+        "short_name": "FIN",
+        "image_path": "https://static.flashscore.com/res/image/data/8jtkrxne-IiGT6zfM.png",
+        "slug": "finn-harps"
+      },
+      {
+        "id": "KnNpcyal",
+        "name": "Kerry",
+        "short_name": "KER",
+        "image_path": "https://static.flashscore.com/res/image/data/G24cbIkC-nTNedEoT.png",
+        "slug": "kerry"
+      },
+      {
+        "id": "SKvdUpoT",
+        "name": "Longford",
+        "short_name": "LON",
+        "image_path": "https://static.flashscore.com/res/image/data/dEg8Tyne-4zJqyaPk.png",
+        "slug": "longford"
+      },
+      {
+        "id": "xpda4uom",
+        "name": "Treaty United",
+        "short_name": "TRE",
+        "image_path": "https://static.flashscore.com/res/image/data/x6bZ5XRq-pKedUI1P.png",
+        "slug": "treaty-united"
+      },
+      {
+        "id": "dlb3qoPp",
+        "name": "UC Dublin",
+        "short_name": "UCD",
+        "image_path": "https://static.flashscore.com/res/image/data/pKSiTrDN-fL3dmxxd.png",
+        "slug": "uc-dublin"
+      },
+      {
+        "id": "UFH7y8oi",
+        "name": "Wexford",
+        "short_name": "WEX",
+        "image_path": "https://static.flashscore.com/res/image/data/W2CpbdkC-4p2q5FSC.png",
+        "slug": "wexford"
       }
     ]
   },
