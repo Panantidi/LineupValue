@@ -3607,7 +3607,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
                 if (avgEl) avgEl.textContent = (fc.average_recovery_days || 0) + ' days';
                 if (minEl) minEl.textContent = (fc.minimum_recovery_days || 0) + ' day' + ((fc.minimum_recovery_days || 0) === 1 ? '' : 's');
-                if (riskEl) riskEl.textContent = fc.risk_label || '—';
+                if (riskEl) {{
+                    // Strip " Rotation Risk" suffix, prepend "Rotation Risk — "
+                    // so display is uniform: "Rotation Risk — Low/Medium/High/Very High".
+                    let lvl = (fc.risk_label || '—').replace(' Rotation Risk', '').trim();
+                    if (!lvl || lvl === '—') lvl = '—';
+                    riskEl.textContent = 'Rotation Risk — ' + lvl;
+                }}
             }};
 
             window.onNavMatchChange = function() {{

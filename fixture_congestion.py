@@ -238,7 +238,7 @@ def risk_label(fc: int) -> str:
     if fc <= 25:
         return "Low Rotation Risk"
     if fc <= 50:
-        return "Moderate Rotation Risk"
+        return "Medium Rotation Risk"
     if fc <= 75:
         return "High Rotation Risk"
     return "Very High Rotation Risk"
