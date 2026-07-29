@@ -4891,6 +4891,134 @@
         "slug": "wisla",
         "image_path": "https://static.flashscore.com/res/image/data/ddQ6Z8wS-ARADEnb7.png"
       }
+    ],
+    "Division 1": [
+      {
+        "id": "feEez0Ei",
+        "name": "Arka Gdynia",
+        "short_name": "ARK",
+        "image_path": "https://static.flashscore.com/res/image/data/84T5AbVH-SUsL3Ba2.png",
+        "slug": "arka-gdynia"
+      },
+      {
+        "id": "vo6umLPj",
+        "name": "Chrobry Glogow",
+        "short_name": "CHR",
+        "image_path": "https://static.flashscore.com/res/image/data/ObAN8RTH-UmekWoz6.png",
+        "slug": "chrobry-glogow"
+      },
+      {
+        "id": "4nBQsDq2",
+        "name": "Grodzisk M.",
+        "short_name": "GRO",
+        "image_path": "https://static.flashscore.com/res/image/data/Yk1Lrcme-8fIj49t4.png",
+        "slug": "grodzisk-m"
+      },
+      {
+        "id": "ShUKWHDG",
+        "name": "LKS Lodz",
+        "short_name": "LOD",
+        "image_path": "https://static.flashscore.com/res/image/data/4ret8s86-CrgYOGj7.png",
+        "slug": "lks-lodz"
+      },
+      {
+        "id": "GGLmkiK8",
+        "name": "Lechia Gdansk",
+        "short_name": "GDA",
+        "image_path": "https://static.flashscore.com/res/image/data/n3lJdB8k-0xPot60L.png",
+        "slug": "lechia-gdansk"
+      },
+      {
+        "id": "lnY5n2Xe",
+        "name": "Legnica",
+        "short_name": "MIE",
+        "image_path": "https://static.flashscore.com/res/image/data/EDHOpbA6-UqLswWs8.png",
+        "slug": "legnica"
+      },
+      {
+        "id": "C8Kg1k4R",
+        "name": "Odra Opole",
+        "short_name": "ODR",
+        "image_path": "https://static.flashscore.com/res/image/data/n5tKCDPq-0xD7Ck1n.png",
+        "slug": "odra-opole"
+      },
+      {
+        "id": "zBPYeTRl",
+        "name": "Podbeskidzie",
+        "short_name": "PBB",
+        "image_path": "https://static.flashscore.com/res/image/data/QH3r5KVH-r18qDdb5.png",
+        "slug": "podbeskidzie"
+      },
+      {
+        "id": "d6IVB42i",
+        "name": "Pogon Siedlce",
+        "short_name": "SIE",
+        "image_path": "https://static.flashscore.com/res/image/data/460hCkjC-0AMo11wG.png",
+        "slug": "pogon-siedlce"
+      },
+      {
+        "id": "vRn3UqXP",
+        "name": "Polonia Bytom",
+        "short_name": "POL",
+        "image_path": "https://static.flashscore.com/res/image/data/nyMBx2jC-QPVxgHgK.png",
+        "slug": "polonia-bytom"
+      },
+      {
+        "id": "ADZjR3us",
+        "name": "Polonia Warszawa",
+        "short_name": "KSP",
+        "image_path": "https://static.flashscore.com/res/image/data/bVFpXwWH-2mda3jcD.png",
+        "slug": "polonia-warszawa"
+      },
+      {
+        "id": "dtqx13O8",
+        "name": "Puszcza",
+        "short_name": "PUS",
+        "image_path": "https://static.flashscore.com/res/image/data/z5OpTVVH-6PG8meHs.png",
+        "slug": "puszcza"
+      },
+      {
+        "id": "S4zygtuJ",
+        "name": "Ruch Chorzow",
+        "short_name": "RUC",
+        "image_path": "https://static.flashscore.com/res/image/data/ljPkRAjC-2FYvdV3F.png",
+        "slug": "ruch-chorzow"
+      },
+      {
+        "id": "IkpY1q92",
+        "name": "S. Rzeszow",
+        "short_name": "STA",
+        "image_path": "https://static.flashscore.com/res/image/data/hQ6JNVA6-Yqj3DX7m.png",
+        "slug": "s-rzeszow"
+      },
+      {
+        "id": "l42F3w54",
+        "name": "Skierniewice",
+        "short_name": "SKI",
+        "image_path": "https://static.flashscore.com/res/image/data/8ErTJBiT-2gREfHhi.png",
+        "slug": "skierniewice"
+      },
+      {
+        "id": "pxXiDZkQ",
+        "name": "Stal Mielec",
+        "short_name": "STA",
+        "image_path": "https://static.flashscore.com/res/image/data/Qoo2URTH-tfVka94A.png",
+        "slug": "stal-mielec"
+      },
+      {
+        "id": "YNkK4khO",
+        "name": "Termalica B-B.",
+        "short_name": "TER",
+        "image_path": "https://static.flashscore.com/res/image/data/IZbyGkne-KdpWArUq.png",
+        "slug": "termalica-b-b"
+      },
+      {
+        "id": "CrVUWAl8",
+        "name": "Warta Poznan",
+        "short_name": "WAR",
+        "image_path": "https://static.flashscore.com/res/image/data/YT68vI8k-YwLXAjZC.png",
+        "slug": "warta-poznan"
+      }
     ]
   },
   "Mexico": {
