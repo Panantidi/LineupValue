@@ -4781,6 +4781,127 @@
         "slug": "ulsan-hyundai",
         "image_path": "https://static.flashscore.com/res/image/data/tvaAa5hl-0hHJPkl1.png"
       }
+    ],
+    "K League 2": [
+      {
+        "id": "tOxpLLPc",
+        "name": "Ansan Greeners",
+        "short_name": "ANS",
+        "image_path": "https://static.flashscore.com/res/image/data/Em0oCPR0-EcrHCaHO.png",
+        "slug": "ansan-greeners"
+      },
+      {
+        "id": "GECrRaic",
+        "name": "Asan",
+        "short_name": "ASA",
+        "image_path": "https://static.flashscore.com/res/image/data/0SZGh0kC-rXhEMDdO.png",
+        "slug": "asan"
+      },
+      {
+        "id": "phIARZ6a",
+        "name": "Busan",
+        "short_name": "BUS",
+        "image_path": "https://static.flashscore.com/res/image/data/foYecH5k-xG50eTvI.png",
+        "slug": "busan"
+      },
+      {
+        "id": "Mcq0tCd4",
+        "name": "Cheonan City",
+        "short_name": "CHE",
+        "image_path": "https://static.flashscore.com/res/image/data/bucrzVjT-l2Dt0o2j.png",
+        "slug": "cheonan-city"
+      },
+      {
+        "id": "2TvjJVf3",
+        "name": "Cheongju",
+        "short_name": "CHE",
+        "image_path": "https://static.flashscore.com/res/image/data/dOpoTKPq-fDezaw8A.png",
+        "slug": "cheongju"
+      },
+      {
+        "id": "SrMQkOnI",
+        "name": "Daegu",
+        "short_name": "DAE",
+        "image_path": "https://static.flashscore.com/res/image/data/UBcvQYU0-jVu0KvKs.png",
+        "slug": "daegu"
+      },
+      {
+        "id": "td9CT3Iu",
+        "name": "Gimhae",
+        "short_name": "GIM",
+        "image_path": "https://static.flashscore.com/res/image/data/phUzRl86-x6n7wRs8.png",
+        "slug": "gimhae"
+      },
+      {
+        "id": "Ozp7qNCT",
+        "name": "Gimpo FC",
+        "short_name": "GIM",
+        "image_path": "https://static.flashscore.com/res/image/data/plukxhU0-lITjZo8o.png",
+        "slug": "gimpo-fc"
+      },
+      {
+        "id": "djpFdJOc",
+        "name": "Gyeongnam",
+        "short_name": "GYE",
+        "image_path": "https://static.flashscore.com/res/image/data/OC3N4hDN-h8TnFaWq.png",
+        "slug": "gyeongnam"
+      },
+      {
+        "id": "0MhiXWvI",
+        "name": "Hwaseong",
+        "short_name": "HWA",
+        "image_path": "https://static.flashscore.com/res/image/data/UyVTF48k-AB0MNryp.png",
+        "slug": "hwaseong"
+      },
+      {
+        "id": "EuIMj4XB",
+        "name": "Jeonnam",
+        "short_name": "JEO",
+        "image_path": "https://static.flashscore.com/res/image/data/ph0Ae07k-0fjMSYzR.png",
+        "slug": "jeonnam"
+      },
+      {
+        "id": "IiA85488",
+        "name": "Paju Frontier",
+        "short_name": "PAJ",
+        "image_path": "https://static.flashscore.com/res/image/data/vLkWG76k-E3FCzbu0.png",
+        "slug": "paju-frontier"
+      },
+      {
+        "id": "WMiRgH8G",
+        "name": "Seongnam",
+        "short_name": "SEO",
+        "image_path": "https://static.flashscore.com/res/image/data/nc5Io77k-l04KlBA6.png",
+        "slug": "seongnam"
+      },
+      {
+        "id": "b588FzNI",
+        "name": "Seoul E-Land",
+        "short_name": "SEO",
+        "image_path": "https://static.flashscore.com/res/image/data/0bmrljVH-CC2tS8Wm.png",
+        "slug": "seoul-e-land"
+      },
+      {
+        "id": "v5I5PanH",
+        "name": "Suwon Bluewings",
+        "short_name": "SUW",
+        "image_path": "https://static.flashscore.com/res/image/data/6o2MaIQq-nuOc3CG5.png",
+        "slug": "suwon-bluewings"
+      },
+      {
+        "id": "6sXCYRPI",
+        "name": "Suwon FC",
+        "short_name": "SFC",
+        "image_path": "https://static.flashscore.com/res/image/data/4Aos4Fle-C8xz9kft.png",
+        "slug": "suwon-fc"
+      },
+      {
+        "id": "zg9JtysH",
+        "name": "Yongin",
+        "short_name": "YON",
+        "image_path": "https://static.flashscore.com/res/image/data/2RMYb5AN-S8zVsxg3.png",
+        "slug": "yongin-fc"
+      }
     ]
   },
   "Poland": {
