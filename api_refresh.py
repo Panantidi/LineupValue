@@ -27,7 +27,7 @@ LEAGUES_FILE = "/home/openclaw/FormAlert/leagues_data.json"
 # - Squad (transfers, ages) changes rarely -- refresh weekly
 # - Player details (MV, photos) changes even more rarely -- refresh monthly
 # - Last 3 results (matches + lineups) change after every game -- refresh daily
-# - Fixtures (next 3 upcoming) change after each match -- refresh daily
+# - Fixtures (next 5 upcoming) change after each match -- refresh daily
 CACHE_TTL_SECONDS = 600  # 10 minutes (overall default, used for is_fresh())
 SQUAD_TTL_SECONDS = 7 * 86400      # 7 days
 PLAYER_DETAILS_TTL_SECONDS = 30 * 86400  # 30 days
@@ -759,7 +759,7 @@ def refresh_team_details(team_id, slug, force=False):
 
 
 def refresh_fixtures(team_id, force=False):
-    """Fetch /teams/fixtures and return list of next 3 upcoming matches.
+    """Fetch /teams/fixtures and return list of next 5 upcoming matches.
 
     Real API shape (same envelope as /teams/results):
         [
@@ -793,7 +793,7 @@ def refresh_fixtures(team_id, force=False):
                 continue
             flat.append((m, tname, tshort))
     flat.sort(key=lambda x: int(x[0].get("timestamp") or 0))
-    flat = flat[:3]
+    flat = flat[:5]
     out = []
     for m, tname, tshort in flat:
         mid = m.get("match_id") or m.get("id")
@@ -1229,7 +1229,7 @@ def refresh_team(team_id, force=False):
             with ThreadPoolExecutor(max_workers=2) as ex:
                 list(ex.map(lambda p: refresh_player_details(p, force=force, is_national=is_national), players))
             _mark_section_updated(team_id, "player_details")
-        # 6. Fixtures (next 3 upcoming) — populates fixtures[] in cache
+        # 6. Fixtures (next 5 upcoming) — populates fixtures[] in cache
         fixtures = refresh_fixtures(team_id, force=force)
         _mark_section_updated(team_id, "fixtures")
         # 7. Build cache — preserve existing keys (coach etc.), overlay new data

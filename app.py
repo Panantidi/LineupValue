@@ -2217,7 +2217,7 @@ async def lineup_api_fixtures(team_id: str):
                     })
 
             if fixtures:
-                return JSONResponse(content={"fixtures": fixtures[:3], "team_id": team_id, "from_team_cache": True})
+                return JSONResponse(content={"fixtures": fixtures[:5], "team_id": team_id, "from_team_cache": True})
     except:
         pass
 
