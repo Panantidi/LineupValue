@@ -78,12 +78,19 @@ def _rest_to_load_points(rest_days: int) -> int:
 
 
 def _status_for(fc: float) -> str:
-    """Classify FC value into status bucket."""
-    if fc <= 25:
+    """Classify FC value into status bucket.
+
+    New thresholds (Jul 29 2026, user spec):
+      0-30   -> LOW
+      31-55  -> NORMAL
+      56-80  -> HIGH
+      81-100 -> EXTREME
+    """
+    if fc <= 30:
         return "LOW"
-    if fc <= 50:
+    if fc <= 55:
         return "NORMAL"
-    if fc <= 75:
+    if fc <= 80:
         return "HIGH"
     return "EXTREME"
 
@@ -234,12 +241,20 @@ def progress_bar(fc: int, width: int = 10) -> str:
 
 
 def risk_label(fc: int) -> str:
-    """Return a human-readable rotation risk label."""
-    if fc <= 25:
-        return "Low Rotation Risk"
-    if fc <= 50:
-        return "Medium Rotation Risk"
-    if fc <= 75:
-        return "High Rotation Risk"
-    return "Very High Rotation Risk"
+    """Return just the level (Low/Medium/High/Very High).
+
+    Frontend prepends "Rotation Risk — " automatically.
+    New thresholds (Jul 29 2026, user spec):
+      0-30   -> Low
+      31-55  -> Medium
+      56-80  -> High
+      81-100 -> Very High
+    """
+    if fc <= 30:
+        return "Low"
+    if fc <= 55:
+        return "Medium"
+    if fc <= 80:
+        return "High"
+    return "Very High"
 

@@ -1765,7 +1765,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="display:flex; flex-direction:column; gap:2px; color:#555; font-size:11px;">
                     <div>Average Rest &mdash; <span id="nav-fc-avg">—</span></div>
                     <div>Shortest Rest &mdash; <span id="nav-fc-min">—</span></div>
-                    <div>Risk &mdash; <span id="nav-fc-risk">—</span></div>
+                    <div><span id="nav-fc-risk">—</span></div>
                 </div>
             </div>
         </div>
@@ -3608,11 +3608,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (avgEl) avgEl.textContent = (fc.average_recovery_days || 0) + ' days';
                 if (minEl) minEl.textContent = (fc.minimum_recovery_days || 0) + ' day' + ((fc.minimum_recovery_days || 0) === 1 ? '' : 's');
                 if (riskEl) {{
-                    // Strip " Rotation Risk" suffix, prepend "Rotation Risk — "
-                    // so display is uniform: "Rotation Risk — Low/Medium/High/Very High".
-                    let lvl = (fc.risk_label || '—').replace(' Rotation Risk', '').trim();
-                    if (!lvl || lvl === '—') lvl = '—';
-                    riskEl.textContent = lvl;
+                    // Display: "Rotation Risk — Low/Medium/High/Very High".
+                    // fc.risk_label now returns just the level (Jul 29 2026).
+                    const lvl = fc.risk_label || '—';
+                    riskEl.textContent = 'Rotation Risk — ' + lvl;
                 }}
             }};
 
