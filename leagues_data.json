@@ -1853,6 +1853,108 @@
         "slug": "Schalke",
         "image_path": "https://static.flashscore.com/res/image/data/b1q14jZg-I7p2Damb.png"
       }
+    ],
+    "3. Liga": [
+      {
+        "id": "j3PKcB4E",
+        "name": "Alemannia Aachen",
+        "slug": ""
+      },
+      {
+        "id": "vsXIDreP",
+        "name": "Aue",
+        "slug": ""
+      },
+      {
+        "id": "6g44VD52",
+        "name": "Cottbus",
+        "slug": ""
+      },
+      {
+        "id": "2s7huW4R",
+        "name": "Duisburg",
+        "slug": ""
+      },
+      {
+        "id": "KIHmtCkL",
+        "name": "Hansa Rostock",
+        "slug": ""
+      },
+      {
+        "id": "bwwlzP9l",
+        "name": "Hoffenheim II",
+        "slug": ""
+      },
+      {
+        "id": "ne5QkLtB",
+        "name": "Ingolstadt",
+        "slug": ""
+      },
+      {
+        "id": "6LJtezQO",
+        "name": "Mannheim",
+        "slug": ""
+      },
+      {
+        "id": "byXHwsJa",
+        "name": "Munich 1860",
+        "slug": ""
+      },
+      {
+        "id": "EB0xsr77",
+        "name": "RW Essen",
+        "slug": ""
+      },
+      {
+        "id": "UiCmEP56",
+        "name": "Regensburg",
+        "slug": ""
+      },
+      {
+        "id": "fLbhmJ5l",
+        "name": "Saarbrucken",
+        "slug": ""
+      },
+      {
+        "id": "jy2pzed0",
+        "name": "Schweinfurt",
+        "slug": ""
+      },
+      {
+        "id": "84SxvsCb",
+        "name": "Stuttgart II",
+        "slug": ""
+      },
+      {
+        "id": "ChZUX0PS",
+        "name": "TSV Havelse",
+        "slug": ""
+      },
+      {
+        "id": "tbC3EcQn",
+        "name": "Ulm",
+        "slug": ""
+      },
+      {
+        "id": "ryb0Dqxr",
+        "name": "Verl",
+        "slug": ""
+      },
+      {
+        "id": "88Xgj1Y5",
+        "name": "VfL Osnabruck",
+        "slug": ""
+      },
+      {
+        "id": "44oKBLkf",
+        "name": "Viktoria Koln",
+        "slug": ""
+      },
+      {
+        "id": "ObxFt3lm",
+        "name": "Wehen",
+        "slug": ""
+      }
     ]
   },
   "Italy": {
