@@ -132,35 +132,37 @@ def get_flag_html(country_name):
 
 
 def get_nat_html(p):
-    """Return flag (club teams) or club badge (national teams)"""
-    # Try "country" first (Flashscore API field)
+    """Return flag (club teams) or club badge (national teams).
+
+    Jul 28 2026: For National Team players, Flashscore's /squad
+    `country` field contains the player's club name (e.g. "Werder
+    Bremen"), not the country of birth. The /players/details call
+    stores club name + club logo in `club` and `club_logo` fields
+    (see api_refresh.refresh_player_details). For national teams
+    we render the club badge from `club_logo`; for club teams we
+    keep rendering the player nationality flag.
+    """
+    club = p.get("club", "")
+    club_logo = p.get("club_logo", "")
+    # 1. National-team player with club logo → club badge
+    if club and club_logo:
+        return f'<span class="club-badge" data-tooltip="{club}"><img src="{club_logo}" alt="{club}" style="width:14px;height:14px;vertical-align:middle;"></span>'
+    # 2. National-team player with club name only (no logo yet)
+    if club:
+        return f'<span class="club-badge" data-tooltip="{club}">{club[:3]}</span>'
+    # 3. Club-team player — use country as flag
     country = p.get("country", "") or p.get("country_name", "")
     if country:
         flag_html = get_flag_html(country)
         if flag_html != "–" and "flagcdn" in flag_html:
             return flag_html
         return f'<span class="club-badge" data-tooltip="{country}">{country[:3].upper()}</span>'
-    club = p.get("club", "")
-    if club:
-        club_logo = p.get("club_logo", "")
-        if club_logo:
-            return f'<span class="club-badge" data-tooltip="{club}"><img src="{club_logo}" alt="{club}" style="width:14px;height:14px;vertical-align:middle;"></span>'
-        # No club_logo -- club might be a country name (club team)
-        flag_html = get_flag_html(club)
-        if flag_html != "–" and "flagcdn" in flag_html:
-            return flag_html
-        # Real club name without logo
-        return f'<span class="club-badge" data-tooltip="{club}">{club[:3]}</span>'
-    # Fallback: use national field
+    # 4. Legacy fallback: national field (older snapshots)
     national = p.get("national", "")
     if national and national != "–":
         flag_html = get_flag_html(national)
         if flag_html != "–" and "flagcdn" in flag_html:
             return flag_html
-        # Club name in national field
-        club_logo = p.get("club_logo", "")
-        if club_logo:
-            return f'<span class="club-badge" data-tooltip="{national}"><img src="{club_logo}" alt="{national}" style="width:14px;height:14px;vertical-align:middle;"></span>'
         return f'<span class="club-badge" data-tooltip="{national}">{national[:3]}</span>'
     return "–"
 def _parse_mv(value):

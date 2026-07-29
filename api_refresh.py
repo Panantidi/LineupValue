@@ -702,6 +702,20 @@ def refresh_player_details(player, delay=0.25, force=False):
         for k in ["goals", "assists", "yellow_cards", "red_cards", "matches_played", "minutes_played"]:
             if k in stats:
                 player[k] = stats[k]
+    # Jul 28 2026: capture player's CURRENT CLUB from /players/details
+    # for national-team display (e.g. Austria > "Werder Bremen" with badge).
+    # Flashscore's /squad endpoint stores the player's club under
+    # `country_name` for national teams (which breaks the flag column).
+    # /players/details has a clean `team.{name,image_path}` split, so
+    # we use that instead and stash it for lineup_team_view.get_nat_html().
+    team_info = d.get("team") or {}
+    if isinstance(team_info, dict):
+        club_name = team_info.get("name") or ""
+        club_logo = team_info.get("image_path") or ""
+        if club_name:
+            player["club"] = club_name
+        if club_logo:
+            player["club_logo"] = club_logo
     time.sleep(delay)
 
 
