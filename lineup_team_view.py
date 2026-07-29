@@ -1757,6 +1757,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <option value="">-- Select Match --</option>
                 </select>
             </div>
+            <!-- Fixture Congestion block (Jul 29 2026): calendar density metric -->
+            <div id="nav-fc-block" style="display:none; margin-top:14px; padding:10px 12px; background:#f8f9fb; border:1px solid #e0e3e8; border-radius:8px; font-size:12px;">
+                <div style="font-weight:700; color:#333; margin-bottom:6px; font-size:13px;">Fixture Congestion</div>
+                <div id="nav-fc-bar" style="font-family:monospace; font-size:18px; letter-spacing:1px; margin-bottom:4px;">░░░░░░░░░░ <span id="nav-fc-pct">0%</span></div>
+                <div id="nav-fc-status" style="font-weight:700; margin-bottom:8px;">—</div>
+                <div style="display:flex; flex-direction:column; gap:2px; color:#555; font-size:11px;">
+                    <div>Average Rest &mdash; <span id="nav-fc-avg">—</span></div>
+                    <div>Shortest Rest &mdash; <span id="nav-fc-min">—</span></div>
+                    <div>Risk &mdash; <span id="nav-fc-risk">—</span></div>
+                </div>
+            </div>
         </div>
         <div id="nav-actions" style="display:none; text-align:center; margin-top:10px;">
             <button id="nav-btn-analysis" onclick="openNavTeamAnalysis()" style="background:#043fb6; color:white; border:none; padding:8px 16px; border-radius:6px; font-size:13px; cursor:pointer;">
@@ -3550,10 +3561,53 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         matchSelect.appendChild(opt);
                     }});
                     matchSelect.disabled = false;
+                    // Jul 29 2026: fetch Fixture Congestion and render under match dropdown.
+                    try {{
+                        const fcResp = await fetch('/lineup_ai/api/fixture-congestion/' + teamId);
+                        const fcData = await fcResp.json();
+                        renderFixtureCongestion(fcData);
+                    }} catch (e) {{
+                        console.error('Failed to load fixture congestion:', e);
+                    }}
                 }} catch (e) {{
                     console.error('Failed to load fixtures:', e);
                     matchSelect.innerHTML = '<option value="">Failed to load</option>';
                 }}
+            }};
+
+            // Jul 29 2026: render Fixture Congestion block (calendar density metric).
+            function renderFixtureCongestion(fc) {{
+                const block = document.getElementById('nav-fc-block');
+                if (!block) return;
+                if (!fc || fc.next_matches_count < 2) {{
+                    block.style.display = 'none';
+                    return;
+                }}
+                block.style.display = 'block';
+                const pct = (fc.fixture_congestion || 0) + '%';
+                const bar = document.getElementById('nav-fc-bar');
+                const pctEl = document.getElementById('nav-fc-pct');
+                const statusEl = document.getElementById('nav-fc-status');
+                const avgEl = document.getElementById('nav-fc-avg');
+                const minEl = document.getElementById('nav-fc-min');
+                const riskEl = document.getElementById('nav-fc-risk');
+                if (bar) bar.innerHTML = (fc.progress_bar || '') + ' <span id="nav-fc-pct">' + pct + '</span>';
+                if (pctEl) pctEl.textContent = pct;
+                const status = fc.status || 'LOW';
+                const statusEmoji = status === 'EXTREME' ? '🔴'
+                    : status === 'HIGH' ? '🟠'
+                    : status === 'NORMAL' ? '🟡'
+                    : '🟢';
+                if (statusEl) {{
+                    statusEl.textContent = statusEmoji + ' ' + status;
+                    statusEl.style.color = status === 'EXTREME' ? '#dc3545'
+                        : status === 'HIGH' ? '#f59e0b'
+                        : status === 'NORMAL' ? '#eab308'
+                        : '#16a34a';
+                }}
+                if (avgEl) avgEl.textContent = (fc.average_rest_days || 0) + ' days';
+                if (minEl) minEl.textContent = (fc.minimum_rest_days || 0) + ' day' + ((fc.minimum_rest_days || 0) === 1 ? '' : 's');
+                if (riskEl) riskEl.textContent = fc.risk_label || '—';
             }};
 
             window.onNavMatchChange = function() {{

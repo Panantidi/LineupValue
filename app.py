@@ -2393,6 +2393,60 @@ async def lineup_api_fixtures(team_id: str):
     return JSONResponse(content={"fixtures": result, "team_id": team_id})
 
 
+@app.get("/lineup_ai/api/fixture-congestion/{team_id}")
+async def lineup_api_fixture_congestion(team_id: str):
+    """Return Fixture Congestion (FC) score for a team.
+
+    FC measures calendar density over the next 5 upcoming matches
+    using rest-day analysis. Higher score = denser schedule.
+
+    Returns the same dict stored under cache["fixture_congestion"]
+    by refresh_team (api_refresh.py), recomputing it on the fly if
+    the cache field is missing (e.g. before next refresh).
+    """
+    import json, os
+    from fixture_congestion import compute_fixture_congestion, progress_bar, risk_label
+
+    cache_path = "/home/openclaw/.openclaw/workspace/_live_cache_" + team_id + ".json"
+    fc_data = None
+    fixtures = []
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path) as f:
+                cache = json.load(f)
+            fc_data = cache.get("fixture_congestion")
+            fixtures = cache.get("fixtures", []) or []
+        except Exception:
+            pass
+
+    # If cached FC is missing but fixtures exist, compute it on the fly.
+    if fc_data is None and fixtures:
+        try:
+            fc_data = compute_fixture_congestion(fixtures)
+        except Exception as e:
+            fc_data = None
+
+    if fc_data is None:
+        return JSONResponse(content={
+            "team_id": team_id,
+            "fixture_congestion": 0,
+            "status": "LOW",
+            "average_rest_days": 0.0,
+            "minimum_rest_days": 0,
+            "next_matches_count": len(fixtures),
+            "rest_intervals": [],
+            "progress_bar": progress_bar(0),
+            "risk_label": risk_label(0),
+        }, status_code=200)
+
+    fc = int(fc_data.get("fixture_congestion", 0))
+    out = dict(fc_data)
+    out["team_id"] = team_id
+    out["progress_bar"] = progress_bar(fc)
+    out["risk_label"] = risk_label(fc)
+    return JSONResponse(content=out)
+
+
 # --- COMPARE: side-by-side team comparison for a match ---
 # --- COMPARE: side-by-side match comparison with full team views ---
 @app.get("/lineup_ai/compare/{team_id}")
