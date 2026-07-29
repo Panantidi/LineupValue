@@ -10452,54 +10452,67 @@
   "Latvia": {
     "Virsliga": [
       {
-        "id": "v7fJtdnJ",
-        "name": "Grobina",
-        "slug": "grobina"
-      },
-      {
-        "id": "dSbWVvY0",
-        "name": "Tukums 2000",
-        "slug": "tukums-2000"
-      },
-      {
-        "id": "Qql3pvmf",
+        "id": "n9K4jY6A",
         "name": "Auda",
+        "short_name": "AUD",
+        "image_path": "https://static.flashscore.com/res/image/data/b7ywwUlC-hftqBi79.png",
         "slug": "fk-auda-riga"
       },
       {
-        "id": "hWken0Is",
-        "name": "Jelgava",
-        "slug": "jelgava"
-      },
-      {
-        "id": "KSEbHuJ7",
-        "name": "Super Nova",
-        "slug": "super-nova"
-      },
-      {
-        "id": "MkO4S5R8",
-        "name": "Ogre United",
-        "slug": "ogre-united"
-      },
-      {
-        "id": "rJ7VQhj4",
-        "name": "Riga FC",
-        "slug": "riga-fc"
-      },
-      {
-        "id": "0vCrGyxn",
-        "name": "RFS",
-        "slug": "rfs"
-      },
-      {
-        "id": "2kTQcfMH",
+        "id": "Kb4SLBTs",
         "name": "BFC Daugavpils",
+        "short_name": "BFC",
+        "image_path": "https://static.flashscore.com/res/image/data/pxSaYDQq-0Si1Ct09.png",
         "slug": "bfc-daugavpils"
       },
       {
-        "id": "tYHSE1Fa",
+        "id": "nym30tD6",
         "name": "FK Liepaja",
+        "short_name": "FKL",
+        "image_path": "https://static.flashscore.com/res/image/data/hhn26vVH-2HZIU7mj.png",
         "slug": "fk-liepaja"
+      },
+      {
+        "id": "W8nqq1Vn",
+        "name": "Grobina",
+        "short_name": "GRO",
+        "image_path": "https://static.flashscore.com/res/image/data/6NLKCOjT-02zeHdqh.png",
+        "slug": "grobina"
+      },
+      {
+        "id": "l8JA9Avf",
+        "name": "Jelgava",
+        "short_name": "JEL",
+        "image_path": "https://static.flashscore.com/res/image/data/hSoYtIRq-finrn2xp.png",
+        "slug": "jelgava"
+      },
+      {
+        "id": "Iu5ZbGPT",
+        "name": "Ogre United",
+        "short_name": "OGR",
+        "image_path": "https://static.flashscore.com/res/image/data/v3Ku9hne-2kHLLf4c.png",
+        "slug": "ogre-united"
+      },
+      {
+        "id": "Midjg0YH",
+        "name": "RFS",
+        "short_name": "RFS",
+        "image_path": "https://static.flashscore.com/res/image/data/YVWzOf7k-S0raO1Xr.png",
+        "slug": "rfs"
+      },
+      {
+        "id": "l2DXxTjh",
+        "name": "Riga FC",
+        "short_name": "RIG",
+        "image_path": "https://static.flashscore.com/res/image/data/WnBBFtRq-EmoyoZps.png",
+        "slug": "riga-fc"
+      },
+      {
+        "id": "hnBSguq1",
+        "name": "Tukums 2000",
+        "short_name": "TUK",
+        "image_path": "https://static.flashscore.com/res/image/data/QuTbLeQq-tC6rU9Br.png",
+        "slug": "tukums-2000"
       }
     ]
   }
