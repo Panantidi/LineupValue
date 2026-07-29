@@ -2,26 +2,27 @@
 
 Computed from the next 5 upcoming fixtures of a team.
 
-== Algorithm ==
+== Algorithm (Jul 29 2026 v2) ==
 
 For each pair of consecutive matches in the next 5:
-    rest_days = next_match_date - current_match_date - 1
+    recovery_hours = (next_timestamp - current_timestamp) / 3600
+    recovery_days = floor(recovery_hours / 24)
 
-Map each interval to a load points (lower rest = higher load):
-    5+ days =  0 points
-    4 days   = 20 points
-    3 days   = 40 points
-    2 days   = 70 points
-    1 day    = 90 points
-    0 days   = 100 points
+Map each interval to load points (lower recovery = higher load):
+    5+ days recovery =  0 points
+    4 days recovery  = 20 points
+    3 days recovery  = 40 points
+    2 days recovery  = 70 points
+    1 day recovery   = 90 points
+    0 days recovery  = 100 points
 
 average_load = sum(points) / number_of_intervals
 
 short_rest_penalty (added on top of average_load):
-    min_rest_days == 0 -> +20
-    min_rest_days == 1 -> +15
-    min_rest_days == 2 -> +5
-    min_rest_days >= 3 -> +0
+    min_recovery_days == 0 -> +20
+    min_recovery_days == 1 -> +15
+    min_recovery_days == 2 -> +5
+    min_recovery_days >= 3 -> +0
 
 FC = clamp(average_load + short_rest_penalty, 0, 100)
 
@@ -31,6 +32,23 @@ FC = clamp(average_load + short_rest_penalty, 0, 100)
  26-50  -> NORMAL   (yellow)
  51-75  -> HIGH     (orange)
  76-100 -> EXTREME  (red)
+
+== Difference from v1 (Jul 29 2026) ==
+
+v1: rest_days = (delta_days) - 1
+    (subtract the day of the match itself)
+    E.g. 14.08 00:30 -> 16.08 23:00
+       delta = 2 days, rest = 2 - 1 = 1 day
+
+v2: recovery_days = floor(hours_between / 24)
+    (actual recovery time including the match day)
+    E.g. 14.08 00:30 -> 16.08 23:00
+       hours = 70.5, recovery = floor(70.5/24) = 2 days
+
+v2 is more physically accurate — it represents the actual
+physical recovery time the team has between two fixtures.
+
+Penalty thresholds stay the same (0/1/2/3+).
 """
 
 from __future__ import annotations
@@ -152,34 +170,39 @@ def compute_fixture_congestion(fixtures: list) -> dict:
         return {
             "fixture_congestion": 0,
             "status": "LOW",
-            "average_rest_days": 0.0,
-            "minimum_rest_days": 0,
+            "average_recovery_days": 0.0,
+            "minimum_recovery_days": 0,
             "next_matches_count": len(parsed),
-            "rest_intervals": [],
+            "recovery_intervals": [],
         }
 
+    # Jul 29 2026 v2: use hours-based recovery (not "calendar days between - 1").
     intervals: List[int] = []
+    interval_hours: List[float] = []
     for prev, nxt in zip(parsed, parsed[1:]):
-        delta_days = (nxt - prev).days
-        rest = max(0, delta_days - 1)
-        intervals.append(rest)
+        hours = (nxt - prev).total_seconds() / 3600.0
+        recovery_days = int(hours // 24)
+        if recovery_days < 0:
+            recovery_days = 0
+        intervals.append(recovery_days)
+        interval_hours.append(round(hours, 1))
 
     if not intervals:
         return {
             "fixture_congestion": 0,
             "status": "LOW",
-            "average_rest_days": 0.0,
-            "minimum_rest_days": 0,
+            "average_recovery_days": 0.0,
+            "minimum_recovery_days": 0,
             "next_matches_count": len(parsed),
-            "rest_intervals": [],
+            "recovery_intervals": [],
         }
 
-    avg_rest = sum(intervals) / len(intervals)
-    min_rest = min(intervals)
+    avg_recovery = sum(intervals) / len(intervals)
+    min_recovery = min(intervals)
 
     load_points = [_rest_to_load_points(r) for r in intervals]
     average_load = sum(load_points) / len(load_points)
-    penalty = _penalty_for_min_rest(min_rest)
+    penalty = _penalty_for_min_rest(min_recovery)
 
     fc_raw = average_load + penalty
     fc = max(0, min(100, int(round(fc_raw))))
@@ -187,10 +210,11 @@ def compute_fixture_congestion(fixtures: list) -> dict:
     return {
         "fixture_congestion": fc,
         "status": _status_for(fc),
-        "average_rest_days": round(avg_rest, 1),
-        "minimum_rest_days": min_rest,
+        "average_recovery_days": round(avg_recovery, 1),
+        "minimum_recovery_days": min_recovery,
         "next_matches_count": len(parsed),
-        "rest_intervals": intervals,
+        "recovery_intervals": intervals,
+        "recovery_hours": interval_hours,
     }
 
 

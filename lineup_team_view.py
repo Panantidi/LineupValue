@@ -3605,8 +3605,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         : status === 'NORMAL' ? '#eab308'
                         : '#16a34a';
                 }}
-                if (avgEl) avgEl.textContent = (fc.average_rest_days || 0) + ' days';
-                if (minEl) minEl.textContent = (fc.minimum_rest_days || 0) + ' day' + ((fc.minimum_rest_days || 0) === 1 ? '' : 's');
+                if (avgEl) avgEl.textContent = (fc.average_recovery_days || 0) + ' days';
+                if (minEl) minEl.textContent = (fc.minimum_recovery_days || 0) + ' day' + ((fc.minimum_recovery_days || 0) === 1 ? '' : 's');
                 if (riskEl) riskEl.textContent = fc.risk_label || '—';
             }};
 
