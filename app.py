@@ -2398,29 +2398,31 @@ async def lineup_api_fixture_congestion(team_id: str):
     """Return Fixture Congestion (FC) score for a team.
 
     FC measures calendar density over the next 5 upcoming matches
-    using rest-day analysis. Higher score = denser schedule.
+    using hours-based recovery time. Higher score = denser schedule.
 
-    Returns the same dict stored under cache["fixture_congestion"]
-    by refresh_team (api_refresh.py), recomputing it on the fly if
-    the cache field is missing (e.g. before next refresh).
+    Jul 29 2026 v3: ALWAYS recompute from cache fixtures on the fly.
+    The cached FC may be stale (older v1/v2 schema) or out of sync
+    with the latest compute_fixture_congestion algorithm. We use
+    the cached fixtures[] as source of truth and recompute FC every
+    request. This is fast (no API calls) and guarantees consistent
+    output regardless of when cache was last refreshed.
     """
     import json, os
     from fixture_congestion import compute_fixture_congestion, progress_bar, risk_label
 
     cache_path = "/home/openclaw/.openclaw/workspace/_live_cache_" + team_id + ".json"
-    fc_data = None
     fixtures = []
     if os.path.exists(cache_path):
         try:
             with open(cache_path) as f:
                 cache = json.load(f)
-            fc_data = cache.get("fixture_congestion")
             fixtures = cache.get("fixtures", []) or []
         except Exception:
             pass
 
-    # If cached FC is missing but fixtures exist, compute it on the fly.
-    if fc_data is None and fixtures:
+    # ALWAYS recompute from fixtures (ignore cached FC value).
+    fc_data = None
+    if fixtures:
         try:
             fc_data = compute_fixture_congestion(fixtures)
         except Exception as e:
