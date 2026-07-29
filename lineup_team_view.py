@@ -3612,7 +3612,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     // so display is uniform: "Rotation Risk — Low/Medium/High/Very High".
                     let lvl = (fc.risk_label || '—').replace(' Rotation Risk', '').trim();
                     if (!lvl || lvl === '—') lvl = '—';
-                    riskEl.textContent = 'Rotation Risk — ' + lvl;
+                    riskEl.textContent = lvl;
                 }}
             }};
 
