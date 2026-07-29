@@ -10368,84 +10368,116 @@
   "Luxembourg": {
     "BGL Ligue": [
       {
-        "id": "MwSKd6YR",
-        "name": "Wiltz",
-        "slug": "wiltz"
-      },
-      {
-        "id": "r7BxKZVh",
-        "name": "Niedercorn",
-        "slug": "progres-niedercorn"
-      },
-      {
-        "id": "KUXK1hGO",
+        "id": "O4ORhR6N",
         "name": "Bissen",
+        "short_name": "BIS",
+        "image_path": "https://static.flashscore.com/res/image/data/b5BJuGBN-xp9MKGr2.png",
         "slug": "bissen"
       },
       {
-        "id": "Sf1PP42E",
-        "name": "Mondorf",
-        "slug": "mondorf"
-      },
-      {
-        "id": "AyMiB5mL",
-        "name": "Racing Luxembourg",
-        "slug": "racing-luxembourg"
-      },
-      {
-        "id": "lpGV3Nue",
-        "name": "Rumelange",
-        "slug": "rumelange"
-      },
-      {
-        "id": "67R45zHa",
-        "name": "UNA Strassen",
-        "slug": "una-strassen"
-      },
-      {
-        "id": "QZGbkOQ1",
-        "name": "Walferdange",
-        "slug": "fc-residence-walferdange"
-      },
-      {
-        "id": "4Eicqja4",
+        "id": "pSWVqtMr",
         "name": "Differdange",
+        "short_name": "DIF",
+        "image_path": "https://static.flashscore.com/res/image/data/joYkXfWH-ENsaZXsh.png",
         "slug": "differdange"
       },
       {
-        "id": "SE7PUjpB",
+        "id": "p2TnjrqF",
         "name": "Dudelange",
+        "short_name": "DUD",
+        "image_path": "https://static.flashscore.com/res/image/data/f17H0hAN-rkYlaIFp.png",
         "slug": "dudelange"
       },
       {
-        "id": "nLRUckEc",
+        "id": "0K0JZsB0",
         "name": "Ettelbruck",
+        "short_name": "ETT",
+        "image_path": "https://static.flashscore.com/res/image/data/40ThbvXH-roYoOWWi.png",
         "slug": "ettelbruck"
       },
       {
-        "id": "OrlDu8bT",
+        "id": "tvAn8Mqj",
         "name": "Hesperange",
+        "short_name": "HES",
+        "image_path": "https://static.flashscore.com/res/image/data/xUHW54oe-Y72Z4YSk.png",
         "slug": "hesperange"
       },
       {
-        "id": "ny69YYpn",
+        "id": "U15WrMj3",
+        "name": "Hostert",
+        "short_name": "HOS",
+        "image_path": "https://static.flashscore.com/res/image/data/Qu1pL7lC-IoJOCMD1.png",
+        "slug": "hostert"
+      },
+      {
+        "id": "xEsd9oqh",
         "name": "Jeunesse Esch",
+        "short_name": "JEU",
+        "image_path": "https://static.flashscore.com/res/image/data/GxAzUGjC-IDTUhVTJ.png",
         "slug": "jeunesse-esch"
       },
       {
-        "id": "pSB9wLSr",
+        "id": "CAvMpqxD",
         "name": "Kaerjeng",
+        "short_name": "KAE",
+        "image_path": "https://static.flashscore.com/res/image/data/xvJvEzgT-YB20ndi2.png",
         "slug": "kaerjeng"
       },
       {
-        "id": "Usd3N8xo",
+        "id": "YLIte97b",
+        "name": "Mondorf",
+        "short_name": "MON",
+        "image_path": "https://static.flashscore.com/res/image/data/MmYaIpme-MyBvjPJr.png",
+        "slug": "mondorf"
+      },
+      {
+        "id": "EmEnIs2Q",
+        "name": "Niedercorn",
+        "short_name": "PRO",
+        "image_path": "https://static.flashscore.com/res/image/data/UP1v0eVH-2qE2OlaR.png",
+        "slug": "progres-niedercorn"
+      },
+      {
+        "id": "ruKP1XIN",
+        "name": "Racing Luxembourg",
+        "short_name": "RAC",
+        "image_path": "https://static.flashscore.com/res/image/data/2cjrup8k-fBhtpSEp.png",
+        "slug": "racing-luxembourg"
+      },
+      {
+        "id": "xjLtWPyc",
+        "name": "Rumelange",
+        "short_name": "RUM",
+        "image_path": "https://static.flashscore.com/res/image/data/Mkoa8CPq-IkoY0gOk.png",
+        "slug": "rumelange"
+      },
+      {
+        "id": "jB6Sq2yc",
+        "name": "UNA Strassen",
+        "short_name": "STR",
+        "image_path": "https://static.flashscore.com/res/image/data/nBqne9le-OtNCFOTr.png",
+        "slug": "una-strassen"
+      },
+      {
+        "id": "zBrIvURI",
         "name": "Victoria Rosport",
+        "short_name": "VIC",
+        "image_path": "https://static.flashscore.com/res/image/data/Q9KGtAiT-faxfJZUP.png",
         "slug": "victoria-rosport"
       },
       {
-        "id": "QP3JeKlR",
-        "name": "Hostert",
-        "slug": "hostert"
+        "id": "x28KdMNq",
+        "name": "Walferdange",
+        "short_name": "WAL",
+        "image_path": "https://static.flashscore.com/res/image/data/MLasKCT0-Mcnc0HDe.png",
+        "slug": "fc-residence-walferdange"
+      },
+      {
+        "id": "zyvpVqi3",
+        "name": "Wiltz",
+        "short_name": "WIL",
+        "image_path": "https://static.flashscore.com/res/image/data/ldo2R6lC-j9bYxxH3.png",
+        "slug": "wiltz"
       }
     ]
   },
