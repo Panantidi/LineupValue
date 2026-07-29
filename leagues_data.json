@@ -10210,158 +10210,190 @@
   "Israel": {
     "Ligat ha'Al": [
       {
-        "id": "CWAWjH3t",
-        "name": "Hapoel Jerusalem",
-        "slug": "hapoel-jerusalem"
-      },
-      {
-        "id": "C4WomZ25",
-        "name": "Hapoel Tel Aviv",
-        "slug": "hapoel-tel-aviv"
-      },
-      {
-        "id": "A1DZcjHN",
-        "name": "H. Beer Sheva",
-        "slug": "h-beer-sheva"
-      },
-      {
-        "id": "GKBJ1YHb",
-        "name": "Ironi Tiberias",
-        "slug": "ironi-tiberias"
-      },
-      {
-        "id": "UPzaxIlm",
-        "name": "Maccabi Haifa",
-        "slug": "maccabi-haifa"
-      },
-      {
-        "id": "lfXEYZmC",
-        "name": "Maccabi Petah Tikva",
-        "slug": "maccabi-petah-tikva"
-      },
-      {
-        "id": "hrY1qi2U",
-        "name": "Netanya",
-        "slug": "netanya"
-      },
-      {
-        "id": "Clh7CkWG",
-        "name": "Beitar Jerusalem",
-        "slug": "beitar-jerusalem"
-      },
-      {
-        "id": "jcno57Oj",
-        "name": "Hapoel Haifa",
-        "slug": "hapoel-haifa"
-      },
-      {
-        "id": "YwiiGXWi",
+        "id": "0Q2H9Ccm",
         "name": "Hapoel Petah Tikva",
+        "short_name": "HAP",
+        "image_path": "https://static.flashscore.com/res/image/data/OdD9rRCN-hQ0m0v0m.png",
         "slug": "hapoel-petah-tikva"
       },
       {
-        "id": "GInvRloA",
-        "name": "Hap. Ramat Gan",
-        "slug": "hapoel-ramat-gan"
+        "id": "tzLcThTm",
+        "name": "Maccabi Petah Tikva",
+        "short_name": "MAC",
+        "image_path": "https://static.flashscore.com/res/image/data/2Pusm9S0-KbVn9zNU.png",
+        "slug": "maccabi-petah-tikva"
       },
       {
-        "id": "SY7DS1ME",
-        "name": "Kiryat Shmona",
-        "slug": "shmona"
+        "id": "EsnkB6qC",
+        "name": "Ironi Tiberias",
+        "short_name": "IRO",
+        "image_path": "https://static.flashscore.com/res/image/data/dKo5J7Pq-MoYfhl4s.png",
+        "slug": "ironi-tiberias"
       },
       {
-        "id": "WUdiLJEl",
-        "name": "Maccabi Tel Aviv",
-        "slug": "maccabi-tel-aviv"
-      },
-      {
-        "id": "fVCJ6Kae",
+        "id": "jHv2BXr7",
         "name": "Sakhnin",
+        "short_name": "BNE",
+        "image_path": "https://static.flashscore.com/res/image/data/GfraZQle-Au2PKzWK.png",
         "slug": "sakhnin"
+      },
+      {
+        "id": "zVucZzyE",
+        "name": "Maccabi Haifa",
+        "short_name": "MAC",
+        "image_path": "https://static.flashscore.com/res/image/data/h4m4NhUH-Q5Dpg1h8.png",
+        "slug": "maccabi-haifa"
+      },
+      {
+        "id": "nsYMzMPe",
+        "name": "Hapoel Haifa",
+        "short_name": "HAP",
+        "image_path": "https://static.flashscore.com/res/image/data/WSoNq9VH-ImdO7J3k.png",
+        "slug": "hapoel-haifa"
+      },
+      {
+        "id": "raBlviD6",
+        "name": "Netanya",
+        "short_name": "NET",
+        "image_path": "https://static.flashscore.com/res/image/data/CdhYGOhT-vk5aQxpF.png",
+        "slug": "netanya"
+      },
+      {
+        "id": "0AphGnil",
+        "name": "Hapoel Jerusalem",
+        "short_name": "HAP",
+        "image_path": "https://static.flashscore.com/res/image/data/W81Fc1jT-Y1aUf0ik.png",
+        "slug": "hapoel-jerusalem"
+      },
+      {
+        "id": "QN0gwBSC",
+        "name": "Kiryat Shmona",
+        "short_name": "KIR",
+        "image_path": "https://static.flashscore.com/res/image/data/8KI7gZne-AudDKFGO.png",
+        "slug": "kiryat-shmona"
+      },
+      {
+        "id": "xdPX7jSa",
+        "name": "Hap. Ramat Gan",
+        "short_name": "HAP",
+        "image_path": "https://static.flashscore.com/res/image/data/xQkYjg6k-dzZG4p8r.png",
+        "slug": "hap-ramat-gan"
       }
     ]
   },
   "Wales": {
     "Cymru Premier": [
       {
-        "id": "SzqHDZUr",
+        "id": "lv21mqLr",
         "name": "Barry",
-        "slug": "barry-town"
+        "short_name": "BAR",
+        "image_path": "https://static.flashscore.com/res/image/data/OGyHzSjC-x0ams4bn.png",
+        "slug": "barry"
       },
       {
-        "id": "8EpX9iU7",
-        "name": "Briton Ferry",
-        "slug": "briton-ferry"
-      },
-      {
-        "id": "65zRVYjR",
-        "name": "Colwyn Bay",
-        "slug": "colwyn-bay"
-      },
-      {
-        "id": "pEU4Ojq1",
-        "name": "Llandudno",
-        "slug": "llandudno-fc"
-      },
-      {
-        "id": "AZUcpY5K",
-        "name": "Cardiff Metropolitan",
-        "slug": "cardiff-metropolitan-university"
-      },
-      {
-        "id": "EVJywjbf",
-        "name": "Haverfordwest",
-        "slug": "haverfordwest"
-      },
-      {
-        "id": "ShQiZ7cJ",
-        "name": "Connahs Q.",
-        "slug": "connahs-q"
-      },
-      {
-        "id": "hbj7ybvm",
-        "name": "Penybont",
-        "slug": "penybont"
-      },
-      {
-        "id": "YyhNXFwC",
-        "name": "Airbus",
-        "slug": "airbus-uk-broughton-fc"
-      },
-      {
-        "id": "AHVvjcgt",
-        "name": "Ammanford",
-        "slug": "ammanford-town"
-      },
-      {
-        "id": "jeXfnFh5",
-        "name": "Caernarfon",
-        "slug": "caernarfon"
-      },
-      {
-        "id": "EkCZRp7j",
+        "id": "fw6LT2dr",
         "name": "Cambrian United",
+        "short_name": "CAM",
+        "image_path": "https://static.flashscore.com/res/image/data/QDDppZBN-4EDpNSCD.png",
         "slug": "cambrian-united"
       },
       {
-        "id": "lM7TmST9",
+        "id": "xOUtSVR7",
+        "name": "Briton Ferry",
+        "short_name": "BRI",
+        "image_path": "https://static.flashscore.com/res/image/data/faBTfiPq-IZjb4njN.png",
+        "slug": "briton-ferry"
+      },
+      {
+        "id": "CKHq8vfg",
+        "name": "Ammanford",
+        "short_name": "AMM",
+        "image_path": "https://static.flashscore.com/res/image/data/CWNXUaBN-AX9nNKwH.png",
+        "slug": "ammanford"
+      },
+      {
+        "id": "IBuEcgCq",
+        "name": "Colwyn Bay",
+        "short_name": "COL",
+        "image_path": "https://static.flashscore.com/res/image/data/KMN7hskC-EeyV1qlM.png",
+        "slug": "colwyn-bay"
+      },
+      {
+        "id": "Sh4unlDI",
+        "name": "Trefelin",
+        "short_name": "TRE",
+        "image_path": "https://static.flashscore.com/res/image/data/Kv0ykr96-M73FC44i.png",
+        "slug": "trefelin"
+      },
+      {
+        "id": "p4Axz2IQ",
+        "name": "Llandudno",
+        "short_name": "LLA",
+        "image_path": "https://static.flashscore.com/res/image/data/jBH9kYmC-8ESmY28i.png",
+        "slug": "llandudno"
+      },
+      {
+        "id": "rDPLzGkF",
         "name": "Flint",
-        "slug": "flint-town"
+        "short_name": "FLI",
+        "image_path": "https://static.flashscore.com/res/image/data/ELS8NsiT-KbixPda2.png",
+        "slug": "flint"
       },
       {
-        "id": "W8i7tpMq",
-        "name": "Holywell",
-        "slug": "holywell-town-fc"
+        "id": "ncsr4F0I",
+        "name": "Connahs Q.",
+        "short_name": "CON",
+        "image_path": "https://static.flashscore.com/res/image/data/lxbBTu6k-nwFtJ6d4.png",
+        "slug": "connahs-q"
       },
       {
-        "id": "WSs12Rr3",
+        "id": "CzgD4yW5",
+        "name": "Caernarfon",
+        "short_name": "CAE",
+        "image_path": "https://static.flashscore.com/res/image/data/nJWMqLhT-Q7INJWDH.png",
+        "slug": "caernarfon"
+      },
+      {
+        "id": "zym4viel",
+        "name": "Penybont",
+        "short_name": "PEN",
+        "image_path": "https://static.flashscore.com/res/image/data/QmutQvU0-IufDzkYs.png",
+        "slug": "penybont"
+      },
+      {
+        "id": "lGMtZWUH",
         "name": "TNS",
+        "short_name": "TNS",
+        "image_path": "https://static.flashscore.com/res/image/data/vodmkvVH-zcb1Gz6r.png",
         "slug": "tns"
       },
       {
-        "id": "pjlHbqrS",
-        "name": "Trefelin",
-        "slug": "trefelin"
+        "id": "zkXT6GcR",
+        "name": "Cardiff Metropolitan",
+        "short_name": "CAR",
+        "image_path": "https://static.flashscore.com/res/image/data/dppwEvle-byXXfZNp.png",
+        "slug": "cardiff-metropolitan"
+      },
+      {
+        "id": "0QWr1oIb",
+        "name": "Holywell",
+        "short_name": "HOL",
+        "image_path": "https://static.flashscore.com/res/image/data/Iie3x9VH-0C7XZ7Ka.png",
+        "slug": "holywell"
+      },
+      {
+        "id": "Qmtn3ZFO",
+        "name": "Haverfordwest",
+        "short_name": "HAV",
+        "image_path": "https://static.flashscore.com/res/image/data/MRtr0JR0-OtJeQ92e.png",
+        "slug": "haverfordwest"
+      },
+      {
+        "id": "0hRd6c1g",
+        "name": "Airbus",
+        "short_name": "AIR",
+        "image_path": "https://static.flashscore.com/res/image/data/ChIDaPRq-SY7hNqon.png",
+        "slug": "airbus"
       }
     ]
   },
