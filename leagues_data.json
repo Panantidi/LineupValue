@@ -5836,6 +5836,104 @@
     ]
   },
   "China": {
+    "Super League": [
+      {
+        "id": "ILi3oBgH",
+        "name": "Chengdu Rongcheng",
+        "slug": "chengdu-rongcheng",
+        "image_path": "https://static.flashscore.com/res/image/data/Y9kl3wjl-OOoISEmk.png"
+      },
+      {
+        "id": "niRb526o",
+        "name": "Chongqing Tonglianglong",
+        "slug": "chongqing-tonglianglong",
+        "image_path": "https://static.flashscore.com/res/image/data/dU926IxS-vLowDFup.png"
+      },
+      {
+        "id": "EJp81K5A",
+        "name": "Yunnan Yukun",
+        "slug": "yunnan-yukun",
+        "image_path": "https://static.flashscore.com/res/image/data/IqKFSqBr-IoaRKGzN.png"
+      },
+      {
+        "id": "zDctmLjH",
+        "name": "Dalian Yingbo",
+        "slug": "dalian-yingbo",
+        "image_path": "https://static.flashscore.com/res/image/data/8bMO16HG-YPPxnY3b.png"
+      },
+      {
+        "id": "0QkqH4Gf",
+        "name": "Qingdao West Coast",
+        "slug": "qingdao-west-coast",
+        "image_path": "https://static.flashscore.com/res/image/data/ddr7VMYA-21BCdP3t.png"
+      },
+      {
+        "id": "27dl0BzH",
+        "name": "Shandong Taishan",
+        "slug": "shandong-taishan",
+        "image_path": "https://static.flashscore.com/res/image/data/IcoulDYg-Of01Mw8S.png"
+      },
+      {
+        "id": "WSLjVBLN",
+        "name": "Beijing Guoan",
+        "slug": "beijing-guoan",
+        "image_path": "https://static.flashscore.com/res/image/data/jy16BaFa-0WVkf0ET.png"
+      },
+      {
+        "id": "K8GO0Wwb",
+        "name": "Liaoning Tieren",
+        "slug": "liaoning-tieren",
+        "image_path": "https://static.flashscore.com/res/image/data/h66ySzzB-MsnJHNUl.png"
+      },
+      {
+        "id": "ncsQGOBL",
+        "name": "Zhejiang Professional",
+        "slug": "zhejiang-professional",
+        "image_path": "https://static.flashscore.com/res/image/data/fTsZ5XYA-j1jME9Xt.png"
+      },
+      {
+        "id": "08kX8Xr0",
+        "name": "Shenzhen Xinpengcheng",
+        "slug": "shenzhen-xinpengcheng",
+        "image_path": "https://static.flashscore.com/res/image/data/CphYqiyB-dtfEriST.png"
+      },
+      {
+        "id": "r5AIrq5q",
+        "name": "Shanghai Shenhua",
+        "slug": "shanghai-shenhua",
+        "image_path": "https://static.flashscore.com/res/image/data/dtIiQVDa-xEhCoufj.png"
+      },
+      {
+        "id": "Ywy81Djb",
+        "name": "Henan Songshan Longmen",
+        "slug": "henan-songshan-longmen",
+        "image_path": "https://static.flashscore.com/res/image/data/WQSZxrg5-fgNUPaDK.png"
+      },
+      {
+        "id": "O88o93rn",
+        "name": "Shanghai Port",
+        "slug": "shanghai-port",
+        "image_path": "https://static.flashscore.com/res/image/data/pv2alWYA-4Iubiv1h.png"
+      },
+      {
+        "id": "KbZy1iLA",
+        "name": "Qingdao Hainiu",
+        "slug": "qingdao-hainiu",
+        "image_path": "https://static.flashscore.com/res/image/data/WlDlYgZg-h4caPP9m.png"
+      },
+      {
+        "id": "tCx1gsk2",
+        "name": "Tianjin Jinmen Tiger",
+        "slug": "tianjin-jinmen-tiger",
+        "image_path": "https://static.flashscore.com/res/image/data/GUC0BOzS-A5sD8c6B.png"
+      },
+      {
+        "id": "SfLUTe08",
+        "name": "Wuhan Three Towns",
+        "slug": "wuhan-three-towns",
+        "image_path": "https://static.flashscore.com/res/image/data/QJfnQlxS-zNoUk6A2.png"
+      }
+    ],
     "League One": [
       {
         "id": "jZX9VVzU",
