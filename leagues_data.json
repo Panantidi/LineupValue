@@ -10206,5 +10206,301 @@
         "image_path": "https://static.flashscore.com/res/image/data/GUl1NDFG-lQBgfCk0.png"
       }
     ]
+  },
+  "Israel": {
+    "Ligat ha'Al": [
+      {
+        "id": "CWAWjH3t",
+        "name": "Hapoel Jerusalem",
+        "slug": "hapoel-jerusalem"
+      },
+      {
+        "id": "C4WomZ25",
+        "name": "Hapoel Tel Aviv",
+        "slug": "hapoel-tel-aviv"
+      },
+      {
+        "id": "A1DZcjHN",
+        "name": "H. Beer Sheva",
+        "slug": "h-beer-sheva"
+      },
+      {
+        "id": "GKBJ1YHb",
+        "name": "Ironi Tiberias",
+        "slug": "ironi-tiberias"
+      },
+      {
+        "id": "UPzaxIlm",
+        "name": "Maccabi Haifa",
+        "slug": "maccabi-haifa"
+      },
+      {
+        "id": "lfXEYZmC",
+        "name": "Maccabi Petah Tikva",
+        "slug": "maccabi-petah-tikva"
+      },
+      {
+        "id": "hrY1qi2U",
+        "name": "Netanya",
+        "slug": "netanya"
+      },
+      {
+        "id": "Clh7CkWG",
+        "name": "Beitar Jerusalem",
+        "slug": "beitar-jerusalem"
+      },
+      {
+        "id": "jcno57Oj",
+        "name": "Hapoel Haifa",
+        "slug": "hapoel-haifa"
+      },
+      {
+        "id": "YwiiGXWi",
+        "name": "Hapoel Petah Tikva",
+        "slug": "hapoel-petah-tikva"
+      },
+      {
+        "id": "GInvRloA",
+        "name": "Hap. Ramat Gan",
+        "slug": "hapoel-ramat-gan"
+      },
+      {
+        "id": "SY7DS1ME",
+        "name": "Kiryat Shmona",
+        "slug": "shmona"
+      },
+      {
+        "id": "WUdiLJEl",
+        "name": "Maccabi Tel Aviv",
+        "slug": "maccabi-tel-aviv"
+      },
+      {
+        "id": "fVCJ6Kae",
+        "name": "Sakhnin",
+        "slug": "sakhnin"
+      }
+    ]
+  },
+  "Wales": {
+    "Cymru Premier": [
+      {
+        "id": "SzqHDZUr",
+        "name": "Barry",
+        "slug": "barry-town"
+      },
+      {
+        "id": "8EpX9iU7",
+        "name": "Briton Ferry",
+        "slug": "briton-ferry"
+      },
+      {
+        "id": "65zRVYjR",
+        "name": "Colwyn Bay",
+        "slug": "colwyn-bay"
+      },
+      {
+        "id": "pEU4Ojq1",
+        "name": "Llandudno",
+        "slug": "llandudno-fc"
+      },
+      {
+        "id": "AZUcpY5K",
+        "name": "Cardiff Metropolitan",
+        "slug": "cardiff-metropolitan-university"
+      },
+      {
+        "id": "EVJywjbf",
+        "name": "Haverfordwest",
+        "slug": "haverfordwest"
+      },
+      {
+        "id": "ShQiZ7cJ",
+        "name": "Connahs Q.",
+        "slug": "connahs-q"
+      },
+      {
+        "id": "hbj7ybvm",
+        "name": "Penybont",
+        "slug": "penybont"
+      },
+      {
+        "id": "YyhNXFwC",
+        "name": "Airbus",
+        "slug": "airbus-uk-broughton-fc"
+      },
+      {
+        "id": "AHVvjcgt",
+        "name": "Ammanford",
+        "slug": "ammanford-town"
+      },
+      {
+        "id": "jeXfnFh5",
+        "name": "Caernarfon",
+        "slug": "caernarfon"
+      },
+      {
+        "id": "EkCZRp7j",
+        "name": "Cambrian United",
+        "slug": "cambrian-united"
+      },
+      {
+        "id": "lM7TmST9",
+        "name": "Flint",
+        "slug": "flint-town"
+      },
+      {
+        "id": "W8i7tpMq",
+        "name": "Holywell",
+        "slug": "holywell-town-fc"
+      },
+      {
+        "id": "WSs12Rr3",
+        "name": "TNS",
+        "slug": "tns"
+      },
+      {
+        "id": "pjlHbqrS",
+        "name": "Trefelin",
+        "slug": "trefelin"
+      }
+    ]
+  },
+  "Luxembourg": {
+    "BGL Ligue": [
+      {
+        "id": "MwSKd6YR",
+        "name": "Wiltz",
+        "slug": "wiltz"
+      },
+      {
+        "id": "r7BxKZVh",
+        "name": "Niedercorn",
+        "slug": "progres-niedercorn"
+      },
+      {
+        "id": "KUXK1hGO",
+        "name": "Bissen",
+        "slug": "bissen"
+      },
+      {
+        "id": "Sf1PP42E",
+        "name": "Mondorf",
+        "slug": "mondorf"
+      },
+      {
+        "id": "AyMiB5mL",
+        "name": "Racing Luxembourg",
+        "slug": "racing-luxembourg"
+      },
+      {
+        "id": "lpGV3Nue",
+        "name": "Rumelange",
+        "slug": "rumelange"
+      },
+      {
+        "id": "67R45zHa",
+        "name": "UNA Strassen",
+        "slug": "una-strassen"
+      },
+      {
+        "id": "QZGbkOQ1",
+        "name": "Walferdange",
+        "slug": "fc-residence-walferdange"
+      },
+      {
+        "id": "4Eicqja4",
+        "name": "Differdange",
+        "slug": "differdange"
+      },
+      {
+        "id": "SE7PUjpB",
+        "name": "Dudelange",
+        "slug": "dudelange"
+      },
+      {
+        "id": "nLRUckEc",
+        "name": "Ettelbruck",
+        "slug": "ettelbruck"
+      },
+      {
+        "id": "OrlDu8bT",
+        "name": "Hesperange",
+        "slug": "hesperange"
+      },
+      {
+        "id": "ny69YYpn",
+        "name": "Jeunesse Esch",
+        "slug": "jeunesse-esch"
+      },
+      {
+        "id": "pSB9wLSr",
+        "name": "Kaerjeng",
+        "slug": "kaerjeng"
+      },
+      {
+        "id": "Usd3N8xo",
+        "name": "Victoria Rosport",
+        "slug": "victoria-rosport"
+      },
+      {
+        "id": "QP3JeKlR",
+        "name": "Hostert",
+        "slug": "hostert"
+      }
+    ]
+  },
+  "Latvia": {
+    "Virsliga": [
+      {
+        "id": "v7fJtdnJ",
+        "name": "Grobina",
+        "slug": "grobina"
+      },
+      {
+        "id": "dSbWVvY0",
+        "name": "Tukums 2000",
+        "slug": "tukums-2000"
+      },
+      {
+        "id": "Qql3pvmf",
+        "name": "Auda",
+        "slug": "fk-auda-riga"
+      },
+      {
+        "id": "hWken0Is",
+        "name": "Jelgava",
+        "slug": "jelgava"
+      },
+      {
+        "id": "KSEbHuJ7",
+        "name": "Super Nova",
+        "slug": "super-nova"
+      },
+      {
+        "id": "MkO4S5R8",
+        "name": "Ogre United",
+        "slug": "ogre-united"
+      },
+      {
+        "id": "rJ7VQhj4",
+        "name": "Riga FC",
+        "slug": "riga-fc"
+      },
+      {
+        "id": "0vCrGyxn",
+        "name": "RFS",
+        "slug": "rfs"
+      },
+      {
+        "id": "2kTQcfMH",
+        "name": "BFC Daugavpils",
+        "slug": "bfc-daugavpils"
+      },
+      {
+        "id": "tYHSE1Fa",
+        "name": "FK Liepaja",
+        "slug": "fk-liepaja"
+      }
+    ]
   }
 }
