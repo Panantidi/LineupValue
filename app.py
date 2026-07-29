@@ -2435,6 +2435,7 @@ async def lineup_api_fixture_congestion(team_id: str):
             "status": "LOW",
             "average_recovery_days": 0.0,
             "minimum_recovery_days": 0,
+            "minimum_recovery_hours": 0,
             "next_matches_count": len(fixtures),
             "recovery_intervals": [],
             "recovery_hours": [],

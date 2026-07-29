@@ -3606,7 +3606,21 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         : '#16a34a';
                 }}
                 if (avgEl) avgEl.textContent = (fc.average_recovery_days || 0) + ' days';
-                if (minEl) minEl.textContent = (fc.minimum_recovery_days || 0) + ' day' + ((fc.minimum_recovery_days || 0) === 1 ? '' : 's');
+                if (minEl) {{
+                    // Show hours if < 24h (critical, same-day), else days.
+                    // Points (avg/min) are floats so don't pluralize when displaying hours.
+                    const hrs = fc.minimum_recovery_hours;
+                    const days = fc.minimum_recovery_days;
+                    if (hrs != null && hrs < 24) {{
+                        const h = hrs < 1 ? '<1' : Math.round(hrs);
+                        minEl.textContent = h + 'h ⚠️';
+                        minEl.style.color = '#dc3545';
+                    }} else {{
+                        const d = (days || 0).toFixed(1);
+                        minEl.textContent = d + ' days';
+                        minEl.style.color = '';
+                    }}
+                }}
                 if (riskEl) {{
                     // Display: "Rotation Risk — Low/Medium/High/Very High".
                     // fc.risk_label now returns just the level (Jul 29 2026).

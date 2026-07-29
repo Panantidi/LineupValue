@@ -37,19 +37,30 @@ FC = clamp(average_load + short_rest_penalty, 0, 100)
 
 v1 (morning, Jul 29 2026):
   rest_days = (delta_days) - 1
-  Calendar days between matches minus the match day itself.
-  E.g. 14.08 00:30 -> 16.08 23:00 -> 1 day. WRONG.
+  WRONG.
 
 v2 (afternoon, Jul 29 2026):
   recovery_days = floor(hours / 24)
-  E.g. 71.5 hours -> 2.98 -> 2.0 days. WRONG (too low).
+  WRONG (too low).
 
 v3 (evening, Jul 29 2026):
   recovery_days = round(hours / 24, 1)
-  E.g. 71.5 hours -> 2.98 -> 3.0 days (round).
-  penalty uses floor(recovery_days) so the penalty
-  thresholds match the original spec (0/1/2/3+).
-  E.g. 2.9 days -> penalty uses floor(2.9)=2 -> +5.
+  penalty uses floor(recovery_days).
+
+v4 (late evening, Jul 29 2026):
+  penalty uses HOURS (not days) so that
+  single-day matches with hour-level density
+  (e.g. back-to-back matches at 14:00 and 15:00
+  = 1 hour gap) are correctly flagged as critical.
+  Added minimum_recovery_hours to JSON.
+  Load points still use round(days) so
+  0.04 days -> round -> 0 days -> 100 pts (critical).
+
+Penalty thresholds (v4, hours-based):
+  recovery_hours < 24  -> +20 (critical, same-day)
+  24-47 hours (1 day)  -> +15
+  48-71 hours (2 days) -> +5
+  72+ hours (3+ days)  -> +0
 """
 
 from __future__ import annotations
@@ -95,13 +106,24 @@ def _status_for(fc: float) -> str:
     return "EXTREME"
 
 
-def _penalty_for_min_rest(min_rest_days: int) -> int:
-    """Short-rest penalty applied on top of average load."""
-    if min_rest_days <= 0:
+def _penalty_for_min_rest_hours(min_recovery_hours: float) -> int:
+    """Short-rest penalty applied on top of average load.
+
+    Hours-based (Jul 29 2026 v4): so a 1-hour gap
+    between two matches on the same day is correctly
+    critical, not just "0 days".
+
+    Thresholds:
+      < 24 hours      -> +20 (critical, same-day)
+      24-47 hours (1d) -> +15
+      48-71 hours (2d) -> +5
+      72+ hours (3d+)  -> +0
+    """
+    if min_recovery_hours < 24:
         return 20
-    if min_rest_days == 1:
+    if min_recovery_hours < 48:
         return 15
-    if min_rest_days == 2:
+    if min_recovery_hours < 72:
         return 5
     return 0
 
@@ -201,6 +223,7 @@ def compute_fixture_congestion(fixtures: list) -> dict:
             "status": "LOW",
             "average_recovery_days": 0.0,
             "minimum_recovery_days": 0,
+            "minimum_recovery_hours": 0,
             "next_matches_count": len(parsed),
             "recovery_intervals": [],
             "recovery_hours": [],
@@ -208,12 +231,14 @@ def compute_fixture_congestion(fixtures: list) -> dict:
 
     avg_recovery = sum(intervals) / len(intervals)
 
-    # Penalty uses floor lookup (matches original 0/1/2/3+ thresholds).
-    min_recovery = min(intervals)
-    min_recovery_floor = int(min_recovery // 1)
-    penalty = _penalty_for_min_rest(min_recovery_floor)
+    # Find minimum recovery, both in hours (raw) and days (float).
+    min_recovery_days = min(intervals)
+    min_recovery_hours = min(interval_hours) if interval_hours else 0.0
 
-    # Load points use round() to nearest int (so 2.9 -> 3 days -> 40 pts).
+    # Penalty uses HOURS (v4) so same-day 1-hour gap -> +20 critical.
+    penalty = _penalty_for_min_rest_hours(min_recovery_hours)
+
+    # Load points use round(days) (0.9 -> 1 day -> 90 pts; 0.04 -> 0 d -> 100 pts).
     load_points = [_rest_to_load_points(round(r)) for r in intervals]
     average_load = sum(load_points) / len(load_points)
 
@@ -224,7 +249,8 @@ def compute_fixture_congestion(fixtures: list) -> dict:
         "fixture_congestion": fc,
         "status": _status_for(fc),
         "average_recovery_days": round(avg_recovery, 1),
-        "minimum_recovery_days": min_recovery,
+        "minimum_recovery_days": min_recovery_days,
+        "minimum_recovery_hours": min_recovery_hours,
         "next_matches_count": len(parsed),
         "recovery_intervals": intervals,
         "recovery_hours": interval_hours,
