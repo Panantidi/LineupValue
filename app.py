@@ -2808,21 +2808,16 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     info_box_lines = []
 
     # 1) InfoBox content from Flashscore match HTML page.
-    # Jul 30 2026 v3 (user spec): infoBox text must come from
-    # the API (DM field in the match page), NOT be hardcoded.
-    # Only show info_box when DM has actual content for THIS match.
+    # Jul 30 2026 v3 (user spec): infoBox text comes from
+    # the DM field of the match HTML page. If DM is empty or
+    # absent, info_box_text stays empty — we DO NOT invent
+    # a fallback. The user explicitly said: "не нужно
+    # придумывать от себя, бери только данные по API!"
     info_box_text = ''
     try:
-        info_box_text = _scrape_flashscore_infobox(mid)
+        info_box_text = _scrape_flashscore_infobox(mid) or ''
     except Exception:
         info_box_text = ''
-
-    # If scrape returned nothing but venue differs from home team's
-    # stadium, fall back to a generic neutral-venue note.
-    if not info_box_text and match_stadium and home_stadium and match_stadium != home_stadium:
-        if match_stadium.lower().split('(')[0].strip() != home_stadium.lower().split('(')[0].strip():
-            venue_name = match_stadium.split('·')[0].split('(')[0].strip().rstrip(',').strip()
-            info_box_text = '⚠ Neutral venue \u2014 ' + venue_name + '.'
 
 
     # --- Render template ---
