@@ -81,6 +81,55 @@ CATEGORIES = [
 IMPACT_LEVELS = ["HIGH", "MEDIUM", "LOW"]
 
 
+def _scrape_flashscore_infobox(match_id: str) -> str:
+    """Scrape the infoBox text from the Flashscore match HTML page.
+
+    Jul 30 2026: the /matches/details JSON API does NOT include the
+    infoBox (it only has venue, referee, scores). Flashscore renders
+    the infoBox text in the match HTML page inside a JSON-encoded
+    array under the abbreviated key "DM" — e.g.:
+
+        {"DM":"Playing home matches at a different stadium -
+         Adjarabet Arena. First leg result: 5-0."}
+
+    We pull the page, extract {"DM":"..."}, and return the text.
+    Empty string if the field is absent (regular match) or on
+    any error.
+
+    This is the source of truth for the infoBox content per match.
+    Different matches will have different texts (or no text at all).
+    """
+    if not match_id:
+        return ""
+    try:
+        import urllib.request as _ur
+        url = f"https://www.flashscore.com/match/{match_id}/"
+        req = _ur.Request(url, headers={
+            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                           "AppleWebKit/537.36 (KHTML, like Gecko) "
+                           "Chrome/121.0.0.0 Safari/537.36"),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9",
+            "Accept-Language": "en-US,en;q=0.9",
+        })
+        with _ur.urlopen(req, timeout=6) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+        # Try strict JSON-like pattern first, then simple.
+        m = re.search(r'\{"DM":"([^"\\]*(?:\\.[^"\\]*)*)"\}', html)
+        if not m:
+            m = re.search(r'"DM":"([^"]+)"', html)
+        if m:
+            text = (m.group(1)
+                    .replace('\\"', '"')
+                    .replace('\\\\', '\\')
+                    .replace('\\n', ' ')
+                    .replace('\\t', ' ')
+                    .strip())
+            return text
+    except Exception:
+        pass
+    return ""
+
+
 def now_msk_hhmm() -> str:
     # MSK is UTC+3 without DST
     return datetime.now(timezone.utc).astimezone(timezone.utc).replace(tzinfo=None)  # placeholder
@@ -2758,23 +2807,23 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     #      League Qualification two-leg ties).
     info_box_lines = []
 
-    # 1) Stadium mismatch warning.
-    if match_stadium and home_stadium and match_stadium != home_stadium:
-        # Don't flag if the match_stadium is itself the home stadium's
-        # alternate name (city-only match). Keep it simple: exact
-        # inequality in the venue name (case-insensitive).
-        if match_stadium.lower().split('(')[0].strip() != home_stadium.lower().split('(')[0].strip():
-            # Pull just the venue name (drop city/capacity suffix).
-            venue_name = match_stadium.split('·')[0].split('(')[0].strip().rstrip(',').strip()
-            info_box_lines.append(
-                '⚠ Playing home matches at a different stadium \u2014 ' + venue_name + '.'
-            )
+    # 1) InfoBox content from Flashscore match HTML page.
+    # Jul 30 2026 v3 (user spec): infoBox text must come from
+    # the API (DM field in the match page), NOT be hardcoded.
+    # Only show info_box when DM has actual content for THIS match.
+    info_box_text = ''
+    try:
+        info_box_text = _scrape_flashscore_infobox(mid)
+    except Exception:
+        info_box_text = ''
 
-    # 2) First-leg result removed (Jul 30 2026 user spec).
-    # User wants only the stadium warning in the info box.
-    # (Score mismatch was also a known bug because URL home/away
-    # does not always reflect the real match home/away.)
-    info_box_text = ' '.join(info_box_lines).strip()
+    # If scrape returned nothing but venue differs from home team's
+    # stadium, fall back to a generic neutral-venue note.
+    if not info_box_text and match_stadium and home_stadium and match_stadium != home_stadium:
+        if match_stadium.lower().split('(')[0].strip() != home_stadium.lower().split('(')[0].strip():
+            venue_name = match_stadium.split('·')[0].split('(')[0].strip().rstrip(',').strip()
+            info_box_text = '⚠ Neutral venue \u2014 ' + venue_name + '.'
+
 
     # --- Render template ---
     with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
