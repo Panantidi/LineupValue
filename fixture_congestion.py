@@ -78,6 +78,11 @@ _LOAD_BY_REST_DAYS = {
 }
 _DEFAULT_LOAD = 0  # 5+ days
 
+# Maximum travel penalty applied on top of FC base.
+# Caps total logistics bonus so a chain of A->A transitions
+# cannot inflate FC beyond +10.
+MAX_TRAVEL_PENALTY = 10
+
 
 def _rest_to_load_points(rest_days: int) -> int:
     """Map rest interval (days) to load points."""
@@ -150,6 +155,43 @@ def _count_home_away(fixtures: list, team_id: str = "") -> tuple:
         else:
             away += 1
     return home, away
+
+
+def _travel_penalty_for_transitions(sides: List[str]) -> tuple:
+    """Travel/logistics penalty per transition between consecutive matches.
+
+    Jul 29 2026 v6 — User spec:
+      Home -> Home  +0 (ideal, no travel)
+      Home -> Away  +2 (team leaves home for away)
+      Away -> Home  +1 (returning home, then can recover)
+      Away -> Away  +3 (two consecutive away matches)
+
+    Total travel penalty is capped at MAX_TRAVEL_PENALTY (default 10)
+    so logistics can't dominate the load-based score.
+
+    Returns (penalty, transitions) where transitions is a list
+    of strings like ["H->A", "A->A", ...] for UI rendering.
+    """
+    if not sides or len(sides) < 2:
+        return 0, []
+
+    _TRAVEL_DELTA = {
+        ("home", "home"): 0,
+        ("home", "away"): 2,
+        ("away", "home"): 1,
+        ("away", "away"): 3,
+    }
+
+    transitions = []
+    total = 0
+    for prev, nxt in zip(sides, sides[1:]):
+        delta = _TRAVEL_DELTA.get((prev, nxt), 0)
+        total += delta
+        # Compact notation: "H->A", "A->H", etc.
+        arrow = f"{prev[0].upper()}->{nxt[0].upper()}"
+        transitions.append(arrow)
+
+    return min(total, MAX_TRAVEL_PENALTY), transitions
 
 
 def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
@@ -289,9 +331,24 @@ def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
     fc = max(0, min(100, int(round(fc_raw))))
 
     home_count, away_count = _count_home_away(fixtures, team_id)
+
+    # Travel penalty (v6): sum of H->A / A->H / A->A / H->H transitions,
+    # capped at MAX_TRAVEL_PENALTY (=10). Applied on top of base FC.
+    sides: List[str] = []
+    for f in fixtures:
+        h_team_id = f.get("home_team_id") or ""
+        if not h_team_id and isinstance(f.get("home_team"), dict):
+            h_team_id = f["home_team"].get("team_id") or f["home_team"].get("id") or ""
+        sides.append("home" if str(h_team_id) == str(team_id) else "away")
+
+    travel_penalty, travel_transitions = _travel_penalty_for_transitions(sides)
+
+    fc_raw_with_travel = fc + travel_penalty
+    fc_final = max(0, min(100, int(round(fc_raw_with_travel))))
+
     return {
-        "fixture_congestion": fc,
-        "status": _status_for(fc),
+        "fixture_congestion": fc_final,
+        "status": _status_for(fc_final),
         "average_recovery_days": round(avg_recovery, 1),
         "minimum_recovery_days": min_recovery_days,
         "minimum_recovery_hours": min_recovery_hours,
@@ -301,6 +358,8 @@ def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
         "home_matches": home_count,
         "away_matches": away_count,
         "total_matches": len(fixtures),
+        "travel_penalty": travel_penalty,
+        "travel_transitions": travel_transitions,
     }
 
 

@@ -2443,6 +2443,8 @@ async def lineup_api_fixture_congestion(team_id: str):
             "home_matches": 0,
             "away_matches": 0,
             "total_matches": len(fixtures),
+            "travel_penalty": 0,
+            "travel_transitions": [],
             "progress_bar": progress_bar(0),
             "risk_label": risk_label(0),
         }, status_code=200)
