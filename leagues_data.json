@@ -11718,5 +11718,105 @@
         "slug": "shamal"
       }
     ]
+  },
+  "South Africa": {
+    "Betway Premiership": [
+      {
+        "id": "4jYGJsW7",
+        "name": "AmaZulu",
+        "slug": "amazulu",
+        "image_path": "https://static.flashscore.com/res/image/data/WQlLNc5k-6Fg6xWE0.png"
+      },
+      {
+        "id": "AiZa0UPS",
+        "name": "Chippa Utd.",
+        "slug": "chippa-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/OSjvBThT-zLGv32Ri.png"
+      },
+      {
+        "id": "jVI6SFig",
+        "name": "Durban City",
+        "slug": "durban-city",
+        "image_path": "https://static.flashscore.com/res/image/data/jayWwihT-6RTAg0C5.png"
+      },
+      {
+        "id": "C6CjDdNg",
+        "name": "Golden Arrows",
+        "slug": "golden-arrows",
+        "image_path": "https://static.flashscore.com/res/image/data/CGxrJYS0-noJQDcTl.png"
+      },
+      {
+        "id": "fFZ2CGx0",
+        "name": "Kaizer Chiefs",
+        "slug": "kaizer-chiefs",
+        "image_path": "https://static.flashscore.com/res/image/data/6wU1xTiT-MeBJ238q.png"
+      },
+      {
+        "id": "2BcXneae",
+        "name": "Kruger United",
+        "slug": "kruger-united",
+        "image_path": "https://static.flashscore.com/res/image/data/Sbk4pHBN-fo54ZuBS.png"
+      },
+      {
+        "id": "lxZ6Bzh6",
+        "name": "Mamelodi Sundowns",
+        "slug": "mamelodi-sundowns",
+        "image_path": "https://static.flashscore.com/res/image/data/tOpnxPoe-x2G2Q2c3.png"
+      },
+      {
+        "id": "Gnghzo3C",
+        "name": "Marumo Gallants",
+        "slug": "marumo-gallants",
+        "image_path": "https://static.flashscore.com/res/image/data/Q7OQsCPq-40UZaJLO.png"
+      },
+      {
+        "id": "vVj5ECUK",
+        "name": "Milford FC",
+        "slug": "milford",
+        "image_path": "https://static.flashscore.com/res/image/data/SMzQIuT0-C6eX876G.png"
+      },
+      {
+        "id": "p4SF9EMI",
+        "name": "Orlando Pirates",
+        "slug": "orlando-pirates",
+        "image_path": "https://static.flashscore.com/res/image/data/lfP8Rv7k-KAV9ypMU.png"
+      },
+      {
+        "id": "ADz8rR88",
+        "name": "Polokwane",
+        "slug": "polokwane-city",
+        "image_path": "https://static.flashscore.com/res/image/data/voVRSqiT-U3PAwmEl.png"
+      },
+      {
+        "id": "noDZhkBM",
+        "name": "Richards Bay",
+        "slug": "richards-bay",
+        "image_path": "https://static.flashscore.com/res/image/data/EcxMHL76-d2qS1nzp.png"
+      },
+      {
+        "id": "UySmgAPp",
+        "name": "Sekhukhune",
+        "slug": "sekhukhune",
+        "image_path": "https://static.flashscore.com/res/image/data/fVOJRE8k-4lOQacKt.png"
+      },
+      {
+        "id": "x6s5gTDd",
+        "name": "Siwelele",
+        "slug": "siwelele",
+        "image_path": "https://static.flashscore.com/res/image/data/2uvF7llC-ngTfreZ5.png"
+      },
+      {
+        "id": "fJsWcA5b",
+        "name": "Stellenbosch",
+        "slug": "stellenbosch-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/IVw0l5Rq-rZaAc4E6.png"
+      },
+      {
+        "id": "KUDSx8jo",
+        "name": "TS Galaxy",
+        "slug": "ts-galaxy",
+        "image_path": "https://static.flashscore.com/res/image/data/bVkYBmVH-EJm9aI2J.png"
+      }
+    ]
   }
 }
