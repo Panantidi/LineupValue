@@ -69,14 +69,24 @@ from datetime import datetime
 from typing import List
 
 # Map: rest_days -> points (anything >= 5 -> 0 points)
-_LOAD_BY_REST_DAYS = {
-    0: 100,
-    1: 90,
-    2: 70,
-    3: 40,
-    4: 20,
-}
-_DEFAULT_LOAD = 0  # 5+ days
+# Map: recovery_hours (raw interval, NOT days) -> load points.
+# Jul 29 2026 v7 — User spec: hours-based to avoid
+# "прыжок" at boundaries like 71h vs 72h.
+# Range -> load:
+#   <24       -> 100 (critical, same-day)
+#   24-47     -> 90
+#   48-71     -> 70
+#   72-95     -> 40
+#   96-119    -> 20
+#   120+      -> 0 (plenty of rest)
+_LOAD_BY_REST_HOURS = [
+    (24,  100),  # <24h -> 100
+    (48,  90),   # 24-47h -> 90
+    (72,  70),   # 48-71h -> 70
+    (96,  40),   # 72-95h -> 40
+    (120, 20),   # 96-119h -> 20
+]
+_DEFAULT_LOAD = 0  # 120+ hours
 
 # Maximum travel penalty applied on top of FC base.
 # Caps total logistics bonus so a chain of A->A transitions
@@ -84,13 +94,29 @@ _DEFAULT_LOAD = 0  # 5+ days
 MAX_TRAVEL_PENALTY = 10
 
 
-def _rest_to_load_points(rest_days: int) -> int:
-    """Map rest interval (days) to load points."""
-    if rest_days < 0:
-        return _LOAD_BY_REST_DAYS[0]
-    if rest_days >= 5:
-        return _DEFAULT_LOAD
-    return _LOAD_BY_REST_DAYS.get(rest_days, _DEFAULT_LOAD)
+def _hours_to_load_points(hours: float) -> int:
+    """Map recovery interval (HOURS, raw) to load points.
+
+    Jul 29 2026 v7 — User spec. Continuous hour-based
+    mapping avoids the round(days) boundary jumps
+    (e.g. 71h and 72h being identical is fine, but
+    47h and 48h jump from 70 to 40 with the old
+    integer-day mapping).
+
+    Buckets (lower-bound inclusive, upper-bound exclusive):
+      hours < 24   -> 100 (critical)
+      hours < 48   -> 90
+      hours < 72   -> 70
+      hours < 96   -> 40
+      hours < 120  -> 20
+      hours >= 120 -> 0 (5+ days)
+    """
+    if hours < 0:
+        return _LOAD_BY_REST_HOURS[0][1]
+    for upper_bound, points in _LOAD_BY_REST_HOURS:
+        if hours < upper_bound:
+            return points
+    return _DEFAULT_LOAD
 
 
 def _status_for(fc: float) -> str:
@@ -323,8 +349,10 @@ def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
     # Penalty uses HOURS (v4) so same-day 1-hour gap -> +20 critical.
     penalty = _penalty_for_min_rest_hours(min_recovery_hours)
 
-    # Load points use round(days) (0.9 -> 1 day -> 90 pts; 0.04 -> 0 d -> 100 pts).
-    load_points = [_rest_to_load_points(round(r)) for r in intervals]
+    # Load points use RAW HOURS (v7). No round(days) — buckets are
+    # continuous in hours so 47.9h -> 90 pts and 48.0h -> 70 pts
+    # (no 71h vs 72h boundary artifact).
+    load_points = [_hours_to_load_points(h) for h in interval_hours]
     average_load = sum(load_points) / len(load_points)
 
     fc_raw = average_load + penalty
