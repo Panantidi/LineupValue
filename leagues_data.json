@@ -11213,6 +11213,34 @@
         "short_name": "HAP",
         "image_path": "https://static.flashscore.com/res/image/data/xQkYjg6k-dzZG4p8r.png",
         "slug": "hap-ramat-gan"
+      },
+      {
+        "id": "EXAD1YZP",
+        "name": "H. Beer Sheva",
+        "short_name": "HBS",
+        "image_path": "https://static.flashscore.com/res/image/data/0pifIXZA-A3ON3kaq.png",
+        "slug": "h-beer-sheva"
+      },
+      {
+        "id": "jigstDrf",
+        "name": "Hapoel Tel Aviv",
+        "short_name": "HTA",
+        "image_path": "https://static.flashscore.com/res/image/data/dYr5gCCr-UeZOJs03.png",
+        "slug": "hapoel-tel-aviv"
+      },
+      {
+        "id": "req5XE5Q",
+        "name": "Maccabi Tel Aviv",
+        "short_name": "MTA",
+        "image_path": "https://static.flashscore.com/res/image/data/GGBSZmil-EgfVDm2G.png",
+        "slug": "maccabi-tel-aviv"
+      },
+      {
+        "id": "t2BgeFT0",
+        "name": "Beitar Jerusalem",
+        "short_name": "BEI",
+        "image_path": "https://static.flashscore.com/res/image/data/QVqFCnDa-llM9Ws6j.png",
+        "slug": "beitar-jerusalem"
       }
     ]
   },
