@@ -1533,13 +1533,13 @@ _LOGIN_STYLE = """
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    """Serve the site favicon. Browsers request /favicon.ico
-    by default for the tab icon. We serve a PNG (browsers accept
-    image/png content-type on .ico paths since ~2019)."""
+    """Serve the real .ico file (48x48 MS Windows icon).
+    Jul 30 2026: switched from PNG masquerade to actual ICO
+    after user supplied full realfavicongenerator bundle."""
     from fastapi.responses import FileResponse
     return FileResponse(
-        "/home/openclaw/FormAlert/static/favicon.png",
-        media_type="image/png"
+        "/home/openclaw/FormAlert/static/favicon.ico",
+        media_type="image/x-icon"
     )
 
 
@@ -1551,7 +1551,11 @@ async def login_page(next: str = "/"):
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sign In — LineupValue</title>
-  <link rel="icon" type="image/png" href="/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="manifest" href="/static/site.webmanifest">
   {_LOGIN_STYLE}
 </head>
 <body>
@@ -1587,7 +1591,11 @@ async def login_submit(username: str = Form(...), password: str = Form(...), nex
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sign In — LineupValue</title>
-  <link rel="icon" type="image/png" href="/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="manifest" href="/static/site.webmanifest">
   {_LOGIN_STYLE}
 </head>
 <body>
