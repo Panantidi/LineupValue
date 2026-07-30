@@ -338,7 +338,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         except Exception:
             pass
         html = f"""<!doctype html>
-<html><head><meta charset="utf-8"><title>{team_name_hint} - loading</title></head>
+<html><head><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest"><title>{team_name_hint} - loading</title></head>
   <div style="max-width:760px;margin:60px auto;background:white;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
     <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
     <p style="color:#666;line-height:1.5;">Team data has not been loaded yet</p>
@@ -860,6 +860,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     html = f"""<!doctype html>
 <html>
 <head>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <meta charset="utf-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
