@@ -1143,6 +1143,35 @@ async def auth_middleware(request: Request, call_next):
                 # Throttled so the team page's many internal AJAX calls
                 # (squad / fixtures / compare) do not flood access_log.
                 _log_view_throttled(user_info[0], client_ip, path)
+    # Jul 30 2026 v3: blocked-active check covers ALL paths
+    # the middleware reaches (HTML, JSON, AJAX, API, /team/*).
+    #
+    # v2 also blocked /login, /logout, /health, /favicon.ico for
+    # deactivated users, which broke the redirect-to-login flow on
+    # /team/* (the user saw a 403 instead of a login page). v3
+    # only excludes /login and /logout so the user CAN see the
+    # login page (and a clear message there). The /login POST
+    # handler still checks active=1 in SQL — so even if the page
+    # is reachable, deactivated users cannot log in.
+    #
+    # /health and /favicon.ico are NOT excluded here (they aren't
+    # called by browsers for users anyway). Truly public paths
+    # (no auth needed for anonymous) are handled by the skip-list
+    # below.
+    if path.strip("/") not in {"login", "logout"}:
+        session_cookie = request.cookies.get("fa_session")
+        if session_cookie:
+            user_info_for_block = _parse_session_token(session_cookie)
+            if user_info_for_block and not _is_user_active(user_info_for_block[0]):
+                # Deactivated user with valid cookie -> reject.
+                # Clear the stale cookie so the browser stops sending it.
+                resp = HTMLResponse(
+                    status_code=403,
+                    content="<h1>403 Forbidden</h1>"
+                            "<p>Ваш аккаунт деактивирован. Пожалуйста, обратитесь к администратору.</p>"
+                )
+                resp.delete_cookie("fa_session", path="/")
+                return resp
     # Skip auth for public paths and static assets needed by external services
     if (path in PUBLIC_PATHS or path.startswith("/icons/") or path.startswith("/vision_uploads/")
             or path.startswith("/api/favorites") or path.startswith("/lineup_ai")):
