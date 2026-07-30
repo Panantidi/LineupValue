@@ -1217,6 +1217,22 @@ async def auth_middleware(request: Request, call_next):
     # Skip auth for public paths and static assets needed by external services
     if (path in PUBLIC_PATHS or path.startswith("/icons/") or path.startswith("/vision_uploads/")
             or path.startswith("/api/favorites") or path.startswith("/lineup_ai")):
+        # Jul 30 2026 v7: defensive double-check. Even public paths
+        # must reject banned users. The v6 check at the top of the
+        # middleware handles this, but as a belt-and-suspenders
+        # measure, check again here before letting the request through.
+        if path.startswith("/lineup_ai") and not path.endswith(".json"):
+            sk_cookie = request.cookies.get("fa_session")
+            if sk_cookie:
+                sk_info = _parse_session_token(sk_cookie)
+                if sk_info and _is_banned(sk_info[0]):
+                    resp = HTMLResponse(
+                        status_code=403,
+                        content="<h1>403 Forbidden</h1>"
+                                "<p>Ваш аккаунт заблокирован. Пожалуйста, обратитесь к администратору.</p>"
+                    )
+                    resp.delete_cookie("fa_session", path="/")
+                    return resp
         return await call_next(request)
     # Check IP whitelist
     if _ip_whitelisted(client_ip):
@@ -6237,6 +6253,21 @@ async def admin_toggle(uid: int, request: Request):
     row = con.execute("SELECT username,active FROM users WHERE id=?", (uid,)).fetchone()
     if row:
         nv = 0 if row[1] else 1
+        # Jul 30 2026 v7: refuse to toggle a banned user back to active.
+        # Permanent ban must be lifted by SQL DELETE FROM banned_users,
+        # NOT by a one-click toggle.
+        username = row[0]
+        if nv == 1:
+            try:
+                ban_row = con.execute(
+                    "SELECT 1 FROM banned_users WHERE username=? LIMIT 1",
+                    (username,)
+                ).fetchone()
+                if ban_row:
+                    # User is banned; refuse to activate.
+                    nv = 0  # keep them deactivated
+            except Exception:
+                pass
         con.execute("UPDATE users SET active=? WHERE id=?", (nv, uid)); con.commit()
         # Jul 30 2026 v5: no in-memory state to manage. The DB is the
         # source of truth; the middleware reads it directly on every
