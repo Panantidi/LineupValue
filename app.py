@@ -999,7 +999,16 @@ app = FastAPI(title=APP_TITLE)
 PUBLIC_PATHS = {"/health", "/favicon.ico", "/login", "/logout"}
 
 # Session cookie signing
-_SESSION_SECRET = os.environ.get("FORMALERT_SESSION_SECRET", "x11radar-session-2026")
+# Jul 30 2026 v8: runtime-generated session secret.
+# Each server restart gets a fresh secret (so old cookies from
+# previous deployments are immediately invalid). Admin can also
+# rotate via POST /admin/rotate-secret to kill all active sessions.
+import secrets as _secrets_mod
+_SESSION_SECRET = _secrets_mod.token_hex(32)
+_SESSION_SECRET_GENERATED_AT = time.time()
+_env_secret = os.environ.get("FORMALERT_SESSION_SECRET")
+if _env_secret:
+    _SESSION_SECRET = _env_secret
 
 def _make_session_token(username: str, is_admin: bool) -> str:
     """Create signed session token: base64(username:is_admin:timestamp:hmac)"""
@@ -1214,7 +1223,6 @@ async def auth_middleware(request: Request, call_next):
                 )
                 resp.delete_cookie("fa_session", path="/")
                 return resp
-    # Skip auth for public paths and static assets needed by external services
     if (path in PUBLIC_PATHS or path.startswith("/icons/") or path.startswith("/vision_uploads/")
             or path.startswith("/api/favorites") or path.startswith("/lineup_ai")):
         # Jul 30 2026 v7: defensive double-check. Even public paths
@@ -6243,6 +6251,30 @@ async def admin_delete(uid: int, request: Request):
     con.close()
     k = _flash_set("User deleted" if row else "User not found")
     return RedirectResponse(f"/admin?f={k}", status_code=303)
+
+
+@app.post("/admin/rotate-secret")
+async def admin_rotate_secret(request: Request):
+    """Jul 30 2026 v8: rotate _SESSION_SECRET to kill all active sessions.
+
+    All existing session cookies become invalid. Users must
+    re-login. Use this when a banned user keeps accessing the
+    service with an old cookie.
+    """
+    global _SESSION_SECRET, _SESSION_SECRET_GENERATED_AT
+    if not getattr(request.state, "is_admin", False):
+        raise HTTPException(status_code=403)
+    old_prefix = _SESSION_SECRET[:8]
+    _SESSION_SECRET = _secrets_mod.token_hex(32)
+    _SESSION_SECRET_GENERATED_AT = time.time()
+    _log_access(
+        getattr(request.state, "username", ""),
+        request.client.host if request.client else "",
+        "/admin", "rotate_secret",
+        f"old={old_prefix}... new={_SESSION_SECRET[:8]}..."
+    )
+    k = _flash_set(f"Session secret rotated. All users must re-login.")
+    return RedirectResponse(f"/admin?flash={k}", status_code=303)
 
 
 @app.post("/admin/tog/{uid}")
