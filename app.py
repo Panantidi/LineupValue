@@ -6370,13 +6370,33 @@ async def admin_toggle(uid: int, request: Request):
                 _ban_ip_for_username(username)
             except Exception:
                 pass
+        # Jul 30 2026 v10: on deactivate, permanently ban username
+        # AND auto-ban all IPs they have used. One click = full
+        # network ban. Username stays banned until manual SQL DELETE.
+        ip_banned_count = 0
+        if nv == 0:
+            try:
+                con.execute(
+                    "INSERT OR IGNORE INTO banned_users (username, reason, banned_at, banned_by) VALUES (?, ?, ?, ?)",
+                    (username, "admin_toggle", datetime.now(timezone.utc).isoformat(), getattr(request.state, "username", "admin"))
+                )
+                ip_banned_count = _ban_ip_for_username(username)
+                con.commit()
+            except Exception:
+                pass
         con.execute("UPDATE users SET active=? WHERE id=?", (nv, uid)); con.commit()
         # Jul 30 2026 v5: no in-memory state to manage. The DB is the
         # source of truth; the middleware reads it directly on every
         # request. Toggle is immediately effective.
-        _log_access(getattr(request.state,"username",""), request.client.host if request.client else "", "/admin", "toggle", f"{row[0]} {'activated' if nv else 'deactivated'}")
+        action = "activated" if nv else "deactivated"
+        _log_access(getattr(request.state,"username",""), request.client.host if request.client else "", "/admin", "toggle", f"{row[0]} {action}")
     con.close()
-    return RedirectResponse("/admin", status_code=303)
+    # Flash feedback with IP ban count
+    if nv == 0 and ip_banned_count > 0:
+        k = _flash_set(f"User <b>{row[0]}</b> deactivated and banned. <span style='color:#dc3545; font-weight:700'>{ip_banned_count} IP address(es) blocked.</span> User cannot use the service from any device.")
+    else:
+        k = _flash_set(f"User <b>{row[0]}</b> {action}.")
+    return RedirectResponse(f"/admin?f={k}", status_code=303)
 
 
 @app.post("/admin/rst/{uid}")
