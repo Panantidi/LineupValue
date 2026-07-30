@@ -1070,19 +1070,35 @@ def _is_banned(username: str) -> bool:
 
 
 def _is_ip_banned(ip: str) -> bool:
-    """v9: return True if IP is in banned_ips table.
+    """v9+v11: IP ban check covers BOTH banned_ips table
+    AND historical usage by banned_username.
+
+    Returns True if:
+      - ip is in banned_ips, OR
+      - ip appears in access_log for ANY username in banned_users
+
+    The second check catches NEW IPs the user starts using
+    AFTER deactivation - they're picked up on the very next
+    request from that IP.
 
     Always reads DB on every call. SQLite is fast enough.
-    Block at the IP level means even anonymous requests
-    get 403 from a banned IP address.
     """
     if not ip or ip in {"", "127.0.0.1", "::1"}:
         return False
     try:
         import sqlite3 as _sq
         con = _sq.connect(DB_PATH)
+        # (a) direct ban
         row = con.execute(
             "SELECT 1 FROM banned_ips WHERE ip=? LIMIT 1",
+            (ip,)
+        ).fetchone()
+        if row:
+            con.close()
+            return True
+        # (b) historical: this IP used by a banned user?
+        row = con.execute(
+            "SELECT 1 FROM access_log WHERE ip=? AND username IN (SELECT username FROM banned_users) LIMIT 1",
             (ip,)
         ).fetchone()
         con.close()
@@ -1209,17 +1225,54 @@ def _flash_cleanup():
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
     client_ip = request.client.host if request.client else ""
-    # Jul 30 2026 v9: IP-based ban check runs FIRST.
+    # Jul 30 2026 v9/v11: IP-based ban check runs FIRST.
     # Blocked at network level - even anonymous requests
     # from a banned IP get 403. No way around it.
-    if path.strip("/") not in {"login"} and _is_ip_banned(client_ip):
-        resp = HTMLResponse(
-            status_code=403,
-            content="<h1>403 Forbidden</h1>"
-                    "<p>Ваш IP адрес заблокирован. Пожалуйста, обратитесь к администратору.</p>"
-        )
-        resp.delete_cookie("fa_session", path="/")
-        return resp
+    #
+    # v11: also catches HISTORICAL IPs of banned users via
+    # access_log, so users can't escape by switching to a
+    # new IP that wasn't in the snapshot at deactivation time.
+    if path.strip("/") not in {"login"}:
+        try:
+            if _is_ip_banned(client_ip):
+                resp = HTMLResponse(
+                    status_code=403,
+                    content="<h1>403 Forbidden</h1>"
+                            "<p>Ваш IP адрес заблокирован. Пожалуйста, обратитесь к администратору.</p>"
+                )
+                resp.delete_cookie("fa_session", path="/")
+                return resp
+        except Exception:
+            pass
+        # v11 ban-on-sight: if a request arrives with a banned-user
+        # cookie, ban the IP NOW. Catches new IPs the moment the
+        # banned user tries to use them.
+        try:
+            mws_cookie = request.cookies.get("fa_session")
+            if mws_cookie:
+                mws_info = _parse_session_token(mws_cookie)
+                if mws_info and _is_banned(mws_info[0]):
+                    # Banned user. Ban this IP on-the-fly.
+                    try:
+                        import sqlite3 as _sq2
+                        _con2 = _sq2.connect(DB_PATH)
+                        _con2.execute(
+                            "INSERT OR IGNORE INTO banned_ips (ip, username, banned_at, reason) VALUES (?, ?, ?, ?)",
+                            (client_ip, mws_info[0], datetime.now(timezone.utc).isoformat(), "ban-on-sight v11")
+                        )
+                        _con2.commit()
+                        _con2.close()
+                    except Exception:
+                        pass
+                    resp = HTMLResponse(
+                        status_code=403,
+                        content="<h1>403 Forbidden</h1>"
+                                "<p>Ваш аккаунт и IP адрес заблокированы. Пожалуйста, обратитесь к администратору.</p>"
+                    )
+                    resp.delete_cookie("fa_session", path="/")
+                    return resp
+        except Exception:
+            pass
     # Jul 24 2026: log /lineup_ai/* view events EVEN on the public skip
     # path. Without this, only /login (action=login) and /admin (admin
     # events) are recorded in access_log, so the /admin Recent Activity
