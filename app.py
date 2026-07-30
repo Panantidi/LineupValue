@@ -1033,28 +1033,28 @@ def _parse_session_token(token: str) -> tuple[str, bool] | None:
 # Without this, deactivated users keep their cookie valid until 30-day expiry.
 import time as _time_mod
 
-_active_user_cache: dict[str, tuple[bool, float]] = {}
-_ACTIVE_USER_TTL = 5.0  # seconds
+# Jul 30 2026 v5: _active_user_cache removed — DB is source of truth.
 
 def _is_user_active(username: str) -> bool:
-    """Return True if user exists and active=1. Cached for _ACTIVE_USER_TTL sec."""
+    """Return True if user exists and active=1.
+
+    Jul 30 2026 v5: REMOVED CACHE. The DB is the source of truth.
+    Every call hits SQLite (~10 us). This guarantees that any
+    active=0 update is reflected on the very next request,
+    with no 5-second race window. The previous caching was a
+    premature optimization that defeated deactivation.
+    """
     if not username:
         return False
-    now = _time_mod.time()
-    cached = _active_user_cache.get(username)
-    if cached and (now - cached[1]) < _ACTIVE_USER_TTL:
-        return cached[0]
     try:
         import sqlite3 as _sq
         con = _sq.connect(DB_PATH)
         row = con.execute("SELECT active FROM users WHERE username=?", (username,)).fetchone()
         con.close()
-        active = bool(row[0]) if row else False
+        return bool(row[0]) if row else False
     except Exception:
-        # DB error: fail closed — assume inactive to be safe
-        active = False
-    _active_user_cache[username] = (active, now)
-    return active
+        # DB error: fail closed — assume inactive to be safe.
+        return False
 
 def _invalidate_active_user_cache(username: str | None = None) -> None:
     """Clear cached active status. Called by admin_toggle for instant effect."""
@@ -1063,30 +1063,7 @@ def _invalidate_active_user_cache(username: str | None = None) -> None:
     elif username in _active_user_cache:
         del _active_user_cache[username]
 
-# Jul 30 2026: HARD KILL SWITCH for deactivated users.
-# When admin clicks Deactivate, we record the username here so
-# the middleware can reject them on every subsequent request
-# without waiting for cache TTL or relying on DB-only checks.
-# Dictionary (not set) so we can add expiry later if needed.
-_killed_sessions: dict[str, float] = {}
-
-def _kill_session(username: str) -> None:
-    """Mark username as killed. All requests with this session -> 403."""
-    if username:
-        _killed_sessions[username] = time.time()
-        # Also drop the active-status cache so any pending read returns False.
-        _invalidate_active_user_cache(username)
-
-def _resurrect_session(username: str) -> None:
-    """Un-kill username (when admin reactivates)."""
-    if username:
-        _killed_sessions.pop(username, None)
-
-def _is_killed(username: str) -> bool:
-    """Return True if username is in the kill set."""
-    if not username:
-        return False
-    return username in _killed_sessions
+# Jul 30 2026 v5: removed _killed_sessions helpers — DB is source of truth.
 
 # IPs that bypass auth completely (owner VPN + direct)
 IP_WHITELIST = {
@@ -1168,22 +1145,6 @@ async def auth_middleware(request: Request, call_next):
                 # Throttled so the team page's many internal AJAX calls
                 # (squad / fixtures / compare) do not flood access_log.
                 _log_view_throttled(user_info[0], client_ip, path)
-    # Jul 30 2026 v4: HARD KILL SWITCH. Runs BEFORE any other check
-    # so a killed user is rejected on every request, no exceptions.
-    # If the session cookie parses to a killed username -> 403.
-    # This bypasses cache TTLs, public-path skips, and AJAX leaks.
-    if path.strip("/") not in {"login", "logout"}:
-        session_cookie_for_kill = request.cookies.get("fa_session")
-        if session_cookie_for_kill:
-            user_info_for_kill = _parse_session_token(session_cookie_for_kill)
-            if user_info_for_kill and _is_killed(user_info_for_kill[0]):
-                resp = HTMLResponse(
-                    status_code=403,
-                    content="<h1>403 Forbidden</h1>"
-                            "<p>Ваш аккаунт деактивирован. Пожалуйста, обратитесь к администратору.</p>"
-                )
-                resp.delete_cookie("fa_session", path="/")
-                return resp
     # Jul 30 2026 v3: blocked-active check covers ALL paths
     # the middleware reaches (HTML, JSON, AJAX, API, /team/*).
     #
@@ -6237,16 +6198,9 @@ async def admin_toggle(uid: int, request: Request):
     if row:
         nv = 0 if row[1] else 1
         con.execute("UPDATE users SET active=? WHERE id=?", (nv, uid)); con.commit()
-        # Jul 29 2026: clear the active-status cache so deactivation takes
-        # effect immediately (no need to wait up to 5 sec for TTL).
-        _invalidate_active_user_cache(row[0])
-        # Jul 30 2026: HARD KILL SWITCH - add/remove username from
-        # _killed_sessions so the middleware rejects them on every
-        # subsequent request without waiting for cache invalidation.
-        if nv == 0:
-            _kill_session(row[0])
-        else:
-            _resurrect_session(row[0])
+        # Jul 30 2026 v5: no in-memory state to manage. The DB is the
+        # source of truth; the middleware reads it directly on every
+        # request. Toggle is immediately effective.
         _log_access(getattr(request.state,"username",""), request.client.host if request.client else "", "/admin", "toggle", f"{row[0]} {'activated' if nv else 'deactivated'}")
     con.close()
     return RedirectResponse("/admin", status_code=303)
