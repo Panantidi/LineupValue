@@ -1824,7 +1824,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <option value="">-- Select Team --</option>
             </select>
         </div>
-        <div id="nav-match-group" style="display:none;">
+        <div id="nav-match-group">
             <label for="nav-match" id="nav-match-label">Match</label>
             <div class="select-wrapper">
                 <select id="nav-match" onchange="onNavMatchChange()" disabled>
@@ -3540,7 +3540,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
                 matchSelect.innerHTML = '<option value="">-- Select Match --</option>';
                 teamSelect.disabled = true;
-                if (matchGroup) matchGroup.style.display = 'none';
+                // Jul 30 2026: Match block stays visible (always shown).
                 if (matchActions) matchActions.style.display = 'none';
 
                 if (!country || !navData[country]) {{
@@ -3585,7 +3585,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
                 teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
                 matchSelect.innerHTML = '<option value="">-- Select Match --</option>';
-                if (matchGroup) matchGroup.style.display = 'none';
+                // Jul 30 2026: Match block stays visible (always shown).
                 if (matchActions) matchActions.style.display = 'none';
 
                 if (!country || !championship || !navData[country][championship]) {{
@@ -3612,8 +3612,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const matchActions = document.getElementById('nav-actions');
 
                 if (!teamId) {{
-                    if (matchGroup) matchGroup.style.display = 'none';
+                    // Match block stays visible (Jul 30 2026).
+                    // Just clear the dropdown and hide actions.
+                    matchSelect.innerHTML = '<option value="">-- Select Match --</option>';
+                    matchSelect.disabled = true;
                     if (matchActions) matchActions.style.display = 'none';
+                    // Hide Fixture Overview too (no team = no data).
+                    const fcBlock = document.getElementById('nav-fc-block');
+                    if (fcBlock) fcBlock.style.display = 'none';
                     return;
                 }}
 
