@@ -140,21 +140,29 @@ def _status_for(fc: float) -> str:
 def _penalty_for_min_rest_hours(min_recovery_hours: float) -> int:
     """Short-rest penalty applied on top of average load.
 
-    Hours-based (Jul 29 2026 v4): so a 1-hour gap
-    between two matches on the same day is correctly
-    critical, not just "0 days".
+    Jul 30 2026 v8 (user spec): the previous thresholds
+    (+20 / +15 / +5 / +0) doubled the load on the
+    shortest intervals because the load_points map
+    ALREADY assigns 100 points to <24h. Penalty is now
+    an emergency-only amplifier, not a duplicate of the
+    same "very little rest" signal.
 
-    Thresholds:
-      < 24 hours      -> +20 (critical, same-day)
-      24-47 hours (1d) -> +15
-      48-71 hours (2d) -> +5
-      72+ hours (3d+)  -> +0
+    New thresholds:
+      < 24 hours     -> +10 (still emergency, but no
+                          longer stacking 100+20=120)
+      24-47 hours    -> +5
+      48+ hours      -> +0 (load_points alone is enough)
+
+    Example:
+      23h interval -> load=100, penalty=+10 -> FC=110
+      -> clamp(110) = 100 (max).
+
+    The clamp at the call site prevents the score from
+    exceeding 100 even with travel_penalty on top.
     """
     if min_recovery_hours < 24:
-        return 20
+        return 10
     if min_recovery_hours < 48:
-        return 15
-    if min_recovery_hours < 72:
         return 5
     return 0
 
