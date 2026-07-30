@@ -1831,9 +1831,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <option value="">-- Select Match --</option>
                 </select>
             </div>
-            <!-- Fixture Congestion block (Jul 29 2026): calendar density metric -->
+            <!-- Fixture Overview block (Jul 30 2026): calendar density metric, was Fixture Congestion -->
             <div id="nav-fc-block" style="display:none; margin-top:14px; padding:10px 12px; background:#f8f9fb; border:1px solid #e0e3e8; border-radius:8px; font-size:12px;">
-                <div style="font-weight:700; color:#333; margin-bottom:6px; font-size:13px;">Fixture Congestion</div>
+                <div style="font-weight:700; color:#333; margin-bottom:6px; font-size:13px;">Fixture Overview</div>
                 <div id="nav-fc-bar" style="font-family:monospace; font-size:18px; letter-spacing:1px; margin-bottom:4px;">░░░░░░░░░░ <span id="nav-fc-pct">0%</span></div>
                 <div id="nav-fc-status" style="font-weight:700; margin-bottom:8px;">—</div>
                 <div style="display:flex; flex-direction:column; gap:2px; color:#555; font-size:11px;">
@@ -3637,7 +3637,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         matchSelect.appendChild(opt);
                     }});
                     matchSelect.disabled = false;
-                    // Jul 29 2026: fetch Fixture Congestion and render under match dropdown.
+                    // Jul 30 2026: fetch Fixture Overview and render under match dropdown.
                     try {{
                         const fcResp = await fetch('/lineup_ai/api/fixture-congestion/' + teamId);
                         const fcData = await fcResp.json();
@@ -3651,7 +3651,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
             }};
 
-            // Jul 29 2026: render Fixture Congestion block (calendar density metric).
+            // Jul 30 2026: render Fixture Overview block (calendar density metric).
             function renderFixtureCongestion(fc) {{
                 const block = document.getElementById('nav-fc-block');
                 if (!block) return;

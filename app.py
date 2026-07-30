@@ -2444,9 +2444,9 @@ async def lineup_api_fixtures(team_id: str):
 
 @app.get("/lineup_ai/api/fixture-congestion/{team_id}")
 async def lineup_api_fixture_congestion(team_id: str):
-    """Return Fixture Congestion (FC) score for a team.
+    """Return Fixture Overview (FO, formerly Fixture Congestion) score for a team.
 
-    FC measures calendar density over the next 5 upcoming matches
+    FO measures calendar density over the next 5 upcoming matches
     using hours-based recovery time. Higher score = denser schedule.
 
     Jul 29 2026 v3: ALWAYS recompute from cache fixtures on the fly.
@@ -2469,7 +2469,7 @@ async def lineup_api_fixture_congestion(team_id: str):
         except Exception:
             pass
 
-    # ALWAYS recompute from fixtures (ignore cached FC value).
+    # ALWAYS recompute from fixtures (ignore cached FO value).
     # Pass team_id so compute can count home/away matches.
     fc_data = None
     if fixtures:

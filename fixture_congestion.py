@@ -1,4 +1,4 @@
-"""Fixture Congestion (FC) — calendar density metric.
+"""Fixture Overview (FO, formerly Fixture Congestion / FC) — calendar density metric.
 
 Computed from the next 5 upcoming fixtures of a team.
 
@@ -349,7 +349,7 @@ def _rotation_risk(fc: float) -> str:
 
 
 def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
-    """Compute Fixture Congestion score from a list of fixtures.
+    """Compute Fixture Overview score from a list of fixtures.
 
     Each fixture dict is expected to have either:
       - "timestamp": unix epoch seconds

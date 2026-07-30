@@ -1264,14 +1264,14 @@ def refresh_team(team_id, force=False):
         cache["players"] = players
         cache["matches"] = matches
         cache["fixtures"] = fixtures
-        # Jul 29 2026: Fixture Congestion metric (calendar density).
+        # Jul 30 2026: Fixture Overview metric (calendar density, was Fixture Congestion).
         # Compute from the next 5 upcoming fixtures stored above.
         try:
             from fixture_congestion import compute_fixture_congestion
             cache["fixture_congestion"] = compute_fixture_congestion(fixtures)
         except Exception as _fc_err:
             cache["fixture_congestion"] = None
-            print("[fc] could not compute Fixture Congestion: " + str(_fc_err))
+            print("[fo] could not compute Fixture Overview: " + str(_fc_err))
         cache["last_updated"] = datetime.now().isoformat()
         _write_cache(team_id, cache)
         return True
