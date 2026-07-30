@@ -1,8 +1,1 @@
-__pycache__/
-*.pyc
-.venv/
-*.db
-*.log
-node_modules/
-.env
-*.bak-*
+.session_secret

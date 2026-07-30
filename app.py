@@ -1004,11 +1004,44 @@ PUBLIC_PATHS = {"/health", "/favicon.ico", "/login", "/logout"}
 # previous deployments are immediately invalid). Admin can also
 # rotate via POST /admin/rotate-secret to kill all active sessions.
 import secrets as _secrets_mod
-_SESSION_SECRET = _secrets_mod.token_hex(32)
-_SESSION_SECRET_GENERATED_AT = time.time()
+import secrets as _secrets_mod
+_SESSION_SECRET_FILE = "/home/openclaw/FormAlert/.session_secret"
+_SESSION_SECRET = None
+_SESSION_SECRET_GENERATED_AT = None
+
+# 1. env var (highest priority - explicit override)
 _env_secret = os.environ.get("FORMALERT_SESSION_SECRET")
 if _env_secret:
     _SESSION_SECRET = _env_secret
+    _SESSION_SECRET_GENERATED_AT = time.time()
+
+# 2. persistent file (survives restarts)
+if _SESSION_SECRET is None:
+    try:
+        with open(_SESSION_SECRET_FILE, "r") as _sf:
+            _loaded = _sf.read().strip()
+            if _loaded and len(_loaded) >= 32:
+                _SESSION_SECRET = _loaded
+                _SESSION_SECRET_GENERATED_AT = time.time()
+    except FileNotFoundError:
+        pass
+    except Exception:
+        pass
+
+# 3. generate new and save (one-time)
+if _SESSION_SECRET is None:
+    _SESSION_SECRET = _secrets_mod.token_hex(32)
+    _SESSION_SECRET_GENERATED_AT = time.time()
+    try:
+        with open(_SESSION_SECRET_FILE, "w") as _sf:
+            _sf.write(_SESSION_SECRET)
+        try:
+            import os as _os_mod
+            _os_mod.chmod(_SESSION_SECRET_FILE, 0o600)
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 def _make_session_token(username: str, is_admin: bool) -> str:
     """Create signed session token: base64(username:is_admin:timestamp:hmac)"""
@@ -6382,6 +6415,12 @@ async def admin_rotate_secret(request: Request):
     old_prefix = _SESSION_SECRET[:8]
     _SESSION_SECRET = _secrets_mod.token_hex(32)
     _SESSION_SECRET_GENERATED_AT = time.time()
+    # v12: persist the new secret to file so it survives restarts
+    try:
+        with open(_SESSION_SECRET_FILE, "w") as _sf:
+            _sf.write(_SESSION_SECRET)
+    except Exception:
+        pass
     _log_access(
         getattr(request.state, "username", ""),
         request.client.host if request.client else "",
