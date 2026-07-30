@@ -65,7 +65,7 @@ Penalty thresholds (v4, hours-based):
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 # Map: rest_days -> points (anything >= 5 -> 0 points)
@@ -228,6 +228,126 @@ def _travel_penalty_for_transitions(sides: List[str]) -> tuple:
     return min(total, MAX_TRAVEL_PENALTY), transitions
 
 
+
+def calculate_next_14_days_density(fixtures: list) -> dict:
+    """Count how many fixtures fall within the next 14 days.
+
+    Jul 30 2026 (user spec): uses ONLY fixtures[:5] - no
+    additional API calls. Returns count and density grade.
+
+    Thresholds:
+      0-1 matches -> NORMAL
+      2 matches   -> NORMAL
+      3 matches   -> MODERATE
+      4 matches   -> HIGH
+      5 matches   -> EXTREME
+
+    Returns:
+        {
+          "next_14_days_matches": int (0..5),
+          "period_days": 14,
+          "density_status": "NORMAL" | "MODERATE" | "HIGH" | "EXTREME"
+        }
+    """
+    if not fixtures:
+        return {
+            "next_14_days_matches": 0,
+            "period_days": 14,
+            "density_status": "NORMAL",
+        }
+
+    current_time = datetime.utcnow()
+    period_end = current_time + timedelta(days=14)
+
+    # Parse fixtures to datetime (reuse logic without rebuilding)
+    count = 0
+    for f in fixtures[:5]:
+        ts = f.get("timestamp")
+        dt = None
+        if ts:
+            try:
+                dt = datetime.utcfromtimestamp(int(ts))
+            except (TypeError, ValueError, OSError):
+                dt = None
+        if dt is None:
+            date_str = (f.get("date") or "").strip()
+            time_str = (f.get("time") or "").strip()
+            if not date_str:
+                continue
+            try:
+                parts = date_str.split("/")
+                day_i, month_i = int(parts[0]), int(parts[1])
+                now = datetime.utcnow()
+                year_i = now.year
+                candidate = datetime(year_i, month_i, day_i, 12, 0)
+                if candidate < now:
+                    candidate = datetime(year_i + 1, month_i, day_i, 12, 0)
+                if time_str and ":" in time_str:
+                    h, m = time_str.split(":")[:2]
+                    candidate = candidate.replace(
+                        hour=int(h), minute=int(m)
+                    )
+                dt = candidate
+            except (ValueError, IndexError):
+                continue
+        if dt is None:
+            continue
+        if current_time <= dt <= period_end:
+            count += 1
+
+    # Density status
+    if count <= 2:
+        density_status = "NORMAL"
+    elif count == 3:
+        density_status = "MODERATE"
+    elif count == 4:
+        density_status = "HIGH"
+    else:
+        density_status = "EXTREME"
+
+    return {
+        "next_14_days_matches": count,
+        "period_days": 14,
+        "density_status": density_status,
+    }
+
+
+def _next_14_days_penalty(count: int) -> int:
+    """Penalty applied on top of FC for matches in next 14 days.
+
+    Jul 30 2026 (user spec):
+      0-2 matches -> +0
+      3 matches   -> +5
+      4 matches   -> +10
+      5 matches   -> +15
+    """
+    if count >= 5:
+        return 15
+    if count == 4:
+        return 10
+    if count == 3:
+        return 5
+    return 0
+
+
+def _rotation_risk(fc: float) -> str:
+    """Return text risk level for FC value.
+
+    Jul 30 2026 (user spec):
+      0-30   -> Low
+      31-55  -> Medium
+      56-80  -> High
+      81-100 -> Very High
+    """
+    if fc <= 30:
+        return "Low"
+    if fc <= 55:
+        return "Medium"
+    if fc <= 80:
+        return "High"
+    return "Very High"
+
+
 def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
     """Compute Fixture Congestion score from a list of fixtures.
 
@@ -379,8 +499,14 @@ def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
 
     travel_penalty, travel_transitions = _travel_penalty_for_transitions(sides)
 
+    # Jul 30 2026 (user spec): Next 14 Days density metric.
+    # Uses ONLY fixtures[:5] - no additional API calls.
+    next_14 = calculate_next_14_days_density(fixtures)
+    next_14_days_penalty = _next_14_days_penalty(next_14["next_14_days_matches"])
+
     fc_raw_with_travel = fc + travel_penalty
-    fc_final = max(0, min(100, int(round(fc_raw_with_travel))))
+    fc_raw_with_density = fc_raw_with_travel + next_14_days_penalty
+    fc_final = max(0, min(100, int(round(fc_raw_with_density))))
 
     return {
         "fixture_congestion": fc_final,
@@ -396,6 +522,11 @@ def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
         "total_matches": len(fixtures),
         "travel_penalty": travel_penalty,
         "travel_transitions": travel_transitions,
+        "next_14_days_matches": next_14["next_14_days_matches"],
+        "next_14_days_period": next_14["period_days"],
+        "next_14_days_density_status": next_14["density_status"],
+        "next_14_days_penalty": next_14_days_penalty,
+        "rotation_risk": _rotation_risk(fc_final),
     }
 
 

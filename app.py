@@ -2494,6 +2494,12 @@ async def lineup_api_fixture_congestion(team_id: str):
             "total_matches": len(fixtures),
             "travel_penalty": 0,
             "travel_transitions": [],
+            # Jul 30 2026: Next 14 Days density fields (new in v9).
+            "next_14_days_matches": 0,
+            "next_14_days_period": 14,
+            "next_14_days_density_status": "NORMAL",
+            "next_14_days_penalty": 0,
+            "rotation_risk": "Low",
             "progress_bar": progress_bar(0),
             "risk_label": risk_label(0),
         }, status_code=200)

@@ -1840,6 +1840,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <div>Average Rest &mdash; <span id="nav-fc-avg">—</span></div>
                     <div>Shortest Rest &mdash; <span id="nav-fc-min">—</span></div>
                     <div>Away Matches &mdash; <span id="nav-fc-away">—</span></div>
+                    <div>Next 14 Days &mdash; <span id="nav-fc-next14">—</span></div>
                     <div><span id="nav-fc-risk">—</span></div>
                 </div>
             </div>
@@ -3702,10 +3703,20 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         minEl.style.color = '';
                     }}
                 }}
+                const next14El = document.getElementById('nav-fc-next14');
+                if (next14El) {{
+                    // Jul 30 2026: Next 14 Days density.
+                    // fc.next_14_days_matches is int 0..5
+                    // (uses ONLY fixtures[:5], no extra API calls).
+                    const n = (fc.next_14_days_matches != null)
+                        ? fc.next_14_days_matches : 0;
+                    const word = n === 1 ? 'match' : 'matches';
+                    next14El.textContent = n + ' ' + word;
+                }}
                 if (riskEl) {{
                     // Display: "Rotation Risk — Low/Medium/High/Very High".
-                    // fc.risk_label now returns just the level (Jul 29 2026).
-                    const lvl = fc.risk_label || '—';
+                    // fc.rotation_risk (Jul 30 2026) returns just the level.
+                    const lvl = fc.rotation_risk || fc.risk_label || '—';
                     riskEl.textContent = 'Rotation Risk — ' + lvl;
                 }}
             }};
