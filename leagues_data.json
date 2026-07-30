@@ -11630,5 +11630,93 @@
         "slug": "vikingur-reykjavik"
       }
     ]
+  },
+  "Qatar": {
+    "QSL": [
+      {
+        "id": "fRXFGNf0",
+        "name": "Al Ahli Doha",
+        "short_name": "AHL",
+        "image_path": "https://static.flashscore.com/res/image/data/Uaz5wqAr-Grx0Ap3B.png",
+        "slug": "al-ahli"
+      },
+      {
+        "id": "ltmcRTII",
+        "name": "Al Arabi",
+        "short_name": "ARA",
+        "image_path": "https://static.flashscore.com/res/image/data/d6tQJPFG-0SJW1Gbb.png",
+        "slug": "al-arabi-qatar"
+      },
+      {
+        "id": "SWo1QmYO",
+        "name": "Al Rayyan",
+        "short_name": "RAY",
+        "image_path": "https://static.flashscore.com/res/image/data/Ei9P1ljl-2Rnzhxb3.png",
+        "slug": "al-rayyan"
+      },
+      {
+        "id": "4xuOqBYn",
+        "name": "Al Sailiya",
+        "short_name": "SAI",
+        "image_path": "https://static.flashscore.com/res/image/data/KYr9dugl-CWzBgOsJ.png",
+        "slug": "al-sailiya"
+      },
+      {
+        "id": "AFuKpiJt",
+        "name": "Al Wakra",
+        "short_name": "WAK",
+        "image_path": "https://static.flashscore.com/res/image/data/bFeIHNil-8jrD2DDO.png",
+        "slug": "al-wakra"
+      },
+      {
+        "id": "WYZnRzI1",
+        "name": "Al-Duhail",
+        "short_name": "ALD",
+        "image_path": "https://static.flashscore.com/res/image/data/zgtXPG9r-G2Ap6VAf.png",
+        "slug": "al-duhail"
+      },
+      {
+        "id": "SQrTeoKd",
+        "name": "Al-Gharafa",
+        "short_name": "GHA",
+        "image_path": "https://static.flashscore.com/res/image/data/UNvmbNCa-hA8wSyki.png",
+        "slug": "al-gharafa"
+      },
+      {
+        "id": "AkENgqwB",
+        "name": "Al-Sadd",
+        "short_name": "ALS",
+        "image_path": "https://static.flashscore.com/res/image/data/YR0vqsf5-EsInupY1.png",
+        "slug": "al-sadd"
+      },
+      {
+        "id": "G4PEqWCa",
+        "name": "Al-Shahaniya",
+        "short_name": "ALS",
+        "image_path": "https://static.flashscore.com/res/image/data/WU7OvUil-bgdeNOhe.png",
+        "slug": "al-shahaniya"
+      },
+      {
+        "id": "r3FLFHng",
+        "name": "Lusail",
+        "short_name": "LUS",
+        "image_path": "https://static.flashscore.com/res/image/data/bcKpnGHG-8Sk5KE6e.png",
+        "slug": "lusail"
+      },
+      {
+        "id": "YglhkXAP",
+        "name": "Qatar SC",
+        "short_name": "QAT",
+        "image_path": "https://static.flashscore.com/res/image/data/MeQUfMzB-Y7pTsbKS.png",
+        "slug": "qatar-sc"
+      },
+      {
+        "id": "veL3xJnl",
+        "name": "Shamal",
+        "short_name": "SHA",
+        "image_path": "https://static.flashscore.com/res/image/data/8bLdbfHG-h24xRRj2.png",
+        "slug": "shamal"
+      }
+    ]
   }
 }
