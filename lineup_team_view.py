@@ -9,6 +9,80 @@ import time
 import html as html_lib
 from fastapi.responses import HTMLResponse
 
+def clean_player_name(name):
+    """Strip Flashscore trailing reason suffix from player name.
+
+    Jul 29 2026 — the Flashscore API sometimes appends a
+    reason keyword (e.g. "Abdominal strain", "Hamstring
+    Injury 01.08.2026") to a player's name when they're
+    unavailable. This helper removes that suffix so the
+    Player column shows only the name.
+
+    The original stripping logic lives in
+    api_refresh._strip_missing_reason_suffix; we re-implement
+    it here (without date stripping) so it works in the
+    template without an extra import. Keep in sync with
+    api_refresh._REASON_TOKENS.
+
+    Examples:
+      "Guerra Gage Abdominal strain" -> "Guerra Gage"
+      "Braunshtain Barak Abdominal strain" -> "Braunshtain Barak"
+      "Neymar"                       -> "Neymar"
+    """
+    if not name:
+        return name
+    name = str(name).strip()
+    # Reason tokens to strip (lowercase compare). Keep in sync with
+    # api_refresh._REASON_TOKENS.
+    _REASONS = (
+        # 3-word
+        "abdominal strain", "achilles tendon injury", "broken leg",
+        "broken finger", "broken toe", "broken arm", "muscle injury",
+        "knee injury", "foot injury", "thigh injury", "back injury",
+        "groin injury", "calf injury", "neck injury", "shoulder injury",
+        "rib injury", "leg injury", "arm injury", "eye injury",
+        "head injury", "hand injury", "wrist injury", "hip injury",
+        "ankle injury", "elbow injury", "nose injury",
+        # 2-word
+        "abdominal injury", "achilles injury", "ankle sprain",
+        "broken collarbone", "broken foot", "broken hand",
+        "broken nose", "foot sprain", "groin strain", "hamstring injury",
+        "hamstring strain", "illness", "knee sprain", "ligament injury",
+        "ligament tear", "lower back", "muscle fatigue", "muscle strain",
+        "muscle tear", "muscle problem", "neck strain", "red card",
+        "rib fracture", "shoulder strain", "suspension", "yellow card",
+        "yellow red card", "yellow/red card", "red cards",
+        # 1-word body parts
+        "abdominal", "achilles", "ankle", "back", "calf", "eye", "elbow",
+        "finger", "foot", "groin", "hamstring", "hand", "head", "heel",
+        "hip", "ill", "injured", "injury", "knee", "leg", "muscle",
+        "neck", "nose", "rib", "shoulder", "strain", "thigh", "toe",
+        "wrist",
+        # generic reasons
+        "doubt", "susp", "called", "personal", "sick",
+        # status
+        "injury",
+    )
+    # Try longest match first (multi-word reasons).
+    parts = name.split()
+    # Strip up to 4 trailing tokens that match a reason.
+    for _ in range(4):
+        if not parts:
+            break
+        matched = False
+        for n in range(min(4, len(parts)), 0, -1):
+            tail = " ".join(parts[-n:]).lower()
+            if tail in _REASONS:
+                parts = parts[:-n]
+                matched = True
+                break
+        if not matched:
+            break
+    if not parts:
+        return name  # safety: don't return empty
+    return " ".join(parts)
+
+
 def swap_name_order(name):
     """Swap Soccerway format (Surname FirstName) to display (FirstName Surname),
     keeping prefixes like de/van/al before the surname."""
@@ -451,7 +525,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
         p['squad_role'] = role
 
-        player_display_name = swap_name_order(p.get("name", "–"))
+        player_display_name = swap_name_order(clean_player_name(p.get("name", "–")))
         p['is_goal_leader'] = bool(unique_goal_leader and player_display_name == unique_goal_leader)
         p['is_assist_leader'] = bool(unique_assist_leader and player_display_name == unique_assist_leader)
     # Starting XI stats — 0 by default (user selects players via checkboxes)
@@ -577,7 +651,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     for p in sorted_players:
         last3 = p.get("last3", [])
         last_start = "START" if (last3 and len(last3) > 0 and last3[0] == "START") else ""
-        player_display_name = swap_name_order(p.get("name", "–"))
+        player_display_name = swap_name_order(clean_player_name(p.get("name", "–")))
         try:
             player_impact = _safe_num(p.get("impact_score", 0), default=0.0)
         except Exception:
