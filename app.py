@@ -1531,6 +1531,18 @@ _LOGIN_STYLE = """
     </style>
 """
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve the site favicon. Browsers request /favicon.ico
+    by default for the tab icon. We serve a PNG (browsers accept
+    image/png content-type on .ico paths since ~2019)."""
+    from fastapi.responses import FileResponse
+    return FileResponse(
+        "/home/openclaw/FormAlert/static/favicon.png",
+        media_type="image/png"
+    )
+
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(next: str = "/"):
     html = f"""<!doctype html>
@@ -1539,6 +1551,7 @@ async def login_page(next: str = "/"):
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sign In — LineupValue</title>
+  <link rel="icon" type="image/png" href="/favicon.ico">
   {_LOGIN_STYLE}
 </head>
 <body>
@@ -1574,6 +1587,7 @@ async def login_submit(username: str = Form(...), password: str = Form(...), nex
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Sign In — LineupValue</title>
+  <link rel="icon" type="image/png" href="/favicon.ico">
   {_LOGIN_STYLE}
 </head>
 <body>

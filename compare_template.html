@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+  <link rel="icon" type="image/png" href="/favicon.ico">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Match: {{my_name}} vs {{opponent_name}}</title>
@@ -282,6 +283,20 @@ body {
     font-size: 11px;
     color: #6c7280;
     margin-top: 2px;
+}
+
+/* Info box for stadium warning + first-leg result.
+   Jul 30 2026 — shown under stadium, amber accent. */
+.match-h2h-match-header .mhmh-info-box {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: #fff8e1;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #92400e;
+    line-height: 1.4;
+    text-align: left;
 }
 
 /* Stadium block (top of popup) */
@@ -1428,10 +1443,11 @@ var h2hOppId = '{{opp_team_id}}';
 // Jul 23 2026: match metadata for popup header (date, league, round, stadium).
 // Injected server-side from the chosen fixture in the team's cache.
 var matchMeta = {
-    date:     '{{match_date}}',
-    league:   '{{match_league}}',
-    round:    '{{match_round}}',
-    stadium:  '{{match_stadium}}',
+    date:      '{{match_date}}',
+    league:    '{{match_league}}',
+    round:     '{{match_round}}',
+    stadium:   '{{match_stadium}}',
+    info_box:  '{{info_box}}',
     home_name: '{{my_name}}',
     away_name: '{{opponent_name}}'
 };
@@ -1529,6 +1545,14 @@ function renderH2H(data) {
                  +  '<span class="mhmh-label-inline">Referee:</span>'
                  +  '<span class="mhmh-value-inline">' + escH(referee) + '</span>'
                  +  '</div>';
+        }
+        // Info box: stadium mismatch warning + first-leg result.
+        // Jul 30 2026 — important context (e.g. team playing at
+        // a different stadium in a European competition, or
+        // the score from the first leg of a two-leg tie).
+        var infoBoxText = (typeof matchMeta !== 'undefined' && matchMeta.info_box) || '';
+        if (infoBoxText) {
+            html += '<div class="mhmh-info-box">' + escH(infoBoxText) + '</div>';
         }
         html += '</div>';
     }
