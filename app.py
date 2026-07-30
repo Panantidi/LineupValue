@@ -1035,6 +1035,31 @@ import time as _time_mod
 
 # Jul 30 2026 v5: _active_user_cache removed — DB is source of truth.
 
+# Jul 30 2026: PERMANENT BAN table. A username here is blocked
+# regardless of the `active` flag. Must be removed manually.
+# This is a hard block that survives admin_toggle.
+def _is_banned(username: str) -> bool:
+    """Return True if username is in banned_users table.
+
+    Always reads from DB on every call (no cache). SQLite is
+    fast enough (~10 us) and we want the ban to take effect
+    immediately when added.
+    """
+    if not username:
+        return False
+    try:
+        import sqlite3 as _sq
+        con = _sq.connect(DB_PATH)
+        row = con.execute(
+            "SELECT 1 FROM banned_users WHERE username=? LIMIT 1",
+            (username,)
+        ).fetchone()
+        con.close()
+        return row is not None
+    except Exception:
+        return False
+
+
 def _is_user_active(username: str) -> bool:
     """Return True if user exists and active=1.
 
@@ -1171,6 +1196,21 @@ async def auth_middleware(request: Request, call_next):
                     status_code=403,
                     content="<h1>403 Forbidden</h1>"
                             "<p>Ваш аккаунт деактивирован. Пожалуйста, обратитесь к администратору.</p>"
+                )
+                resp.delete_cookie("fa_session", path="/")
+                return resp
+    # Jul 30 2026 v6: PERMANENT BAN check runs BEFORE public-path skip
+    # and BEFORE any auth. A banned username is blocked even on
+    # /lineup_ai/* public paths. This survives admin_toggle.
+    if path.strip("/") not in {"login", "logout"}:
+        session_cookie_for_ban = request.cookies.get("fa_session")
+        if session_cookie_for_ban:
+            user_info_for_ban = _parse_session_token(session_cookie_for_ban)
+            if user_info_for_ban and _is_banned(user_info_for_ban[0]):
+                resp = HTMLResponse(
+                    status_code=403,
+                    content="<h1>403 Forbidden</h1>"
+                            "<p>Ваш аккаунт заблокирован. Пожалуйста, обратитесь к администратору.</p>"
                 )
                 resp.delete_cookie("fa_session", path="/")
                 return resp
