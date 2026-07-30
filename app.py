@@ -2649,6 +2649,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
         match_venue_data = _ar.fetch_match_venue(mid) or {}
     except Exception:
         pass
+
     try:
         for lookup_id in (home_team_id, away_team_id):
             if not lookup_id:
@@ -2748,6 +2749,33 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     except Exception:
         pass
 
+    # --- Info box (Jul 30 2026) ---
+    # Detect:
+    #   1. Stadium mismatch: match_stadium != home_stadium (e.g. team
+    #      plays a European match at a different venue).
+    #   2. First-leg result: the most recent FINISHED match between
+    #      the same two teams in the same tournament (e.g. Europa
+    #      League Qualification two-leg ties).
+    info_box_lines = []
+
+    # 1) Stadium mismatch warning.
+    if match_stadium and home_stadium and match_stadium != home_stadium:
+        # Don't flag if the match_stadium is itself the home stadium's
+        # alternate name (city-only match). Keep it simple: exact
+        # inequality in the venue name (case-insensitive).
+        if match_stadium.lower().split('(')[0].strip() != home_stadium.lower().split('(')[0].strip():
+            # Pull just the venue name (drop city/capacity suffix).
+            venue_name = match_stadium.split('·')[0].split('(')[0].strip().rstrip(',').strip()
+            info_box_lines.append(
+                '⚠ Playing home matches at a different stadium \u2014 ' + venue_name + '.'
+            )
+
+    # 2) First-leg result removed (Jul 30 2026 user spec).
+    # User wants only the stadium warning in the info box.
+    # (Score mismatch was also a known bug because URL home/away
+    # does not always reflect the real match home/away.)
+    info_box_text = ' '.join(info_box_lines).strip()
+
     # --- Render template ---
     with open("/home/openclaw/FormAlert/compare_template.html", "r", encoding="utf-8") as f:
         template = f.read()
@@ -2772,6 +2800,7 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     result = result.replace("{{match_league}}", _safe(match_league))
     result = result.replace("{{match_round}}", _safe(match_round))
     result = result.replace("{{match_stadium}}", _safe(match_stadium))
+    result = result.replace("{{info_box}}", _safe(info_box_text))
 
     return HTMLResponse(content=result)
 
