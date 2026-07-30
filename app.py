@@ -2421,10 +2421,11 @@ async def lineup_api_fixture_congestion(team_id: str):
             pass
 
     # ALWAYS recompute from fixtures (ignore cached FC value).
+    # Pass team_id so compute can count home/away matches.
     fc_data = None
     if fixtures:
         try:
-            fc_data = compute_fixture_congestion(fixtures)
+            fc_data = compute_fixture_congestion(fixtures, team_id=team_id)
         except Exception as e:
             fc_data = None
 
@@ -2439,6 +2440,9 @@ async def lineup_api_fixture_congestion(team_id: str):
             "next_matches_count": len(fixtures),
             "recovery_intervals": [],
             "recovery_hours": [],
+            "home_matches": 0,
+            "away_matches": 0,
+            "total_matches": len(fixtures),
             "progress_bar": progress_bar(0),
             "risk_label": risk_label(0),
         }, status_code=200)

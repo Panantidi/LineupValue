@@ -1765,6 +1765,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <div style="display:flex; flex-direction:column; gap:2px; color:#555; font-size:11px;">
                     <div>Average Rest &mdash; <span id="nav-fc-avg">—</span></div>
                     <div>Shortest Rest &mdash; <span id="nav-fc-min">—</span></div>
+                    <div>Away Matches &mdash; <span id="nav-fc-away">—</span></div>
                     <div><span id="nav-fc-risk">—</span></div>
                 </div>
             </div>
@@ -3592,6 +3593,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const minEl = document.getElementById('nav-fc-min');
                 const riskEl = document.getElementById('nav-fc-risk');
                 if (bar) bar.innerHTML = (fc.progress_bar || '') + ' <span id="nav-fc-pct">' + pct + '</span>';
+                const awayEl = document.getElementById('nav-fc-away');
+                if (awayEl) {{
+                    const away = (fc.away_matches || 0);
+                    const total = (fc.total_matches || fc.next_matches_count || 0);
+                    awayEl.textContent = away + '/' + total;
+                }}
                 if (pctEl) pctEl.textContent = pct;
                 const status = fc.status || 'LOW';
                 const statusEmoji = status === 'EXTREME' ? '🔴'

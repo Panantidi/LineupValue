@@ -128,7 +128,31 @@ def _penalty_for_min_rest_hours(min_recovery_hours: float) -> int:
     return 0
 
 
-def compute_fixture_congestion(fixtures: list) -> dict:
+def _count_home_away(fixtures: list, team_id: str = "") -> tuple:
+    """Return (home_count, away_count) for a list of fixtures.
+
+    A match is home if team_id matches:
+      - "home_team_id" field on the fixture, OR
+      - "home_team.team_id" if home_team is a dict
+
+    If team_id is empty, returns (0, 0).
+    """
+    if not team_id:
+        return 0, 0
+    home = 0
+    away = 0
+    for f in fixtures:
+        h_team_id = f.get("home_team_id") or ""
+        if not h_team_id and isinstance(f.get("home_team"), dict):
+            h_team_id = f["home_team"].get("team_id") or f["home_team"].get("id") or ""
+        if str(h_team_id) == str(team_id):
+            home += 1
+        else:
+            away += 1
+    return home, away
+
+
+def compute_fixture_congestion(fixtures: list, team_id: str = "") -> dict:
     """Compute Fixture Congestion score from a list of fixtures.
 
     Each fixture dict is expected to have either:
@@ -136,16 +160,24 @@ def compute_fixture_congestion(fixtures: list) -> dict:
     OR
       - "date" + "time": "dd/mm" + "HH:MM"
 
+    If team_id is passed, also counts home/away matches.
+    A match is home if home_team_id == team_id (or
+    home_team.team_id == team_id). Otherwise: away.
+
     Returns a dict suitable for caching in the team live_cache.
 
-    Schema:
+    Schema (Jul 29 2026 v5):
         {
           "fixture_congestion": 90,
           "status": "EXTREME",
-          "average_rest_days": 1.8,
-          "minimum_rest_days": 1,
+          "average_recovery_days": 1.8,
+          "minimum_recovery_days": 1,
+          "minimum_recovery_hours": 5,
           "next_matches_count": 5,
-          "rest_intervals": [2, 2, 1, 2]
+          "recovery_intervals": [2, 2, 1, 2],
+          "home_matches": 3,
+          "away_matches": 2,
+          "total_matches": 5
         }
     """
     if not fixtures:
@@ -197,13 +229,19 @@ def compute_fixture_congestion(fixtures: list) -> dict:
 
     parsed.sort()
     if len(parsed) < 2:
+        home_count, away_count = _count_home_away(fixtures, team_id)
         return {
             "fixture_congestion": 0,
             "status": "LOW",
             "average_recovery_days": 0.0,
             "minimum_recovery_days": 0,
+            "minimum_recovery_hours": 0,
             "next_matches_count": len(parsed),
             "recovery_intervals": [],
+            "recovery_hours": [],
+            "home_matches": home_count,
+            "away_matches": away_count,
+            "total_matches": len(fixtures),
         }
 
     # Jul 29 2026 v3: round(hours/24, 1) instead of floor.
@@ -218,6 +256,8 @@ def compute_fixture_congestion(fixtures: list) -> dict:
         interval_hours.append(round(hours, 1))
 
     if not intervals:
+        # Single match — no recovery intervals, but still count home/away.
+        home_count, away_count = _count_home_away(fixtures, team_id)
         return {
             "fixture_congestion": 0,
             "status": "LOW",
@@ -227,6 +267,9 @@ def compute_fixture_congestion(fixtures: list) -> dict:
             "next_matches_count": len(parsed),
             "recovery_intervals": [],
             "recovery_hours": [],
+            "home_matches": home_count,
+            "away_matches": away_count,
+            "total_matches": len(fixtures),
         }
 
     avg_recovery = sum(intervals) / len(intervals)
@@ -245,6 +288,7 @@ def compute_fixture_congestion(fixtures: list) -> dict:
     fc_raw = average_load + penalty
     fc = max(0, min(100, int(round(fc_raw))))
 
+    home_count, away_count = _count_home_away(fixtures, team_id)
     return {
         "fixture_congestion": fc,
         "status": _status_for(fc),
@@ -254,6 +298,9 @@ def compute_fixture_congestion(fixtures: list) -> dict:
         "next_matches_count": len(parsed),
         "recovery_intervals": intervals,
         "recovery_hours": interval_hours,
+        "home_matches": home_count,
+        "away_matches": away_count,
+        "total_matches": len(fixtures),
     }
 
 
