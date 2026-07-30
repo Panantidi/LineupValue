@@ -1447,7 +1447,10 @@ _LOGIN_STYLE = """
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin: 0;
             padding: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* Jul 30 2026: login background image (1672x941 png) */
+            background:
+              linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
+              url('/static/login_bg.png') center center / cover no-repeat fixed;
             min-height: 100vh;
             display: flex;
             justify-content: center;
