@@ -1069,7 +1069,58 @@ def _is_banned(username: str) -> bool:
         return False
 
 
-def _is_user_active(username: str) -> bool:
+def _is_ip_banned(ip: str) -> bool:
+    """v9: return True if IP is in banned_ips table.
+
+    Always reads DB on every call. SQLite is fast enough.
+    Block at the IP level means even anonymous requests
+    get 403 from a banned IP address.
+    """
+    if not ip or ip in {"", "127.0.0.1", "::1"}:
+        return False
+    try:
+        import sqlite3 as _sq
+        con = _sq.connect(DB_PATH)
+        row = con.execute(
+            "SELECT 1 FROM banned_ips WHERE ip=? LIMIT 1",
+            (ip,)
+        ).fetchone()
+        con.close()
+        return row is not None
+    except Exception:
+        return False
+
+
+def _ban_ip_for_username(username: str) -> int:
+    """v9: add all IPs known for this username to banned_ips.
+
+    Reads access_log to find all IPs that user used,
+    inserts them into banned_ips. Returns count of
+    IPs banned.
+    """
+    if not username:
+        return 0
+    try:
+        import sqlite3 as _sq
+        con = _sq.connect(DB_PATH)
+        rows = con.execute(
+            "SELECT DISTINCT ip FROM access_log WHERE username=? AND ip IS NOT NULL",
+            (username,)
+        ).fetchall()
+        for (ip,) in rows:
+            if ip and ip not in {"127.0.0.1", "::1"}:
+                con.execute(
+                    "INSERT OR IGNORE INTO banned_ips (ip, username, banned_at) VALUES (?, ?, ?)",
+                    (ip, username, datetime.now(timezone.utc).isoformat())
+                )
+        con.commit()
+        con.close()
+        return len(rows)
+    except Exception:
+        return 0
+
+
+def _user_active(username: str) -> bool:
     """Return True if user exists and active=1.
 
     Jul 30 2026 v5: REMOVED CACHE. The DB is the source of truth.
@@ -1158,6 +1209,17 @@ def _flash_cleanup():
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
     client_ip = request.client.host if request.client else ""
+    # Jul 30 2026 v9: IP-based ban check runs FIRST.
+    # Blocked at network level - even anonymous requests
+    # from a banned IP get 403. No way around it.
+    if path.strip("/") not in {"login"} and _is_ip_banned(client_ip):
+        resp = HTMLResponse(
+            status_code=403,
+            content="<h1>403 Forbidden</h1>"
+                    "<p>Ваш IP адрес заблокирован. Пожалуйста, обратитесь к администратору.</p>"
+        )
+        resp.delete_cookie("fa_session", path="/")
+        return resp
     # Jul 24 2026: log /lineup_ai/* view events EVEN on the public skip
     # path. Without this, only /login (action=login) and /admin (admin
     # events) are recorded in access_log, so the /admin Recent Activity
@@ -6298,6 +6360,14 @@ async def admin_toggle(uid: int, request: Request):
                 if ban_row:
                     # User is banned; refuse to activate.
                     nv = 0  # keep them deactivated
+            except Exception:
+                pass
+        # Jul 30 2026 v9: when deactivating a user, auto-ban
+        # all IPs they have used. Makes the ban survive
+        # even if the user clears cookies or uses a new browser.
+        if nv == 0:
+            try:
+                _ban_ip_for_username(username)
             except Exception:
                 pass
         con.execute("UPDATE users SET active=? WHERE id=?", (nv, uid)); con.commit()
