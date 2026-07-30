@@ -765,7 +765,8 @@ def refresh_fixtures(team_id, force=False):
         [
             {tournament_id, full_name, name, matches: [{match_id, timestamp, ...}]}
         ]
-    Returns matches sorted ASC by timestamp, top 3.
+    Jul 30 2026 v13: sort DESC + filter future-only before slicing.
+    Returns matches sorted DESC by timestamp, top 5 future.
     """
     # Delta refresh (Jul 23 2026): skip API call if fixtures are fresh.
     # force=True no longer bypasses this check — see refresh_squad comment.
@@ -792,7 +793,13 @@ def refresh_fixtures(team_id, force=False):
             if not isinstance(m, dict):
                 continue
             flat.append((m, tname, tshort))
-    flat.sort(key=lambda x: int(x[0].get("timestamp") or 0))
+    # v13: filter future-only, then sort ASC, take top 5 nearest.
+    # API /teams/fixtures returns past + future matches mixed.
+    # We want the 5 NEAREST upcoming matches.
+    import time as _t
+    _now_ts = int(_t.time())
+    flat = [x for x in flat if int(x[0].get("timestamp") or 0) >= _now_ts]
+    flat.sort(key=lambda x: int(x[0].get("timestamp") or 0))  # ASC = nearest first
     flat = flat[:5]
     out = []
     for m, tname, tshort in flat:
