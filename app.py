@@ -1120,7 +1120,7 @@ def _ban_ip_for_username(username: str) -> int:
         return 0
 
 
-def _user_active(username: str) -> bool:
+def _is_user_active(username: str) -> bool:
     """Return True if user exists and active=1.
 
     Jul 30 2026 v5: REMOVED CACHE. The DB is the source of truth.
