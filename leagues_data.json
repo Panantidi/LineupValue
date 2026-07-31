@@ -1533,6 +1533,152 @@
         "name": "Wycombe",
         "slug": ""
       }
+    ],
+    "League Two": [
+      {
+        "id": "6ZvdGuYf",
+        "name": "Accrington",
+        "slug": "accrington",
+        "image_path": "https://static.flashscore.com/res/image/data/SGfYHUA6-QqdgCtqL.png"
+      },
+      {
+        "id": "4KcaFam1",
+        "name": "Barnet",
+        "slug": "barnet",
+        "image_path": "https://static.flashscore.com/res/image/data/GlglW2AN-QqdgCtqL.png"
+      },
+      {
+        "id": "GILi6JC9",
+        "name": "Bristol Rovers",
+        "slug": "bristol-rovers",
+        "image_path": "https://static.flashscore.com/res/image/data/O0Rq4iiT-QqdgCtqL.png"
+      },
+      {
+        "id": "jizXHcsM",
+        "name": "Cheltenham",
+        "slug": "cheltenham",
+        "image_path": "https://static.flashscore.com/res/image/data/p6AlbdQq-QRSG3Z7h.png"
+      },
+      {
+        "id": "dQIMIN5n",
+        "name": "Chesterfield",
+        "slug": "chesterfield",
+        "image_path": "https://static.flashscore.com/res/image/data/Me0J5MU0-CIDVVibD.png"
+      },
+      {
+        "id": "xYu73rNn",
+        "name": "Colchester",
+        "slug": "colchester",
+        "image_path": "https://static.flashscore.com/res/image/data/f3Vq4yT0-K2FpWLH3.png"
+      },
+      {
+        "id": "QVmLl54o",
+        "name": "Crawley",
+        "slug": "crawley-town",
+        "image_path": "https://static.flashscore.com/res/image/data/Sp2BMgme-4zecB0bR.png"
+      },
+      {
+        "id": "YacqHHdS",
+        "name": "Crewe",
+        "slug": "crewe",
+        "image_path": "https://static.flashscore.com/res/image/data/CzXxtlCN-4zecB0bR.png"
+      },
+      {
+        "id": "ve14a3l4",
+        "name": "Exeter",
+        "slug": "exeter",
+        "image_path": "https://static.flashscore.com/res/image/data/ADJGVqT0-lfuHfHs4.png"
+      },
+      {
+        "id": "tCZ3D68d",
+        "name": "Fleetwood",
+        "slug": "fleetwood-town",
+        "image_path": "https://static.flashscore.com/res/image/data/EaWjWMle-2iK9htx0.png"
+      },
+      {
+        "id": "WvZyDeKk",
+        "name": "Gillingham",
+        "slug": "gillingham",
+        "image_path": "https://static.flashscore.com/res/image/data/tryicj8k-4zecB0bR.png"
+      },
+      {
+        "id": "OEaiS3za",
+        "name": "Grimsby",
+        "slug": "grimsby",
+        "image_path": "https://static.flashscore.com/res/image/data/WdV3GQR0-YuYdJego.png"
+      },
+      {
+        "id": "ChwgcrNJ",
+        "name": "Newport",
+        "slug": "newport",
+        "image_path": "https://static.flashscore.com/res/image/data/thMmaqhT-2a4JLW9s.png"
+      },
+      {
+        "id": "l4P6dwRR",
+        "name": "Northampton",
+        "slug": "northampton",
+        "image_path": "https://static.flashscore.com/res/image/data/UNNonLS0-zVge1dyc.png"
+      },
+      {
+        "id": "O4voiHlk",
+        "name": "Oldham",
+        "slug": "oldham",
+        "image_path": "https://static.flashscore.com/res/image/data/b9OHuPiT-fylJcjMq.png"
+      },
+      {
+        "id": "U3lM3y4e",
+        "name": "Port Vale",
+        "slug": "port-vale",
+        "image_path": "https://static.flashscore.com/res/image/data/OvhRMHme-hE2XjgkL.png"
+      },
+      {
+        "id": "bm2Vlsfl",
+        "name": "Rochdale",
+        "slug": "rochdale",
+        "image_path": "https://static.flashscore.com/res/image/data/279CAo7k-K2FpWLH3.png"
+      },
+      {
+        "id": "KMfM7P4b",
+        "name": "Rotherham",
+        "slug": "rotherham",
+        "image_path": "https://static.flashscore.com/res/image/data/WjUotCCN-6qsP6K6r.png"
+      },
+      {
+        "id": "W4AadhN3",
+        "name": "Salford",
+        "slug": "salford",
+        "image_path": "https://static.flashscore.com/res/image/data/2izb5TUH-QTmTeIrb.png"
+      },
+      {
+        "id": "EqfQ6qK4",
+        "name": "Shrewsbury",
+        "slug": "shrewsbury",
+        "image_path": "https://static.flashscore.com/res/image/data/hbRQ86WH-MeJKaU2T.png"
+      },
+      {
+        "id": "xSloasB8",
+        "name": "Swindon",
+        "slug": "swindon",
+        "image_path": "https://static.flashscore.com/res/image/data/4hOx9vUH-6qsP6K6r.png"
+      },
+      {
+        "id": "jVhkb1QE",
+        "name": "Tranmere",
+        "slug": "tranmere",
+        "image_path": "https://static.flashscore.com/res/image/data/MRWk2GR0-bgElVuX9.png"
+      },
+      {
+        "id": "YgrfcLuL",
+        "name": "Walsall",
+        "slug": "walsall",
+        "image_path": "https://static.flashscore.com/res/image/data/xfTmKAjT-bgElVuX9.png"
+      },
+      {
+        "id": "EcHUrsed",
+        "name": "York City",
+        "slug": "york-city",
+        "image_path": "https://static.flashscore.com/res/image/data/0dAfIQne-2wDusEwU.png"
+      }
     ]
   },
   "Finland": {
