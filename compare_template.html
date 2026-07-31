@@ -1822,10 +1822,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function refreshSaveButton(matches) {
         const btn = document.getElementById('btn-save-match');
         if (!btn) return;
-        const isSaved = (matches || []).some(m => m.match_id === currentMid);
+        // Only mark as Saved if we have a currentMid AND it is in the list
+        const isSaved = currentMid && (matches || []).some(m => m.match_id === currentMid);
         if (isSaved) {
             btn.textContent = 'Saved';
-            btn.disabled = true;
+            btn.disabled = false;  // keep clickable so user can re-save after edits
         } else {
             btn.textContent = 'Save this match';
             btn.disabled = false;
