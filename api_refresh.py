@@ -579,6 +579,7 @@ _REASON_TOKENS = (
     "Suspended", "Suspension", "Banned",
     "Personal Reasons", "Private Reasons", "Family Reasons",
     "Transfer negotiations", "Transfer Negotiations", "Transfer Negotiation",
+    "Lower-Body Injury", "Lower-Body", "Lower Body Injury", "Lower Body",
     "Loan agreement", "International duty",
     "Not in squad", "Not in match squad", "Coach's decision",
     "Inactive", "Resting", "Disciplinary",

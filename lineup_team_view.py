@@ -63,6 +63,8 @@ def clean_player_name(name):
         # transfer-related (Jul 31 2026: never show in Player column)
         "transfer negotiations", "transfer negotiation", "transfer",
         "negotiations", "negotiation",
+        # lower-body (Jul 31 2026: never show in Player column)
+        "lower-body injury", "lower-body", "lower body injury", "lower body",
         # status
         "injury",
     )
