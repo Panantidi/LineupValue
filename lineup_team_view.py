@@ -589,14 +589,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     def _missing_emoji(miss):
         if isinstance(miss, dict):
             reason = miss.get("reason", "") or ""
-        else:
-            reason = miss or ""
-        # Jul 31 2026: hide Transfer negotiations reason entirely
-        r_check = reason.lower() if reason else ""
-        if "transfer" in r_check and "negotiation" in r_check:
-            return '', '', 'transparent'
-        if isinstance(miss, dict):
-            reason = miss.get("reason", "") or ""
             # If the data-prep side already classified the emoji, trust it
             pre_emoji = miss.get("emoji", "")
             if pre_emoji:
