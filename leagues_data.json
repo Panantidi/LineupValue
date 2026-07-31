@@ -4502,6 +4502,116 @@
         "slug": "cska-1948-sofia",
         "image_path": "https://static.flashscore.com/res/image/data/KlMy8MGG-xWiwLpT4.png"
       }
+    ],
+    "Vtora liga": [
+      {
+        "id": "0CpyYs0O",
+        "name": "Dobrudzha",
+        "slug": "dobrudzha",
+        "image_path": "https://static.flashscore.com/res/image/data/Y1cNNK5k-bspvajO9.png"
+      },
+      {
+        "id": "4Ktg0O16",
+        "name": "Ludogorets II",
+        "slug": "ludogorets",
+        "image_path": "https://static.flashscore.com/res/image/data/WjL4qRlC-rqorUaBm.png"
+      },
+      {
+        "id": "4MyeM4GH",
+        "name": "Beroe",
+        "slug": "beroe",
+        "image_path": "https://static.flashscore.com/res/image/data/xpH48q86-fmfS2lRL.png"
+      },
+      {
+        "id": "69Af3hdc",
+        "name": "Vihren",
+        "slug": "vihren",
+        "image_path": "https://static.flashscore.com/res/image/data/nR1nRQkC-WIxR6zab.png"
+      },
+      {
+        "id": "6FBf6ewJ",
+        "name": "Yantra Gabrovo",
+        "slug": "yantra-gabrovo",
+        "image_path": "https://static.flashscore.com/res/image/data/I1yerx8k-hErf3isQ.png"
+      },
+      {
+        "id": "Ee3kfcg0",
+        "name": "Spartak Pleven",
+        "slug": "spartak-pleven",
+        "image_path": "https://static.flashscore.com/res/image/data/M11Sz7lC-0O7W928o.png"
+      },
+      {
+        "id": "Ewt618S6",
+        "name": "CSKA Sofia II",
+        "slug": "cska-sofia",
+        "image_path": "https://static.flashscore.com/res/image/data/QqUll5WH-GSqTPsZN.png"
+      },
+      {
+        "id": "Gb6i7Smd",
+        "name": "Nesebar",
+        "slug": "nesebar",
+        "image_path": "https://static.flashscore.com/res/image/data/WvSwqV5k-bZ5qQjN9.png"
+      },
+      {
+        "id": "IeVD4qkM",
+        "name": "Chernomorets 1919",
+        "slug": "chernomorets-1919",
+        "image_path": "https://static.flashscore.com/res/image/data/C0QDAcWH-xvl7d3R4.png"
+      },
+      {
+        "id": "IwK3Sxle",
+        "name": "Hebar",
+        "slug": "hebar",
+        "image_path": "https://static.flashscore.com/res/image/data/KnDqniS0-zDA5DObD.png"
+      },
+      {
+        "id": "KfDQ6H86",
+        "name": "Svoge",
+        "slug": "svoge",
+        "image_path": "https://static.flashscore.com/res/image/data/MgJM86R0-KnNw8eel.png"
+      },
+      {
+        "id": "KlnUda9s",
+        "name": "Montana",
+        "slug": "montana",
+        "image_path": "https://static.flashscore.com/res/image/data/QLieRNR0-COvJNbKS.png"
+      },
+      {
+        "id": "OICsE7P8",
+        "name": "Etar",
+        "slug": "etar",
+        "image_path": "https://static.flashscore.com/res/image/data/nV3iJ8hT-vmEtyZKD.png"
+      },
+      {
+        "id": "W68WWjRM",
+        "name": "Marek",
+        "slug": "marek",
+        "image_path": "https://static.flashscore.com/res/image/data/U7GTaygT-82UxazOD.png"
+      },
+      {
+        "id": "WWDpewvf",
+        "name": "Rilski Sportist",
+        "slug": "rilski-sportist",
+        "image_path": "https://static.flashscore.com/res/image/data/pzcRSikC-l020OUKf.png"
+      },
+      {
+        "id": "Wjajeq2r",
+        "name": "Fratria",
+        "slug": "fratria",
+        "image_path": "https://static.flashscore.com/res/image/data/bN9IXhle-h8XTJpRt.png"
+      },
+      {
+        "id": "rDzaLOVN",
+        "name": "Pirin Blagoevgrad",
+        "slug": "pirin-blagoevgrad",
+        "image_path": "https://static.flashscore.com/res/image/data/2HF8ugQq-WWsYmhDT.png"
+      },
+      {
+        "id": "t8sdYius",
+        "name": "Lok. Gorna",
+        "slug": "gorna",
+        "image_path": "https://static.flashscore.com/res/image/data/KvI8JsVH-Khns8S2D.png"
+      }
     ]
   },
   "Japan": {
