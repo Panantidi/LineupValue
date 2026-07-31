@@ -684,9 +684,13 @@ def refresh_player_details(player, delay=0.25, force=False, is_national=False):
     Nat column — that's where the player's nationality flag belongs.
     """
     # Delta refresh (Jul 23 2026): skip per-player API call if section is fresh.
-    # force=True no longer bypasses this check — see refresh_squad comment.
+    # Jul 31 2026: restore `not force` bypass so ♻️ Refresh actually
+    # re-fetches MV (otherwise refresh_squad nukes market_value to
+    # None on every refresh, and this early return prevents refill
+    # until the 30-day TTL expires). Other sections (squad, fixtures,
+    # results) keep the strict TTL behaviour per the skill rule.
     tid = player.get('_team_id', '')
-    if tid and _section_is_fresh(tid, 'player_details', PLAYER_DETAILS_TTL_SECONDS):
+    if not force and tid and _section_is_fresh(tid, 'player_details', PLAYER_DETAILS_TTL_SECONDS):
         return  # market_value/age already in cache
     purl = player.get("player_url", "")
     if not purl:
