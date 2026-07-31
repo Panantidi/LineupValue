@@ -55,6 +55,7 @@ def clean_player_name(name):
         "yellow red card", "yellow/red card", "red cards",
         # 1-word body parts
         "abdominal", "achilles", "tendon", "pelvis", "pelvis injury",
+        "knock", "knock injury",
         "ankle", "back", "calf", "eye", "elbow",
         "finger", "foot", "groin", "hamstring", "hand", "head", "heel",
         "hip", "ill", "injured", "injury", "knee", "leg", "muscle",
