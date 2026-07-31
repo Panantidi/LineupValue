@@ -627,6 +627,56 @@ body {
         }
 
 </style>
+
+    <style>
+    /* Saved matches cards (Team mode style adapted for light sidebar) */
+    .saved-match-card {
+        border: 1px solid #e6e9f2;
+        border-left: 4px solid #667eea;
+        border-radius: 8px;
+        padding: 8px;
+        margin-bottom: 8px;
+        background: #fff;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .saved-match-card:hover { background: #f8f9ff; }
+    .saved-match-card.active {
+        background: #f2f5ff;
+        border-color: #667eea;
+    }
+    .saved-match-name {
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    .saved-match-date {
+        font-size: 10px;
+        color: #888;
+        font-style: italic;
+        margin-bottom: 6px;
+    }
+    .saved-match-actions {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .saved-match-actions button {
+        border: 0;
+        border-radius: 5px;
+        padding: 4px 6px;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        background: #eef1f8;
+        color: #444;
+    }
+    .saved-match-actions button:hover { background: #dde4f4; }
+    .saved-match-delete { background: #f8d7da !important; color: #842029 !important; }
+    </style>
+    
 </head>
 <body>
 <div class="nav-rail" id="nav-rail" onclick="toggleNavSidebar()" title="Show navigation"></div>
@@ -676,13 +726,13 @@ body {
         <button onclick="openNavTeamAnalysis()">Team Analysis</button>
     </div>
 
-    <div class="form-group" id="nav-saved-matches" style="margin-top:18px;border-top:1px solid #333;padding-top:12px;">
-        <label style="display:flex;align-items:center;justify-content:space-between;">
-            Saved Matches
-            <button id="btn-save-match" onclick="saveCurrentMatch()" title="Save this match" style="padding:4px 10px;font-size:12px;">Save this match</button>
-        </label>
-        <div id="saved-matches-list" style="margin-top:8px;max-height:220px;overflow-y:auto;">
-            <div style="color:#888;font-size:12px;">Loading...</div>
+    <div class="form-group" id="nav-saved-matches" style="margin-top:18px;border-top:1px solid #e0e0e0;padding-top:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div class="my-squads-title" style="font-size:15px;font-weight:700;color:#333;">Saved Matches</div>
+            <button id="btn-save-match" onclick="saveCurrentMatch()" title="Save this match" style="padding:4px 10px;font-size:12px;background:#667eea;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:600;">Save this match</button>
+        </div>
+        <div id="saved-matches-list" style="max-height:260px;overflow-y:auto;">
+            <div class="snapshot-empty-list" style="color:#888;font-size:12px;">No saved matches yet.</div>
         </div>
     </div>
 </aside>
@@ -1734,14 +1784,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dt = new Date(m.created_at || Date.now());
                 const pad = n => n.toString().padStart(2, '0');
                 const dateStr = `${pad(dt.getDate())}.${pad(dt.getMonth()+1)}.${String(dt.getFullYear()).slice(-2)} (${pad(dt.getHours())}:${pad(dt.getMinutes())})`;
-                return `<div class="saved-match-item" style="padding:8px 0;border-bottom:1px solid #2a2a3e;${isCurrent ? 'background:rgba(102,126,234,0.12);' : ''}">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
-                        <a href="${url}" style="color:#e0e0e0;text-decoration:none;flex:1;line-height:1.4;" title="${m.home_name || ''} vs ${m.away_name || ''}">
-                            <div style="font-size:13px;font-weight:500;">${m.home_name || '?'}</div>
-                            <div style="font-size:13px;font-weight:500;">${m.away_name || '?'}</div>
-                            <div style="font-size:11px;color:#888;font-style:italic;margin-top:2px;">Update ${dateStr}</div>
-                        </a>
-                        <button onclick="deleteSavedMatch('${m.match_id.replace(/'/g, "\'")}', event)" style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;" title="Delete">❌</button>
+                return `<div class="saved-match-card ${isCurrent ? 'active' : ''}">
+                    <div class="saved-match-name" onclick="navigateToMatch('${url.replace(/'/g, "\'")}')" title="${m.home_name || ''} vs ${m.away_name || ''}">
+                        ${m.home_name || '?'}<br>${m.away_name || '?'}
+                    </div>
+                    <div class="saved-match-date">Update ${dateStr}</div>
+                    <div class="saved-match-actions">
+                        <button type="button" onclick="navigateToMatch('${url.replace(/'/g, "\'")}')">Open</button>
+                        <button type="button" class="saved-match-delete" onclick="deleteSavedMatch('${m.match_id.replace(/'/g, "\'")}', event)">Delete</button>
                     </div>
                 </div>`;
             }).join('');
@@ -1752,6 +1802,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+
+    window.navigateToMatch = function(url, ev) {
+        if (ev) ev.preventDefault();
+        window.location.href = url;
+    };
     window.saveCurrentMatch = async function() {
         if (!currentMid) {
             alert('No match ID found in URL');
