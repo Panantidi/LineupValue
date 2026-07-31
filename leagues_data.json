@@ -12092,5 +12092,105 @@
         "image_path": "https://static.flashscore.com/res/image/data/zLGtD26k-xOaZHl96.png"
       }
     ]
+  },
+  "Tunisia": {
+    "Ligue Professionnelle 1": [
+      {
+        "id": "4MWKcfBn",
+        "name": "Ben Guerdane",
+        "slug": "ben-guerdane",
+        "image_path": "https://static.flashscore.com/res/image/data/xriYShU0-t237fvTb.png"
+      },
+      {
+        "id": "foGAiyF8",
+        "name": "CA Bizertin",
+        "slug": "bizertin",
+        "image_path": "https://static.flashscore.com/res/image/data/xbeeIiT0-EF3V5cyl.png"
+      },
+      {
+        "id": "2BJIkFqL",
+        "name": "CS Sfaxien",
+        "slug": "cs-sfaxien",
+        "image_path": "https://static.flashscore.com/res/image/data/IJO1iuWH-ttrKDhzm.png"
+      },
+      {
+        "id": "C2lt6Igm",
+        "name": "Club Africain",
+        "slug": "club-africain",
+        "image_path": "https://static.flashscore.com/res/image/data/vRAKqa7k-KARMbQBD.png"
+      },
+      {
+        "id": "bVINpDMl",
+        "name": "Esperance Tunis",
+        "slug": "esperance-tunis",
+        "image_path": "https://static.flashscore.com/res/image/data/MwJ5a4AN-QwBpoY8M.png"
+      },
+      {
+        "id": "QyX50QIH",
+        "name": "Etoile Sahel",
+        "slug": "etoile-du-sahel",
+        "image_path": "https://static.flashscore.com/res/image/data/bqiV7K7k-G4klYHjK.png"
+      },
+      {
+        "id": "j1Jcpg7r",
+        "name": "Hamam-Sousse",
+        "slug": "hamam-sousse",
+        "image_path": "https://static.flashscore.com/res/image/data/AuA8BM76-OIM3sMvL.png"
+      },
+      {
+        "id": "l8FEjeUE",
+        "name": "Hammam-Lif",
+        "slug": "hammam-lif",
+        "image_path": "https://static.flashscore.com/res/image/data/WjlpXfiT-25iFJh20.png"
+      },
+      {
+        "id": "84XWfU62",
+        "name": "JS Omrane",
+        "slug": "jeunesse-sportive",
+        "image_path": "https://static.flashscore.com/res/image/data/hIOWhuXH-n1oCCiBU.png"
+      },
+      {
+        "id": "GfH6hHa2",
+        "name": "Marsa",
+        "slug": "marsa",
+        "image_path": "https://static.flashscore.com/res/image/data/fZvCLvAN-zgzLiH7t.png"
+      },
+      {
+        "id": "tIVvg8yF",
+        "name": "Metlaoui",
+        "slug": "metlaoui",
+        "image_path": "https://static.flashscore.com/res/image/data/hjsxnmgT-xQxsaZ8c.png"
+      },
+      {
+        "id": "zixQ6fq8",
+        "name": "Monastir",
+        "slug": "monastir",
+        "image_path": "https://static.flashscore.com/res/image/data/2qGoLPU0-OlRcOd3K.png"
+      },
+      {
+        "id": "Kp7Wrii1",
+        "name": "Olympique Beja",
+        "slug": "olympique-beja",
+        "image_path": "https://static.flashscore.com/res/image/data/fHCZTY7k-lhdmzxg9.png"
+      },
+      {
+        "id": "Klt5FUtE",
+        "name": "PS Sakiet Eddaier",
+        "slug": "ps-sakiet-eddaier",
+        "image_path": "https://static.flashscore.com/res/image/data/YiCgLqlC-00k8hxzT.png"
+      },
+      {
+        "id": "IVPZsB67",
+        "name": "Stade Tunisien",
+        "slug": "stade-tunisien",
+        "image_path": "https://static.flashscore.com/res/image/data/O4tnXRT0-GOX2DTa1.png"
+      },
+      {
+        "id": "0AqfZLXt",
+        "name": "Zarzis",
+        "slug": "zarzis",
+        "image_path": "https://static.flashscore.com/res/image/data/CrYMZZ7k-Eua5PHRE.png"
+      }
+    ]
   }
 }
