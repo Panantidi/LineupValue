@@ -321,6 +321,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     
     if not team_file:
+        # Best-effort: try to fetch team data now if cache is missing.
+        # This is necessary when comparing matches whose team_id has
+        # never been opened in Team mode (no cache file yet).
         team_name_hint = team_id
         try:
             from lineup_data_complete import load_complete_hierarchy
@@ -337,7 +340,16 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             pass
         except Exception:
             pass
-        html = f"""<!doctype html>
+        # Try to fetch team data now (sync refresh)
+        try:
+            from api_refresh import refresh_team
+            refresh_team(team_id=team_id, force=True)
+            if os.path.exists(live_cache_path):
+                team_file = live_cache_path
+        except Exception as _e:
+            pass
+        if not team_file:
+            html = f"""<!doctype html>
 <html><head><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest"><title>{team_name_hint} - loading</title></head>
   <div style="max-width:760px;margin:60px auto;background:white;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
     <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
