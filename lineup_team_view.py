@@ -354,8 +354,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
   <div style="max-width:760px;margin:60px auto;background:white;border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
     <h2 style="margin-top:0;color:#333;">{team_name_hint}</h2>
     <p style="color:#666;line-height:1.5;">Team data has not been loaded yet</p>
-    <a href="/lineup_ai/select" style="display:inline-block;text-decoration:none;border:0;border-radius:8px;background:#667eea;color:white;font-weight:700;padding:10px 16px;cursor:pointer;">← Back to teams</a>
-  </div>
+    </div>
 
         
 
@@ -1790,8 +1789,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
             <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
-            <a href="/lineup_ai/select" class="header-action-btn">← Back to teams</a>
-        </div>
+            </div>
     </div>
 
     <div class="container">
