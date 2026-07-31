@@ -2158,10 +2158,13 @@ async def remove_favorite(request: Request, player_id: str):
 # --- Match favorites (sidebar on compare page) ---
 @app.get("/api/match-favorites")
 async def get_match_favorites(request: Request):
-    """Get user's saved favorite matches."""
+    """Get user's saved favorite matches. Auto-prune entries older than 10 days."""
     username = getattr(request.state, "username", "owner")
     ensure_db()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
     with sqlite3.connect(DB_PATH) as con:
+        con.execute("DELETE FROM user_match_favorites WHERE username = ? AND created_at < ?", (username, cutoff))
+        con.commit()
         rows = con.execute(
             "SELECT match_id, home_id, away_id, home_name, away_name, created_at FROM user_match_favorites WHERE username = ? ORDER BY created_at DESC",
             (username,)

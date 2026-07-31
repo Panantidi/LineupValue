@@ -1731,11 +1731,18 @@ document.addEventListener('DOMContentLoaded', function() {
             list.innerHTML = matches.map(m => {
                 const url = `/lineup_ai/compare/${encodeURIComponent(m.home_id || '')}?mid=${encodeURIComponent(m.match_id)}&home_id=${encodeURIComponent(m.home_id || '')}&away_id=${encodeURIComponent(m.away_id || '')}&home_name=${encodeURIComponent(m.home_name || '')}&away_name=${encodeURIComponent(m.away_name || '')}`;
                 const isCurrent = m.match_id === currentMid;
-                return `<div class="saved-match-item" style="padding:6px 0;border-bottom:1px solid #222;font-size:13px;display:flex;align-items:center;justify-content:space-between;${isCurrent ? 'background:rgba(255,255,255,0.07);' : ''}">
-                    <a href="${url}" style="color:#e0e0e0;text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.home_name || ''} vs ${m.away_name || ''}">${m.home_name || '?'}</a>
-                    <span style="color:#666;margin:0 4px;">vs</span>
-                    <a href="${url}" style="color:#e0e0e0;text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.home_name || ''} vs ${m.away_name || ''}">${m.away_name || '?'}</a>
-                    <button onclick="deleteSavedMatch('${m.match_id.replace(/'/g, "\'")}', event)" style="margin-left:6px;background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:14px;" title="Delete">×</button>
+                const dt = new Date(m.created_at || Date.now());
+                const pad = n => n.toString().padStart(2, '0');
+                const dateStr = `${pad(dt.getDate())}.${pad(dt.getMonth()+1)}.${String(dt.getFullYear()).slice(-2)} (${pad(dt.getHours())}:${pad(dt.getMinutes())})`;
+                return `<div class="saved-match-item" style="padding:8px 0;border-bottom:1px solid #2a2a3e;${isCurrent ? 'background:rgba(102,126,234,0.12);' : ''}">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                        <a href="${url}" style="color:#e0e0e0;text-decoration:none;flex:1;line-height:1.4;" title="${m.home_name || ''} vs ${m.away_name || ''}">
+                            <div style="font-size:13px;font-weight:500;">${m.home_name || '?'}</div>
+                            <div style="font-size:13px;font-weight:500;">${m.away_name || '?'}</div>
+                            <div style="font-size:11px;color:#888;font-style:italic;margin-top:2px;">Update ${dateStr}</div>
+                        </a>
+                        <button onclick="deleteSavedMatch('${m.match_id.replace(/'/g, "\'")}', event)" style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;" title="Delete">❌</button>
+                    </div>
                 </div>`;
             }).join('');
         } catch (e) {
