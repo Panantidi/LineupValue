@@ -2864,6 +2864,75 @@ async def lineup_api_fixture_congestion(team_id: str):
 
 # --- COMPARE: side-by-side team comparison for a match ---
 # --- COMPARE: side-by-side match comparison with full team views ---
+def _resolve_country_from_suffix(name):
+    """Convert 'Team (Ita)' → 'Italy', or None if no suffix."""
+    code = None
+    import re as _re
+    m = _re.search(r'\(([A-Za-z]{2,4})\)\s*$', (name or "").strip())
+    if m:
+        code = m.group(1).lower()
+    if not code:
+        return None
+    return COUNTRY_ALIASES.get(code, code)
+
+
+COUNTRY_ALIASES = {
+    "arg": "Argentina",
+    "aus": "Australia",
+    "aut": "Austria",
+    "bel": "Belgium",
+    "bol": "Bolivia",
+    "bra": "Brazil",
+    "bul": "Bulgaria",
+    "can": "Canada",
+    "chi": "Chile",
+    "chn": "China",
+    "col": "Colombia",
+    "crc": "Costa Rica",
+    "cro": "Croatia",
+    "cze": "Czech Republic",
+    "den": "Denmark",
+    "ecu": "Ecuador",
+    "egy": "Egypt",
+    "eng": "England",
+    "esp": "Spain",
+    "fin": "Finland",
+    "fra": "France",
+    "ger": "Germany",
+    "gre": "Greece",
+    "hun": "Hungary",
+    "ind": "India",
+    "irl": "Ireland",
+    "irn": "Iran",
+    "isr": "Israel",
+    "ita": "Italy",
+    "jpn": "Japan",
+    "kor": "Korea",
+    "mex": "Mexico",
+    "mor": "Morocco",
+    "ned": "Netherlands",
+    "nor": "Norway",
+    "par": "Paraguay",
+    "per": "Peru",
+    "pol": "Poland",
+    "por": "Portugal",
+    "rou": "Romania",
+    "rus": "Russia",
+    "sau": "Saudi Arabia",
+    "sco": "Scotland",
+    "ser": "Serbia",
+    "slo": "Slovakia",
+    "sui": "Switzerland",
+    "swe": "Sweden",
+    "tur": "Turkey",
+    "uae": "UAE",
+    "ukr": "Ukraine",
+    "uru": "Uruguay",
+    "usa": "USA",
+    "ven": "Venezuela",
+    "wal": "Wales"
+}
+
 @app.get("/lineup_ai/compare/{team_id}")
 async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id: str = "", home_name: str = "", away_name: str = ""):
     """Render two full team views side-by-side for an upcoming match.
@@ -2903,23 +2972,42 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                         break
                 if home_team_id:
                     break
-            # 2. Try substring match (home_name is contained in team name OR vice versa)
+            # 2. Try substring match (only if lengths are close: avoid 'Inter'
+            # matching 'Inter Turku' when the user asked for 'Inter (Ita)')
             if not home_team_id:
+                target_country = _resolve_country_from_suffix(home_name)
+                candidate = None
+                fallback = None
                 for country, leagues_dict in leagues.items():
                     for league_name, teams in leagues_dict.items():
                         for team in teams:
                             tn = team.get("name", "").lower()
                             hn = home_name.lower()
-                            # Strip country suffix like "(Bra)" for comparison
                             tn_clean = tn.split(" (")[0].strip()
                             hn_clean = hn.split(" (")[0].strip()
-                            if tn_clean == hn_clean or tn_clean.startswith(hn_clean + " ") or hn_clean.startswith(tn_clean + " "):
-                                home_team_id = team.get("id", "")
-                                break
+                            if tn_clean == hn_clean:
+                                # Exact match after stripping country — prefer
+                                # this even if country suffix is absent
+                                if target_country:
+                                    if country.lower() == target_country.lower():
+                                        home_team_id = team.get("id", "")
+                                        break
+                                    if fallback is None:
+                                        fallback = team.get("id", "")
+                                else:
+                                    if candidate is None:
+                                        candidate = team.get("id", "")
+                            elif tn_clean.startswith(hn_clean + " ") or hn_clean.startswith(tn_clean + " "):
+                                # Substring match: 'Inter Turku' starts with 'inter '
+                                # Only accept as fallback if no exact match exists
+                                if fallback is None:
+                                    fallback = team.get("id", "")
                         if home_team_id:
                             break
                     if home_team_id:
                         break
+                if not home_team_id:
+                    home_team_id = candidate or fallback or home_team_id
         except Exception:
             pass
 
@@ -2943,8 +3031,11 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                         break
                 if away_team_id:
                     break
-            # 2. Try substring match
+            # 2. Try substring match (only if lengths are close)
             if not away_team_id:
+                target_country = _resolve_country_from_suffix(away_name)
+                candidate = None
+                fallback = None
                 for country, leagues_dict in leagues.items():
                     for league_name, teams in leagues_dict.items():
                         for team in teams:
@@ -2952,13 +3043,25 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
                             an = away_name.lower()
                             tn_clean = tn.split(" (")[0].strip()
                             an_clean = an.split(" (")[0].strip()
-                            if tn_clean == an_clean or tn_clean.startswith(an_clean + " ") or an_clean.startswith(tn_clean + " "):
-                                away_team_id = team.get("id", "")
-                                break
+                            if tn_clean == an_clean:
+                                if target_country:
+                                    if country.lower() == target_country.lower():
+                                        away_team_id = team.get("id", "")
+                                        break
+                                    if fallback is None:
+                                        fallback = team.get("id", "")
+                                else:
+                                    if candidate is None:
+                                        candidate = team.get("id", "")
+                            elif tn_clean.startswith(an_clean + " ") or an_clean.startswith(tn_clean + " "):
+                                if fallback is None:
+                                    fallback = team.get("id", "")
                         if away_team_id:
                             break
                     if away_team_id:
                         break
+                if not away_team_id:
+                    away_team_id = candidate or fallback or away_team_id
         except Exception:
             pass
 
