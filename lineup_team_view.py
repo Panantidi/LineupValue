@@ -36,7 +36,8 @@ def clean_player_name(name):
     # api_refresh._REASON_TOKENS.
     _REASONS = (
         # 3-word
-        "abdominal strain", "achilles tendon injury", "broken leg",
+        "abdominal strain", "achilles tendon injury", "achilles tendon",
+        "broken leg",
         "broken finger", "broken toe", "broken arm", "muscle injury",
         "knee injury", "foot injury", "thigh injury", "back injury",
         "groin injury", "calf injury", "neck injury", "shoulder injury",
