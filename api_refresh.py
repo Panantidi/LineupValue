@@ -572,7 +572,7 @@ _REASON_TOKENS = (
     # Single-word body parts / surgery / status (NEW Jul 23 2026 — fixes
     # "Joelinton Thigh", "Dos Santos Matthew Calf", "Bruninho Muscle")
     "Muscle", "Thigh", "Calf", "Shoulder", "Groin", "Knee", "Hamstring",
-    "Achilles", "Achilles Tendon", "Tendon", "Ankle", "Foot", "Hip", "Neck",
+    "Achilles", "Achilles Tendon", "Tendon", "Pelvis", "Pelvis Injury", "Ankle", "Foot", "Hip", "Neck",
     "Wrist", "Hand", "Finger", "Back", "Rib", "Toe", "Elbow", "Leg", "Arm",
     "Injury", "Illness", "Surgery", "Operation", "Rest",
     "Yellow Cards", "Yellow Card", "Red Card",

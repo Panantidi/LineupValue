@@ -54,7 +54,8 @@ def clean_player_name(name):
         "rib fracture", "shoulder strain", "suspension", "yellow card",
         "yellow red card", "yellow/red card", "red cards",
         # 1-word body parts
-        "abdominal", "achilles", "tendon", "ankle", "back", "calf", "eye", "elbow",
+        "abdominal", "achilles", "tendon", "pelvis", "pelvis injury",
+        "ankle", "back", "calf", "eye", "elbow",
         "finger", "foot", "groin", "hamstring", "hand", "head", "heel",
         "hip", "ill", "injured", "injury", "knee", "leg", "muscle",
         "neck", "nose", "rib", "shoulder", "strain", "thigh", "toe",
