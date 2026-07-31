@@ -1783,7 +1783,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             list.innerHTML = matches.map(m => {
-                const pathTeamId = m.home_id || m.away_id || 'unknown';
+                const pathTeamId = m.home_id || m.away_id || '';
+                if (!pathTeamId) {
+                    // Cannot navigate — disabled card
+                    return `<div class="saved-match-card" style="border-left-color:#dc3545;opacity:0.6;" title="This match is missing team identifiers. Re-save it to fix.">
+                        <div class="saved-match-name">${m.home_name || '?'}<br>${m.away_name || '?'}</div>
+                        <div class="saved-match-date">Update ${dateStr}</div>
+                        <div class="saved-match-actions">
+                            <button type="button" class="saved-match-delete" onclick="deleteSavedMatch('${m.match_id.replace(/'/g, "\'")}', event)">Delete</button>
+                        </div>
+                    </div>`;
+                }
                 const url = `/lineup_ai/compare/${encodeURIComponent(pathTeamId)}?mid=${encodeURIComponent(m.match_id)}&home_id=${encodeURIComponent(m.home_id || '')}&away_id=${encodeURIComponent(m.away_id || '')}&home_name=${encodeURIComponent(m.home_name || '')}&away_name=${encodeURIComponent(m.away_name || '')}`;
                 const isCurrent = m.match_id === currentMid;
                 const dt = new Date(m.created_at || Date.now());
@@ -1817,6 +1827,12 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('No match ID found in URL');
             return;
         }
+        const resolvedHomeId = currentTeamId || currentHomeId;
+        const resolvedAwayId = currentAwayId;
+        if (!resolvedHomeId && !resolvedAwayId) {
+            alert('Cannot save: no team identifiers in URL. Please open this match from the team selection page.');
+            return;
+        }
         const btn = document.getElementById('btn-save-match');
         if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
         try {
@@ -1830,8 +1846,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     match_id: currentMid,
-                    home_id: currentTeamId || currentHomeId,
-                    away_id: currentAwayId,
+                    home_id: resolvedHomeId,
+                    away_id: resolvedAwayId,
                     home_name: currentHomeName,
                     away_name: currentAwayName
                 })
