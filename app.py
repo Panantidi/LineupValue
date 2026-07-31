@@ -729,6 +729,20 @@ def ensure_db():
         )
     """)
     con.execute("CREATE INDEX IF NOT EXISTS idx_user_favorites_username ON user_favorites(username)")
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS user_match_favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            match_id TEXT NOT NULL,
+            home_id TEXT,
+            away_id TEXT,
+            home_name TEXT,
+            away_name TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(username, match_id)
+        )
+    """)
+    con.execute("CREATE INDEX IF NOT EXISTS idx_user_match_favorites_username ON user_match_favorites(username)")
 
 
     con.execute("""
@@ -994,6 +1008,8 @@ async def _fd_is_within_starting_xi_window(team_name: str, window_minutes: int =
 
 
 app = FastAPI(title=APP_TITLE)
+
+
 
 # --- Auth middleware ---
 PUBLIC_PATHS = {"/health", "/favicon.ico", "/login", "/logout"}
@@ -2137,6 +2153,69 @@ async def remove_favorite(request: Request, player_id: str):
             (username, player_id)
         )
     return {"success": True}
+
+
+# --- Match favorites (sidebar on compare page) ---
+@app.get("/api/match-favorites")
+async def get_match_favorites(request: Request):
+    """Get user's saved favorite matches."""
+    username = getattr(request.state, "username", "owner")
+    ensure_db()
+    with sqlite3.connect(DB_PATH) as con:
+        rows = con.execute(
+            "SELECT match_id, home_id, away_id, home_name, away_name, created_at FROM user_match_favorites WHERE username = ? ORDER BY created_at DESC",
+            (username,)
+        ).fetchall()
+    favorites = [
+        {
+            "match_id": row[0],
+            "home_id": row[1],
+            "away_id": row[2],
+            "home_name": row[3],
+            "away_name": row[4],
+            "created_at": row[5],
+        }
+        for row in rows
+    ]
+    return {"favorites": favorites}
+
+
+@app.post("/api/match-favorites")
+async def add_match_favorite(request: Request):
+    """Add a match to favorites."""
+    username = getattr(request.state, "username", "owner")
+    data = await request.json()
+    match_id = data.get("match_id")
+    home_id = data.get("home_id", "")
+    away_id = data.get("away_id", "")
+    home_name = data.get("home_name", "")
+    away_name = data.get("away_name", "")
+    if not match_id:
+        return JSONResponse({"error": "match_id required"}, status_code=400)
+    ensure_db()
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute(
+            "INSERT INTO user_match_favorites(username, match_id, home_id, away_id, home_name, away_name, created_at) "
+            "VALUES(?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(username, match_id) DO UPDATE SET home_id=excluded.home_id, away_id=excluded.away_id, "
+            "home_name=excluded.home_name, away_name=excluded.away_name, created_at=excluded.created_at",
+            (username, match_id, home_id, away_id, home_name, away_name, datetime.now(timezone.utc).isoformat()),
+        )
+    return {"success": True, "match_id": match_id}
+
+
+@app.delete("/api/match-favorites/{match_id}")
+async def remove_match_favorite(request: Request, match_id: str):
+    """Remove a match from favorites."""
+    username = getattr(request.state, "username", "owner")
+    ensure_db()
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute(
+            "DELETE FROM user_match_favorites WHERE username = ? AND match_id = ?",
+            (username, match_id),
+        )
+    return {"success": True}
+
 
 
 @app.get("/lineup_ai")
@@ -5066,7 +5145,7 @@ async def keywords_page():
     pn_txt = html_escape("\n".join(pn))
 
     nav = _main_nav("/admin/keywords")
-    html = f"""<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    html = f"""<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>Keywords</title>
     <style>
       body{{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:1200px}}
@@ -5143,7 +5222,7 @@ async def admin_home():
     options = "\n".join([f"<option value='{c}'>{c}</option>" for c in CATEGORIES])
     impacts = "\n".join([f"<option value='{i}'>{i}</option>" for i in IMPACT_LEVELS])
     nav = _main_nav("/admin/")
-    html = f"""<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    html = f"""<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>FormAlert Admin</title>
     <style>
       body{{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:900px}}
@@ -5209,7 +5288,7 @@ async def admin_status():
         f"JOB_NEXT_RUN={next_run}\n"
     )
 
-    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>Status</title>
     <style>
       body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:1200px}
@@ -5229,7 +5308,7 @@ async def admin_status():
 async def admin_modes():
     modes = _load_modes() or {}
     txt = json.dumps(modes, ensure_ascii=False, indent=2)
-    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>Modes</title>
     <style>
       body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:1200px}
@@ -5327,7 +5406,7 @@ async def admin_teams(sort: str = "source", dir: str = "asc"):
             "</tr>"
         )
 
-    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>Teams Map</title>
     <style>
       body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:1100px}
@@ -5475,7 +5554,7 @@ async def admin_runs(limit: int = 50, date_from: str = "", date_to: str = "", ti
     cost_req = day_requests * 0.005
     cost_posts = day_posts * 0.005
 
-    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>Runs</title>
     <style>
       body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px}
@@ -5876,7 +5955,7 @@ async def admin_tweets(limit: int = 100, tweet_id: str = "", kw: str = "", playe
         "</tr>"
     )
 
-    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+    html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>Tweets</title>
     <style>
       body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px}
@@ -6283,7 +6362,7 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
 
     msg_html = f'<div class="msg">{msg}</div>' if msg else ""
 
-    return f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
 <title>User Admin — X11Radar</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}

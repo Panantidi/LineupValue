@@ -675,6 +675,16 @@ body {
     <div id="nav-actions" style="display:none;">
         <button onclick="openNavTeamAnalysis()">Team Analysis</button>
     </div>
+
+    <div class="form-group" id="nav-saved-matches" style="margin-top:18px;border-top:1px solid #333;padding-top:12px;">
+        <label style="display:flex;align-items:center;justify-content:space-between;">
+            Saved Matches
+            <button id="btn-save-match" onclick="saveCurrentMatch()" title="Save this match" style="padding:4px 10px;font-size:12px;">Save this match</button>
+        </label>
+        <div id="saved-matches-list" style="margin-top:8px;max-height:220px;overflow-y:auto;">
+            <div style="color:#888;font-size:12px;">Loading...</div>
+        </div>
+    </div>
 </aside>
 
 
@@ -1696,5 +1706,94 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+
+<script>
+// --- Saved matches sidebar logic ---
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const currentMid = params.get('mid') || '';
+    const currentHomeId = params.get('home_id') || '';
+    const currentAwayId = params.get('away_id') || '';
+    const currentHomeName = params.get('home_name') || '';
+    const currentAwayName = params.get('away_name') || '';
+
+    async function loadSavedMatches() {
+        try {
+            const r = await fetch('/api/match-favorites');
+            const data = await r.json();
+            const list = document.getElementById('saved-matches-list');
+            if (!list) return;
+            const matches = data.favorites || [];
+            if (!matches.length) {
+                list.innerHTML = '<div style="color:#888;font-size:12px;">No saved matches yet.</div>';
+                return;
+            }
+            list.innerHTML = matches.map(m => {
+                const url = `/lineup_ai/compare/${encodeURIComponent(m.home_id || '')}?mid=${encodeURIComponent(m.match_id)}&home_id=${encodeURIComponent(m.home_id || '')}&away_id=${encodeURIComponent(m.away_id || '')}&home_name=${encodeURIComponent(m.home_name || '')}&away_name=${encodeURIComponent(m.away_name || '')}`;
+                const isCurrent = m.match_id === currentMid;
+                return `<div class="saved-match-item" style="padding:6px 0;border-bottom:1px solid #222;font-size:13px;display:flex;align-items:center;justify-content:space-between;${isCurrent ? 'background:rgba(255,255,255,0.07);' : ''}">
+                    <a href="${url}" style="color:#e0e0e0;text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.home_name || ''} vs ${m.away_name || ''}">${m.home_name || '?'}</a>
+                    <span style="color:#666;margin:0 4px;">vs</span>
+                    <a href="${url}" style="color:#e0e0e0;text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.home_name || ''} vs ${m.away_name || ''}">${m.away_name || '?'}</a>
+                    <button onclick="deleteSavedMatch('${m.match_id.replace(/'/g, "\'")}', event)" style="margin-left:6px;background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:14px;" title="Delete">×</button>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error('loadSavedMatches error', e);
+            const list = document.getElementById('saved-matches-list');
+            if (list) list.innerHTML = '<div style="color:#ff6b6b;font-size:12px;">Failed to load saved matches</div>';
+        }
+    }
+
+    window.saveCurrentMatch = async function() {
+        if (!currentMid) {
+            alert('No match ID found in URL');
+            return;
+        }
+        try {
+            const r = await fetch('/api/match-favorites', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    match_id: currentMid,
+                    home_id: currentHomeId,
+                    away_id: currentAwayId,
+                    home_name: currentHomeName,
+                    away_name: currentAwayName
+                })
+            });
+            const data = await r.json();
+            if (data.success) {
+                await loadSavedMatches();
+                const btn = document.getElementById('btn-save-match');
+                if (btn) { btn.textContent = 'Saved'; btn.disabled = true; }
+            } else {
+                alert(data.error || 'Failed to save match');
+            }
+        } catch (e) {
+            console.error('saveCurrentMatch error', e);
+            alert('Failed to save match');
+        }
+    };
+
+    window.deleteSavedMatch = async function(matchId, ev) {
+        if (ev) ev.preventDefault();
+        if (!confirm('Remove this match from saved?')) return;
+        try {
+            const r = await fetch('/api/match-favorites/' + encodeURIComponent(matchId), {method: 'DELETE'});
+            const data = await r.json();
+            if (data.success) {
+                await loadSavedMatches();
+                const btn = document.getElementById('btn-save-match');
+                if (btn && matchId === currentMid) { btn.textContent = 'Save this match'; btn.disabled = false; }
+            }
+        } catch (e) {
+            console.error('deleteSavedMatch error', e);
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', loadSavedMatches);
+})();
+</script>
 </body>
 </html>
