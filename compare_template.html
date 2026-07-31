@@ -1812,7 +1812,14 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('No match ID found in URL');
             return;
         }
+        const btn = document.getElementById('btn-save-match');
+        if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
         try {
+            // 1. Persist current match team data (tables/lineup changes)
+            if (window.saveMatchData) {
+                await window.saveMatchData();
+            }
+            // 2. Save match to favorites sidebar
             const r = await fetch('/api/match-favorites', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1827,13 +1834,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await r.json();
             if (data.success) {
                 await loadSavedMatches();
-                const btn = document.getElementById('btn-save-match');
-                if (btn) { btn.textContent = 'Saved'; btn.disabled = true; }
+                if (btn) { btn.textContent = 'Saved'; }
             } else {
+                if (btn) { btn.textContent = 'Save this match'; btn.disabled = false; }
                 alert(data.error || 'Failed to save match');
             }
         } catch (e) {
             console.error('saveCurrentMatch error', e);
+            if (btn) { btn.textContent = 'Save this match'; btn.disabled = false; }
             alert('Failed to save match');
         }
     };
