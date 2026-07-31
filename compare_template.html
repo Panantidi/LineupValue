@@ -747,7 +747,6 @@ body {
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="compare-header-controls">
         <button id="match-btn-add-lineups" onclick="toggleBothFrames('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both teams)">👥 Add Lineups</button>
-        <button id="match-save-btn" onclick="saveMatchData()" title="Save Match Data">💾 Save</button>
         <button id="match-btn-faq" class="compare-header-faq" onclick="toggleFaq()">❓ FAQ</button>
         <a href="/lineup_ai/select">&#8592; Back to teams</a>
     </div>
@@ -909,48 +908,39 @@ body {
 
     window.saveMatchData = async function() {
         const mid = document.getElementById("match-id").dataset.mid;
-        const btn = document.getElementById("match-save-btn");
         const myFrame = document.getElementById("my-frame");
         const oppFrame = document.getElementById("opp-frame");
-        
+
         if (!myFrame.contentWindow || !oppFrame.contentWindow) {
             alert("Frames not ready");
             return;
         }
-        
-        btn.disabled = true;
-        btn.textContent = "Saving...";
-        
+
         try {
             const myData = myFrame.contentWindow.getCurrentTeamData ? myFrame.contentWindow.getCurrentTeamData() : null;
             const oppData = oppFrame.contentWindow.getCurrentTeamData ? oppFrame.contentWindow.getCurrentTeamData() : null;
-            
+
             const payload = {
                 home_data: myData,
                 away_data: oppData,
                 saved_at: new Date().toISOString()
             };
-            
+
             const resp = await fetch("/lineup_ai/match_save/" + mid, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(payload)
             });
             const result = await resp.json();
-            
+
             if (result.ok) {
                 matchSavedAt = result.saved_at;
-                btn.textContent = "Saved";
-                setTimeout(() => { btn.textContent = "Save"; }, 2000);
             } else {
                 throw new Error("Save failed");
             }
         } catch (e) {
             console.error("Save error:", e);
-            btn.textContent = "Error";
-            setTimeout(() => { btn.textContent = "Save"; }, 2000);
         }
-        btn.disabled = false;
     }
     
     window.loadMatchData = async function() {
@@ -1822,14 +1812,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function refreshSaveButton(matches) {
         const btn = document.getElementById('btn-save-match');
         if (!btn) return;
-        // Only mark as Saved if we have a currentMid AND it is in the list
+        // Only mark as Saved if currentMid is non-empty and in saved list
         const isSaved = currentMid && (matches || []).some(m => m.match_id === currentMid);
         if (isSaved) {
             btn.textContent = 'Saved';
-            btn.disabled = false;  // keep clickable so user can re-save after edits
         } else {
             btn.textContent = 'Save this match';
-            btn.disabled = false;
         }
     }
 
@@ -1849,7 +1837,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         const btn = document.getElementById('btn-save-match');
-        if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+        if (btn) { btn.textContent = 'Saving...'; }
         try {
             // 1. Persist current match team data (tables/lineup changes)
             if (window.saveMatchData) {
@@ -1870,14 +1858,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await r.json();
             if (data.success) {
                 await loadSavedMatches();
-                // refreshSaveButton() called inside loadSavedMatches
+                // Show 'Saved' briefly then return to 'Save this match'
+                if (btn) { btn.textContent = 'Saved'; }
+                setTimeout(() => {
+                    if (btn) { btn.textContent = 'Save this match'; }
+                }, 2000);
             } else {
-                if (btn) { btn.textContent = 'Save this match'; btn.disabled = false; }
+                if (btn) { btn.textContent = 'Save this match'; }
                 alert(data.error || 'Failed to save match');
             }
         } catch (e) {
             console.error('saveCurrentMatch error', e);
-            if (btn) { btn.textContent = 'Save this match'; btn.disabled = false; }
+            if (btn) { btn.textContent = 'Save this match'; }
             alert('Failed to save match');
         }
     };
