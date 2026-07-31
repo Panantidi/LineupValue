@@ -12016,5 +12016,81 @@
         "image_path": "https://static.flashscore.com/res/image/data/zu5a89me-QVAzX6rD.png"
       }
     ]
+  },
+  "Northern Ireland": {
+    "NIFL Premiership": [
+      {
+        "id": "rg548Ymb",
+        "name": "Cliftonville",
+        "slug": "cliftonville",
+        "image_path": "https://static.flashscore.com/res/image/data/djXbEKle-OGT1hbmr.png"
+      },
+      {
+        "id": "YiTk9JCq",
+        "name": "Linfield",
+        "slug": "linfield",
+        "image_path": "https://static.flashscore.com/res/image/data/8vO5MeT0-d08YyqWn.png"
+      },
+      {
+        "id": "Uax8a0SC",
+        "name": "Glentoran",
+        "slug": "glentoran",
+        "image_path": "https://static.flashscore.com/res/image/data/bJZUPpAN-l2qiVD1D.png"
+      },
+      {
+        "id": "pzauSmbb",
+        "name": "Crusaders",
+        "slug": "crusaders",
+        "image_path": "https://static.flashscore.com/res/image/data/SA5WePWH-6BBVz3Rq.png"
+      },
+      {
+        "id": "44wiLnI5",
+        "name": "Larne",
+        "slug": "larne",
+        "image_path": "https://static.flashscore.com/res/image/data/jsdDsCBN-6DWdsjIR.png"
+      },
+      {
+        "id": "2B9zTTrh",
+        "name": "Coleraine",
+        "slug": "coleraine",
+        "image_path": "https://static.flashscore.com/res/image/data/8njNmIjC-l2RHTltM.png"
+      },
+      {
+        "id": "Wngt5Qjo",
+        "name": "Ballymena",
+        "slug": "ballymena",
+        "image_path": "https://static.flashscore.com/res/image/data/6Dz1F0kC-6Xr4YRar.png"
+      },
+      {
+        "id": "Q7HfynXb",
+        "name": "Portadown",
+        "slug": "portadown",
+        "image_path": "https://static.flashscore.com/res/image/data/hnEM7jU0-C6HCzrGT.png"
+      },
+      {
+        "id": "8rJBTsfo",
+        "name": "Carrick Rangers",
+        "slug": "carrick-rangers",
+        "image_path": "https://static.flashscore.com/res/image/data/WMQFf0AN-xOaZHl96.png"
+      },
+      {
+        "id": "l85WT9To",
+        "name": "Bangor FC",
+        "slug": "bangor-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/QmZYJ5Rq-Ia6rz2Nr.png"
+      },
+      {
+        "id": "hIPsvlmt",
+        "name": "Limavady",
+        "slug": "limavady",
+        "image_path": "https://static.flashscore.com/res/image/data/KbbrjBjT-Usn9oOj7.png"
+      },
+      {
+        "id": "OQcqR7D4",
+        "name": "Dungannon",
+        "slug": "dungannon",
+        "image_path": "https://static.flashscore.com/res/image/data/zLGtD26k-xOaZHl96.png"
+      }
+    ]
   }
 }
