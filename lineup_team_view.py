@@ -60,6 +60,9 @@ def clean_player_name(name):
         "wrist",
         # generic reasons
         "doubt", "susp", "called", "personal", "sick",
+        # transfer-related (Jul 31 2026: never show in Player column)
+        "transfer negotiations", "transfer negotiation", "transfer",
+        "negotiations", "negotiation",
         # status
         "injury",
     )
@@ -584,6 +587,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     # hard rule from the skill: every missing player cell must show a
     # meaningful emoji, and the emoji must match the reason.
     def _missing_emoji(miss):
+        if isinstance(miss, dict):
+            reason = miss.get("reason", "") or ""
+        else:
+            reason = miss or ""
+        # Jul 31 2026: hide Transfer negotiations reason entirely
+        r_check = reason.lower() if reason else ""
+        if "transfer" in r_check and "negotiation" in r_check:
+            return '', '', 'transparent'
         if isinstance(miss, dict):
             reason = miss.get("reason", "") or ""
             # If the data-prep side already classified the emoji, trust it
