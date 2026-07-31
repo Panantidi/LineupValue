@@ -11818,5 +11818,93 @@
         "image_path": "https://static.flashscore.com/res/image/data/bVkYBmVH-EJm9aI2J.png"
       }
     ]
+  },
+  "UAE": {
+    "UAE League": [
+      {
+        "id": "UX1exRBg",
+        "name": "Al-Ain",
+        "slug": "al-ain",
+        "image_path": "https://static.flashscore.com/res/image/data/4xQjb4kC-OKa9P8WR.png"
+      },
+      {
+        "id": "EiQ5g3JL",
+        "name": "Al-Ahli Dubai",
+        "slug": "shabab-al-ahli-dubai",
+        "image_path": "https://static.flashscore.com/res/image/data/QksHauRq-8zUcYY2j.png"
+      },
+      {
+        "id": "OQuUcn3P",
+        "name": "Al Wasl",
+        "slug": "al-wasl",
+        "image_path": "https://static.flashscore.com/res/image/data/vHhuNn6k-K8vlWhPS.png"
+      },
+      {
+        "id": "21AL1RQp",
+        "name": "Al-Wahda",
+        "slug": "al-wahda",
+        "image_path": "https://static.flashscore.com/res/image/data/AyCpMq86-YXHWp1ah.png"
+      },
+      {
+        "id": "WUREBBlh",
+        "name": "Al-Jazira",
+        "slug": "al-jazira",
+        "image_path": "https://static.flashscore.com/res/image/data/6sERlTkC-lWIXXvLm.png"
+      },
+      {
+        "id": "YqFkJ2t6",
+        "name": "Al Sharjah",
+        "slug": "al-sharjah",
+        "image_path": "https://static.flashscore.com/res/image/data/jNXncXne-Ma5gfLsn.png"
+      },
+      {
+        "id": "40ZYZrBI",
+        "name": "Al Nasr",
+        "slug": "al-nasr",
+        "image_path": "https://static.flashscore.com/res/image/data/Q3crtsVH-xbrb3RaU.png"
+      },
+      {
+        "id": "6s1W4sXk",
+        "name": "United FC",
+        "slug": "united-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/CbLIldS0-fcsIsfw8.png"
+      },
+      {
+        "id": "8riCzYNT",
+        "name": "Bani Yas",
+        "slug": "banni-yas",
+        "image_path": "https://static.flashscore.com/res/image/data/x8DyZFne-nDaFzJhq.png"
+      },
+      {
+        "id": "AwzVzPeC",
+        "name": "Khorfakkan",
+        "slug": "khorfakkan",
+        "image_path": "https://static.flashscore.com/res/image/data/fiMtT9Rq-OQU9zTMb.png"
+      },
+      {
+        "id": "CtP7yoRa",
+        "name": "Ajman",
+        "slug": "ajman",
+        "image_path": "https://static.flashscore.com/res/image/data/KlGc9jXH-Y1gt7Cyd.png"
+      },
+      {
+        "id": "CxR74upk",
+        "name": "Ittihad Kalba",
+        "slug": "ittihad-kalba",
+        "image_path": "https://static.flashscore.com/res/image/data/txA7rMAN-lUHDtcYu.png"
+      },
+      {
+        "id": "WnyRy5t6",
+        "name": "Al Dhafra",
+        "slug": "al-dhafra",
+        "image_path": "https://static.flashscore.com/res/image/data/noRag9jC-2RQbS0SQ.png"
+      },
+      {
+        "id": "YuLeXbqH",
+        "name": "Hatta",
+        "slug": "hatta",
+        "image_path": "https://static.flashscore.com/res/image/data/zu5a89me-QVAzX6rD.png"
+      }
+    ]
   }
 }
