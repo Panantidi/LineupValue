@@ -1766,6 +1766,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentAwayId = params.get('away_id') || '';
     const currentHomeName = params.get('home_name') || '';
     const currentAwayName = params.get('away_name') || '';
+    // Extract team_id from URL path: /lineup_ai/compare/{team_id}
+    const pathParts = window.location.pathname.split('/').filter(p => p);
+    const pathTeamId = pathParts[pathParts.length - 1] || '';
+    const currentTeamId = (currentHomeId || pathTeamId || '');
 
     async function loadSavedMatches() {
         try {
@@ -1779,7 +1783,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             list.innerHTML = matches.map(m => {
-                const url = `/lineup_ai/compare/${encodeURIComponent(m.home_id || '')}?mid=${encodeURIComponent(m.match_id)}&home_id=${encodeURIComponent(m.home_id || '')}&away_id=${encodeURIComponent(m.away_id || '')}&home_name=${encodeURIComponent(m.home_name || '')}&away_name=${encodeURIComponent(m.away_name || '')}`;
+                const pathTeamId = m.home_id || m.away_id || 'unknown';
+                const url = `/lineup_ai/compare/${encodeURIComponent(pathTeamId)}?mid=${encodeURIComponent(m.match_id)}&home_id=${encodeURIComponent(m.home_id || '')}&away_id=${encodeURIComponent(m.away_id || '')}&home_name=${encodeURIComponent(m.home_name || '')}&away_name=${encodeURIComponent(m.away_name || '')}`;
                 const isCurrent = m.match_id === currentMid;
                 const dt = new Date(m.created_at || Date.now());
                 const pad = n => n.toString().padStart(2, '0');
@@ -1825,7 +1830,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     match_id: currentMid,
-                    home_id: currentHomeId,
+                    home_id: currentTeamId || currentHomeId,
                     away_id: currentAwayId,
                     home_name: currentHomeName,
                     away_name: currentAwayName
