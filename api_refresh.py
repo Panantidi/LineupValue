@@ -716,6 +716,74 @@ def refresh_player_details(player, delay=0.25, force=False, is_national=False):
         for k in ["goals", "assists", "yellow_cards", "red_cards", "matches_played", "minutes_played"]:
             if k in stats:
                 player[k] = stats[k]
+    # Jul 31 2026: /players/details has no d.statistics, so the
+    # loop above never writes. The authoritative stats live in
+    # career.seasons[N] (one entry per tournament per season).
+    # Sum across all tournaments in the CURRENT season (Total)
+    # so the user sees e.g. "Premier League + Cup + Friendly"
+    # combined, not just the LAST tournament entry.
+    # Fallback: if no current-season entry exists, sum the last
+    # recorded season (most recent completed season).
+    career = d.get("career") or []
+    if isinstance(career, list) and career:
+        seasons = (career[0] or {}).get("seasons") or []
+        if isinstance(seasons, list) and seasons:
+            import datetime as _dt
+            now = _dt.datetime.utcnow()
+            if now.month >= 8:
+                y1, y2 = now.year, now.year + 1
+            else:
+                y1, y2 = now.year - 1, now.year
+            cur_season_agg = {
+                "matches_played": 0, "goals": 0,
+                "assists": 0, "yellow_cards": 0, "red_cards": 0,
+            }
+            last_season_agg = dict(cur_season_agg)
+            seen_last_season = None
+            cur_season_found = False
+            for entry in seasons:
+                if not isinstance(entry, dict):
+                    continue
+                s_name = (entry.get("season") or "").strip()
+                for agg in (cur_season_agg, last_season_agg):
+                    pass
+                # Current-season check
+                if str(y1) in s_name and str(y2) in s_name:
+                    cur_season_found = True
+                    for k in cur_season_agg:
+                        v = entry.get(k)
+                        if v is None or v == "":
+                            continue
+                        try:
+                            cur_season_agg[k] += int(v)
+                        except (TypeError, ValueError):
+                            if k == "assists":
+                                continue
+                else:
+                    # Track the most recent (other) season as fallback
+                    if seen_last_season is None:
+                        seen_last_season = s_name
+                    if s_name == seen_last_season:
+                        for k in last_season_agg:
+                            v = entry.get(k)
+                            if v is None or v == "":
+                                continue
+                            try:
+                                last_season_agg[k] += int(v)
+                            except (TypeError, ValueError):
+                                if k == "assists":
+                                    continue
+            src = cur_season_agg if cur_season_found else last_season_agg
+            if any(src.values()):
+                for k in ("goals", "assists", "yellow_cards", "red_cards"):
+                    v = src.get(k)
+                    if v is None:
+                        continue
+                    try:
+                        player[k] = int(v)
+                    except (TypeError, ValueError):
+                        if k == "assists":
+                            player[k] = 0
     # Jul 28 2026: capture player's CURRENT CLUB from /players/details
     # for national-team display ONLY (e.g. Austria > "Werder Bremen"
     # with badge). For club-team players we deliberately skip this:
