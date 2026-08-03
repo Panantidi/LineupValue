@@ -2638,6 +2638,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // If matching returns multiple candidates anyway, auto-pick
                 // the first one instead of forcing a manual dropdown.
                 const hasBracketMarker = /\((G|C|GK|VC|FW|DF|MF|CA|CB|SB)\)/.test(parsed.raw || '');
+                // Jul 31 2026: drop 1-2 letter tokens silently.
+                // These are CSV artifacts or initials — never real
+                // player names. They shouldn't appear in any of the
+                // result lists.
+                const cleanedName = String(parsed.name || '').trim();
+                if (cleanedName.length < 3) {{ return; }}
                 if (matches.length === 1) {{
                     bulkMarkRow(matches[0].row, mode);
                     found++;
@@ -2767,6 +2773,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     const ambiguous = [];
                     names.forEach(token => {{
                         const parsed = bulkParseToken(token);
+                        const cleanedNameV = String(parsed.name || '').trim();
+                        if (cleanedNameV.length < 3) return;
                         const matches = bulkFindMatches(parsed, rows);
                         if (matches.length === 0) notFound.push(parsed);
                         else if (matches.length > 1) ambiguous.push({{ parsed: parsed, matches: matches }});
