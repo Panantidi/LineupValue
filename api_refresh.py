@@ -717,11 +717,14 @@ def refresh_player_details(player, delay=0.25, force=False, is_national=False):
     # Jul 31 2026: /players/details has no d.statistics, so the
     # loop above never writes. The authoritative stats live in
     # career.seasons[N] (one entry per tournament per season).
-    # Sum across all tournaments in the CURRENT season (Total)
+    # Sum across ALL tournaments in the CURRENT season (Total)
     # so the user sees e.g. "Premier League + Cup + Friendly"
     # combined, not just the LAST tournament entry.
-    # Fallback: if no current-season entry exists, sum the last
-    # recorded season (most recent completed season).
+    #
+    # Jul 31 2026: NO fallback to the previous season. If 2026/27
+    # entries aren't in the API yet, G/A/YC/RC stay at the
+    # squad-time default (0). User feedback: "Мне не нужна его
+    # статистика за прошлый сезон!"
     career = d.get("career") or []
     if isinstance(career, list) and career:
         seasons = (career[0] or {}).get("seasons") or []
@@ -736,16 +739,11 @@ def refresh_player_details(player, delay=0.25, force=False, is_national=False):
                 "matches_played": 0, "goals": 0,
                 "assists": 0, "yellow_cards": 0, "red_cards": 0,
             }
-            last_season_agg = dict(cur_season_agg)
-            seen_last_season = None
             cur_season_found = False
             for entry in seasons:
                 if not isinstance(entry, dict):
                     continue
                 s_name = (entry.get("season") or "").strip()
-                for agg in (cur_season_agg, last_season_agg):
-                    pass
-                # Current-season check
                 if str(y1) in s_name and str(y2) in s_name:
                     cur_season_found = True
                     for k in cur_season_agg:
@@ -757,24 +755,11 @@ def refresh_player_details(player, delay=0.25, force=False, is_national=False):
                         except (TypeError, ValueError):
                             if k == "assists":
                                 continue
-                else:
-                    # Track the most recent (other) season as fallback
-                    if seen_last_season is None:
-                        seen_last_season = s_name
-                    if s_name == seen_last_season:
-                        for k in last_season_agg:
-                            v = entry.get(k)
-                            if v is None or v == "":
-                                continue
-                            try:
-                                last_season_agg[k] += int(v)
-                            except (TypeError, ValueError):
-                                if k == "assists":
-                                    continue
-            src = cur_season_agg if cur_season_found else last_season_agg
-            if any(src.values()):
+            # Only write stats if 2026/27 data was found.
+            # Otherwise leave the squad-time defaults (0).
+            if cur_season_found:
                 for k in ("goals", "assists", "yellow_cards", "red_cards"):
-                    v = src.get(k)
+                    v = cur_season_agg.get(k)
                     if v is None:
                         continue
                     try:
