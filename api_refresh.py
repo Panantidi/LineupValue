@@ -340,12 +340,10 @@ def refresh_squad(team_id, slug, info, force=False):
     3. First non-empty group      (rare — some lower-division teams)
     """
     # Delta refresh (Jul 23 2026): skip API call if squad is fresh.
-    # Jul 23 2026 (user feedback, after revert to 4ee98a7): force=True
-    # should NOT bypass the section TTL. The user clicked ♻️ Refresh
-    # twice in a row and observed API calls firing on the second
-    # click. Now: force=True only bypasses the outer 10-min is_fresh()
-    # guard; per-section TTLs (1d/30d/...) are always enforced.
-    if _section_is_fresh(team_id, 'squad', SQUAD_TTL_SECONDS):
+    # Jul 31 2026: force=True now bypasses section TTL too.
+    # User feedback: "Кнопка Refresh должна работать
+    # принудительно без ожидания TTL!!!"
+    if not force and _section_is_fresh(team_id, 'squad', SQUAD_TTL_SECONDS):
         cache = _read_cache(team_id)
         cached_players = (cache or {}).get('players', [])
         if cached_players:
@@ -844,8 +842,8 @@ def refresh_fixtures(team_id, force=False):
     Returns matches sorted DESC by timestamp, top 5 future.
     """
     # Delta refresh (Jul 23 2026): skip API call if fixtures are fresh.
-    # force=True no longer bypasses this check — see refresh_squad comment.
-    if _section_is_fresh(team_id, 'fixtures', FIXTURES_TTL_SECONDS):
+    # Jul 31 2026: force=True now bypasses section TTL (matches squad).
+    if not force and _section_is_fresh(team_id, 'fixtures', FIXTURES_TTL_SECONDS):
         cache = _read_cache(team_id)
         cached = (cache or {}).get('fixtures', [])
         if cached:
@@ -945,8 +943,8 @@ def refresh_results(team_id, force=False):
     and take the top 3 most recent.
     """
     # Delta refresh (Jul 23 2026): skip API call if results are fresh.
-    # force=True no longer bypasses this check — see refresh_squad comment.
-    if _section_is_fresh(team_id, 'results', RESULTS_TTL_SECONDS):
+    # Jul 31 2026: force=True now bypasses section TTL (matches squad).
+    if not force and _section_is_fresh(team_id, 'results', RESULTS_TTL_SECONDS):
         cache = _read_cache(team_id)
         cached_matches = (cache or {}).get('matches', [])
         if cached_matches:
