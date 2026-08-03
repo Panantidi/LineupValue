@@ -2696,9 +2696,32 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const json = await res.json();
                 if (!json.ok) throw new Error(json.error || 'vision failed');
                 const names = Array.isArray(json.players) ? json.players : [];
-                if (textEl) textEl.innerText = names.join('\\n');
+                // 1. Set plain-text into the div (escape to avoid HTML injection).
+                if (textEl) {{
+                    const esc = (s) => String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    textEl.innerHTML = names.map(n => '<div>' + esc(n) + '</div>').join('');
+                }}
+                // 2. Apply lineup: marks rows + bulkRenderEditable writes
+                //    red "NOT FOUND" / orange "AMBIGUOUS" highlights over the div.
                 const currentMode2 = modeEl ? modeEl.value : 'possible';
                 const result = applyBulkLineupFromTokens(names, currentMode2);
+                // 3. Defensive re-render: ensure the div ends up with the
+                //    highlighted version, not the plain-text version
+                //    (browsers can mutate contenteditable innerHTML via
+                //    input events when text is set programmatically).
+                if (textEl && typeof bulkRenderEditable === 'function') {{
+                    // Re-derive notFound/ambiguous from rows + names for the re-render
+                    const rows = bulkRowsIndex();
+                    const notFound = [];
+                    const ambiguous = [];
+                    names.forEach(token => {{
+                        const parsed = bulkParseToken(token);
+                        const matches = bulkFindMatches(parsed, rows);
+                        if (matches.length === 0) notFound.push(parsed);
+                        else if (matches.length > 1) ambiguous.push({{ parsed: parsed, matches: matches }});
+                    }});
+                    bulkRenderEditable(names, notFound, ambiguous);
+                }}
                 if (statusEl) {{
                     statusEl.style.color = result.found ? '#17843f' : '#dc3545';
                     if (currentMode2 === 'squad') {{

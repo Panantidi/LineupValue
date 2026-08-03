@@ -46,9 +46,6 @@ _slug_cache = {}
 # reads it and writes to cache["coach"]. Dict (not list) because the value
 # itself is a dict {name, nationality} and dict.update is cleaner than list
 # mutation.
-_last_squad_coach = {"data": None}
-
-
 def _get_ssl():
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
@@ -435,11 +432,10 @@ def refresh_squad(team_id, slug, info, force=False):
                     "player_url": p.get("player_url", ""),
                     "tournament": tab_name,
                 })
-    # Jul 25 2026: attach coach_data as a side-channel return value
-    # (caller in refresh_team() reads it and writes to cache["coach"]).
-    # Stash on a module-level list so the tuple stays simple.
-    _last_squad_coach["data"] = coach_data
-    return players
+    # Jul 31 2026: coach_data returned as part of the result tuple
+    # (no more module-level side-channel — Match mode parallel refreshes
+    # used to race on _last_squad_coach and overwrite each other's coach).
+    return players, coach_data
 
 
 # --- Normalize empty cells ---
@@ -1245,11 +1241,12 @@ def refresh_team(team_id, force=False):
         #    MUST be called before building the team dict so image_path is set.
         details = refresh_team_details(team_id, slug)
         _mark_section_updated(team_id, "team_details")
-        # 1. Squad (from Total group, with position mapping)
-        _last_squad_coach["data"] = None  # Jul 25 2026: reset before call
-        players = refresh_squad(team_id, slug, info, force=force)
-        if players is None:
+        # 1. Squad (from Total group, with position mapping).
+        # Jul 31 2026: returns (players, coach_data) — no module-level state.
+        squad_result = refresh_squad(team_id, slug, info, force=force)
+        if squad_result is None:
             return False
+        players, coach_data = squad_result
         # 1a. Mark squad as fresh and pass _team_id to each player so
         #     refresh_player_details can also skip when fresh.
         for p in players:
@@ -1320,12 +1317,11 @@ def refresh_team(team_id, force=False):
             cache["city"] = details["city"]
         if details.get("capacity"):
             cache["capacity"] = details["capacity"]
-        # Jul 25 2026: coach from /teams/squad (side-channel _last_squad_coach
-        # set by refresh_squad). API returns coach in a separate group
-        # "Coach" with one player entry. Only overwrite if API returned a
-        # real name — never clobber existing coach with empty.
-        if _last_squad_coach.get("data") and _last_squad_coach["data"].get("name"):
-            cache["coach"] = _last_squad_coach["data"]
+        # Jul 31 2026: coach from refresh_squad return value (local, no race).
+        # Only overwrite if API returned a real name — never clobber existing
+        # coach with empty.
+        if coach_data and coach_data.get("name"):
+            cache["coach"] = coach_data
         cache["players"] = players
         cache["matches"] = matches
         cache["fixtures"] = fixtures
