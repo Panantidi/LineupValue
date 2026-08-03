@@ -863,6 +863,24 @@ body {
         } catch(e) {}
     }
 
+    // Jul 31 2026: listen for resize requests from child iframes (Match mode).
+    // When the user types/pastes text in #bulk-lineup-text, the inner panel
+    // grows in height. The child posts a message; we resize both frames.
+    window.addEventListener('message', function(evt) {
+        try {
+            var data = evt.data || {};
+            if (data.type !== 'formalert-resize-iframe') return;
+            // Resize both frames (we don't track which child sent it)
+            var myFrame = document.getElementById('my-frame');
+            var oppFrame = document.getElementById('opp-frame');
+            // Wait one frame for DOM to settle
+            requestAnimationFrame(function() {
+                if (myFrame) resizeFrame(myFrame);
+                if (oppFrame) resizeFrame(oppFrame);
+            });
+        } catch (e) { /* ignore */ }
+    });
+
     var framesLoaded = 0;
     function checkFramesLoaded() {
         framesLoaded++;

@@ -1446,11 +1446,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         .bulk-lineup-controls textarea, #bulk-lineup-text {{
             flex: 1;
-            min-height: 58px;
+            height: 120px;
+            min-height: 120px;
+            max-height: 120px;
             border: 1px solid #d5d9e8;
             border-radius: 8px;
             padding: 8px 10px;
-            resize: vertical;
+            resize: none;
+            overflow-y: auto;
             font-size: 12px;
             line-height: 1.35;
             font-family: inherit;
@@ -1949,7 +1952,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     </div>
                 </div>
                 <div class="bulk-lineup-text-row" style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;">
-                    <div id="bulk-lineup-text" contenteditable="true" placeholder="Paste players" style="flex:1;min-height:60px;resize:vertical;border:1px solid #d5d9e8;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.35;font-family:inherit;overflow:auto;white-space:pre-wrap;background:white;"></div>
+                    <div id="bulk-lineup-text" contenteditable="true" placeholder="Paste players" style="flex:1;height:120px;max-height:120px;min-height:120px;resize:none;overflow-y:auto;border:1px solid #d5d9e8;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.35;font-family:inherit;white-space:pre-wrap;background:white;"></div>
                     <div id="vision-lineup-stats" class="vision-lineup-stats" style="display:none;min-width:120px;font-size:12px;color:#555;line-height:1.6;">
                         <div>Total: <span id="vision-total-count">0</span> players</div>
                         <div style="color:#17843f;">Found: <span id="vision-found-count">0</span> players</div>
@@ -2651,6 +2654,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     // Show 🆗 when an image is uploaded, 💤 when none selected
                     fileNameEl.textContent = (fileEl.files && fileEl.files[0]) ? '🆗' : '💤';
                 }});
+            }}
+            // Jul 31 2026: notify parent window when bulk-lineup-text grows/shrinks
+            // so the iframe auto-resizes to match content. Without this, Match mode
+            // shows the team table clipped after typing/pasting in the textarea.
+            const bulkText = document.getElementById('bulk-lineup-text');
+            if (bulkText && window.parent && window.parent !== window) {{
+                let resizeTimer = null;
+                const notifyParentResize = function() {{
+                    if (resizeTimer) clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {{
+                        try {{
+                            window.parent.postMessage(
+                                {{ type: 'formalert-resize-iframe' }},
+                                '*'
+                            );
+                        }} catch (e) {{ /* parent unreachable */ }}
+                    }}, 80);
+                }};
+                bulkText.addEventListener('input', notifyParentResize);
+                // Also notify after programmatic renders (bulkRenderEditable sets
+                // innerHTML, which doesn't fire 'input').
+                const observer = new MutationObserver(notifyParentResize);
+                observer.observe(bulkText, {{ childList: true, subtree: true, characterData: true }});
             }}
             // Team mode: wrap bulk-lineup-panel-host + comparison-table-host in a
             // shared flex-row (bl-compare-row) at page load, so toggling them via
