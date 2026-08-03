@@ -793,6 +793,116 @@
         "slug": "naftan",
         "image_path": "https://static.flashscore.com/res/image/data/bJZ3zjyS-E7NOD7nb.png"
       }
+    ],
+    "Pershaya Liga": [
+      {
+        "id": "ptARVbzo",
+        "name": "BATE 2",
+        "slug": "bate",
+        "image_path": "https://static.flashscore.com/res/image/data/ImfiNikC-jRuau3Zt.png"
+      },
+      {
+        "id": "00D7Qyz6",
+        "name": "BumProm Gomel",
+        "slug": "bumprom-gomel",
+        "image_path": "https://static.flashscore.com/res/image/data/2a8A8mPq-I5eVia8U.png"
+      },
+      {
+        "id": "QaAU7qkt",
+        "name": "Din. Minsk 2",
+        "slug": "din-minsk",
+        "image_path": "https://static.flashscore.com/res/image/data/h81gsmkC-UFm43qt6.png"
+      },
+      {
+        "id": "zcy3nW5H",
+        "name": "FC Slonim",
+        "slug": "fc-slonim",
+        "image_path": "https://static.flashscore.com/res/image/data/QyQ8Ikme-tdK9vIsA.png"
+      },
+      {
+        "id": "ltGB48XH",
+        "name": "Gomel 2",
+        "slug": "fc-gomel",
+        "image_path": "https://static.flashscore.com/res/image/data/0IPwAvhT-C6uMafpG.png"
+      },
+      {
+        "id": "46dyxajN",
+        "name": "Lida",
+        "slug": "fk-lida",
+        "image_path": "https://static.flashscore.com/res/image/data/lKrVQEU0-SlMW1IRD.png"
+      },
+      {
+        "id": "6X4mSYLI",
+        "name": "Minsk 2",
+        "slug": "fc-minsk",
+        "image_path": "https://static.flashscore.com/res/image/data/bwMu2UAN-dpIP5Ns2.png"
+      },
+      {
+        "id": "AXnSf0Lc",
+        "name": "Molodechno",
+        "slug": "molodechno",
+        "image_path": "https://static.flashscore.com/res/image/data/dhkGAj8k-W0oWPe3p.png"
+      },
+      {
+        "id": "jRl44sxF",
+        "name": "Niva Dolbizno",
+        "slug": "niva-dolbizno",
+        "image_path": "https://static.flashscore.com/res/image/data/SC6hPG8k-40UH5io0.png"
+      },
+      {
+        "id": "rV2iiIKM",
+        "name": "Orsha",
+        "slug": "orsha",
+        "image_path": "https://static.flashscore.com/res/image/data/WWx42bBN-EsvBLnb2.png"
+      },
+      {
+        "id": "UkcHixzT",
+        "name": "Osipovichi",
+        "slug": "osipovichi",
+        "image_path": "https://static.flashscore.com/res/image/data/6g2H2v96-hKJmiP1d.png"
+      },
+      {
+        "id": "KdZw7teG",
+        "name": "Ostrovets",
+        "slug": "ostrovets",
+        "image_path": "https://static.flashscore.com/res/image/data/8SkuftCN-0fjEP02N.png"
+      },
+      {
+        "id": "hb7JLfOe",
+        "name": "SKA-1938",
+        "slug": "ska-1938-minsk",
+        "image_path": "https://static.flashscore.com/res/image/data/lbT2Bv86-Ee5w9GGp.png"
+      },
+      {
+        "id": "IDIzhr4n",
+        "name": "Slutsk",
+        "slug": "slutsk",
+        "image_path": "https://static.flashscore.com/res/image/data/C4pGm2BN-l6uHH2BF.png"
+      },
+      {
+        "id": "zRWiFKMR",
+        "name": "Smorgon",
+        "slug": "smorgon",
+        "image_path": "https://static.flashscore.com/res/image/data/0MKnxujT-bBFPiWrD.png"
+      },
+      {
+        "id": "QiigrgTs",
+        "name": "Soligorsk",
+        "slug": "soligorsk",
+        "image_path": "https://static.flashscore.com/res/image/data/ULCarmVH-be5YvQsG.png"
+      },
+      {
+        "id": "rP7DsKU1",
+        "name": "Uni X Labs",
+        "slug": "uni-x-labs",
+        "image_path": "https://static.flashscore.com/res/image/data/xMWEzSBN-SA1j9f5L.png"
+      },
+      {
+        "id": "AaRVss3N",
+        "name": "Volna Pinsk",
+        "slug": "volna-pinsk",
+        "image_path": "https://static.flashscore.com/res/image/data/SnSqDtgT-SvZj82Kc.png"
+      }
     ]
   },
   "Belgium": {
