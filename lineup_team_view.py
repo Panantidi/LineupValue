@@ -2651,9 +2651,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
             }});
             bulkRefreshStats();
-            bulkRenderReport(tokens.length, found, notFound, ambiguous);
-            bulkRenderAmbiguous(ambiguous, mode);
-            bulkRenderEditable(tokens, notFound, ambiguous);
+            // Jul 31 2026: if XI is already full (11 marked), suppress
+            // the ambiguous dropdown. The user is not trying to add more
+            // players; they're just labeling context. Forcing a manual
+            // selection is noise.
+            const xiSelected = document.querySelectorAll('.xi-checkbox:checked').length;
+            const effectiveAmbiguous = (xiSelected === 11) ? [] : ambiguous;
+            bulkRenderReport(tokens.length, found, notFound, effectiveAmbiguous);
+            bulkRenderAmbiguous(effectiveAmbiguous, mode);
+            bulkRenderEditable(tokens, notFound, effectiveAmbiguous);
             return {{ total: tokens.length, found: found, notFound: notFound.length, ambiguous: ambiguous.length }};
         }}
 
