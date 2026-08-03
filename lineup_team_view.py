@@ -3698,6 +3698,16 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     const away = (fc.away_matches || 0);
                     const total = (fc.total_matches || fc.next_matches_count || 0);
                     awayEl.textContent = away + '/' + total;
+                    // Jul 31 2026: bold red when 4/5 or 5/5 of the
+                    // next matches are away. Highlights heavy travel
+                    // burden in the Fixture Overview block.
+                    if (total >= 5 && away >= 4) {{
+                        awayEl.style.fontWeight = '700';
+                        awayEl.style.color = '#dc3545';
+                    }} else {{
+                        awayEl.style.fontWeight = '';
+                        awayEl.style.color = '';
+                    }}
                 }}
                 if (pctEl) pctEl.textContent = pct;
                 const status = fc.status || 'LOW';
