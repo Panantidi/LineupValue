@@ -2464,18 +2464,26 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
         function bulkParseToken(token) {{
-            const nums = String(token || '').match(/\b\d+\b/g) || [];
-            const number = nums.length ? nums[nums.length - 1] : '';
-            const name = String(token || '').replace(/\b\d+\b/g, ' ').replace(/\s+/g, ' ').trim();
-            const norm = bulkNormalizeText(name || token);
-            return {{ raw: token, number: number, name: name, norm: norm, parts: bulkNameParts(name || token) }};
+            // Jul 31 2026: strip bracket markers like (G), (C), (GK), (VC), (FW).
+            const rawT = String(token || "");
+            const cleaned = rawT
+                .replace(/\s*\([A-Za-z]{{1,3}}\)\s*/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+            const nums = String(cleaned || "").match(/\b\d+\b/g) || [];
+            const number = nums.length ? nums[nums.length - 1] : "";
+            const name = String(cleaned || "").replace(/\b\d+\b/g, " ").replace(/\s+/g, " ").trim();
+            const norm = bulkNormalizeText(name || cleaned || token);
+            return {{ raw: token, number: number, name: name, norm: norm, parts: bulkNameParts(name || cleaned || token) }};
         }}
 
         function bulkRowsIndex() {{
             return Array.from(document.querySelectorAll('.main-table tbody tr[data-player-name]')).map(row => {{
-                const rawName = row.getAttribute('data-player-name') || '';
+                const rawAttrName = row.getAttribute('data-player-name') || '';
+                const stripBrackets = function(s) {{ return String(s || '').replace(/\s*\([A-Za-z]{{1,3}}\)\s*/g, ' ').replace(/\s+/g, ' ').trim(); }};
+                const rawName = stripBrackets(rawAttrName);
                 const cells = row.querySelectorAll('td');
-                const displayName = cells[2] ? cells[2].textContent.replace(/[🎯🎨⭐👑⚽👟️]/g, ' ').replace(/\s+/g, ' ').trim() : rawName;
+                const displayName = cells[2] ?stripBrackets(cells[2].textContent.replace(/[🎯🎨⭐👑⚽👟️]/g, ' ').replace(/\s+/g, ' ').trim()): rawName;
                 const number = String(row.getAttribute('data-player-number') || (cells[0] ? cells[0].textContent : '') || '').trim();
                 const norm = bulkNormalizeText(rawName + ' ' + displayName);
                 const parts = bulkNameParts(rawName + ' ' + displayName);
@@ -2484,7 +2492,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const lastName = rawParts.length ? rawParts[rawParts.length - 1] : '';
                 const fullName = bulkNormalizeText(rawName);
                 const fullNameReversed = rawParts.length > 1 ? rawParts.slice().reverse().join(' ') : fullName;
-                return {{ row: row, rawName: rawName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, firstName: firstName, lastName: lastName, fullName: fullName, fullNameReversed: fullNameReversed }};
+                return {{ row: row, rawName: rawAttrName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, firstName: firstName, lastName: lastName, fullName: fullName, fullNameReversed: fullNameReversed }};
             }});
         }}
 
@@ -2592,8 +2600,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (!items || !items.length) {{ box.style.display = 'none'; box.innerHTML = ''; return; }}
             box.style.display = 'block';
             box.innerHTML = '<b>Multiple matches — choose manually:</b>' + items.map((item, idx) =>
-                '<div class="bulk-ambiguous-row"><label>' + item.parsed.raw + '</label><select data-bulk-amb-idx="' + idx + '">' +
-                '<option value="">Skip</option>' + item.matches.map((m, mi) => '<option value="' + mi + '">#' + (m.number || '–') + ' ' + m.rawName + '</option>').join('') +
+                '<div class="bulk-ambiguous-row"><label>' + ((item.parsed.raw || '').toString().replace(/\s*\([A-Za-z]{{1,3}}\)\s*/g, ' ').replace(/\s+/g, ' ').trim()) + '</label><select data-bulk-amb-idx="' + idx + '">' +
+                '<option value="">Skip</option>' + item.matches.map((m, mi) => '<option value="' + mi + '">#' + (m.number || '–') + ' ' + ((m.rawName || '').toString().replace(/\s*\([A-Za-z]{{1,3}}\)\s*/g, ' ').replace(/\s+/g, ' ').trim()) + '</option>').join('') +
                 '</select></div>'
             ).join('') + '<button type="button" onclick="applyBulkAmbiguousChoices()">Apply choices</button>';
         }}
@@ -2622,7 +2630,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             tokens.forEach(token => {{
                 const parsed = bulkParseToken(token);
                 const matches = bulkFindMatches(parsed, rows);
+                // Jul 31 2026: bracket markers in raw input (G/C/GK/VC/FW/DF/MF/CA/CB/SB)
+                // signal a position/captain label, not a disambiguation hint.
+                // If matching returns multiple candidates anyway, auto-pick
+                // the first one instead of forcing a manual dropdown.
+                const hasBracketMarker = /\((G|C|GK|VC|FW|DF|MF|CA|CB|SB)\)/.test(parsed.raw || '');
                 if (matches.length === 1) {{
+                    bulkMarkRow(matches[0].row, mode);
+                    found++;
+                }} else if (matches.length > 1 && hasBracketMarker) {{
                     bulkMarkRow(matches[0].row, mode);
                     found++;
                 }} else if (matches.length > 1) {{
