@@ -1448,11 +1448,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             flex: 1;
             height: 120px;
             min-height: 120px;
-            max-height: 120px;
+            /* Jul 31 2026: removed max-height + resize:none.
+               User wants to drag the textarea corner to
+               resize manually while keeping the same
+               default 120px appearance. */
             border: 1px solid #d5d9e8;
             border-radius: 8px;
             padding: 8px 10px;
-            resize: none;
+            resize: both;
             overflow-y: auto;
             font-size: 12px;
             line-height: 1.35;
@@ -1952,7 +1955,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     </div>
                 </div>
                 <div class="bulk-lineup-text-row" style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;">
-                    <div id="bulk-lineup-text" contenteditable="true" placeholder="Paste players" style="flex:1;height:120px;max-height:120px;min-height:120px;resize:none;overflow-y:auto;border:1px solid #d5d9e8;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.35;font-family:inherit;white-space:pre-wrap;background:white;"></div>
+                    <div id="bulk-lineup-text" contenteditable="true" placeholder="Paste players" style="flex:1;height:120px;min-height:120px;resize:both;overflow-y:auto;border:1px solid #d5d9e8;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.35;font-family:inherit;white-space:pre-wrap;background:white;"></div>
                     <div id="vision-lineup-stats" class="vision-lineup-stats" style="display:none;min-width:120px;font-size:12px;color:#555;line-height:1.6;">
                         <div>Total: <span id="vision-total-count">0</span> players</div>
                         <div style="color:#17843f;">Found: <span id="vision-found-count">0</span> players</div>
