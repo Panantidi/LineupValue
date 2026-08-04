@@ -2956,6 +2956,48 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     home_team_id = home_id if home_id else ""
     away_team_id = away_id if away_id else ""
 
+    # Jul 31 2026: validate that passed home_id/away_id actually match
+    # the corresponding *_name. If user copies URL with mismatched
+    # ID+name (e.g. home_id=Almeria but home_name=Al Nassr), the
+    # resolved IDs would conflict and both teams would show the
+    # same squad. Fix: if name→id lookup disagrees with passed id,
+    # prefer the name lookup.
+    def _validate_team_id_against_name(passed_id, name):
+        """If passed_id exists but does NOT match the name in leagues_data,
+        return the correct id for the name. If they match, return passed_id.
+        If no passed_id, returns ''."""
+        if not name or not passed_id:
+            return passed_id
+        try:
+            with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+                _leagues = json.load(f)
+        except Exception:
+            return passed_id
+        # Find the team with this id; check if its name matches
+        for _country, _ldict in _leagues.items():
+            for _lname, _teams in _ldict.items():
+                for _team in _teams:
+                    if _team.get("id", "") == passed_id:
+                        team_name = _team.get("name", "")
+                        # Compare: strip (Country) suffix from both sides
+                        tn_clean = team_name.split(" (")[0].strip().lower()
+                        hn_clean = name.split(" (")[0].strip().lower()
+                        if tn_clean == hn_clean:
+                            return passed_id  # match — keep
+                        # Mismatch — find correct id by name
+                        for _country2, _ldict2 in _leagues.items():
+                            for _lname2, _teams2 in _ldict2.items():
+                                for _team2 in _teams2:
+                                    t2n = _team2.get("name", "")
+                                    t2n_clean = t2n.split(" (")[0].strip().lower()
+                                    if t2n_clean == hn_clean or t2n.lower() == name.lower():
+                                        return _team2.get("id", "")
+                        return passed_id  # name not found — keep original
+        return passed_id  # id not in leagues — keep original
+
+    home_team_id = _validate_team_id_against_name(home_team_id, home_name)
+    away_team_id = _validate_team_id_against_name(away_team_id, away_name)
+
     # If home_id is empty but home_name is provided, try to find team_id from leagues_data.json
     if not home_team_id and home_name:
         try:
