@@ -649,7 +649,7 @@
         "name": "Hertha Wels",
         "short_name": "HER",
         "image_path": "https://static.flashscore.com/res/image/data/lvRZjIoe-vu2f5NKt.png",
-        "slug": "hertha-wels"
+        "slug": "hogo-hertha-wels"
       },
       {
         "id": "SUpSZy5K",
@@ -670,7 +670,7 @@
         "name": "SK Rapid II",
         "short_name": "SKR",
         "image_path": "https://static.flashscore.com/res/image/data/MBqli36k-6aNeTNbl.png",
-        "slug": "sk-rapid-ii"
+        "slug": "rapid-vienna"
       },
       {
         "id": "8KA7Qw1U",
@@ -684,7 +684,7 @@
         "name": "Sturm Graz II",
         "short_name": "STU",
         "image_path": "https://static.flashscore.com/res/image/data/GhM2JMjC-4vXXTTpn.png",
-        "slug": "sturm-graz-ii"
+        "slug": "sturm"
       },
       {
         "id": "lpgpkEdJ",
@@ -1249,7 +1249,7 @@
         "name": "Vendsyssel",
         "short_name": "VEN",
         "image_path": "https://static.flashscore.com/res/image/data/hOWvhQkC-fqnveyq4.png",
-        "slug": "vendsyssel"
+        "slug": "vendsyssel-ff"
       }
     ]
   },
@@ -1872,7 +1872,7 @@
         "name": "Ekenas",
         "short_name": "EKE",
         "image_path": "https://static.flashscore.com/res/image/data/ttWqumBN-xIKZWgDK.png",
-        "slug": "ekenas"
+        "slug": "ekenas-if"
       },
       {
         "id": "6oug4RRc",
@@ -1921,7 +1921,7 @@
         "name": "Mikkeli",
         "short_name": "MIK",
         "image_path": "https://static.flashscore.com/res/image/data/UJ9G5AUH-Q3zjC5H3.png",
-        "slug": "mikkeli"
+        "slug": "mikkelin"
       },
       {
         "id": "QPvrRboH",
@@ -3196,7 +3196,7 @@
         "name": "Odd",
         "short_name": "ODD",
         "image_path": "https://static.flashscore.com/res/image/data/Q1iktvQq-xvniPjZd.png",
-        "slug": "odd"
+        "slug": "odds-bk"
       },
       {
         "id": "bBV1xQEk",
@@ -3217,7 +3217,7 @@
         "name": "Sandnes",
         "short_name": "SAN",
         "image_path": "https://static.flashscore.com/res/image/data/CGAJ91T0-pjxqSmk4.png",
-        "slug": "sandnes"
+        "slug": "sandnes-ulf"
       },
       {
         "id": "r5la287M",
@@ -5433,7 +5433,7 @@
         "name": "Asan",
         "short_name": "ASA",
         "image_path": "https://static.flashscore.com/res/image/data/0SZGh0kC-rXhEMDdO.png",
-        "slug": "asan"
+        "slug": "chungnam-asan"
       },
       {
         "id": "phIARZ6a",
@@ -5671,7 +5671,7 @@
         "name": "Grodzisk M.",
         "short_name": "GRO",
         "image_path": "https://static.flashscore.com/res/image/data/Yk1Lrcme-8fIj49t4.png",
-        "slug": "grodzisk-m"
+        "slug": "pogon-grodzisk-mazowiecki"
       },
       {
         "id": "ShUKWHDG",
@@ -5755,7 +5755,7 @@
         "name": "Skierniewice",
         "short_name": "SKI",
         "image_path": "https://static.flashscore.com/res/image/data/8ErTJBiT-2gREfHhi.png",
-        "slug": "skierniewice"
+        "slug": "unia-skierniewice"
       },
       {
         "id": "pxXiDZkQ",
@@ -5769,7 +5769,7 @@
         "name": "Termalica B-B.",
         "short_name": "TER",
         "image_path": "https://static.flashscore.com/res/image/data/IZbyGkne-KdpWArUq.png",
-        "slug": "termalica-b-b"
+        "slug": "termalica-bruk-bet"
       },
       {
         "id": "CrVUWAl8",
@@ -11578,7 +11578,7 @@
         "name": "Hap. Ramat Gan",
         "short_name": "HAP",
         "image_path": "https://static.flashscore.com/res/image/data/xQkYjg6k-dzZG4p8r.png",
-        "slug": "hap-ramat-gan"
+        "slug": "hapoel-ramat-gan"
       },
       {
         "id": "EXAD1YZP",
@@ -11617,7 +11617,7 @@
         "name": "Barry",
         "short_name": "BAR",
         "image_path": "https://static.flashscore.com/res/image/data/OGyHzSjC-x0ams4bn.png",
-        "slug": "barry"
+        "slug": "barry-town"
       },
       {
         "id": "fw6LT2dr",
@@ -11638,7 +11638,7 @@
         "name": "Ammanford",
         "short_name": "AMM",
         "image_path": "https://static.flashscore.com/res/image/data/CWNXUaBN-AX9nNKwH.png",
-        "slug": "ammanford"
+        "slug": "ammanford-town"
       },
       {
         "id": "IBuEcgCq",
@@ -11659,14 +11659,14 @@
         "name": "Llandudno",
         "short_name": "LLA",
         "image_path": "https://static.flashscore.com/res/image/data/jBH9kYmC-8ESmY28i.png",
-        "slug": "llandudno"
+        "slug": "llandudno-fc"
       },
       {
         "id": "rDPLzGkF",
         "name": "Flint",
         "short_name": "FLI",
         "image_path": "https://static.flashscore.com/res/image/data/ELS8NsiT-KbixPda2.png",
-        "slug": "flint"
+        "slug": "flint-town"
       },
       {
         "id": "ncsr4F0I",
@@ -11701,14 +11701,14 @@
         "name": "Cardiff Metropolitan",
         "short_name": "CAR",
         "image_path": "https://static.flashscore.com/res/image/data/dppwEvle-byXXfZNp.png",
-        "slug": "cardiff-metropolitan"
+        "slug": "cardiff-metropolitan-university"
       },
       {
         "id": "0QWr1oIb",
         "name": "Holywell",
         "short_name": "HOL",
         "image_path": "https://static.flashscore.com/res/image/data/Iie3x9VH-0C7XZ7Ka.png",
-        "slug": "holywell"
+        "slug": "holywell-town-fc"
       },
       {
         "id": "Qmtn3ZFO",
@@ -11722,7 +11722,7 @@
         "name": "Airbus",
         "short_name": "AIR",
         "image_path": "https://static.flashscore.com/res/image/data/ChIDaPRq-SY7hNqon.png",
-        "slug": "airbus"
+        "slug": "airbus-uk-broughton-fc"
       }
     ]
   },
