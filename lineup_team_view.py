@@ -2498,10 +2498,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // Jul 31 2026: present 'FirstName LastName' in the ambiguous
                 // dropdown. API gives 'LastName FirstName' for 2-part names;
                 // swap them. For 3+ parts (compound last names like
-                // 'Sykes-Kenworthy George'), keep order.
-                const firstLastName = rawParts.length === 2
-                    ? rawParts.slice().reverse().join(' ')
-                    : rawName;
+                // 'Sykes-Kenworthy George'), keep order. Then titlecase
+                // each part for consistent display.
+                // title-case helper: 'mCnAlLy' -> 'Mcnally', 'alfie' -> 'Alfie'
+                const titleCasePart = function(w) {{
+                    if (!w) return w;
+                    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+                }};
+                const firstLastBase = rawParts.length === 2
+                    ? rawParts.slice().reverse()
+                    : rawParts.slice();
+                const firstLastName = firstLastBase.map(titleCasePart).join(' ');
                 return {{ row: row, rawName: rawAttrName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, firstName: firstName, lastName: lastName, fullName: fullName, fullNameReversed: fullNameReversed, firstLastName: firstLastName }};
             }});
         }}
