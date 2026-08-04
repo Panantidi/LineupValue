@@ -107,6 +107,11 @@ def _verify_slug_via_api(team_id: str, slug: str) -> bool:
       - []                             -> slug is wrong (no such team page)
       - other (error, etc)             -> treat as inconclusive
     Returns True only if API confirms the slug resolves to OUR team_id.
+
+    Jul 31 2026: some teams (e.g. Felgueiras with slug '***') have
+    non-standard slugs that return [] from /teams/details but
+    WORK from /teams/squad. Fall back to squad endpoint when
+    details returns empty so the slug isn't rejected.
     """
     try:
         from urllib.parse import quote
@@ -114,6 +119,12 @@ def _verify_slug_via_api(team_id: str, slug: str) -> bool:
         d = _fetch(url, retries=1)
         if isinstance(d, dict) and d.get('team_id') == team_id:
             return True
+        # If details returned empty/[], try squad endpoint as fallback.
+        if d == []:
+            squad_url = f"https://{HOST}/api/flashscore/v2/teams/squad?team_url=%2Fteam%2F{quote(slug, safe='')}%2F{team_id}%2F"
+            sd = _fetch(squad_url, retries=1)
+            if isinstance(sd, list) and len(sd) > 0:
+                return True
         return False
     except Exception:
         return False
