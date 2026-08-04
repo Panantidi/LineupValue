@@ -2495,7 +2495,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const lastName = rawParts.length ? rawParts[rawParts.length - 1] : '';
                 const fullName = bulkNormalizeText(rawName);
                 const fullNameReversed = rawParts.length > 1 ? rawParts.slice().reverse().join(' ') : fullName;
-                return {{ row: row, rawName: rawAttrName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, firstName: firstName, lastName: lastName, fullName: fullName, fullNameReversed: fullNameReversed }};
+                // Jul 31 2026: present 'FirstName LastName' in the ambiguous
+                // dropdown. API gives 'LastName FirstName' for 2-part names;
+                // swap them. For 3+ parts (compound last names like
+                // 'Sykes-Kenworthy George'), keep order.
+                const firstLastName = rawParts.length === 2
+                    ? rawParts.slice().reverse().join(' ')
+                    : rawName;
+                return {{ row: row, rawName: rawAttrName, displayName: displayName.trim(), number: number, norm: norm, parts: parts, firstName: firstName, lastName: lastName, fullName: fullName, fullNameReversed: fullNameReversed, firstLastName: firstLastName }};
             }});
         }}
 
@@ -2612,7 +2619,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             box.style.display = 'block';
             box.innerHTML = '<b>Multiple matches — choose manually:</b>' + items.map((item, idx) =>
                 '<div class="bulk-ambiguous-row"><label>' + ((item.parsed.raw || '').toString().replace(/\s*\([A-Za-z]{{1,3}}\)\s*/g, ' ').replace(/\s+/g, ' ').trim()) + '</label><select data-bulk-amb-idx="' + idx + '">' +
-                '<option value="">Skip</option>' + item.matches.map((m, mi) => '<option value="' + mi + '">#' + (m.number || '–') + ' ' + ((m.rawName || '').toString().replace(/\s*\([A-Za-z]{{1,3}}\)\s*/g, ' ').replace(/\s+/g, ' ').trim()) + '</option>').join('') +
+                '<option value="">Skip</option>' + item.matches.map((m, mi) => '<option value="' + mi + '">#' + (m.number || '–') + ' ' + ((m.firstLastName || m.rawName || '').toString().replace(/\s*\([A-Za-z]{{1,3}}\)\s*/g, ' ').replace(/\s+/g, ' ').trim()) + '</option>').join('') +
                 '</select></div>'
             ).join('') + '<button type="button" onclick="applyBulkAmbiguousChoices()">Apply choices</button>';
         }}
