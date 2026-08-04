@@ -2579,7 +2579,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const esc = (s) => String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const nfSet = new Set(notFound.map(nf => nf.raw));
             const ambSet = new Set(ambiguous.map(a => a.parsed.raw));
-            const html = tokens.map(t => {{
+            // Jul 31 2026: sort NOT FOUND tokens to the top so the
+            // user sees problem names first. Stable order preserved
+            // within each group using the original tokens array index.
+            const idxOf = new Map(tokens.map((t, i) => [t, i]));
+            const sorted = tokens
+                .map((t, i) => ({{ t: t, i: i, kind: nfSet.has(t) ? 0 : (ambSet.has(t) ? 1 : 2) }}))
+                .sort((a, b) => a.kind - b.kind || a.i - b.i)
+                .map(x => x.t);
+            const html = sorted.map(t => {{
                 if (nfSet.has(t)) return '<div style="color:#dc3545;font-weight:700;">' + esc(t) + ' — NOT FOUND</div>';
                 if (ambSet.has(t)) return '<div style="color:#f59e0b;font-weight:700;">' + esc(t) + ' — AMBIGUOUS</div>';
                 return '<div>' + esc(t) + '</div>';
