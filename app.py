@@ -4657,11 +4657,19 @@ async def llm_gate_relevance(tweet_text: str, tweet_url: str) -> bool:
 
     out_text = ""
     try:
+        # output may be [reasoning, message] for kimi. Collect all.
         output = data.get("output") or []
-        if output and isinstance(output, list):
-            c = output[0].get("content") or []
-            if c and isinstance(c, list):
-                out_text = (c[0].get("text") or "").strip()
+        parts = []
+        for item in output:
+            if not isinstance(item, dict):
+                continue
+            for c in (item.get("content") or []):
+                if isinstance(c, dict) and c.get("text"):
+                    parts.append(c["text"])
+            for s in (item.get("summary") or []):
+                if isinstance(s, dict) and s.get("text"):
+                    parts.append(s["text"])
+        out_text = "\n".join(parts).strip()
     except Exception:
         out_text = ""
 
@@ -4760,15 +4768,22 @@ async def llm_classify(tweet_text: str, tweet_url: str, source_username: str = "
         out["_core_error"] = f"HTTP_ERROR:{type(e).__name__}"
         return out
 
-    # Wormsoft responses: try to extract output text
+    # Wormsoft/kimi responses: output may be [reasoning, message].
+    # We collect text from ALL output items (especially type=message).
     out_text = ""
     try:
-        # common layout: output[0].content[0].text
         output = data.get("output") or []
-        if output and isinstance(output, list):
-            c = output[0].get("content") or []
-            if c and isinstance(c, list):
-                out_text = c[0].get("text") or ""
+        parts = []
+        for item in output:
+            if not isinstance(item, dict):
+                continue
+            for c in (item.get("content") or []):
+                if isinstance(c, dict) and c.get("text"):
+                    parts.append(c["text"])
+            for s in (item.get("summary") or []):
+                if isinstance(s, dict) and s.get("text"):
+                    parts.append(s["text"])
+        out_text = "\n".join(parts).strip()
     except Exception:
         out_text = ""
 
