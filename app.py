@@ -5254,6 +5254,30 @@ async def background_cycle():
             # Quiet hours: skip completely (no X request, no run log)
             return
 
+        # Re-check kw_pass for previously-rejected tweets against the current
+        # keywords/player_names files. New players added since a tweet was
+        # fetched (e.g. transfer window signings) will now allow past tweets
+        # to qualify for LLM classification.
+        try:
+            rc = 0
+            con = sqlite3.connect(DB_PATH)
+            for r in con.execute("SELECT tweet_id, text FROM tweets WHERE kw_pass=0 ORDER BY created_at DESC LIMIT 500").fetchall():
+                tid, text = r
+                if not text:
+                    continue
+                passes, hit_inc, hit_bl, hit_pl = keyword_filter_stats(text)
+                if passes:
+                    con.execute("UPDATE tweets SET kw_pass=1, kw_blacklist_hit=? WHERE tweet_id=?",
+                                (1 if hit_bl else 0, tid))
+                    rc += 1
+            if rc:
+                con.commit()
+            con.close()
+            if rc:
+                print(f"kw_pass recheck: {rc} tweets promoted kw_pass=0->1")
+        except Exception as _e:
+            print(f"kw_pass recheck error: {type(_e).__name__}: {_e}")
+
         xreq, received, passed_kw, stored, stored_ids = await fetch_list_tweets_once(max_results=15)
         if passed_kw == 0 or stored == 0:
             _log_run(datetime.utcnow().isoformat()+"Z", xreq, received, passed_kw, stored, 0, 0, 0, 0)
