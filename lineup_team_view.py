@@ -4313,11 +4313,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
 <aside class="tweets-sidebar" id="tweets-sidebar">
         <div class="tweets-sidebar-header">
-            <span>🐦 X News Feed</span>
+            <span>Latest News</span>
             <span class="tweets-count" id="tweets-count">0</span>
         </div>
         <div class="tweets-sidebar-list" id="tweets-list">
-            <div class="tweet-empty">Загрузка новостей…</div>
+            <div class="tweet-empty">Loading news...</div>
         </div>
     </aside>
 
@@ -4366,7 +4366,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     function render(tweets) {{
         if (!tweets || tweets.length === 0) {{
-            LIST.innerHTML = '<div class="tweet-empty">Нет новостей по этой команде</div>';
+            LIST.innerHTML = '<div class="tweet-empty">No news for this team yet.</div>';
             COUNT_EL.textContent = '0';
             return;
         }}
@@ -4404,12 +4404,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var data = await r.json();
             render(data.tweets || []);
         }} catch (e) {{
-            LIST.innerHTML = '<div class="tweet-empty">Ошибка загрузки</div>';
+            LIST.innerHTML = '<div class="tweet-empty">Loading error</div>';
         }}
     }}
 
     fetchTweets();
     setInterval(fetchTweets, 60000);
+
+    function syncHeight() {{
+        var nav = document.getElementById('team-nav-sidebar');
+        if (!nav || !SIDEBAR) return;
+        var h = nav.offsetHeight;
+        if (h > 100) {{
+            SIDEBAR.style.maxHeight = h + 'px';
+        }}
+    }}
+    syncHeight();
+    setInterval(syncHeight, 2000);
+    if (window.ResizeObserver) {{
+        var nav = document.getElementById('team-nav-sidebar');
+        if (nav) {{
+            new ResizeObserver(syncHeight).observe(nav);
+        }}
+    }}
 
     var observer = new MutationObserver(applyBuilderVisibility);
     var target = document.getElementById('builder-lineup-host');
