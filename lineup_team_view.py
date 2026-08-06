@@ -1246,7 +1246,105 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             margin-bottom: 2px;
             margin-top: 4px;
         }}
-        body.embed-mode .team-nav-sidebar {{ display: none !important; }}
+        /* Right-side X/Twitter feed sidebar (Team mode). */
+        .tweets-sidebar {{
+            position: fixed;
+            top: 64px;
+            right: 12px;
+            width: 330px;
+            max-height: calc(100vh - 80px);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+            overflow: hidden;
+            transition: opacity 0.2s ease;
+        }}
+        body.embed-mode .tweets-sidebar {{ display: none !important; }}
+        .tweets-sidebar.hidden {{ display: none !important; }}
+        .tweets-sidebar-header {{
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 700;
+            font-size: 13px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f8f9fc 0%, #eef1f8 100%);
+            flex-shrink: 0;
+        }}
+        .tweets-sidebar-header .tweets-count {{
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 500;
+        }}
+        .tweets-sidebar-list {{
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            padding: 8px;
+        }}
+        .tweet-card {{
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            background: #fff;
+            font-size: 12px;
+            line-height: 1.4;
+        }}
+        .tweet-card:hover {{ background: #f8f9fc; }}
+        .tweet-source {{
+            font-weight: 600;
+            color: #1d9bf0;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }}
+        .tweet-text {{
+            color: #1f2937;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 4px;
+        }}
+        .tweet-text mark.player {{
+            background: #fef08a;
+            color: #713f12;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 600;
+        }}
+        .tweet-text mark.keyword {{
+            background: #bbf7d0;
+            color: #14532d;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 600;
+        }}
+        .tweet-meta {{
+            font-size: 10px;
+            color: #9ca3af;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .tweet-meta a {{
+            color: #1d9bf0;
+            text-decoration: none;
+        }}
+        .tweet-meta a:hover {{ text-decoration: underline; }}
+        .tweet-empty {{
+            text-align: center;
+            padding: 24px 12px;
+            color: #9ca3af;
+            font-size: 12px;
+        }}
+        body.embed-mode .tweets-sidebar {{ display: none !important; }}
+
+                body.embed-mode .team-nav-sidebar {{ display: none !important; }}
         /* Country favorites — star button */
         .country-fav-star {{
             display: inline-block;
@@ -4213,6 +4311,117 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </div>
         </div>
     </div>
+<aside class="tweets-sidebar" id="tweets-sidebar">
+        <div class="tweets-sidebar-header">
+            <span>🐦 X News Feed</span>
+            <span class="tweets-count" id="tweets-count">0</span>
+        </div>
+        <div class="tweets-sidebar-list" id="tweets-list">
+            <div class="tweet-empty">Загрузка новостей…</div>
+        </div>
+    </aside>
+
+<script>
+(function() {{
+    var TEAM_ID = (new URLSearchParams(location.search).get('team_id')) || ((location.pathname.match(/\/lineup_ai\/([^/?]+)/) || [])[1]) || '';
+    var SIDEBAR = document.getElementById('tweets-sidebar');
+    var LIST = document.getElementById('tweets-list');
+    var COUNT_EL = document.getElementById('tweets-count');
+
+    function escapeHtml(s) {{
+        return String(s).replace(/[&<>"]/g, function(c) {{ return {{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}}[c]; }});
+    }}
+
+    function highlightText(text, players, keywords) {{
+        var out = escapeHtml(text);
+        var sortedP = [...players].sort(function(a, b) {{ return b.length - a.length; }});
+        var sortedK = [...keywords].sort(function(a, b) {{ return b.length - a.length; }});
+        var escRe = function(s) {{ return s.replace(/[.*+?^${{}}()|[\\]\\]/g, '\\$&'); }};
+        for (var i = 0; i < sortedP.length; i++) {{
+            var p = sortedP[i];
+            if (!p) continue;
+            var re = new RegExp('(' + escRe(p) + ')', 'gi');
+            out = out.replace(re, '<mark class="player">$1</mark>');
+        }}
+        for (var i = 0; i < sortedK.length; i++) {{
+            var k = sortedK[i];
+            if (!k) continue;
+            var re = new RegExp('(' + escRe(k) + ')', 'gi');
+            out = out.replace(re, '<mark class="keyword">$1</mark>');
+        }}
+        return out;
+    }}
+
+    function fmtTime(iso) {{
+        if (!iso) return '';
+        try {{
+            var d = new Date(iso);
+            var now = new Date();
+            var diff = Math.floor((now - d) / 60000);
+            if (diff < 60) return diff + 'm';
+            if (diff < 1440) return Math.floor(diff / 60) + 'h';
+            return Math.floor(diff / 1440) + 'd';
+        }} catch (e) {{ return ''; }}
+    }}
+
+    function render(tweets) {{
+        if (!tweets || tweets.length === 0) {{
+            LIST.innerHTML = '<div class="tweet-empty">Нет новостей по этой команде</div>';
+            COUNT_EL.textContent = '0';
+            return;
+        }}
+        COUNT_EL.textContent = tweets.length;
+        LIST.innerHTML = tweets.map(function(t) {{
+            var highlighted = highlightText(t.text || '', t.matched_players || [], t.matched_keywords || []);
+            var user = escapeHtml(t.source_username || '@unknown');
+            var url = escapeHtml(t.url || '#');
+            var ago = fmtTime(t.created_at);
+            return '<div class="tweet-card">'
+                + '<div class="tweet-source">' + user + '</div>'
+                + '<div class="tweet-text">' + highlighted + '</div>'
+                + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">View on X ↗</a></div>'
+                + '</div>';
+        }}).join('');
+    }}
+
+    function applyBuilderVisibility() {{
+        var builder = document.getElementById('builder-lineup-host');
+        if (!builder) return;
+        var style = window.getComputedStyle(builder);
+        var visible = style.display !== 'none' && builder.offsetParent !== null;
+        if (visible) {{
+            SIDEBAR.classList.add('hidden');
+        }} else {{
+            SIDEBAR.classList.remove('hidden');
+        }}
+    }}
+
+    async function fetchTweets() {{
+        if (!TEAM_ID) return;
+        try {{
+            var r = await fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=20');
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            var data = await r.json();
+            render(data.tweets || []);
+        }} catch (e) {{
+            LIST.innerHTML = '<div class="tweet-empty">Ошибка загрузки</div>';
+        }}
+    }}
+
+    fetchTweets();
+    setInterval(fetchTweets, 60000);
+
+    var observer = new MutationObserver(applyBuilderVisibility);
+    var target = document.getElementById('builder-lineup-host');
+    if (target) {{
+        observer.observe(target, {{ attributes: true, attributeFilter: ['style', 'class'] }});
+        applyBuilderVisibility();
+    }}
+    setInterval(applyBuilderVisibility, 1000);
+}})();
+</script>
+
+
 </body>
 </html>"""
     

@@ -3810,6 +3810,128 @@ def keyword_filter_stats(text: str) -> tuple[bool,bool,bool,bool]:
     return (passes, bool(hit_inc), bool(hit_black), bool(hit_player))
 
 
+@app.get("/lineup_ai/api/team_tweets")
+async def lineup_team_tweets(team_id: str = "", limit: int = 20):
+    """Return last N tweets for a team.
+
+    Filters tweets that mention any squad player name OR any
+    keyword from keywords_include.txt. Returns JSON with tweet_id,
+    created_at, source_username, text, url, matched_players,
+    matched_keywords. Capped at 50.
+
+    Used by the Team mode right sidebar.
+    """
+    if not team_id:
+        raise HTTPException(status_code=400, detail="team_id required")
+    if limit <= 0 or limit > 50:
+        limit = 20
+
+    player_names: list[str] = []
+    try:
+        cache_path = os.path.join("/home/openclaw/.openclaw/workspace", f"_live_cache_{team_id}.json")
+        if os.path.exists(cache_path):
+            with open(cache_path, "r", encoding="utf-8") as f:
+                cache = json.load(f)
+            for p in (cache.get("players") or []):
+                n = (p.get("name") or "").strip()
+                if n:
+                    player_names.append(n)
+    except Exception:
+        pass
+
+    kw_includes = _load_phrases(KEYWORDS_INCLUDE_PATH)
+
+    ensure_db()
+    con = sqlite3.connect(DB_PATH)
+    try:
+        conds = []
+        args: list = []
+        if player_names:
+            for n in player_names:
+                conds.append("LOWER(text) LIKE ?")
+                args.append(f"%{n.lower()}%")
+        for kw in kw_includes:
+            conds.append("LOWER(text) LIKE ?")
+            args.append(f"%{kw.lower()}%")
+        if not conds:
+            return {"tweets": [], "count": 0, "team_id": team_id}
+        where = " OR ".join(conds)
+        sql = (
+            "SELECT tweet_id, created_at, source_username, text, url, media_url, media_type "
+            f"FROM tweets WHERE kw_pass=1 AND ({where}) "
+            "ORDER BY created_at DESC LIMIT ?"
+        )
+        args.append(limit * 3)
+        rows = con.execute(sql, args).fetchall()
+    finally:
+        con.close()
+
+    out: list[dict] = []
+    for tweet_id, created_at, source_username, text, url, media_url, media_type in rows:
+        if not text:
+            continue
+        text_low = text.lower()
+        matched_players = sorted({
+            n for n in player_names if n.lower() in text_low
+        })
+        matched_keywords = sorted({
+            kw for kw in kw_includes if kw and kw.lower() in text_low
+        })
+        out.append({
+            "tweet_id": tweet_id,
+            "created_at": created_at,
+            "source_username": source_username or "",
+            "text": text,
+            "url": url or "",
+            "media_url": media_url or "",
+            "media_type": media_type or "",
+            "matched_players": matched_players,
+            "matched_keywords": matched_keywords,
+        })
+        if len(out) >= limit:
+            break
+    return {"tweets": out, "count": len(out), "team_id": team_id}
+
+
+def _cleanup_old_tweets(max_age_days: int = 7) -> int:
+    """Delete tweets older than max_age_days to bound DB size."""
+    try:
+        ensure_db()
+        con = sqlite3.connect(DB_PATH)
+        try:
+            cutoff = (datetime.utcnow() - timedelta(days=max_age_days)).strftime("%Y-%m-%dT%H:%M:%S")
+            cur = con.execute("DELETE FROM tweets WHERE created_at < ?", (cutoff,))
+            con.commit()
+            deleted = cur.rowcount
+        finally:
+            con.close()
+        if deleted:
+            log.info("cleanup: deleted %d tweets older than %d days", deleted, max_age_days)
+        return deleted
+    except Exception as e:
+        log.warning("cleanup_old_tweets failed: %s", e)
+        return 0
+
+
+def _start_tweets_cleanup_loop():
+    import threading
+    stop = {"flag": False}
+    def loop():
+        while not stop["flag"]:
+            try:
+                threading.Event().wait(1800)
+                if stop["flag"]:
+                    break
+                _cleanup_old_tweets()
+            except Exception as e:
+                log.warning("cleanup loop error: %s", e)
+    t = threading.Thread(target=loop, daemon=True, name="tweets-cleanup")
+    t.start()
+
+
+_start_tweets_cleanup_loop()
+
+
 def probable_xi_filter_stats(text: str) -> tuple[bool,bool,bool]:
     """Returns (passes, hit_probable_xi, hit_blacklist)."""
     t_low = _norm_text(text).lower()
