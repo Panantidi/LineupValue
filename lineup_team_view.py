@@ -4414,9 +4414,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     function syncHeight() {{
         var nav = document.getElementById('team-nav-sidebar');
         if (!nav || !SIDEBAR) return;
-        var h = nav.offsetHeight;
+        var r = nav.getBoundingClientRect();
+        var topPx = r.top + window.scrollY;
+        var h = r.height;
+        SIDEBAR.style.top = topPx + 'px';
         if (h > 100) {{
             SIDEBAR.style.maxHeight = h + 'px';
+        }} else {{
+            SIDEBAR.style.maxHeight = 'calc(100vh - ' + (topPx + 16) + 'px)';
         }}
     }}
     syncHeight();
@@ -4427,6 +4432,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             new ResizeObserver(syncHeight).observe(nav);
         }}
     }}
+    window.addEventListener('scroll', syncHeight, {{ passive: true }});
+    window.addEventListener('resize', syncHeight);
 
     var observer = new MutationObserver(applyBuilderVisibility);
     var target = document.getElementById('builder-lineup-host');
