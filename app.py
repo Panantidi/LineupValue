@@ -5157,12 +5157,15 @@ async def classify_and_alert_new_tweets(limit: int = 150, only_ids: list[str] | 
                             image_mode = "og"
 
                 if photo:
-                    mid = await send_telegram_photo(photo, cap)
+                    # Telegram send disabled; tweet goes to tweets-sidebar only.
+                    mid = "sidebar"
+                    image_mode = image_mode or "media"
                 else:
-                    mid = await send_telegram(cls["formatted_signal"])
+                    mid = "sidebar"
             else:
-                mid = await send_telegram(cls["formatted_signal"])
-            if mid is not None:
+                # Telegram send disabled; tweet goes to tweets-sidebar only.
+                mid = "sidebar"
+            if mid:
                 con = sqlite3.connect(DB_PATH)
                 con.execute(
                     "UPDATE tweet_status SET sent_at=?, image_mode=? WHERE tweet_id=?",
