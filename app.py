@@ -3811,33 +3811,51 @@ def keyword_filter_stats(text: str) -> tuple[bool,bool,bool,bool]:
 
 
 @app.get("/lineup_ai/api/team_tweets")
-async def lineup_team_tweets(team_id: str = "", limit: int = 20):
-    """Return last N tweets for a team.
+async def lineup_team_tweets(team_id: str = "", team_ids: str = "", limit: int = 20):
+    """Return last N tweets matching any of the given teams.
 
-    Filters tweets that mention any squad player name OR any
-    keyword from keywords_include.txt. Returns JSON with tweet_id,
-    created_at, source_username, text, url, matched_players,
-    matched_keywords. Capped at 50.
+    Filters:
+      - kw_pass=1 (Keywords passed, Blacklist passed)
+      - tweet_status.relevant=1 (AI relevance passed)
+      - gate_decision NULL or IN (\'YES\', \'BYPASS\') (Gate AI)
+      - duplicate_of IS NULL (Double dedupe)
 
-    Used by the Team mode right sidebar.
+    Args:
+      team_id: single team id (for Team mode)
+      team_ids: comma-separated team ids (for Match mode home + away)
+      limit: 1-50, default 20
+
+    Returns: {tweets: [...], count, team_ids: [...]}
     """
-    if not team_id:
-        raise HTTPException(status_code=400, detail="team_id required")
     if limit <= 0 or limit > 50:
         limit = 20
 
+    # Build list of team ids.
+    ids: list = []
+    if team_ids:
+        for t in team_ids.split(","):
+            t = t.strip()
+            if t and t not in ids:
+                ids.append(t)
+    if team_id and team_id not in ids:
+        ids.append(team_id)
+    if not ids:
+        raise HTTPException(status_code=400, detail="team_id required")
+
+    # Aggregate player names across all teams.
     player_names: list[str] = []
-    try:
-        cache_path = os.path.join("/home/openclaw/.openclaw/workspace", f"_live_cache_{team_id}.json")
-        if os.path.exists(cache_path):
-            with open(cache_path, "r", encoding="utf-8") as f:
-                cache = json.load(f)
-            for p in (cache.get("players") or []):
-                n = (p.get("name") or "").strip()
-                if n:
-                    player_names.append(n)
-    except Exception:
-        pass
+    for tid in ids:
+        try:
+            cache_path = os.path.join("/home/openclaw/.openclaw/workspace", f"_live_cache_{tid}.json")
+            if os.path.exists(cache_path):
+                with open(cache_path, "r", encoding="utf-8") as f:
+                    cache = json.load(f)
+                for p in (cache.get("players") or []):
+                    n = (p.get("name") or "").strip()
+                    if n and n not in player_names:
+                        player_names.append(n)
+        except Exception:
+            pass
 
     kw_includes = _load_phrases(KEYWORDS_INCLUDE_PATH)
 
@@ -3848,18 +3866,24 @@ async def lineup_team_tweets(team_id: str = "", limit: int = 20):
         args: list = []
         if player_names:
             for n in player_names:
-                conds.append("LOWER(text) LIKE ?")
+                conds.append("LOWER(t.text) LIKE ?")
                 args.append(f"%{n.lower()}%")
         for kw in kw_includes:
-            conds.append("LOWER(text) LIKE ?")
+            conds.append("LOWER(t.text) LIKE ?")
             args.append(f"%{kw.lower()}%")
         if not conds:
-            return {"tweets": [], "count": 0, "team_id": team_id}
+            return {"tweets": [], "count": 0, "team_ids": ids}
         where = " OR ".join(conds)
         sql = (
-            "SELECT tweet_id, created_at, source_username, text, url, media_url, media_type "
-            f"FROM tweets WHERE kw_pass=1 AND ({where}) "
-            "ORDER BY created_at DESC LIMIT ?"
+            "SELECT t.tweet_id, t.created_at, t.source_username, t.text, t.url, t.media_url, t.media_type "
+            "FROM tweets t "
+            "INNER JOIN tweet_status s ON s.tweet_id = t.tweet_id "
+            "WHERE t.kw_pass=1 AND t.kw_blacklist_hit=0 "
+            "AND s.relevant=1 "
+            "AND (s.gate_decision IS NULL OR s.gate_decision IN ('YES','BYPASS')) "
+            "AND s.duplicate_of IS NULL "
+            f"AND ({where}) "
+            "ORDER BY t.created_at DESC LIMIT ?"
         )
         args.append(limit * 3)
         rows = con.execute(sql, args).fetchall()
@@ -3890,7 +3914,7 @@ async def lineup_team_tweets(team_id: str = "", limit: int = 20):
         })
         if len(out) >= limit:
             break
-    return {"tweets": out, "count": len(out), "team_id": team_id}
+    return {"tweets": out, "count": len(out), "team_ids": ids}
 
 
 def _cleanup_old_tweets(max_age_days: int = 7) -> int:

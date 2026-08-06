@@ -4409,7 +4409,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     }}
 
     fetchTweets();
-    setInterval(fetchTweets, 60000);
+    setInterval(fetchTweets, 5000);
 
     function syncHeight() {{
         var nav = document.getElementById('team-nav-sidebar');

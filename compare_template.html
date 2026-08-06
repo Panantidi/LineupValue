@@ -650,6 +650,104 @@ body {
             margin-right: 6px;
         }
 
+        /* Match mode right sidebar: X news feed (Team mode parity). */
+        .tweets-sidebar-compare {
+            position: fixed;
+            top: 64px;
+            right: 12px;
+            width: 330px;
+            max-height: calc(100vh - 80px);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+            overflow: hidden;
+            transition: opacity 0.2s ease;
+        }
+        body.embed-mode .tweets-sidebar-compare { display: none !important; }
+        .tweets-sidebar-compare.hidden { display: none !important; }
+        .tweets-sidebar-compare .header {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 700;
+            font-size: 13px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f8f9fc 0%, #eef1f8 100%);
+            flex-shrink: 0;
+            background-image: linear-gradient(135deg, #f8f9fc 0%, #eef1f8 100%);
+        }
+        .tweets-sidebar-compare .header .tweets-count {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .tweets-sidebar-compare .list {
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            padding: 8px;
+        }
+        .tweets-sidebar-compare .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            background: #fff;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .tweets-sidebar-compare .card:hover { background: #f8f9fc; }
+        .tweets-sidebar-compare .source {
+            font-weight: 600;
+            color: #1d9bf0;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+        .tweets-sidebar-compare .text {
+            color: #1f2937;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 4px;
+        }
+        .tweets-sidebar-compare .text mark.player {
+            background: #fef08a;
+            color: #713f12;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+        .tweets-sidebar-compare .text mark.keyword {
+            background: #bbf7d0;
+            color: #14532d;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+        .tweets-sidebar-compare .meta {
+            font-size: 10px;
+            color: #9ca3af;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tweets-sidebar-compare .meta a {
+            color: #1d9bf0;
+            text-decoration: none;
+        }
+        .tweets-sidebar-compare .meta a:hover { text-decoration: underline; }
+        .tweets-sidebar-compare .empty {
+            text-align: center;
+            padding: 24px 12px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
 </style>
 
     <style>
@@ -1921,5 +2019,122 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', loadSavedMatches);
 })();
 </script>
+<aside class="tweets-sidebar-compare" id="tweets-sidebar-compare">
+    <div class="header">
+        <span>Latest News</span>
+        <span class="tweets-count" id="tweets-count-compare">0</span>
+    </div>
+    <div class="list" id="tweets-list-compare">
+        <div class="empty">Loading news...</div>
+    </div>
+</aside>
+
+<script>
+(function() {
+    var MY_ID = "{{my_team_id}}";
+    var OPP_ID = "{{opp_team_id}}";
+    var SIDEBAR = document.getElementById('tweets-sidebar-compare');
+    var LIST_EL = document.getElementById('tweets-list-compare');
+    var COUNT_EL = document.getElementById('tweets-count-compare');
+
+    function esc(s) {
+        return String(s).replace(/[&<>"]/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+        });
+    }
+
+    function highlight(text, players, keywords) {
+        var out = esc(text);
+        var sP = [...players].sort(function(a, b) { return b.length - a.length; });
+        var sK = [...keywords].sort(function(a, b) { return b.length - a.length; });
+        function escRe(s) { return s.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'); }
+        for (var i = 0; i < sP.length; i++) {
+            var p = sP[i];
+            if (!p) continue;
+            var re = new RegExp('(' + escRe(p) + ')', 'gi');
+            out = out.replace(re, '<mark class="player">$1</mark>');
+        }
+        for (var i = 0; i < sK.length; i++) {
+            var k = sK[i];
+            if (!k) continue;
+            var re = new RegExp('(' + escRe(k) + ')', 'gi');
+            out = out.replace(re, '<mark class="keyword">$1</mark>');
+        }
+        return out;
+    }
+
+    function fmtTime(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso);
+            var now = new Date();
+            var diff = Math.floor((now - d) / 60000);
+            if (diff < 60) return diff + 'm';
+            if (diff < 1440) return Math.floor(diff / 60) + 'h';
+            return Math.floor(diff / 1440) + 'd';
+        } catch (e) { return ''; }
+    }
+
+    function render(tweets) {
+        if (!tweets || tweets.length === 0) {
+            LIST_EL.innerHTML = '<div class="empty">No news for these teams yet.</div>';
+            COUNT_EL.textContent = '0';
+            return;
+        }
+        COUNT_EL.textContent = tweets.length;
+        LIST_EL.innerHTML = tweets.map(function(t) {
+            var highlighted = highlight(t.text || '', t.matched_players || [], t.matched_keywords || []);
+            var user = esc(t.source_username || '@unknown');
+            var url = esc(t.url || '#');
+            var ago = fmtTime(t.created_at);
+            return '<div class="card">'
+                + '<div class="source">' + user + '</div>'
+                + '<div class="text">' + highlighted + '</div>'
+                + '<div class="meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">View on X ↗</a></div>'
+                + '</div>';
+        }).join('');
+    }
+
+    async function fetchTweets() {
+        var ids = [MY_ID, OPP_ID].filter(function(x) { return x; });
+        if (!ids.length) return;
+        try {
+            var url = '/lineup_ai/api/team_tweets?team_ids=' + encodeURIComponent(ids.join(',')) + '&limit=20';
+            var r = await fetch(url);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            var data = await r.json();
+            render(data.tweets || []);
+        } catch (e) {
+            LIST_EL.innerHTML = '<div class="empty">Loading error</div>';
+        }
+    }
+
+    fetchTweets();
+    // Aggressive polling for near-instant updates in Match mode.
+    setInterval(fetchTweets, 5000);
+
+    function syncHeight() {
+        // Try to align with whichever sidebar is at left/right of compare.
+        // For Match mode just clamp to viewport.
+        if (!SIDEBAR) return;
+        SIDEBAR.style.maxHeight = 'calc(100vh - 80px)';
+    }
+    syncHeight();
+    window.addEventListener('resize', syncHeight);
+
+    // Hide sidebar when H2H popup is visible.
+    var h2h = document.getElementById('h2h-popup');
+    if (h2h) {
+        var obs = new MutationObserver(function() {
+            var style = window.getComputedStyle(h2h);
+            var vis = style.display !== 'none' && h2h.offsetParent !== null;
+            if (vis) SIDEBAR.classList.add('hidden');
+            else SIDEBAR.classList.remove('hidden');
+        });
+        obs.observe(h2h, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+})();
+</script>
+
 </body>
 </html>
