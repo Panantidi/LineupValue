@@ -4415,11 +4415,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var nav = document.getElementById('team-nav-sidebar');
         if (!nav || !SIDEBAR) return;
         var r = nav.getBoundingClientRect();
-        var topPx = r.top + window.scrollY;
+        // Push sidebar 24px below header edge (visually clear of the header).
+        var topPx = r.top + window.scrollY + 24;
         var h = r.height;
         SIDEBAR.style.top = topPx + 'px';
         if (h > 100) {{
-            SIDEBAR.style.maxHeight = h + 'px';
+            SIDEBAR.style.maxHeight = Math.max(100, h - 24) + 'px';
         }} else {{
             SIDEBAR.style.maxHeight = 'calc(100vh - ' + (topPx + 16) + 'px)';
         }}

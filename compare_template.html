@@ -2114,13 +2114,18 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(fetchTweets, 5000);
 
     function syncHeight() {
-        // Try to align with whichever sidebar is at left/right of compare.
-        // For Match mode just clamp to viewport.
         if (!SIDEBAR) return;
-        SIDEBAR.style.maxHeight = 'calc(100vh - 80px)';
+        var headerEl = document.querySelector('.header');
+        var topPx = 64;
+        if (headerEl) {
+            topPx = headerEl.getBoundingClientRect().bottom + 24;
+        }
+        SIDEBAR.style.top = topPx + 'px';
+        SIDEBAR.style.maxHeight = 'calc(100vh - ' + (topPx + 16) + 'px)';
     }
     syncHeight();
     window.addEventListener('resize', syncHeight);
+    window.addEventListener('scroll', syncHeight, { passive: true });
 
     // Hide sidebar when H2H popup is visible.
     var h2h = document.getElementById('h2h-popup');
