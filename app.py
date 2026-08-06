@@ -60,25 +60,21 @@ MODES_PATH = os.environ.get("MODES_PATH", os.path.join(os.path.dirname(__file__)
 MATCH_MODE = os.environ.get("MATCH_MODE", "substring").lower()  # substring|exact
 
 CATEGORIES = [
-    "lineup_change",
-    "injury_update",
+    "official_lineup",
+    "injury",
     "suspension",
-    "coach_change",
-    "match_postponement",
-    "disciplinary_decision",
-    "red_card_impact",
-    "national_team_callup",
-    "return_to_squad",
-    "rotation_risk",
-    "predicted_lineup",
-    "starting_lineup",
-    "fans",
-    "squad_list",
-    "tactical_leak",
+    "availability",
+    "training",
+    "recovery",
+    "travel_squad",
+    "rotation",
+    "coach_comment",
+    "goalkeeper",
+    "tactical",
     "other",
 ]
 
-IMPACT_LEVELS = ["HIGH", "MEDIUM", "LOW"]
+IMPACT_LEVELS = ["critical", "high", "medium", "low", "none"]
 
 
 def _scrape_flashscore_infobox(match_id: str) -> str:
@@ -4184,393 +4180,94 @@ def lookup_team_for_source(source: str) -> str:
 
 
 def _validate_classification(obj: dict) -> dict:
-    # strict schema + conservative fallbacks
-    relevant = bool(obj.get("relevant"))
-    category = obj.get("category") or "other"
-    impact = obj.get("impact_level") or "LOW"
-    confidence = obj.get("confidence")
-    try:
-        confidence = float(confidence)
-    except Exception:
-        confidence = 0.0
+    """Validate LLM output for new publish schema.
 
+    Accepts: {publish: bool, impact: str, category: str,
+              players: list, teams: list, reason: str}
+
+    Returns: dict with backward-compatible keys (relevant, category,
+    impact_level, teams, players, formatted_signal) so the rest of the
+    pipeline keeps working without further changes.
+    """
+    publish = bool(obj.get("publish"))
+
+    impact = (obj.get("impact") or "").strip().lower()
+    if impact not in IMPACT_LEVELS:
+        impact = "none" if not publish else "low"
+
+    category = (obj.get("category") or "").strip().lower()
     if category not in CATEGORIES:
         category = "other"
-    if impact not in IMPACT_LEVELS:
-        impact = "LOW"
 
-    teams = obj.get("teams") or []
-    players = obj.get("players") or []
-    competition = obj.get("competition") or ""
-
-    if not isinstance(teams, list):
-        teams = []
-    if not isinstance(players, list):
-        players = []
-
-    # Normalize player names: Title Case (first/last names capitalized)
-    def _cap_player_name(s: str) -> str:
-        s = (s or "").strip()
+    def _cap(s):
+        s = (str(s) if s is not None else "").strip()
         if not s:
             return ""
-        # Keep common apostrophes/hyphens; title() works reasonably for Latin names.
-        # Preserve internal casing for particles if user wants later.
-        out = " ".join([w for w in s.split() if w])
-        return out.title()
+        return " ".join(w for w in s.split() if w).title()
 
-    try:
-        players = [_cap_player_name(str(p)) for p in (players or [])]
-        players = [p for p in players if p]
-    except Exception:
-        pass
-    if not isinstance(competition, str):
-        competition = ""
+    players_raw = obj.get("players") or []
+    teams_raw = obj.get("teams") or []
+    players = [_cap(p) for p in (players_raw if isinstance(players_raw, list) else [])]
+    players = [p for p in players if p]
+    teams = [_cap(t) for t in (teams_raw if isinstance(teams_raw, list) else [])]
+    teams = [t for t in teams if t]
 
-    original_text = obj.get("original_text") or ""
-    original_link = obj.get("original_link") or ""
-    source_username = obj.get("source_username") or ""
+    reason = (obj.get("reason") or "").strip()
+    if len(reason) > 200:
+        reason = reason[:197] + "..."
 
-    team_from_map = lookup_team_for_source(source_username) if source_username else ""
+    # Backward compat aliases
+    relevant = publish
+    impact_level = impact.upper() if impact != "none" else "LOW"
+    confidence = 1.0 if publish else 0.0
+    competition = ""
+    analysis_ru = reason  # reuse existing field
 
-    if relevant and (not original_text.strip() or not original_link.strip()):
-        relevant = False
-
-    # fans is NOT always relevant; only relevant when there is an actual attendance/travel restriction fact.
-    if category == "fans":
-        t_low = (original_text or "").lower()
-        fans_fact_markers = [
-            "huis clos",
-            "à huis clos",
-            "behind closed doors",
-            "closed doors",
-            "tribune ferm",
-            "sans public",
-            "sans supporters",
-            "supporters interdits",
-            "interdiction de déplacement",
-            "interdiction de deplacement",
-            "privés de déplacement",
-            "prives de deplacement",
-            "déplacement interdit",
-            "deplacement interdit",
-        ]
-        if any(m in t_low for m in fans_fact_markers):
-            relevant = True
-        else:
-            relevant = False
-
-    formatted_signal = ""
-    if relevant:
-        lines0 = original_text.split("\n")
-        quoted_html = "<blockquote>" + "\n".join([html_escape(ln) for ln in lines0]) + "</blockquote>"
-
-        # Also bold player names inside the quoted original text (for visibility)
-        try:
-            plist_q = _read_keywords_file(PLAYER_NAMES_PATH)
-        except Exception:
-            plist_q = []
-        if plist_q and quoted_html:
-            import re as _re
-            for nm in sorted([p for p in plist_q if p], key=lambda x: -len(x)):
-                nm_norm = str(nm).strip()
-                if not nm_norm:
-                    continue
-                pat = r"(?<![\w’'])" + _re.escape(nm_norm) + r"(?![\w’'])"
-                quoted_html = _re.sub(pat, lambda m: "<b>"+nm_norm+"</b>", quoted_html, flags=_re.IGNORECASE)
-
-        cat_ru = {
-            "lineup_change": "изменение состава",
-            "predicted_lineup": "возможный состав/старт",
-            "rotation_risk": "риск ротации/скамейка",
-            "injury_update": "статус травмы/готовности",
-            "suspension": "дисквалификация/бан",
-            "disciplinary_decision": "дисциплинарное решение",
-            "red_card_impact": "красная карточка/последствия",
-            "coach_change": "изменение тренера",
-            "match_postponement": "перенос/задержка матча",
-            "national_team_callup": "вызов в сборную",
-            "return_to_squad": "возвращение в состав",
-            "squad_list": "заявка/список игроков",
-            "tactical_leak": "тактический инсайд",
-            "fans": "матч без болельщиков/ограничение посещаемости",
-            "other": "прочее",
-        }
-        imp_ru = {"HIGH": "высокое", "MEDIUM": "среднее", "LOW": "низкое"}
-
-        player_note = (players[0] if players else "").strip()
-        analysis_ru = (obj.get("analysis_ru") or "").strip()
-
-        if analysis_ru:
-            # Remove awkward meta-source prefixes if the model added them.
-            analysis_ru = re.sub(r"^(\s*(фан-аккаунт|fan\s*account)\s*:\s*)", "", analysis_ru, flags=re.IGNORECASE)
-            analysis_ru = re.sub(r"^(\s*(источник\s*:|source\s*:)\s*)", "", analysis_ru, flags=re.IGNORECASE)
-            low = analysis_ru.lower()
-
-            # Add per-player emoji lines (ONLY if players are present)
-            def _status_emoji_for(category: str, original_text: str) -> str:
-                if category == "injury_update":
-                    b = _injury_bucket(original_text)
-                    return {"OK": "✅", "DOUBT": "⚠️", "OUT": "❌", "UNKNOWN": "🤷‍♂️"}.get(b, "")
-                if category in ("suspension", "disciplinary_decision"):
-                    return "⛔️"
-                if category == "red_card_impact":
-                    return "🟥"
-                if category == "national_team_callup":
-                    return "🌍"
-                if category == "return_to_squad":
-                    return "✅"
-                return ""
-
-            status_emo = _status_emoji_for(category, original_text)
-
-            # Starting XI mode has priority over Probable XI.
-            sx_pass, _, _ = starting_xi_filter_stats(original_text)
-            px_pass, _, _ = probable_xi_filter_stats(original_text)
-
-            if sx_pass:
-                starters = [
-                    "Опубликованы стартовые составы: ",
-                    "Доступны стартовые составы — ",
-                    "Появились официальные составы: ",
-                    "Обнародованы стартовые составы — ",
-                    "Стали известны стартовые составы: ",
-                    "Вышли стартовые составы — ",
-                    "Подтверждены стартовые составы: ",
-                    "Официально: стартовые составы — ",
-                ]
-                import hashlib
-                h = hashlib.sha256((source_username + "|" + original_link).encode("utf-8")).digest()
-                pref = starters[h[6] % len(starters)]
-
-                tail = (analysis_ru or "").strip()
-                if tail:
-                    tail = tail[:1].lower() + tail[1:]
-                    for bad in [
-                        "опубликованы стартовые составы",
-                        "доступны стартовые составы",
-                        "появились официальные составы",
-                        "обнародованы стартовые составы",
-                        "стали известны стартовые составы",
-                        "вышли стартовые составы",
-                        "подтверждены стартовые составы",
-                        "официально: стартовые составы",
-                        "официально стартовые составы",
-                    ]:
-                        if tail.lower().startswith(bad):
-                            tail = tail[len(bad):].lstrip(" :—,-")
-                            break
-                # For starting XI posts, keep it dry: single factual sentence.
-                # Strip "no names in text / by link"-style filler.
-                for bad2 in [
-                    "конкретные фамилии",
-                    "в тексте не приведены",
-                    "не перечислены",
-                    "находятся по ссылке",
-                    "вероятно они находятся",
-                    "по прикреплённой ссылке",
-                    "по прикрепленной ссылке",
-                ]:
-                    if bad2 in tail.lower():
-                        # truncate at the first occurrence
-                        idx = tail.lower().find(bad2)
-                        tail = tail[:idx].rstrip(" .,:;—-")
-                        break
-                # enforce single sentence
-                if tail.count('.') >= 1:
-                    tail = tail.split('.', 1)[0].strip()
-                analysis_ru = pref + tail
-                category = "starting_lineup"
-            elif px_pass:
-                starters = [
-                    "Опубликованы возможные составы: ",
-                    "Появились предполагаемые составы — ",
-                    "Опубликованы ориентировочные составы, ",
-                    "Стали известны возможные составы: ",
-                    "Появилась информация о возможных составах, ",
-                    "Доступны предварительные составы команд — ",
-                    "В X появились возможные составы: ",
-                    "Опубликованы вероятные составы на матч — ",
-                    "Опубликованы ожидаемые составы, ",
-                ]
-                import hashlib
-                h = hashlib.sha256((source_username + "|" + original_link).encode("utf-8")).digest()
-                pref = starters[h[6] % len(starters)]
-
-                # Smooth transition: lowercase first letter and strip duplicate lead-in if model starts with it.
-                tail = (analysis_ru or "").strip()
-                if tail:
-                    tail = tail[:1].lower() + tail[1:]
-                    for bad in [
-                        "опубликованы возможные составы",
-                        "появились предполагаемые составы",
-                        "опубликованы ориентировочные составы",
-                        "стали известны возможные составы",
-                        "появилась информация о возможных составах",
-                        "доступны предварительные составы",
-                        "в x появились возможные составы",
-                        "опубликованы вероятные составы",
-                        "опубликованы ожидаемые составы",
-                    ]:
-                        if tail.lower().startswith(bad):
-                            tail = tail[len(bad):].lstrip(" :—,-")
-                            break
-                analysis_ru = pref + tail
-            else:
-                # Official club sources
-                if source_username in OFFICIAL_SOURCES:
-                    pref = _choose_official_prefix(source_username + "|" + original_link)
-                    if not (low.startswith("из официаль") or low.startswith("по данным официаль") or low.startswith("как сообщает официальный") or low.startswith("по сведениям официаль") or low.startswith("в официальном") or low.startswith("согласно данных официаль") or low.startswith("официально")):
-                        analysis_ru = pref + analysis_ru[:1].lower() + analysis_ru[1:]
-                # Journalists/insiders
-                elif source_username in JOURNO_SOURCES:
-                    pref = _choose_journo_prefix(source_username + "|" + original_link)
-                    if not (low.startswith("по данным журналист") or low.startswith("как сообщают близкие") or low.startswith("согласно сведениям от экспертов") or low.startswith("согласно источникам среди журналист") or low.startswith("по сведениям журналист") or low.startswith("по данным, известным инсайд") or low.startswith("инсайдеры сообщают") or low.startswith("по данным, поступившим от надеж") or low.startswith("от надежных источников") or low.startswith("по данным источников, близких") or low.startswith("по сообщениям инсайд") or low.startswith("по данным экспертов")):
-                        analysis_ru = pref + analysis_ru[:1].lower() + analysis_ru[1:]
-                # Regional / fans / fan-media
-                elif source_username in REGIONAL_SOURCES:
-                    pref = _choose_regional_prefix(source_username + "|" + original_link)
-                    analysis_ru = pref + analysis_ru[:1].lower() + analysis_ru[1:]
-                elif source_username in FAN_SUPPORTIVE_SOURCES:
-                    pref = _choose_fan_supportive_prefix(source_username + "|" + original_link)
-                    analysis_ru = pref + analysis_ru[:1].lower() + analysis_ru[1:]
-                elif source_username in FAN_MEDIA_SOURCES:
-                    pref = _choose_fan_media_prefix(source_username + "|" + original_link)
-                    # Always force one of the approved starters (avoid variety outside the list)
-                    analysis_ru = pref + analysis_ru[:1].lower() + analysis_ru[1:]
-
-            market_effect = analysis_ru
-        else:
-            if category == "predicted_lineup":
-                t_low = (original_text or "").lower()
-                if any(k in t_low for k in ["composition probable", "compo probable", "xi probable", "l’equipe probable", "composition probable du", "starting xi", "probable xi"]):
-                    market_effect = "Опубликован предполагаемый стартовый состав (XI)." + (f" {player_note} указан в составе." if player_note else "")
-                else:
-                    market_effect = "Опубликован предполагаемый состав/вариант XI."
-            elif category == "rotation_risk":
-                market_effect = f"{('Игрок ' + player_note + ' ') if player_note else ''}может начать матч не в старте/на скамейке (риск ротации)."
-            elif category == "injury_update":
-                market_effect = f"Обновление по готовности/травме{(' ('+player_note+')') if player_note else ''}."
-            elif category in ("suspension", "red_card_impact"):
-                market_effect = f"Дисциплинарный фактор{(' ('+player_note+')') if player_note else ''} (пропуск/ограничение участия)."
-            elif category == "lineup_change":
-                market_effect = "Есть изменение по составу/старту."
-            else:
-                market_effect = f"{cat_ru.get(category, category)} (влияние: {imp_ru.get(impact, impact)})."
-
-        # Use tweet (X) created_at time in MSK for the header, not processing time.
-        from datetime import timedelta
-        def _x_created_at_msk(created_at_iso: str) -> str:
-            try:
-                s = (created_at_iso or "").replace("Z", "+00:00")
-                dt = datetime.fromisoformat(s)
-                dt_msk = dt + timedelta(hours=3)
-                return dt_msk.strftime("%d.%m.%Y • %H:%M")
-            except Exception:
-                ts_msk = datetime.utcnow() + timedelta(hours=3)
-                return ts_msk.strftime("%d.%m.%Y • %H:%M")
-
-        time_line = _x_created_at_msk(obj.get("tweet_created_at") or "")
-
-        priority = f"{('🔴' if impact=='HIGH' else '🟠' if impact=='MEDIUM' else '🟡')} {impact} PRIORITY"
-        # Enforce capitalization for player names in analysis text
-        analysis_text = market_effect
-        try:
-            for p in (players or []):
-                pn = str(p or "").strip()
-                if not pn:
-                    continue
-                # Replace common lower/mixed variants with Title Case variant
-                variants = {pn.lower(), pn.upper(), pn.title()}
-                for v in variants:
-                    if v and v != pn:
-                        analysis_text = analysis_text.replace(v, pn)
-        except Exception:
-            pass
-
-        # Bold player names from configured Player names list if present in analysis_ru.
-        # Also canonicalize capitalization to match the list.
-        try:
-            plist = _read_keywords_file(PLAYER_NAMES_PATH)
-        except Exception:
-            plist = []
-
-        def _apply_player_markup(s: str) -> str:
-            if not plist or not s:
-                return s
-            out = s
-            # longest-first to avoid partial overlap issues
-            for nm in sorted([p for p in plist if p], key=lambda x: -len(x)):
-                nm_norm = str(nm).strip()
-                if not nm_norm:
-                    continue
-                import re as _re
-
-                def _repl(m):
-                    return "<b>" + nm_norm + "</b>"
-
-                pat = r"(?<![\w’'])" + _re.escape(nm_norm) + r"(?![\w’'])"
-                out = _re.sub(pat, _repl, out, flags=_re.IGNORECASE)
-            return out
-
-        analysis_text = _apply_player_markup(analysis_text)
-
-        analysis = html_escape(analysis_text)
-        # Keep <b> tags we inserted (unescape them back)
-        analysis = analysis.replace('&lt;b&gt;', '<b>').replace('&lt;/b&gt;', '</b>')
-
-        header_team = team_from_map.strip()
-        header_cat = category
-        header_line = f"{html_escape(header_team)} • {html_escape(header_cat)}" if (header_team and header_cat) else (html_escape(header_team) if header_team else html_escape(header_cat))
-
-        # Confidence display (based on source type)
-        def _confidence_range(source_username: str) -> tuple[int,int]:
-            if source_username in OFFICIAL_SOURCES:
-                return (95, 99)
-            if source_username in JOURNO_SOURCES:
-                return (80, 95)
-            if source_username in REGIONAL_SOURCES:
-                return (80, 95)
-            if source_username in FAN_MEDIA_SOURCES:
-                return (70, 80)
-            if source_username in FAN_SUPPORTIVE_SOURCES:
-                return (60, 70)
-            return (80, 95)
-
-        conf_lo, conf_hi = _confidence_range(source_username)
-        # Deterministic pick inside range (stable per tweet)
-        import hashlib
-        hh = hashlib.sha256((source_username + "|" + original_link).encode("utf-8")).digest()
-        conf = conf_lo + (hh[3] % (conf_hi - conf_lo + 1))
-
-        # Players block disabled (no emoji/player lines at bottom)
-        pb = ""
-
-        formatted_signal = (
-            f"🎨 ALERT • {time_line} (МСК)\n\n"
-            f"<b>{html_escape(priority)}</b>\n\n"
-            f"{header_line + '\n\n' if header_line else ''}"
-            f"🔗 • {html_escape(original_link)}\n\n"
-            f"Confidence • {conf}%\n\n"
-            f"{quoted_html}\n\n"
-            f"{analysis}"
-            + (f"\n\n{pb}" if pb else "")
-        )
-
-    if confidence < 0:
-        confidence = 0.0
-    if confidence > 1:
-        confidence = 1.0
+    # Build a simple formatted_signal for sidebar.
+    # The sidebar shows the tweet as-is from the DB; formatted_signal is
+    # legacy and not used by the new pipeline, but we still populate it
+    # for compatibility.
+    cat_ru = {
+        "official_lineup": "стартовый состав",
+        "injury": "травма / готовность",
+        "suspension": "дисквалификация",
+        "availability": "доступность",
+        "training": "тренировка",
+        "recovery": "возвращение после травмы",
+        "travel_squad": "заявка на матч",
+        "rotation": "ротация",
+        "coach_comment": "заявление тренера",
+        "goalkeeper": "смена вратаря",
+        "tactical": "тактика",
+        "other": "прочее",
+    }
+    imp_ru = {"critical": "критическое", "high": "высокое", "medium": "среднее", "low": "низкое", "none": "нет"}
+    cat_text = cat_ru.get(category, category)
+    imp_text = imp_ru.get(impact, impact)
+    player_part = (", ".join(players[:3])) if players else ""
+    parts = []
+    if reason:
+        parts.append(reason)
+    if player_part:
+        parts.append(player_part)
+    parts.append(f"({cat_text}, влияние: {imp_text})")
+    formatted_signal = " — ".join(parts)
 
     return {
         "relevant": relevant,
         "category": category,
-        "impact_level": impact,
+        "impact_level": impact_level,
+        "impact": impact,
+        "publish": publish,
         "confidence": confidence,
         "teams": teams,
         "players": players,
         "competition": competition,
+        "analysis_ru": analysis_ru,
+        "reason": reason,
         "formatted_signal": formatted_signal,
     }
+
 
 
 async def llm_gate_relevance(tweet_text: str, tweet_url: str) -> bool:
@@ -4693,50 +4390,96 @@ async def llm_classify(tweet_text: str, tweet_url: str, source_username: str = "
     if not api_url or not api_key or not model:
         return _validate_classification({"relevant": False})
 
-    schema_hint = (
-        '{\n'
-        ' "relevant": true|false,\n'
-        ' "category": "lineup_change|injury_update|suspension|coach_change|match_postponement|disciplinary_decision|red_card_impact|national_team_callup|return_to_squad|rotation_risk|predicted_lineup|starting_lineup|squad_list|tactical_leak|fans|other",\n'
-        ' "impact_level": "HIGH|MEDIUM|LOW",\n'
-        ' "confidence": 0.0,\n'
-        ' "teams": [],\n'
-        ' "players": [],\n'
-        ' "competition": "",\n'
-        ' "analysis_ru": ""\n'
-        '}\n'
-    )
-
     prompt = (
-        "Верни ТОЛЬКО один JSON-объект без markdown/текста вокруг. "
-        "Будь консервативным, не выдумывай команды/турниры. Анализ на русском. "
-        "\n\nСХЕМА JSON:\n" + schema_hint +
-        "\nВАЖНО: добавь поле tweet_created_at в JSON (как было передано ниже, без изменений)."
-        "\n\nПРАВИЛА ДЛЯ impact_level (важность):\n"
-        "- HIGH: подтверждённый пропуск матча/нескольких матчей; тяжёлая травма/серьёзная дисквалификация; ключевой игрок; или подтверждение из официального источника.\n"
-        "- MEDIUM: под вопросом/неясный статус; 1 матч; ожидаемая ротация/вероятность скамейки; формулировки типа 'incertain', 'doubtful', 'could miss'.\n"
-        "- LOW: слухи/общая инфа без влияния на доступность/старт; нет факта пропуска/сомнения; просто обсуждение/контекст без конкретики.\n"
-        "Выбирай самый консервативный уровень, если не уверен.\n"
-        "\nПРАВИЛА ДЛЯ category=return_to_squad (важно):\n"
-        "- return_to_squad ставь ТОЛЬКО если есть явный факт возвращения ПОСЛЕ отсутствия (травма/болезнь/дисквалификация/не попадал в заявку).\n"
-        "- НЕ ставь return_to_squad, если игрок уже играл в последнем матче или был в стартовом составе/в XI (например: 'a débuté', 'titulaire', 'dans le onze', 'started', 'in the starting XI', 'played last match', 'уже играл', 'в стартовом составе').\n"
-        "- В таких случаях выбирай starting_lineup/predicted_lineup/other по смыслу.\n"
-        "\nTWEET_TEXT:\n" + tweet_text +
-        "\n\nTWEET_URL:\n" + tweet_url + "\n\n"
-        "ДОПОЛНИТЕЛЬНО: верни в JSON поля original_text и original_link ровно как они даны ниже (без изменений)."
-        "\noriginal_text:\n" + tweet_text +
-        "\noriginal_link:\n" + tweet_url + "\n\n"
-        "И ЕЩЁ: верни поле source_username ровно как ниже (без изменений)."
-        "\nsource_username:\n" + source_username + "\n\n"
-        "И ЕЩЁ: верни поле tweet_created_at ровно как ниже (без изменений)."
-        "\ntweet_created_at:\n" + tweet_created_at + "\n\n"
-        "ДОПОЛНИТЕЛЬНО: верни analysis_ru (2-3 предложения на русском), строго по смыслу твита, без домыслов и без выдуманных сущностей. "
-        "НЕ используй формулировки вроде 'в твите говорится/сообщается в твите'. "
-        "НЕ пиши в analysis_ru мета-описания источника типа: 'фан-аккаунт', 'журналист', 'инсайдер', 'официальный аккаунт', 'местные СМИ' и т.п. "
-        "(Стиль источника будет добавлен снаружи). "
-        "ВАЖНО: имена и фамилии игроков пиши с заглавных букв (как имена собственные). "
-        "ВАЖНО: если category=starting_lineup, пиши КРАТКО И ПО СУЩЕ: 1 предложение максимум, без уточнений вроде 'фамилии не перечислены/они по ссылке/вероятно' и без воды. "
-        "ВАЖНО: category=fans используй ТОЛЬКО если в тексте есть факт ограничения болельщиков/посещаемости (huis clos, запрет выезда, закрытые трибуны). Фанатские просьбы/мемы/реакции НЕ относятся к fans.\n"
-        "\nanalysis_ru:\n"
+        "# РОЛЬ\n"
+        "Ты — футбольный аналитик сервиса LineupValue.\n"
+        "Ты НЕ модератор Twitter.\n"
+        "Ты НЕ журналист.\n"
+        "Ты НЕ пересказываешь новости.\n"
+        "Твоя единственная задача — определить, содержит ли пост информацию, "
+        "которая может изменить ожидания по стартовому составу команды или "
+        "повлиять на анализ ближайших матчей.\n\n"
+
+        "# ВАЖНО\n"
+        "До тебя уже были выполнены следующие проверки:\n"
+        "- Пост не содержит слов из Blacklist.\n"
+        "- Пост содержит одно или несколько ключевых слов.\n"
+        "- В тексте найдено имя или фамилия игрока.\n"
+        "- Пост не является дубликатом.\n"
+        "Поэтому НЕ нужно заново оценивать эти критерии.\n"
+        "Тебе нужно определить только смысл публикации.\n\n"
+
+        "# ЧТО СЧИТАЕТСЯ РЕЛЕВАНТНЫМ\n"
+        "Возвращай publish=true только если пост содержит новую информацию хотя бы об одном из следующих событий:\n"
+        "- подтвержденная травма\n"
+        "- вероятность пропуска матча\n"
+        "- дисквалификация\n"
+        "- возвращение после травмы\n"
+        "- возвращение к тренировкам\n"
+        "- отсутствие на тренировке\n"
+        "- участие в тренировке отдельно от группы\n"
+        "- попадание или непопадание в заявку\n"
+        "- стартовый состав\n"
+        "- запасные\n"
+        "- изменение позиции игрока\n"
+        "- смена основного вратаря\n"
+        "- подтвержденная ротация\n"
+        "- заявление тренера о готовности или неготовности игрока\n"
+        "- официальный список игроков на матч\n"
+        "- любая информация, которая увеличивает или уменьшает вероятность выхода игрока в стартовом составе\n\n"
+
+        "# ЧТО НЕ ЯВЛЯЕТСЯ РЕЛЕВАНТНЫМ\n"
+        "Возвращай publish=false если пост относится к следующим темам:\n"
+        "- интервью без новой информации\n"
+        "- поздравления\n"
+        "- дни рождения\n"
+        "- фотографии\n"
+        "- видео\n"
+        "- лучшие моменты\n"
+        "- обзор матча\n"
+        "- эмоции после матча\n"
+        "- маркетинг\n"
+        "- продажа билетов\n"
+        "- продажа формы\n"
+        "- реклама\n"
+        "- статистика прошедших матчей\n"
+        "- исторические публикации\n"
+        "- цитаты без новой информации\n\n"
+
+        "# ОСОБОЕ ПРАВИЛО\n"
+        "Если новость выглядит важной, но не содержит новой информации относительно уже известных фактов — возвращай publish=false.\n"
+        "LineupValue должна публиковать только события, которые действительно меняют понимание ситуации.\n\n"
+
+        "# ОЦЕНИ ВЛИЯНИЕ\n"
+        "impact: critical | high | medium | low | none\n\n"
+
+        "# ОПРЕДЕЛИ КАТЕГОРИЮ (только одну)\n"
+        "official_lineup | injury | suspension | availability | training | recovery | "
+        "travel_squad | rotation | coach_comment | goalkeeper | tactical | other\n\n"
+
+        "# ИЗВЛЕКИ\n"
+        "players: имена/фамилии игроков (массив строк)\n"
+        "teams: названия команд (массив строк)\n\n"
+
+        "# КРАТКОЕ ОБОСНОВАНИЕ\n"
+        "reason: одно предложение (не более 20 слов), почему пост релевантен или нерелевантен.\n\n"
+
+        "# ВЕРНИ ТОЛЬКО JSON\n"
+        "{\n"
+        '  "publish": true|false,\n'
+        '  "impact": "critical|high|medium|low|none",\n'
+        '  "category": "...",\n'
+        '  "players": ["..."],\n'
+        '  "teams": ["..."],\n'
+        '  "reason": "..."\n'
+        "}\n\n"
+
+        "# КОНТЕКСТ ТВИТА\n"
+        "TWEET_TEXT:\n" + tweet_text + "\n\n"
+        "TWEET_URL:\n" + tweet_url + "\n\n"
+        "source_username:\n" + source_username + "\n\n"
+        "tweet_created_at:\n" + tweet_created_at + "\n\n"
+        "Верни ТОЛЬКО один JSON-объект. Никакого markdown, текста или пояснений вокруг."
     )
 
     payload = {
