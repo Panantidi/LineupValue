@@ -2019,7 +2019,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', loadSavedMatches);
 })();
 </script>
-<aside class="tweets-sidebar-compare" id="tweets-sidebar-compare">
+<!-- tweets-sidebar-compare hidden: latest news only in Team mode. -->
+<aside class="tweets-sidebar-compare" id="tweets-sidebar-compare" style="display:none">
     <div class="header">
         <span>Latest News</span>
         <span class="tweets-count" id="tweets-count-compare">0</span>
