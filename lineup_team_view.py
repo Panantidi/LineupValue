@@ -4399,10 +4399,37 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     async function fetchTweets() {{
         if (!TEAM_ID) return;
         try {{
-            var r = await fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=20');
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            var data = await r.json();
-            render(data.tweets || []);
+            // Fetch BOTH the team-specific tweets AND the global recent tweets,
+            // then merge them. Recent tweets that match the current team
+            // (player name or keyword) are highlighted first.
+            var teamP = fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=10').then(function(r) {{
+                if (!r.ok) return {{ tweets: [] }};
+                return r.json();
+            }});
+            var recentP = fetch('/lineup_ai/api/recent_tweets?limit=10').then(function(r) {{
+                if (!r.ok) return {{ tweets: [] }};
+                return r.json();
+            }});
+            var results = await Promise.all([teamP, recentP]);
+            var teamTweets = (results[0] && results[0].tweets) || [];
+            var recentTweets = (results[1] && results[1].tweets) || [];
+            var seen = {{}};
+            var merged = [];
+            // Team-specific tweets first (they're already sorted by relevance).
+            for (var i = 0; i < teamTweets.length; i++) {{
+                if (!seen[teamTweets[i].tweet_id]) {{
+                    seen[teamTweets[i].tweet_id] = true;
+                    merged.push(teamTweets[i]);
+                }}
+            }}
+            // Then recent tweets (any team, but only those that passed all 5 filters).
+            for (var j = 0; j < recentTweets.length; j++) {{
+                if (!seen[recentTweets[j].tweet_id]) {{
+                    seen[recentTweets[j].tweet_id] = true;
+                    merged.push(recentTweets[j]);
+                }}
+            }}
+            render(merged);
         }} catch (e) {{
             LIST.innerHTML = '<div class="tweet-empty">Loading error</div>';
         }}
