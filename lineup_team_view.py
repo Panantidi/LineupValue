@@ -4336,7 +4336,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var out = escapeHtml(text);
         var sortedP = [...players].sort(function(a, b) {{ return b.length - a.length; }});
         var sortedK = [...keywords].sort(function(a, b) {{ return b.length - a.length; }});
-        var escRe = function(s) {{ return s.replace(/[.*+?^${{}}()|[\\]\\]/g, '\\$&'); }};
+        var escRe = function(s) {{ return s.replace(/[.*+?^$()|[\\]\\]/g, '\\$&'); }};
         for (var i = 0; i < sortedP.length; i++) {{
             var p = sortedP[i];
             if (!p) continue;
@@ -4399,10 +4399,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     async function fetchTweets() {{
         if (!TEAM_ID) return;
         try {{
+            console.log('[tweets-sidebar] fetchTweets starting for team', TEAM_ID);
             // Fetch BOTH the team-specific tweets AND the global recent tweets,
             // then merge them. Recent tweets that match the current team
             // (player name or keyword) are highlighted first.
             var teamP = fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=10').then(function(r) {{
+                console.log('[tweets-sidebar] team_tweets response', r.status);
                 if (!r.ok) return {{ tweets: [] }};
                 return r.json();
             }});
