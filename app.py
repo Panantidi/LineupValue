@@ -3799,11 +3799,76 @@ def keyword_filter_stats(text: str) -> tuple[bool,bool,bool,bool]:
         hit_black = any((ph and ph in t_low) for ph in blacklist)
         hit_inc = any((ph and ph in t_low) for ph in include) if include else False
 
-    # player names match (substring on normalized text)
-    hit_player = any((pn and pn.lower() in t_low) for pn in players) if players else False
+    # Player match (Aug 6 2026):
+    #   1. If players.txt has entries, use them.
+    #   2. Fallback: any Firstname Lastname pair in text (two
+    #      capitalized words in a row). This catches players not yet
+    #      in players.txt (new signings, transfers, etc.).
+    import re as _re_player
+    hit_player = False
+    if players:
+        hit_player = any((pn and pn.lower() in t_low) for pn in players)
+    if not hit_player:
+        # Any capitalized Latin letter (with diacritics) followed by >=3 chars
+        # of letters/digits/apostrophe/period/dash. Catches single-name
+        # mentions ("Mbappé absent", "Uche blessé") as well as full
+        # "Firstname Lastname" pairs ("Christantus Uche").
+        hit_player = bool(_re_player.search(
+            r"\b[A-ZÀ-Ý][A-Za-zÀ-ÿ'.-]{2,}\b", text or ""
+        ))
 
     passes = bool(hit_inc) and bool(hit_player) and (not hit_black)
     return (passes, bool(hit_inc), bool(hit_black), bool(hit_player))
+
+
+@app.get("/lineup_ai/api/recent_tweets")
+async def recent_tweets(limit: int = 10):
+    """Return last N context-relevant tweets (for the Latest News sidebar).
+
+    No team filter - brings the last tweets that passed all 5 filters:
+      - kw_pass=1 (Keywords passed, Blacklist passed)
+      - tweet_status.relevant=1 (AI relevance passed)
+      - gate_decision NULL or IN ('YES','BYPASS') (Gate AI)
+      - duplicate_of IS NULL (Double dedupe)
+
+    Used in Team mode to enrich the sidebar with globally relevant
+    tweets (not just per-team). Marker fields highlight match to
+    currently-viewed team if any.
+    """
+    if limit <= 0 or limit > 50:
+        limit = 10
+
+    ensure_db()
+    con = sqlite3.connect(DB_PATH)
+    try:
+        sql = (
+            "SELECT t.tweet_id, t.created_at, t.source_username, t.text, t.url, t.media_url, t.media_type "
+            "FROM tweets t "
+            "INNER JOIN tweet_status s ON s.tweet_id = t.tweet_id "
+            "WHERE t.kw_pass=1 AND t.kw_blacklist_hit=0 "
+            "AND s.relevant=1 "
+            "AND (s.gate_decision IS NULL OR s.gate_decision IN ('YES','BYPASS')) "
+            "AND s.duplicate_of IS NULL "
+            "ORDER BY t.created_at DESC LIMIT ?"
+        )
+        rows = con.execute(sql, (limit,)).fetchall()
+    finally:
+        con.close()
+
+    tweets = []
+    for r in rows:
+        tweets.append({
+            "tweet_id": r[0],
+            "created_at": r[1],
+            "source_username": r[2],
+            "text": r[3],
+            "url": r[4],
+            "media_url": r[5],
+            "media_type": r[6],
+            "matched_players": [],
+            "matched_keywords": [],
+        })
+    return {"tweets": tweets, "count": len(tweets)}
 
 
 @app.get("/lineup_ai/api/team_tweets")
