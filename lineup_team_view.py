@@ -1252,7 +1252,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             top: 64px;
             right: 12px;
             width: 330px;
-            max-height: calc(100vh - 80px);
+            max-height: 790px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -4446,14 +4446,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var r = nav.getBoundingClientRect();
         // Push sidebar 24px below header edge (visually clear of the header).
         var topPx = r.top + window.scrollY + 24;
-        var h = r.height;
         SIDEBAR.style.top = topPx + 'px';
-        if (h > 100) {{
-            SIDEBAR.style.maxHeight = Math.max(100, h - 24) + 'px';
-        }} else {{
-            SIDEBAR.style.maxHeight = 'calc(100vh - ' + (topPx + 16) + 'px)';
-        }}
+        // Fixed height set by CSS: 790px max-height.
     }}
+
     syncHeight();
     setInterval(syncHeight, 2000);
     if (window.ResizeObserver) {{
