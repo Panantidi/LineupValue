@@ -4336,7 +4336,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var out = escapeHtml(text);
         var sortedP = [...players].sort(function(a, b) {{ return b.length - a.length; }});
         var sortedK = [...keywords].sort(function(a, b) {{ return b.length - a.length; }});
-        var escRe = function(s) {{ return s.replace(/[.*+?^$()|[\\]\\]/g, '\\$&'); }};
+        var escRe = function(s) {{ return String(s).replace(/[.*+?^$()|\[\]\\/]/g, '\\$&'); }};
         for (var i = 0; i < sortedP.length; i++) {{
             var p = sortedP[i];
             if (!p) continue;
