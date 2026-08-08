@@ -71,6 +71,7 @@ CATEGORIES = [
     "coach_comment",
     "goalkeeper",
     "tactical",
+    "transfer",
     "other",
 ]
 
@@ -687,6 +688,46 @@ def ensure_db():
           timestamp TEXT NOT NULL
         )
     """)
+
+    # --- Live events (Aug 7 2026) ---
+    # Mirrored from Telegram channel @LineupValue — LIVE. Only red cards and
+    # early substitutions (sub <= 30') are stored. The sidebar fetches these
+    # alongside tweets and renders them in a unified feed.
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS live_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          event_id TEXT UNIQUE,
+          created_at TEXT NOT NULL,
+          event_type TEXT NOT NULL,
+          match_label TEXT,
+          home TEXT,
+          away TEXT,
+          minute INTEGER,
+          player TEXT,
+          team TEXT,
+          raw_text TEXT,
+          source_message_id INTEGER
+        )
+    """)
+    cols_le = {r[1] for r in con.execute("PRAGMA table_info(live_events)").fetchall()}
+    for col_name, col_ddl in [
+        ("event_id", "TEXT UNIQUE"),
+        ("match_label", "TEXT"),
+        ("home", "TEXT"),
+        ("away", "TEXT"),
+        ("minute", "INTEGER"),
+        ("player", "TEXT"),
+        ("team", "TEXT"),
+        ("raw_text", "TEXT"),
+        ("source_message_id", "INTEGER"),
+    ]:
+        if col_name not in cols_le:
+            try:
+                con.execute(f"ALTER TABLE live_events ADD COLUMN {col_name} {col_ddl}")
+            except Exception:
+                pass
+    con.execute("CREATE INDEX IF NOT EXISTS idx_live_events_created_at ON live_events(created_at DESC)")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_live_events_event_type ON live_events(event_type)")
 
 
     con.execute("""
@@ -3871,6 +3912,100 @@ async def recent_tweets(limit: int = 10):
     return {"tweets": tweets, "count": len(tweets)}
 
 
+@app.get("/lineup_ai/api/live_events")
+async def live_events(limit: int = 10):
+    """Return last N mirrored live events (red cards + early subs).
+
+    Mirrored from @LineupValue — LIVE Telegram channel by
+    /home/openclaw/telegram-mirror/bot.py. The sidebar merges these
+    with tweets in a single unified feed.
+    """
+    if limit <= 0 or limit > 50:
+        limit = 10
+
+    ensure_db()
+    con = sqlite3.connect(DB_PATH)
+    try:
+        rows = con.execute(
+            """
+            SELECT event_id, created_at, event_type, match_label, home, away,
+                   minute, player, team, raw_text
+            FROM live_events
+            ORDER BY datetime(created_at) DESC, id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    finally:
+        con.close()
+
+    events = []
+    for r in rows:
+        events.append({
+            "event_id": r[0] or "",
+            "created_at": r[1] or "",
+            "event_type": r[2] or "",         # 'red_card' | 'substitution'
+            "match_label": r[3] or "",
+            "home": r[4] or "",
+            "away": r[5] or "",
+            "minute": int(r[6]) if r[6] is not None else 0,
+            "player": r[7] or "",
+            "team": r[8] or "",
+            "raw_text": r[9] or "",
+        })
+    return {"events": events, "count": len(events)}
+
+
+# Aug 7 2026: Endpoint for the mirror bot to push live events into the
+# sidebar feed. No auth (local-only — the mirror bot runs on the same
+# host). Insert is idempotent via event_id UNIQUE constraint.
+@app.post("/lineup_ai/api/live_events/ingest")
+async def ingest_live_event(payload: dict):
+    try:
+        event_id = str(payload.get("event_id") or "").strip()
+        if not event_id:
+            return {"ok": False, "error": "event_id required"}
+        event_type = str(payload.get("event_type") or "").strip()
+        if event_type not in ("red_card", "substitution"):
+            return {"ok": False, "error": "event_type must be red_card or substitution"}
+        # Sanity-check: substitutions must be <= 30' per user spec.
+        minute = int(payload.get("minute") or 0)
+        if event_type == "substitution" and minute > 30:
+            return {"ok": False, "error": "substitution minute > 30 not allowed"}
+        if event_type == "red_card" and minute < 1:
+            return {"ok": False, "error": "red_card minute invalid"}
+        ensure_db()
+        con = sqlite3.connect(DB_PATH)
+        try:
+            con.execute(
+                """
+                INSERT OR IGNORE INTO live_events
+                  (event_id, created_at, event_type, match_label, home, away,
+                   minute, player, team, raw_text, source_message_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event_id,
+                    str(payload.get("created_at") or datetime.utcnow().isoformat() + "Z"),
+                    event_type,
+                    str(payload.get("match_label") or ""),
+                    str(payload.get("home") or ""),
+                    str(payload.get("away") or ""),
+                    minute,
+                    str(payload.get("player") or ""),
+                    str(payload.get("team") or ""),
+                    str(payload.get("raw_text") or ""),
+                    int(payload.get("source_message_id") or 0) or None,
+                ),
+            )
+            con.commit()
+        finally:
+            con.close()
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
 @app.get("/lineup_ai/api/team_tweets")
 async def lineup_team_tweets(team_id: str = "", team_ids: str = "", limit: int = 20):
     """Return last N tweets matching any of the given teams.
@@ -4366,6 +4501,12 @@ async def llm_gate_relevance(tweet_text: str, tweet_url: str) -> bool:
         "ischio-jambiers", "ligaments croise", "ligaments croises", "rupture des ligaments",
         "fracture de", "fracture de fatigue au tibia", "fracture d'un orteil",
         "inquiétant",
+        # --- transfers / squad changes (Aug 7 2026) ---
+        "va rejoindre", "va signer", "va quitter", "quitte le club",
+        "s'engage avec", "rejoint", "rejoindra", "signe a", "signe avec",
+        "pret d'une saison", "loan deal", "prêt d'une saison",
+        "option d'achat", "définitivement transféré", "transféré à",
+        "officiel :", "official :",
         # --- discipline (hot) ---
         "carton rouge", "rouge carton", "expulsion", "exclu", "suspendu", "suspendus", "suspension",
         "accumulation de cartons jaunes",
@@ -4386,17 +4527,21 @@ async def llm_gate_relevance(tweet_text: str, tweet_url: str) -> bool:
 
     prompt = (
         "Ты фильтр HOT-алертов. Ответь строго одним токеном: YES или NO. "
-        "Ставь YES ТОЛЬКО если смысл твита: игрок НЕ СЫГРАЕТ или ПОД ВОПРОСОМ на следующий матч, "
-        "или есть красная/удаление/дисквалификация, или вызов в сборную, который означает пропуск матча клуба. "
-        "Если просто общие новости/слухи/игровой контекст без факта отсутствия — NO. "
+        "Ставь YES если твит про: игрок НЕ СЫГРАЕТ или ПОД ВОПРОСОМ на следующий матч, "
+        "красная/удаление/дисквалификация, вызов в сборную (= пропуск матча клуба), "
+        "ИЛИ трансфер/переход игрока (va rejoindre/loan/option d'achat/quitte le club/officiel), "
+        "ИЛИ подтверждение состава/стартового XI на матч. "
+        "Если просто общие новости/слухи без конкретики — NO. "
         "Если сомневаешься — NO.\n\n"
-        "КРИТЕРИИ YES (самые горячие):\n"
+        "КРИТЕРИИ YES:\n"
         "- absence/absent/absents/absences\n"
         "- blessure/blessures/blesse/blesses/forfait/nouveau forfait\n"
         "- incertain/incertitude/pas certain/n'est pas pret/ne sera pas dans\n"
         "- carton rouge/rouge carton/expulsion/exclu/suspendu/suspension/accumulation de cartons jaunes\n"
         "- fracture/luxation/rupture/ligaments croises/sur civiere\n"
-        "- appele/convoque (YES только если явно = пропуск матча клуба)\n\n"
+        "- appele/convoque (YES если = пропуск матча клуба)\n"
+        "- va rejoindre/loan/prêt/option d'achat/quitte le club/transféré/officiel :\n"
+        "- starting lineup/confirmed XI/compo officielle/onze de départ\n\n"
         "TWEET_TEXT:\n" + tweet_text + "\n\n"
         "TWEET_URL:\n" + tweet_url + "\n"
     )
@@ -4491,7 +4636,8 @@ async def llm_classify(tweet_text: str, tweet_url: str, source_username: str = "
         "- подтвержденная ротация\n"
         "- заявление тренера о готовности или неготовности игрока\n"
         "- официальный список игроков на матч\n"
-        "- любая информация, которая увеличивает или уменьшает вероятность выхода игрока в стартовом составе\n\n"
+        "- любая информация, которая увеличивает или уменьшает вероятность выхода игрока в стартовом составе\n"
+        "- ТРАНСФЕР / АРЕНДА / ОТЪЕЗД ИГРОКА из текущей команды — меняет squad, влияет на будущие матчи\n\n"
 
         "# ЧТО НЕ ЯВЛЯЕТСЯ РЕЛЕВАНТНЫМ\n"
         "Возвращай publish=false если пост относится к следующим темам:\n"
@@ -4520,7 +4666,7 @@ async def llm_classify(tweet_text: str, tweet_url: str, source_username: str = "
 
         "# ОПРЕДЕЛИ КАТЕГОРИЮ (только одну)\n"
         "official_lineup | injury | suspension | availability | training | recovery | "
-        "travel_squad | rotation | coach_comment | goalkeeper | tactical | other\n\n"
+        "travel_squad | rotation | coach_comment | goalkeeper | tactical | transfer | other\n\n"
 
         "# ИЗВЛЕКИ\n"
         "players: имена/фамилии игроков (массив строк)\n"
@@ -5413,7 +5559,7 @@ async def admin_home():
 
 
 @app.get("/admin/status", response_class=HTMLResponse)
-async def admin_status():
+async def admin_status(request: Request):
     # Best-effort scheduler introspection
     try:
         job = scheduler.get_job("bg_cycle")
@@ -5431,6 +5577,16 @@ async def admin_status():
         f"SCHEDULER_STARTED_FLAG={int(bool(_scheduler_started))}\n"
         f"JOB_NEXT_RUN={next_run}\n"
     )
+
+    if request.query_params.get("json") == "1":
+        from fastapi.responses import JSONResponse
+        return JSONResponse({
+            "fetch_enabled": bool(FETCH_ENABLED),
+            "scheduler_started": bool(_scheduler_started),
+            "scheduler_running": bool(getattr(scheduler, 'running', False)),
+            "next_run": next_run if next_run not in ("None", "ERR") else None,
+            "fetch_interval_seconds": FETCH_INTERVAL_SECONDS,
+        })
 
     html = """<!doctype html><html lang='ru'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <title>Status</title>
@@ -6147,6 +6303,34 @@ async def admin_tweets(limit: int = 100, tweet_id: str = "", kw: str = "", playe
     <form method='post' action='/admin/run_now' style='display:inline-block;margin-right:8px'>
       <button type='submit' style='padding:8px 12px;font-weight:700;background:#1565c0;color:#fff;border:0;border-radius:6px'>Run now</button>
     </form>
+
+    <div id="scheduler-status" style='display:inline-block;margin-right:8px;padding:8px 12px;background:#f0f0f0;border-radius:6px;font-weight:700'>
+      <span style='color:#888'>Status:</span> <span id='status-flag'>—</span>
+      &nbsp;<span style='color:#888'>Next:</span> <span id='status-next'>—</span>
+      &nbsp;<span id='status-dot' style='display:inline-block;width:10px;height:10px;border-radius:50%;background:#888'></span>
+    </div>
+    <script>
+    (function() {
+      async function pollStatus() {
+        try {
+          var r = await fetch('/admin/status?json=1');
+          if (!r.ok) return;
+          var d = await r.json();
+          document.getElementById('status-flag').textContent = d.scheduler_started ? '🟢 ON' : '🔴 OFF';
+          document.getElementById('status-flag').style.color = d.scheduler_started ? '#16a34a' : '#dc3545';
+          document.getElementById('status-next').textContent = d.next_run || '—';
+          document.getElementById('status-next').style.color = '#444';
+          document.getElementById('status-dot').style.background = d.scheduler_started ? '#16a34a' : '#dc3545';
+        } catch (e) {}
+      }
+      pollStatus();
+      setInterval(pollStatus, 5000);
+      // Auto-refresh page every 30s to show new tweets
+      setTimeout(function() {
+        if (document.visibilityState === 'visible') location.reload();
+      }, 30000);
+    })();
+    </script>
 
     <div class='card' style='margin:12px 0'>
       <h3 style='margin:0 0 8px 0'>Ночной режим (выключает только X‑запросы, МСК)</h3>

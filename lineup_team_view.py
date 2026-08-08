@@ -1326,6 +1326,20 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         /* Aug 7 2026: read state — fade out tweets the user has clicked on. */
         .tweet-card.read {{ opacity: 0.55; }}
         .tweet-card {{ cursor: pointer; }}
+        /* Aug 7 2026: live event card (mirrored from Telegram @LineupValue_LIVE). */
+        .tweet-card.live-event {{
+            background: #fff7ed;
+            border-left: 4px solid #f59e0b;
+            padding-left: 8px;
+        }}
+        .tweet-card.live-event .tweet-source {{ color: #c2410c; }}
+        .tweet-card.live-event .tweet-line {{ display: block; }}
+        .tweet-card.live-event .tweet-event {{
+            font-weight: 700;
+            font-size: 13px;
+            color: #1f2937;
+            margin-top: 4px;
+        }}
         .tweet-meta {{
             font-size: 10px;
             color: #9ca3af;
@@ -4448,7 +4462,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var ago = fmtTime(t.created_at);
             var tid = escapeHtml(t.tweet_id || '');
             var isRead = tid && readIds[tid] ? ' read' : '';
-            html += '<div class="tweet-card' + isRead + '" data-tweet-id="' + tid + '">'
+            var extraClass = t.is_live_event ? ' live-event' : '';
+            html += '<div class="tweet-card' + extraClass + isRead + '" data-tweet-id="' + tid + '">'
                 + '<div class="tweet-source">' + user + '</div>'
                 + '<div class="tweet-text">' + highlighted + '</div>'
                 + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">View on X ↗</a></div>'
@@ -4532,9 +4547,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (!r.ok) return {{ tweets: [] }};
                 return r.json();
             }});
-            var results = await Promise.all([teamP, recentP]);
+            // Aug 7 2026: live events (red cards + early subs) from Telegram mirror.
+            var liveP = fetch('/lineup_ai/api/live_events?limit=10').then(function(r) {{
+                if (!r.ok) return {{ events: [] }};
+                return r.json();
+            }});
+            var results = await Promise.all([teamP, recentP, liveP]);
             var teamTweets = (results[0] && results[0].tweets) || [];
             var recentTweets = (results[1] && results[1].tweets) || [];
+            var liveEvents = (results[2] && results[2].events) || [];
             var seen = {{}};
             var merged = [];
             // Team-specific tweets first (they're already sorted by relevance).
@@ -4550,6 +4571,42 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     seen[recentTweets[j].tweet_id] = true;
                     merged.push(recentTweets[j]);
                 }}
+            }}
+            // Aug 7 2026: convert live events to pseudo-tweets and merge.
+            for (var k = 0; k < liveEvents.length; k++) {{
+                var ev = liveEvents[k];
+                var pseudoId = 'live-' + ev.event_id;
+                if (seen[pseudoId]) continue;
+                seen[pseudoId] = true;
+                var evtText;
+                var evtMatchLabel = ev.match_label || '';
+                var evtHeader = '';
+                if (evtMatchLabel) {{
+                    var parts = evtMatchLabel.split(' — ');
+                    evtHeader = parts.length === 2 ? parts[0].trim() + ' vs ' + parts[1].trim() : evtMatchLabel;
+                }}
+                var evtIcon = ev.event_type === 'red_card' ? '🟥' : '🔁';
+                var evtLabel = ev.event_type === 'red_card' ? 'Red card' : 'Substitution';
+                var evtMinute = (ev.minute || 0) + ' min';
+                var evtTeam = ev.team || '';
+                var evtPlayer = ev.player || '';
+                var evtLine1 = evtHeader;
+                var evtLine2 = evtIcon + ' ' + evtLabel + ' (' + evtMinute + ') — ' +
+                    (ev.event_type === 'red_card' ? '' : '🔴 ') + evtPlayer + (evtTeam ? ' (' + evtTeam + ')' : '');
+                evtText = (evtLine1 ? evtLine1 + '\n\n' : '') + evtLine2;
+                merged.push({{
+                    tweet_id: pseudoId,
+                    created_at: ev.created_at,
+                    source_username: '@LineupValue_LIVE',
+                    text: evtText,
+                    url: '',
+                    media_url: '',
+                    media_type: '',
+                    matched_players: evtPlayer ? [evtPlayer] : [],
+                    matched_keywords: [],
+                    is_live_event: true,
+                    event_type: ev.event_type
+                }});
             }}
             // Aug 7 2026: sort merged tweets by created_at DESC (newest first).
             merged.sort(function(a, b) {{
