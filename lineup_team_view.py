@@ -1317,13 +1317,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             border-radius: 2px;
             font-weight: 600;
         }}
+        /* Aug 7 2026: drop green highlight on keywords — use subtle bold/color only. */
         .tweet-text mark.keyword {{
-            background: #bbf7d0;
+            background: transparent;
             color: #14532d;
-            padding: 0 2px;
-            border-radius: 2px;
-            font-weight: 600;
+            font-weight: 700;
         }}
+        /* Aug 7 2026: read state — fade out tweets the user has clicked on. */
+        .tweet-card.read {{ opacity: 0.55; }}
+        .tweet-card {{ cursor: pointer; }}
         .tweet-meta {{
             font-size: 10px;
             color: #9ca3af;
@@ -4436,17 +4438,70 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             return;
         }}
         COUNT_EL.textContent = tweets.length;
-        LIST.innerHTML = tweets.map(function(t) {{
+        var readIds = getReadTweetIds();
+        var html = '';
+        for (var i = 0; i < tweets.length; i++) {{
+            var t = tweets[i];
             var highlighted = highlightText(t.text || '', t.matched_players || [], t.matched_keywords || []);
             var user = escapeHtml(t.source_username || '@unknown');
             var url = escapeHtml(t.url || '#');
             var ago = fmtTime(t.created_at);
-            return '<div class="tweet-card">'
+            var tid = escapeHtml(t.tweet_id || '');
+            var isRead = tid && readIds[tid] ? ' read' : '';
+            html += '<div class="tweet-card' + isRead + '" data-tweet-id="' + tid + '">'
                 + '<div class="tweet-source">' + user + '</div>'
                 + '<div class="tweet-text">' + highlighted + '</div>'
                 + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">View on X ↗</a></div>'
                 + '</div>';
-        }}).join('');
+        }}
+        LIST.innerHTML = html;
+        // Aug 7 2026: update counter to "read/total".
+        var readCount = 0;
+        var cards = LIST.querySelectorAll('.tweet-card');
+        for (var k = 0; k < cards.length; k++) {{
+            if (cards[k].classList.contains('read')) readCount++;
+        }}
+        COUNT_EL.textContent = readCount + '/' + cards.length;
+        // Attach click handler — toggle read state on the tweet card.
+        // Don't trigger when the user clicked the "View on X" link.
+        var cardsArr = LIST.querySelectorAll('.tweet-card');
+        for (var c = 0; c < cardsArr.length; c++) {{
+            cardsArr[c].addEventListener('click', function(e) {{
+                if (e.target.tagName === 'A') return;
+                var id = this.getAttribute('data-tweet-id');
+                if (!id) return;
+                this.classList.toggle('read');
+                toggleReadTweet(id, this.classList.contains('read'));
+                var totalCards = LIST.querySelectorAll('.tweet-card').length;
+                var rc = LIST.querySelectorAll('.tweet-card.read').length;
+                COUNT_EL.textContent = rc + '/' + totalCards;
+            }});
+        }}
+    }}
+
+    // Aug 7 2026: persist read tweet IDs in localStorage so they remain read across reloads.
+    var READ_STORAGE_KEY = 'formalert_read_tweets';
+    function getReadTweetIds() {{
+        try {{
+            var raw = localStorage.getItem(READ_STORAGE_KEY);
+            if (!raw) return {{}};
+            var obj = JSON.parse(raw);
+            return (obj && typeof obj === 'object') ? obj : {{}};
+        }} catch (e) {{ return {{}}; }}
+    }}
+    function toggleReadTweet(id, isRead) {{
+        var ids = getReadTweetIds();
+        if (isRead) ids[id] = 1; else delete ids[id];
+        try {{
+            // Aug 7 2026: cap storage at 500 most-recent entries to prevent bloat.
+            var keys = Object.keys(ids);
+            if (keys.length > 500) {{
+                var trimmed = {{}};
+                keys.slice(-500).forEach(function(k) {{ trimmed[k] = 1; }});
+                ids = trimmed;
+            }}
+            localStorage.setItem(READ_STORAGE_KEY, JSON.stringify(ids));
+        }} catch (e) {{ /* localStorage unavailable */ }}
     }}
 
     function applyBuilderVisibility() {{
