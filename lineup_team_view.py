@@ -1575,7 +1575,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             min-width: 128px;
             text-align: center;
         }}
-        /* Auto-width override for the renamed action buttons (Scan, Upload Image, Run AI).
+        /* Auto-width override for the renamed action buttons (Scan, Upload, Run AI).
            Lets each button size to its label rather than a fixed 128px. */
         .bl-action-btn {{
             width: auto !important;
@@ -2048,7 +2048,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <button type="button" class="bl-action-btn" onclick="applyBulkLineup()">Scan</button>
                     <div class="vision-lineup-row" style="margin-left:auto;">
                         <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
-                        <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
+                        <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload</button>
                         <button type="button" class="vision-lineup-btn bl-action-btn" id="vision-paste-btn" onclick="pasteImageFromClipboard()" title="Paste image from clipboard (Ctrl+V also works)">📋 Paste</button>
                         <span id="vision-file-name" class="vision-lineup-status">💤</span>
                         <button type="button" class="vision-lineup-btn bl-action-btn" onclick="applyVisionLineup()">Run AI</button>
@@ -2920,7 +2920,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const modeEl = document.getElementById('bulk-lineup-mode');
             const statusEl = document.getElementById('vision-lineup-status');
             const file = fileEl && fileEl.files && fileEl.files[0];
-            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Upload Image'; }} return; }}
+            if (!file) {{ if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Upload'; }} return; }}
             if (statusEl) {{ statusEl.style.color = '#667eea'; statusEl.textContent = 'Vision reading...'; }}
             try {{
                 const imageDataUrl = await new Promise((resolve, reject) => {{
