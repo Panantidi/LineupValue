@@ -4415,6 +4415,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     function highlightText(text, players, keywords) {{
         var out = escapeHtml(text);
+        // Aug 7 2026: convert literal \n (newline chars) to <br> for line breaks.
+        out = out.split('\\n').join('<br>');
         var sortedP = [...players].sort(function(a, b) {{ return b.length - a.length; }});
         var sortedK = [...keywords].sort(function(a, b) {{ return b.length - a.length; }});
         var escRe = function(s) {{ return String(s).replace(/[.*+?^$()|\[\]\\/]/g, '\\$&'); }};
@@ -4593,7 +4595,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 var evtLine1 = evtHeader;
                 var evtLine2 = evtIcon + ' ' + evtLabel + ' (' + evtMinute + ') — ' +
                     (ev.event_type === 'red_card' ? '' : '🔴 ') + evtPlayer + (evtTeam ? ' (' + evtTeam + ')' : '');
-                evtText = (evtLine1 ? evtLine1 + '\n\n' : '') + evtLine2;
+                // Use String.fromCharCode(10) = newline char. highlightText splits on \n and joins with <br>.
+                var nl = String.fromCharCode(10);
+                evtText = (evtLine1 ? evtLine1 + nl + nl : '') + evtLine2;
                 merged.push({{
                     tweet_id: pseudoId,
                     created_at: ev.created_at,
