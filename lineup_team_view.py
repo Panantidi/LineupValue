@@ -2047,6 +2047,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <div class="vision-lineup-row" style="margin-left:auto;">
                         <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
                         <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload Image</button>
+                        <button type="button" class="vision-lineup-btn bl-action-btn" id="vision-paste-btn" onclick="pasteImageFromClipboard()" title="Paste image from clipboard (Ctrl+V also works)">📋 Paste</button>
                         <span id="vision-file-name" class="vision-lineup-status">💤</span>
                         <button type="button" class="vision-lineup-btn bl-action-btn" onclick="applyVisionLineup()">Run AI</button>
                         <span id="vision-lineup-status" class="vision-lineup-status"></span>
@@ -2846,6 +2847,70 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 row.appendChild(compareHost);
             }}
         }});
+
+        // Aug 7 2026: Paste image from clipboard. Two paths:
+        // (a) navigator.clipboard.read() — modern browsers, requires permission
+        // (b) document.addEventListener('paste') — fires when user presses Ctrl+V with
+        //     a clipboard image anywhere on the page
+        async function pasteImageFromClipboard() {{
+            const statusEl = document.getElementById('vision-lineup-status');
+            if (statusEl) {{ statusEl.style.color = '#667eea'; statusEl.textContent = 'Reading clipboard...'; }}
+            if (!navigator.clipboard || !navigator.clipboard.read) {{
+                if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Clipboard API not supported — use Ctrl+V'; }}
+                return;
+            }}
+            try {{
+                const items = await navigator.clipboard.read();
+                for (const item of items) {{
+                    for (const type of item.types) {{
+                        if (type && type.startsWith('image/')) {{
+                            const blob = await item.getType(type);
+                            const file = new File([blob], 'clipboard.' + (type.split('/')[1] || 'png'), {{ type: type }});
+                            loadImageFile(file);
+                            return;
+                        }}
+                    }}
+                }}
+                if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'No image in clipboard'; }}
+            }} catch (e) {{
+                if (statusEl) {{ statusEl.style.color = '#dc3545'; statusEl.textContent = 'Paste failed: ' + (e.message || 'permission denied'); }}
+            }}
+        }}
+
+        // Aug 7 2026: load a File/Blob into the file input, update UI, then run Vision.
+        async function loadImageFile(file) {{
+            if (!file) return;
+            const fileEl = document.getElementById('vision-lineup-image');
+            const fileNameEl = document.getElementById('vision-file-name');
+            // Sync file input so subsequent Upload clicks show the same name.
+            try {{
+                if (fileEl && typeof DataTransfer !== 'undefined') {{
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    fileEl.files = dt.files;
+                }}
+            }} catch (e) {{ /* DataTransfer unavailable */ }}
+            if (fileNameEl) fileNameEl.textContent = '🆗';
+            await applyVisionLineup();
+        }}
+
+        // Global paste handler — if the user presses Ctrl+V while focused
+        // anywhere on the bulk-lineup-panel, an image in the clipboard is
+        // auto-loaded into the vision pipeline.
+        document.addEventListener('paste', async function(e) {{
+            // Only act when the bulk panel is visible.
+            const panel = document.getElementById('bulk-lineup-panel-host');
+            if (!panel || panel.style.display === 'none') return;
+            const items = (e.clipboardData && e.clipboardData.items) || [];
+            for (const item of items) {{
+                if (item.type && item.type.startsWith('image/')) {{
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) await loadImageFile(file);
+                    return;
+                }}
+            }}
+        }}, true);
 
         async function applyVisionLineup() {{
             const fileEl = document.getElementById('vision-lineup-image');
