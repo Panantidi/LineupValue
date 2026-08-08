@@ -4415,7 +4415,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
     function highlightText(text, players, keywords) {{
         var out = escapeHtml(text);
-        // Aug 7 2026: convert literal \n (newline chars) to <br> for line breaks.
+        // Aug 7 2026: convert literal newline chars to <br> for line breaks.
         out = out.split('\\n').join('<br>');
         var sortedP = [...players].sort(function(a, b) {{ return b.length - a.length; }});
         var sortedK = [...keywords].sort(function(a, b) {{ return b.length - a.length; }});
@@ -4595,7 +4595,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 var evtLine1 = evtHeader;
                 var evtLine2 = evtIcon + ' ' + evtLabel + ' (' + evtMinute + ') — ' +
                     (ev.event_type === 'red_card' ? '' : '🔴 ') + evtPlayer + (evtTeam ? ' (' + evtTeam + ')' : '');
-                // Use String.fromCharCode(10) = newline char. highlightText splits on \n and joins with <br>.
+                // Use String.fromCharCode(10) to embed newline char. highlightText converts it to <br>.
                 var nl = String.fromCharCode(10);
                 evtText = (evtLine1 ? evtLine1 + nl + nl : '') + evtLine2;
                 merged.push({{
