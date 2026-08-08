@@ -4588,13 +4588,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     evtHeader = parts.length === 2 ? parts[0].trim() + ' vs ' + parts[1].trim() : evtMatchLabel;
                 }}
                 var evtIcon = ev.event_type === 'red_card' ? '🟥' : '🔁';
-                var evtLabel = ev.event_type === 'red_card' ? 'Red card' : 'Substitution';
                 var evtMinute = (ev.minute || 0) + ' min';
                 var evtTeam = ev.team || '';
                 var evtPlayer = ev.player || '';
+                // Aug 8 2026: user spec - line 2 is icon + ' ' + N + ' min - ' + player + ' (' + team + ')'
+                // Substitutions get an extra orange circle prefix on the player.
+                var evtPrefix = ev.event_type === 'red_card' ? '' : '🟠 ';
                 var evtLine1 = evtHeader;
-                var evtLine2 = evtIcon + ' ' + evtLabel + ' (' + evtMinute + ') — ' +
-                    (ev.event_type === 'red_card' ? '' : '🔴 ') + evtPlayer + (evtTeam ? ' (' + evtTeam + ')' : '');
+                var evtLine2 = evtIcon + ' ' + evtMinute + ' — ' + evtPrefix + evtPlayer +
+                    (evtTeam ? ' (' + evtTeam + ')' : '');
                 // Use String.fromCharCode(10) to embed newline char. highlightText converts it to <br>.
                 var nl = String.fromCharCode(10);
                 evtText = (evtLine1 ? evtLine1 + nl + nl : '') + evtLine2;
