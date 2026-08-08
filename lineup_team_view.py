@@ -4431,6 +4431,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     merged.push(recentTweets[j]);
                 }}
             }}
+            // Aug 7 2026: sort merged tweets by created_at DESC (newest first).
+            merged.sort(function(a, b) {{
+                var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+                var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return tb - ta;
+            }});
+
             render(merged);
         }} catch (e) {{
             LIST.innerHTML = '<div class="tweet-empty">Loading error</div>';
