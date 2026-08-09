@@ -4458,7 +4458,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var html = '';
         for (var i = 0; i < tweets.length; i++) {{
             var t = tweets[i];
-            var highlighted = highlightText(t.text || '', t.matched_players || [], t.matched_keywords || []);
+            var highlighted;
+            try {{
+                highlighted = highlightText(t.text || '', t.matched_players || [], t.matched_keywords || []);
+            }} catch (he) {{
+                // Aug 9 2026: highlightText throws on pathological player text
+                // (e.g. un-escaped regex chars). Fall back to plain escaped text.
+                console.warn('[tweets-sidebar] highlightText error, falling back to plain text:', he && he.message);
+                highlighted = escapeHtml(t.text || '').split(String.fromCharCode(10)).join('<br>');
+            }}
             var user = escapeHtml(t.source_username || '@unknown');
             var url = escapeHtml(t.url || '#');
             var ago = fmtTime(t.created_at);
