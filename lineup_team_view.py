@@ -4590,15 +4590,41 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 seen[pseudoId] = true;
                 var evtText;
                 var evtMatchLabel = ev.match_label || '';
+                // Aug 9 2026: clean up match label — strip markdown (**), soccer ball emoji,
+                // trailing colon. Splits on ' - ' (with spaces) or ' -' (no trailing space)
+                // because mirror bot sometimes sends "A - ⚽ B:" with emoji embedded.
                 var evtHeader = '';
                 if (evtMatchLabel) {{
-                    var parts = evtMatchLabel.split(' — ');
-                    evtHeader = parts.length === 2 ? parts[0].trim() + ' vs ' + parts[1].trim() : evtMatchLabel;
+                    var cleanLabel = evtMatchLabel
+                        .replace(/\*/g, '')
+                        .replace(/⚽|⚽️/g, '')
+                        .replace(/:\s*$/, '')
+                        .trim();
+                    var parts = cleanLabel.split(/\s+[-–—]\s+/);
+                    if (parts.length === 2) {{
+                        evtHeader = parts[0].trim() + ' - ' + parts[1].trim();
+                    }} else {{
+                        evtHeader = cleanLabel;
+                    }}
                 }}
                 var evtIcon = ev.event_type === 'red_card' ? '🟥' : '🔁';
                 var evtMinute = (ev.minute || 0) + ' min';
                 var evtTeam = ev.team || '';
                 var evtPlayer = ev.player || '';
+                // Aug 9 2026: strip prefix like "57': 🟥 Красная карточка игроку " or
+                // "🔁 Замена " from player text. Keep only the actual player name.
+                // Patterns observed: red_card = "<min>': 🟥 <word> игроку <NAME>";
+                // substitution = "🔁 Замена <NAME>"; yellow = "🟨 <word> <NAME>".
+                evtPlayer = evtPlayer
+                    .replace(/^\d+\'[:\s]*/u, '')
+                    .replace(/^[🟥🟨🔴🟠🔁]\s*/u, '')
+                    .replace(/^Красная\s+карточка\s+игроку\s+/iu, '')
+                    .replace(/^Жёлтая\s+карточка\s+игроку\s+/iu, '')
+                    .replace(/^Желтая\s+карточка\s+игроку\s+/iu, '')
+                    .replace(/^Замена\s+/iu, '')
+                    .replace(/^Удаление\s+/iu, '')
+                    .replace(/\*/g, '')
+                    .trim();
                 // Aug 8 2026: user spec - line 2 is icon + ' ' + N + ' min - ' + player + ' (' + team + ')'
                 // Substitutions get an extra orange circle prefix on the player.
                 var evtPrefix = ev.event_type === 'red_card' ? '' : '🟠 ';
