@@ -3724,7 +3724,13 @@ async def lineup_team(team_id: str, embed: str = ""):
         prepare_team_data_version(team_id)
     except Exception:
         pass
-    return render_team_view(team_id, embed)
+    # Aug 9 2026: prevent browser caching the rendered HTML — the inline JS
+    # changes often (cache invalidation issues in the sidebar) and a stale
+    # cached HTML can break fetchTweets / Loading error.
+    resp = render_team_view(team_id, embed)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 
