@@ -2159,6 +2159,116 @@
         "slug": "st-etienne",
         "image_path": "https://static.flashscore.com/res/image/data/b7wgpIDa-8Ca53M.png"
       }
+    ],
+    "Ligue 3": [
+      {
+        "id": "KWT3SKT0",
+        "name": "Thionville",
+        "slug": "thionville",
+        "image_path": "https://static.flashscore.com/res/image/data/IcDeGoQq-6w6xOFEt.png"
+      },
+      {
+        "id": "ry31K39D",
+        "name": "Aubagne",
+        "slug": "aubagne-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/Ieh2dNmC-pfY1QAw9.png"
+      },
+      {
+        "id": "xnng4dGk",
+        "name": "Le Puy-en-Velay",
+        "slug": "le-puy-en-velay",
+        "image_path": "https://static.flashscore.com/res/image/data/nXjGVtkC-Eu7wBqZ8.png"
+      },
+      {
+        "id": "AZwK8L6R",
+        "name": "Bastia",
+        "slug": "bastia",
+        "image_path": "https://static.flashscore.com/res/image/data/joJrcijT-h6Qq9yDN.png"
+      },
+      {
+        "id": "K6STnbAt",
+        "name": "Villefranche",
+        "slug": "villefranche",
+        "image_path": "https://static.flashscore.com/res/image/data/KEtFyoVH-M7JpuaqD.png"
+      },
+      {
+        "id": "Ict2iv2P",
+        "name": "Bourg en Bresse",
+        "slug": "bourg-peronnas",
+        "image_path": "https://static.flashscore.com/res/image/data/GKK5yi7k-IFlzgqbl.png"
+      },
+      {
+        "id": "O8dsB372",
+        "name": "Valenciennes",
+        "slug": "valenciennes",
+        "image_path": "https://static.flashscore.com/res/image/data/GvDkcmUH-GU4hlIMk.png"
+      },
+      {
+        "id": "GjLn2QoH",
+        "name": "Caen",
+        "slug": "caen",
+        "image_path": "https://static.flashscore.com/res/image/data/vLpLAskC-GUflEdQm.png"
+      },
+      {
+        "id": "AqswAEFD",
+        "name": "Orleans",
+        "slug": "orleans",
+        "image_path": "https://static.flashscore.com/res/image/data/AmvppMle-h2Qb924D.png"
+      },
+      {
+        "id": "Uo57pG95",
+        "name": "Concarneau",
+        "slug": "concarneau",
+        "image_path": "https://static.flashscore.com/res/image/data/MuhikDle-tvRFy8W8.png"
+      },
+      {
+        "id": "lKkBAsxF",
+        "name": "Amiens",
+        "slug": "amiens-sc",
+        "image_path": "https://static.flashscore.com/res/image/data/SYoFLN86-lriTEOfc.png"
+      },
+      {
+        "id": "IooxkpEI",
+        "name": "Fleury-Merogis",
+        "slug": "fleury-merogis",
+        "image_path": "https://static.flashscore.com/res/image/data/CQtXbxhT-0tTDDuuP.png"
+      },
+      {
+        "id": "nDjHIbwL",
+        "name": "Versailles",
+        "slug": "versailles",
+        "image_path": "https://static.flashscore.com/res/image/data/js2zAd96-bXUw9eb2.png"
+      },
+      {
+        "id": "CCXiVLd5",
+        "name": "La Roche",
+        "slug": "la-roche-vendee",
+        "image_path": "https://static.flashscore.com/res/image/data/CUqEgXlC-OS99wS9P.png"
+      },
+      {
+        "id": "fPCzUHN1",
+        "name": "Quevilly Rouen",
+        "slug": "quevilly",
+        "image_path": "https://static.flashscore.com/res/image/data/nJsg0Doe-WUfDDYk1.png"
+      },
+      {
+        "id": "WnjEIzRL",
+        "name": "Paris 13 Atl.",
+        "slug": "paris-13-atletico",
+        "image_path": "https://static.flashscore.com/res/image/data/htmrDQ5k-EeP0tUL3.png"
+      },
+      {
+        "id": "OQDjYrTm",
+        "name": "Cannes",
+        "slug": "cannes",
+        "image_path": "https://static.flashscore.com/res/image/data/2w0abrA6-Wlm1pD3m.png"
+      },
+      {
+        "id": "z5PJrrtm",
+        "name": "Rouen",
+        "slug": "rouen",
+        "image_path": "https://static.flashscore.com/res/image/data/0f8res86-fw1PIW9a.png"
+      }
     ]
   },
   "Germany": {
