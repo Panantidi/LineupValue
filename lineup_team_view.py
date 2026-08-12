@@ -2081,7 +2081,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
             <div class="bulk-lineup-footer" style="display:flex;justify-content:flex-end;margin-top:8px;">
-                <button type="button" class="bl-action-btn" onclick="clearBulkLineup()" title="Clear textarea and report">✕ Clear</button>
+                <button type="button" onclick="clearBulkLineup()" title="Clear textarea and report" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;">✖️</button>
             </div>
         </div>
 </div>
