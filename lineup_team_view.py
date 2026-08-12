@@ -2060,7 +2060,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <option value="squad">⚫️ List (all found)</option>
                     </select>
                     <button type="button" class="bl-action-btn" onclick="applyBulkLineup()">Go</button>
-                    <button type="button" class="bl-action-btn" onclick="clearBulkLineup()" title="Clear textarea and report">✕ Clear</button>
                     <div class="vision-lineup-row" style="margin-left:auto;">
                         <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
                         <button type="button" class="vision-lineup-btn bl-action-btn" onclick="document.getElementById('vision-lineup-image').click()">Upload</button>
@@ -2081,6 +2080,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             </div>
             <div id="bulk-lineup-report" class="bulk-lineup-report"></div>
             <div id="bulk-lineup-ambiguous" class="bulk-ambiguous" style="display:none;"></div>
+            <div class="bulk-lineup-footer" style="display:flex;justify-content:flex-end;margin-top:8px;">
+                <button type="button" class="bl-action-btn" onclick="clearBulkLineup()" title="Clear textarea and report">✕ Clear</button>
+            </div>
         </div>
 </div>
 
