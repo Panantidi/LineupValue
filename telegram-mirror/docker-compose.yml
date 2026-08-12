@@ -1,0 +1,14 @@
+services:
+  mirror:
+    build: .
+    container_name: telegram-mirror
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

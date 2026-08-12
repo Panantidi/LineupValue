@@ -1,0 +1,21 @@
+[Unit]
+Description=Telegram Channel Mirror
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=openclaw
+Group=openclaw
+WorkingDirectory=/home/openclaw/telegram-mirror
+Environment=PATH=/home/openclaw/telegram-mirror/venv/bin:/usr/bin
+EnvironmentFile=/home/openclaw/telegram-mirror/.env
+ExecStart=/home/openclaw/telegram-mirror/venv/bin/python -u /home/openclaw/telegram-mirror/bot.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=telegram-mirror
+
+[Install]
+WantedBy=multi-user.target
