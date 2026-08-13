@@ -776,9 +776,17 @@ def ensure_db():
             home_name TEXT,
             away_name TEXT,
             created_at TEXT NOT NULL,
+            match_date TEXT,
             UNIQUE(username, match_id)
         )
     """)
+    # Aug 12 2026: idempotent migration for existing deployments that already
+    # created this table before match_date was added.
+    try:
+        con.execute("ALTER TABLE user_match_favorites ADD COLUMN match_date TEXT")
+    except Exception:
+        # Column already exists (or any other harmless issue). Schema must remain usable.
+        pass
     con.execute("CREATE INDEX IF NOT EXISTS idx_user_match_favorites_username ON user_match_favorites(username)")
 
 
@@ -2203,8 +2211,8 @@ async def get_match_favorites(request: Request):
         con.execute("DELETE FROM user_match_favorites WHERE username = ? AND created_at < ?", (username, cutoff))
         con.commit()
         rows = con.execute(
-            "SELECT match_id, home_id, away_id, home_name, away_name, created_at FROM user_match_favorites WHERE username = ? ORDER BY created_at DESC",
-            (username,)
+            "SELECT match_id, home_id, away_id, home_name, away_name, created_at, match_date FROM user_match_favorites WHERE username = ? ORDER BY created_at DESC",
+            (username,),
         ).fetchall()
     favorites = [
         {
@@ -2214,10 +2222,54 @@ async def get_match_favorites(request: Request):
             "home_name": row[3],
             "away_name": row[4],
             "created_at": row[5],
+            "match_date": row[6],
         }
         for row in rows
     ]
     return {"favorites": favorites}
+
+
+# Aug 12 2026: resolve match date from team fixture caches (home and away).
+# Used by POST /api/match-favorites to stamp the saved match with the real
+# fixture date so the Saved Matches panel can group items by the date the match
+# is actually played (not by save date). ISO date string YYYY-MM-DD, or "" if
+# the fixture cache doesn't have it yet.
+# Cache dir is the same one lineup_compare uses for fixture caches
+# (see cache_dir = "/home/openclaw/.openclaw/workspace" inside the handler).
+_cache_dir_for_match_date = "/home/openclaw/.openclaw/workspace"
+
+
+def _lookup_match_date_iso(mid: str, home_team_id: str = "", away_team_id: str = "") -> str:
+    if not mid:
+        return ""
+    try:
+        for lookup_id in (home_team_id, away_team_id):
+            if not lookup_id:
+                continue
+            cache_path = os.path.join(_cache_dir_for_match_date, f"_live_cache_{lookup_id}.json")
+            if not os.path.exists(cache_path):
+                continue
+            with open(cache_path, "r", encoding="utf-8") as fh:
+                tc = json.load(fh)
+            for fx in (tc.get("fixtures") or []):
+                if str(fx.get("match_id", "")) != str(mid):
+                    continue
+                date_raw = fx.get("date", "") or ""
+                # "dd/mm" -> resolve month/year (same year, or next if month < now)
+                dm = re.match(r"(\d{1,2})/(\d{2})", date_raw)
+                if dm:
+                    day, month = int(dm.group(1)), int(dm.group(2))
+                    now = datetime.utcnow()
+                    year = now.year if month >= now.month else now.year + 1
+                    try:
+                        iso = datetime(year, month, day).date().isoformat()
+                        return iso
+                    except Exception:
+                        return f"{year:04d}-{month:02d}-{day:02d}"
+                return ""
+    except Exception:
+        return ""
+    return ""
 
 
 @app.post("/api/match-favorites")
@@ -2232,16 +2284,20 @@ async def add_match_favorite(request: Request):
     away_name = data.get("away_name", "")
     if not match_id:
         return JSONResponse({"error": "match_id required"}, status_code=400)
+    # Aug 12 2026: stamp the match date for grouping in the Saved Matches panel.
+    # Client may pass match_date explicitly (forward-compat); otherwise resolve
+    # from fixture caches of the home/away team.
+    match_date = data.get("match_date") or _lookup_match_date_iso(str(match_id), str(home_id), str(away_id))
     ensure_db()
     with sqlite3.connect(DB_PATH) as con:
         con.execute(
-            "INSERT INTO user_match_favorites(username, match_id, home_id, away_id, home_name, away_name, created_at) "
-            "VALUES(?, ?, ?, ?, ?, ?, ?) "
+            "INSERT INTO user_match_favorites(username, match_id, home_id, away_id, home_name, away_name, created_at, match_date) "
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(username, match_id) DO UPDATE SET home_id=excluded.home_id, away_id=excluded.away_id, "
-            "home_name=excluded.home_name, away_name=excluded.away_name, created_at=excluded.created_at",
-            (username, match_id, home_id, away_id, home_name, away_name, datetime.now(timezone.utc).isoformat()),
+            "home_name=excluded.home_name, away_name=excluded.away_name, created_at=excluded.created_at, match_date=excluded.match_date",
+            (username, match_id, home_id, away_id, home_name, away_name, datetime.now(timezone.utc).isoformat(), match_date),
         )
-    return {"success": True, "match_id": match_id}
+    return {"success": True, "match_id": match_id, "match_date": match_date}
 
 
 @app.delete("/api/match-favorites/{match_id}")

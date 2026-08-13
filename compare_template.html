@@ -2050,16 +2050,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const esc = s => String(s == null ? '' : s)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        // Group by match date (DD.MM) and remember last modified time within each group.
+        // Aug 12 2026: group by match_date (real fixture date) when present,
+        // falling back to created_at (save date) for legacy rows without match_date.
+        // Label is always the real match date for display, even for legacy rows
+        // (an old row saved today with no match_date shows under today's date).
+        const dateForGroup = m => {
+            if (m.match_date && /^\d{4}-\d{2}-\d{2}/.test(m.match_date)) {
+                const d = new Date(m.match_date + 'T00:00:00');
+                if (!isNaN(d.getTime())) return d;
+            }
+            return m.created_at ? new Date(m.created_at) : new Date();
+        };
         const groups = new Map();
         matches.forEach(m => {
-            const dt = m.created_at ? new Date(m.created_at) : new Date();
+            const dt = dateForGroup(m);
             if (isNaN(dt.getTime())) return;
-            const key = `${pad(dt.getDate())}.${pad(dt.getMonth() + 1)}`;
+            const key = `${pad(dt.getDate())}.${pad(dt.getMonth() + 1)}.${String(dt.getFullYear()).slice(-2)}`;
             if (!groups.has(key)) groups.set(key, { date: dt, items: [] });
-            const g = groups.get(key);
-            if (dt > g.date) g.date = dt;
-            g.items.push(m);
+            groups.get(key).items.push(m);
         });
         // Sort groups by date desc, items within each group by created_at desc.
         const sortedGroups = Array.from(groups.values())
@@ -2072,7 +2080,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         const html = sortedGroups.map(g => {
-            const dateLabel = esc(`${pad(g.date.getDate())}.${pad(g.date.getMonth() + 1)}`);
+            const dateLabel = esc(`${pad(g.date.getDate())}.${pad(g.date.getMonth() + 1)}.${String(g.date.getFullYear()).slice(-2)}`);
             const items = g.items.map(m => {
                 const pathTeamId = m.home_id || m.away_id || '';
                 const dt = m.created_at ? new Date(m.created_at) : new Date();
