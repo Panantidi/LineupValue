@@ -799,11 +799,11 @@ body {
     .saved-match-delete { background: #f8d7da !important; color: #842029 !important; }
 
     /* Aug 12 2026: Saved Matches panel — right of the second team table (Match mode).
-   At user's typical 67% browser zoom, CSS-pixel 1272px renders as ~852 device pixels
-   (1272 * 0.67 = ~852.24). User's screen measurement reference. */
+   At user's typical 67% browser zoom: 1272 CSS-px height ≈ 852 screen-px,
+   358 CSS-px width ≈ 240 screen-px (panel reads comfortably without being cramped). */
     .saved-matches-panel {
-        flex: 0 0 240px;
-        width: 240px;
+        flex: 0 0 358px;
+        width: 358px;
         height: 1272px;
         background: #fff;
         border: 1px solid #e6e9f2;
