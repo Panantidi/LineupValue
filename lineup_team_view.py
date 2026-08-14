@@ -192,7 +192,10 @@ def get_flag_html(country_name):
         'Tanzania': 'tz', 'Thailand': 'th', 'Togo': 'tg', 'Tonga': 'to',
         'Trinidad and Tobago': 'tt', 'Tunisia': 'tn', 'Turkey': 'tr',
         'Turkmenistan': 'tm', 'Tuvalu': 'tv', 'Uganda': 'ug', 'Ukraine': 'ua',
-        'United Arab Emirates': 'ae', 'United Kingdom': 'gb', 'England': 'gb',
+        'United Arab Emirates': 'ae', 'United Kingdom': 'gb',
+        # Aug 14 2026: England uses the English flag (gb-eng, St George's Cross)
+        # rather than the UK Union Jack (gb) — England ≠ Great Britain.
+        'England': 'gb-eng',
         'Scotland': 'gb-sct', 'Wales': 'gb-wls', 'Northern Ireland': 'gb-nir',
         'USA': 'us', 'United States': 'us', 'Uruguay': 'uy', 'Uzbekistan': 'uz',
         'Vanuatu': 'vu', 'Vatican City': 'va', 'Venezuela': 've', 'Vietnam': 'vn',
