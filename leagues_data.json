@@ -2720,114 +2720,124 @@
     ],
     "Serie B": [
       {
-        "id": "WtT3GZCk",
-        "name": "Audace Cerignola",
-        "slug": ""
+        "id": "r5DdTIZC",
+        "name": "Arezzo",
+        "slug": "arezzo",
+        "image_path": "https://static.flashscore.com/res/image/data/Amu3S1ne-zBTDGGHj.png"
+      },
+      {
+        "id": "hd6UOqvB",
+        "name": "Ascoli",
+        "slug": "ascoli",
+        "image_path": "https://static.flashscore.com/res/image/data/GtO8URA6-Gtw8U9oh.png"
       },
       {
         "id": "A332L1f5",
         "name": "Avellino",
-        "slug": ""
+        "slug": "avellino",
+        "image_path": "https://static.flashscore.com/res/image/data/dluUXyRq-dp0XifTb.png"
       },
       {
-        "id": "xIkUr2vO",
-        "name": "Bari",
-        "slug": ""
+        "id": "rZhSxrse",
+        "name": "Benevento",
+        "slug": "benevento",
+        "image_path": "https://static.flashscore.com/res/image/data/Gh7VdOQq-h2EXJEol.png"
       },
       {
         "id": "hG4fg4z3",
         "name": "Carrarese",
-        "slug": ""
+        "slug": "carrarese",
+        "image_path": "https://static.flashscore.com/res/image/data/lf1fmHoe-t4GQxEM5.png"
       },
       {
         "id": "GnizyMB7",
         "name": "Catanzaro",
-        "slug": ""
+        "slug": "catanzaro",
+        "image_path": "https://static.flashscore.com/res/image/data/CITDXu8k-IFYgFznf.png"
       },
       {
         "id": "xddf1qfh",
         "name": "Cesena",
-        "slug": ""
+        "slug": "cesena",
+        "image_path": "https://static.flashscore.com/res/image/data/4djRU87k-25XOeEt1.png"
+      },
+      {
+        "id": "KUzfp5N3",
+        "name": "Cremonese",
+        "slug": "cremonese",
+        "image_path": "https://static.flashscore.com/res/image/data/bwCjhwB6-8b0QRXR3.png"
       },
       {
         "id": "0ESCnI1H",
         "name": "Empoli",
-        "slug": ""
+        "slug": "empoli",
+        "image_path": "https://static.flashscore.com/res/image/data/8ftWPVPq-KbH8aCLf.png"
       },
       {
         "id": "hUuJfYbb",
         "name": "Entella",
-        "slug": ""
-      },
-      {
-        "id": "pfo9H1Wp",
-        "name": "Frosinone",
-        "slug": ""
+        "slug": "entella",
+        "image_path": "https://static.flashscore.com/res/image/data/hbM9tPVH-rwnYBqYT.png"
       },
       {
         "id": "hKSfjtsQ",
         "name": "Juve Stabia",
-        "slug": ""
+        "slug": "juve-stabia",
+        "image_path": "https://static.flashscore.com/res/image/data/299kpoiT-xrK1g9MA.png"
       },
       {
         "id": "plvm35Pu",
         "name": "L.R. Vicenza",
-        "slug": ""
+        "slug": "vicenza",
+        "image_path": "https://static.flashscore.com/res/image/data/6Lt4CoSq-nPPuzM9e.png"
       },
       {
         "id": "z7WK5Pwb",
         "name": "Mantova",
-        "slug": ""
+        "slug": "mantova",
+        "image_path": "https://static.flashscore.com/res/image/data/GSnwGvWH-4vkZ9lY0.png"
       },
       {
         "id": "MBn63swN",
         "name": "Modena",
-        "slug": ""
-      },
-      {
-        "id": "4YSMlwj7",
-        "name": "Monza",
-        "slug": ""
+        "slug": "modena",
+        "image_path": "https://static.flashscore.com/res/image/data/nq8HIa5k-OY47DkeT.png"
       },
       {
         "id": "2gUwEtrE",
         "name": "Padova",
-        "slug": ""
+        "slug": "padova",
+        "image_path": "https://static.flashscore.com/res/image/data/C0Gf1Pne-0lwy4Ij1.png"
       },
       {
         "id": "n38Nktmn",
         "name": "Palermo",
-        "slug": ""
+        "slug": "palermo",
+        "image_path": "https://static.flashscore.com/res/image/data/nkpmxOBN-fL3dmxxd.png"
       },
       {
-        "id": "WW0i6v4C",
-        "name": "Pescara",
-        "slug": ""
-      },
-      {
-        "id": "6ulJbMCe",
-        "name": "Reggiana",
-        "slug": ""
+        "id": "roasMsOT",
+        "name": "Pisa",
+        "slug": "pisa",
+        "image_path": "https://static.flashscore.com/res/image/data/vPrevkT0-GMOw3SI3.png"
       },
       {
         "id": "nJbCGx2U",
         "name": "Sampdoria",
-        "slug": ""
-      },
-      {
-        "id": "re6VD39b",
-        "name": "Spezia",
-        "slug": ""
+        "slug": "sampdoria",
+        "image_path": "https://static.flashscore.com/res/image/data/WQp3CvUH-WdmUvPiG.png"
       },
       {
         "id": "W02MZDnp",
         "name": "Sudtirol",
-        "slug": ""
+        "slug": "sudtirol",
+        "image_path": "https://static.flashscore.com/res/image/data/2Xf8oTjT-UJeBD3ZT.png"
       },
       {
-        "id": "MkPmVv50",
-        "name": "Venezia",
-        "slug": ""
+        "id": "rJVAIaHo",
+        "name": "Verona",
+        "slug": "verona",
+        "image_path": "https://static.flashscore.com/res/image/data/YDLnjflC-Kxh373f3.png"
       }
     ]
   },
