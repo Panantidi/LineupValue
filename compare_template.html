@@ -950,10 +950,11 @@ body {
         <button onclick="openNavTeamAnalysis()">Team Analysis</button>
     </div>
 
-    <div class="form-group" id="nav-saved-matches" style="margin-top:18px;border-top:1px solid #e0e0e0;padding-top:12px;">
+<div class="form-group" id="nav-saved-matches" style="margin-top:18px;border-top:1px solid #e0e0e0;padding-top:12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <div class="my-squads-title" style="font-size:15px;font-weight:700;color:#333;">Saved Matches</div>
-            <button id="btn-save-match" onclick="saveCurrentMatch()" title="Save this match" style="padding:4px 10px;font-size:12px;background:#667eea;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:600;">Save this match</button>
+            <!-- Aug 13 2026: Save button moved to Match header (left of 👥 Add Lineups).
+                 Sidebar Saved Matches section is now read-only here. -->
         </div>
         <div id="saved-matches-list" style="max-height:260px;overflow-y:auto;">
             <div class="snapshot-empty-list" style="color:#888;font-size:12px;">No saved matches yet.</div>
@@ -970,6 +971,10 @@ body {
     </div>
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="compare-header-controls">
+        <!-- Aug 13 2026: Save button (moved from sidebar). Uses the same .header-action-btn
+             class as 👥 Add Lineups so styling/hover/active/border-radius/padding match
+             exactly. Calls the same saveCurrentMatch() handler the old sidebar button did. -->
+        <button id="btn-save-match" class="header-action-btn" type="button" onclick="saveCurrentMatch()" title="Save this match to favorites">💾 Save</button>
         <button id="match-btn-add-lineups" class="header-action-btn" onclick="toggleBothFrames('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both teams)">👥 Add Lineups</button>
         <button id="match-btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
     </div>
@@ -2230,18 +2235,18 @@ document.addEventListener('click', function(ev) {
             const data = await r.json();
             if (data.success) {
                 await loadSavedMatches();
-                // Show 'Saved' briefly then return to 'Save this match'
+                // Show 'Saved' briefly then return to '💾 Save'
                 if (btn) { btn.textContent = 'Saved'; }
                 setTimeout(() => {
-                    if (btn) { btn.textContent = 'Save this match'; }
+                    if (btn) { btn.textContent = '💾 Save'; }
                 }, 2000);
             } else {
-                if (btn) { btn.textContent = 'Save this match'; }
+                if (btn) { btn.textContent = '💾 Save'; }
                 alert(data.error || 'Failed to save match');
             }
         } catch (e) {
             console.error('saveCurrentMatch error', e);
-            if (btn) { btn.textContent = 'Save this match'; }
+            if (btn) { btn.textContent = '💾 Save'; }
             alert('Failed to save match');
         }
     };
