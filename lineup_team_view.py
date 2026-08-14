@@ -1925,6 +1925,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         </div>
         <!-- Right action buttons: lineups toggles + back -->
         <div style="display:flex;align-items:center;gap:8px;">
+            <!-- Aug 14 2026: Collapse Details button — also exposed in Team mode
+                 so a user can hide MV / Squad Role / Impact Score columns here too.
+                 State stored in sessionStorage (per-tab, shared with any open
+                 Match-mode iframe on the same tab). Uses the same .header-action-btn
+                 class so styling/hover matches the other right-side buttons. -->
+            <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Hide MV, Squad Role and Impact Score columns">Collapse Details</button>
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
             <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
@@ -4769,6 +4775,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var cached = sessionStorage.getItem(DETAILS_KEY);
         if (cached === '1') applyDetailHidden(true);
     }} catch (e) {{ /* noop */ }}
+
+    // Aug 14 2026: Team-mode toolbar button. The header button mirrors the
+    // sessionStorage-backed state — toggle, update the label, and re-apply.
+    // Match-mode parent frames broadcast the same event on every iframe load,
+    // so when this page is rendered as an iframe in Match Mode the parent's
+    // state wins and overrides whatever we set here.
+    var refreshDetailsBtn = function() {{
+        var btn = document.getElementById('btn-collapse-details');
+        if (!btn) return;
+        var collapsed = (document.body.className || '').indexOf('detail-hidden') !== -1;
+        btn.textContent = collapsed ? 'Expand Details' : 'Collapse Details';
+        btn.setAttribute('title', collapsed
+            ? 'Show MV, Squad Role and Impact Score columns'
+            : 'Hide MV, Squad Role and Impact Score columns');
+    }};
+    window.toggleDetailsCollapsed = function() {{
+        var collapsed = (document.body.className || '').indexOf('detail-hidden') !== -1;
+        applyDetailHidden(!collapsed);
+        refreshDetailsBtn();
+    }};
+    refreshDetailsBtn();
 }})();
 </script>
 
