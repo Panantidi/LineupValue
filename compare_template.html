@@ -836,13 +836,34 @@ body {
     .sm-item:hover { background: #f4f6fb; }
     .sm-item.active { background: #eef2ff; }
     .sm-star {
+        /* Aug 13 2026: interactive favorite toggle. Fixed width and height (16x16)
+           so swapping ☆ ↔ ★ doesn't shift the team names or delete icon — the
+           glyph sits inside a reserved box regardless of which character is shown. */
         position: absolute;
         left: 2px;
         top: 5px;
-        color: #f5b301;
-        font-size: 13px;
-        line-height: 1;
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+        line-height: 16px;
+        text-align: center;
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        font-size: 14px;        /* a touch larger for crispness inside 16px box */
+        font-family: inherit;
+        color: #c8c8c8;         /* default = empty/outline state */
+        transition: color 0.1s ease;
+        -webkit-appearance: none;
+        appearance: none;
     }
+    .sm-star:hover { color: #f5b301; }
+    .sm-star[aria-pressed="true"] {
+        color: #f5b301;          /* filled yellow state */
+    }
+    .sm-star:focus { outline: 1px dashed #667eea; outline-offset: 1px; }
     .sm-team-home { font-weight: 700; color: #222; }
     .sm-team-away { color: #444; }
     .sm-del {
@@ -2050,6 +2071,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const esc = s => String(s == null ? '' : s)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        // Aug 13 2026: favorite-star state is stored in localStorage per match_id.
+        // Read on render so the visual state survives panel re-renders (save/delete
+        // refresh the panel via loadSavedMatches). Pure UI state — no backend change.
+        const getFav = (mid) => {
+            try { return localStorage.getItem('smFav:' + mid) === '1'; } catch (e) { return false; }
+        };
         // Aug 12 2026: group by match_date (real fixture date) when present,
         // falling back to created_at (save date) for legacy rows without match_date.
         // Label is always the real match date for display, even for legacy rows
@@ -2090,25 +2117,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const away = esc(m.away_name || '?');
                 const matchIdAttr = esc(m.match_id);
                 let itemHtml;
+                const fav = getFav(m.match_id);
+                const starBtn = `<button type="button" class="sm-star" data-sm-fav-mid="${matchIdAttr}" aria-pressed="${fav ? 'true' : 'false'}" title="${fav ? 'Unfavorite' : 'Favorite'} this match" aria-label="${fav ? 'Unfavorite' : 'Favorite'}">${fav ? '★' : '☆'}</button>`;
                 if (!pathTeamId) {
                     // No navigation possible — render as non-clickable, slightly faded
                     itemHtml = `
                         <div class="sm-item${isCurrent ? ' active' : ''}" style="opacity:0.6;cursor:default;" title="This match is missing team identifiers. Re-save to enable navigation.">
-                            <span class="sm-star">⭐</span>
+                            ${starBtn}
                             <div class="sm-team-home">${home}</div>
                             <div class="sm-team-away">${away}</div>
-                            <div class="sm-meta">изменен: ${esc(updated)}</div>
+                            <div class="sm-meta">update: ${esc(updated)}</div>
                         </div>`;
                 } else {
                     const url = `/lineup_ai/compare/${encodeURIComponent(pathTeamId)}?mid=${encodeURIComponent(m.match_id)}&home_id=${encodeURIComponent(m.home_id || '')}&away_id=${encodeURIComponent(m.away_id || '')}&home_name=${encodeURIComponent(m.home_name || '')}&away_name=${encodeURIComponent(m.away_name || '')}`;
                     const urlAttr = esc(url);
                     itemHtml = `
                         <div class="sm-item${isCurrent ? ' active' : ''}" data-sm-url="${urlAttr}" data-sm-mid="${matchIdAttr}">
-                            <span class="sm-star">⭐</span>
+                            ${starBtn}
                             <div class="sm-team-home">${home}</div>
                             <div class="sm-team-away">${away}</div>
-                            <div class="sm-meta">изменен: ${esc(updated)}</div>
-                            <button type="button" class="sm-del" data-sm-del-mid="${matchIdAttr}" title="Удалить">❌</button>
+                            <div class="sm-meta">update: ${esc(updated)}</div>
+                            <button type="button" class="sm-del" data-sm-del-mid="${matchIdAttr}" title="Delete">❌</button>
                         </div>`;
                 }
                 return itemHtml;
@@ -2118,29 +2147,51 @@ document.addEventListener('DOMContentLoaded', function() {
         panel.innerHTML = html;
     }
 
-    // Aug 12 2026: event delegation for the right-side Saved Matches panel.
-    // Click on item body (but not on ❌) → navigate. Click on ❌ → delete only.
-    document.addEventListener('click', function(ev) {
-        const delBtn = ev.target.closest('.sm-del');
-        if (delBtn) {
-            ev.stopPropagation();
-            ev.preventDefault();
-            const mid = delBtn.getAttribute('data-sm-del-mid');
-            if (mid && typeof window.deleteSavedMatch === 'function') {
-                window.deleteSavedMatch(mid, ev);
-            }
-            return;
+// Aug 12 2026: event delegation for the right-side Saved Matches panel.
+// Aug 13 2026: also handles .sm-star toggle (favorite ★ ↔ ☆). Stop propagation
+// so a star click does NOT also trigger the row's navigate-to-match action.
+// Click on item body (but not on ❌ or ☆) → navigate. Click on ❌ → delete. Click on ☆ → toggle.
+document.addEventListener('click', function(ev) {
+    const starBtn = ev.target.closest('.sm-star');
+    if (starBtn) {
+        ev.stopPropagation();
+        ev.preventDefault();
+        const mid = starBtn.getAttribute('data-sm-fav-mid');
+        if (!mid) return;
+        let next = false;
+        try {
+            const cur = localStorage.getItem('smFav:' + mid) === '1';
+            next = !cur;
+            localStorage.setItem('smFav:' + mid, next ? '1' : '0');
+        } catch (e) { /* localStorage may be unavailable — silently ignore */ }
+        // Visually swap glyph + color without re-rendering the whole panel: this keeps
+        // the row's other elements (team names, delete icon) perfectly still.
+        starBtn.textContent = next ? '★' : '☆';
+        starBtn.setAttribute('aria-pressed', next ? 'true' : 'false');
+        starBtn.setAttribute('title', next ? 'Unfavorite this match' : 'Favorite this match');
+        starBtn.setAttribute('aria-label', next ? 'Unfavorite' : 'Favorite');
+        return;
+    }
+    const delBtn = ev.target.closest('.sm-del');
+    if (delBtn) {
+        ev.stopPropagation();
+        ev.preventDefault();
+        const mid = delBtn.getAttribute('data-sm-del-mid');
+        if (mid && typeof window.deleteSavedMatch === 'function') {
+            window.deleteSavedMatch(mid, ev);
         }
-        const item = ev.target.closest('.sm-item');
-        if (!item) return;
-        const url = item.getAttribute('data-sm-url');
-        if (!url) return;
-        if (typeof window.navigateToMatch === 'function') {
-            window.navigateToMatch(url, ev);
-        } else {
-            window.location.href = url;
-        }
-    });
+        return;
+    }
+    const item = ev.target.closest('.sm-item');
+    if (!item) return;
+    const url = item.getAttribute('data-sm-url');
+    if (!url) return;
+    if (typeof window.navigateToMatch === 'function') {
+        window.navigateToMatch(url, ev);
+    } else {
+        window.location.href = url;
+    }
+});
 
     window.navigateToMatch = function(url, ev) {
         if (ev) ev.preventDefault();
