@@ -1159,9 +1159,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .squad-role.bench {{ background: #f8d7da; color: #000; border: 2px solid #dc3545; }}
         /* Aug 14 2026: Collapse Details — toggle MV / Squad Role / Impact Score columns
            via the header button in Match Mode. The compare-template postMessages
-           {type:'setDetailsCollapsed', collapsed:true|false} on load and on every
-           toggle; we add/remove `detail-hidden` on <body> so a single rule hides
-           all three columns across thead and tbody without touching layout. */
+           a "setDetailsCollapsed" event on load and on every toggle; we add/remove
+           the `detail-hidden` class on <body> so a single CSS rule hides all three
+           columns across thead and tbody without touching layout. */
         .detail-hidden .col-mv,
         .detail-hidden .col-role,
         .detail-hidden .col-is {{ display: none !important; }}
@@ -4740,10 +4740,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     setInterval(applyBuilderVisibility, 1000);
 
     // Aug 14 2026: listen for Collapse Details toggles from the parent (Match mode).
-    // The compare-template owns the global state and broadcasts {type:'setDetailsCollapsed'}
-    // on load and on every click. We mirror the state via `detail-hidden` on <body>;
-    // a single CSS rule (.detail-hidden .col-mv/.col-role/.col-is) hides the three
-    // columns across thead and tbody without touching layout. We also cache locally
+    // The compare-template owns the global state and broadcasts a
+    // "setDetailsCollapsed" event on load and on every click. We mirror the
+    // state via `detail-hidden` on <body>; a single CSS rule
+    // (.detail-hidden .col-mv/.col-role/.col-is) hides the three columns
+    // across thead and tbody without touching layout. We also cache locally
     // so the state survives a same-tab reload.
     var DETAILS_KEY = 'fa_detail_collapsed_v1';
     var applyDetailHidden = function(collapsed) {{
