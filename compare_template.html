@@ -871,8 +871,14 @@ body {
         color: #f5b301;          /* filled yellow state */
     }
     .sm-star:focus { outline: 1px dashed #667eea; outline-offset: 1px; }
-    .sm-team-home { font-weight: 700; color: #222; }
-    .sm-team-away { color: #444; }
+    /* Aug 14 2026: equal-weight rendering for both Home and Away team names in
+       saved-matches-panel. Previously .sm-team-home had font-weight:700 (bold)
+       while .sm-team-away had default 400 — visually asymmetric. Both now use
+       the same weight (400), same color (444), and no bold-vs-regular contrast.
+       Size, line-height, font-family all inherited from the .sm-item parent
+       (12px / 1.3) so nothing else changes. */
+    .sm-team-home { font-weight: 400; color: #444; }
+    .sm-team-away { font-weight: 400; color: #444; }
     .sm-del {
         position: absolute;
         right: 2px;
@@ -890,10 +896,11 @@ body {
     .sm-meta {
         font-size: 10px;
         color: #888;
-        font-style: italic;
-        /* Aug 13 2026: padding-left bumped from 18px to 26px to align with the
-           larger 24x24 sm-star (same left edge as team names above). */
-        padding-left: 26px;
+        /* Aug 14 2026: drop font-style:italic and left padding; right-align the
+           update line so it terminates on the same right edge for every match.
+           Left padding removed (no longer needed for star alignment — both team
+           names are on their own lines above). */
+        text-align: right;
         margin-top: 2px;
     }
     .sm-empty {
@@ -2069,9 +2076,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!groups.has(key)) groups.set(key, { date: dt, items: [] });
             groups.get(key).items.push(m);
         });
-        // Sort groups by date desc, items within each group by created_at desc.
+        // Aug 14 2026: sort groups ASCENDING — nearest match date on top, farthest
+        // at the bottom. (Previously was desc.) Items within each group remain
+        // sorted by created_at desc (most recently saved first).
         const sortedGroups = Array.from(groups.values())
-            .sort((a, b) => b.date - a.date);
+            .sort((a, b) => a.date - b.date);
         sortedGroups.forEach(g => {
             g.items.sort((a, b) => {
                 const da = a.created_at ? new Date(a.created_at).getTime() : 0;
