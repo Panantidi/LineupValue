@@ -830,7 +830,10 @@ body {
     .sm-date-sep:first-child { padding-top: 2px; }
     .sm-item {
         position: relative;
-        padding: 4px 26px 6px 18px;
+        /* Aug 13 2026: left padding bumped to 26px to accommodate the larger
+           24x24 sm-star box (2px gap + 24px star); right padding keeps room for
+           the sm-del button. */
+        padding: 4px 26px 6px 26px;
         margin-bottom: 2px;
         border-radius: 4px;
         cursor: pointer;
@@ -840,23 +843,23 @@ body {
     .sm-item:hover { background: #f4f6fb; }
     .sm-item.active { background: #eef2ff; }
     .sm-star {
-        /* Aug 13 2026: interactive favorite toggle. Fixed width and height (16x16)
+        /* Aug 13 2026: interactive favorite toggle. Fixed width and height (24x24)
            so swapping ☆ ↔ ★ doesn't shift the team names or delete icon — the
            glyph sits inside a reserved box regardless of which character is shown. */
         position: absolute;
         left: 2px;
         top: 5px;
-        width: 16px;
-        height: 16px;
-        min-width: 16px;
-        line-height: 16px;
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        line-height: 24px;
         text-align: center;
         background: none;
         border: none;
         padding: 0;
         margin: 0;
         cursor: pointer;
-        font-size: 14px;        /* a touch larger for crispness inside 16px box */
+        font-size: 20px;        /* larger glyph fills the 24x24 box more comfortably */
         font-family: inherit;
         color: #c8c8c8;         /* default = empty/outline state */
         transition: color 0.1s ease;
@@ -888,7 +891,9 @@ body {
         font-size: 10px;
         color: #888;
         font-style: italic;
-        padding-left: 18px;
+        /* Aug 13 2026: padding-left bumped from 18px to 26px to align with the
+           larger 24x24 sm-star (same left edge as team names above). */
+        padding-left: 26px;
         margin-top: 2px;
     }
     .sm-empty {
