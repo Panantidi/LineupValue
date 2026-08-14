@@ -614,7 +614,11 @@ body {
             text-align: left;
             font-family: inherit;
         }
-        .nav-dropdown-trigger:hover { background: #f8f9fc; }
+        /* Aug 13 2026: no background change on hover / focus / expanded — keeps
+           Country identical to native <select> elements (Championship, Team,
+           Match) which also keep white background in all states. Only color
+           border outline appears on focus. */
+        .nav-dropdown-trigger:hover { background: white; }
         .nav-dropdown-trigger:focus { outline: 2px solid #2e7af8; outline-offset: 1px; }
         .nav-dropdown-arrow { font-size: 9px; color: #888; transition: transform 0.15s; }
         .nav-dropdown-trigger[aria-expanded="true"] .nav-dropdown-arrow { transform: rotate(180deg); }
