@@ -980,6 +980,12 @@ body {
     </div>
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="compare-header-controls">
+        <!-- Aug 14 2026: Collapse Details button. Toggles MV / Squad Role / Impact
+             Score columns in BOTH iframes via postMessage. State is global for the
+             entire Match Mode (NOT per-match) and persisted in localStorage so it
+             survives match switches and re-renders. Uses the same .header-action-btn
+             class so styling/hover/border-radius/padding match Save + Add Lineups. -->
+        <button id="btn-collapse-details" class="header-action-btn" type="button" onclick="toggleCollapseDetails()" title="Hide MV, Squad Role and Impact Score columns">Collapse Details</button>
         <!-- Aug 13 2026: Save button (moved from sidebar). Uses the same .header-action-btn
              class as 👥 Add Lineups so styling/hover/active/border-radius/padding match
              exactly. Calls the same saveCurrentMatch() handler the old sidebar button did. -->
@@ -1105,8 +1111,50 @@ body {
         if (framesLoaded === 2) {
             setTimeout(window.loadMatchData, 500);
         }
+        // Aug 14 2026: re-broadcast the global Collapse Details state on every
+        // iframe load (covers the initial paint AND any later match switch which
+        // re-sets the iframe src). The iframe listens via window.message.
+        broadcastCollapseDetails();
     }
-    
+
+    // Aug 14 2026: Collapse Details — global state for Match Mode.
+    // The button reads/writes `localStorage[COLLAPSE_KEY]`, mirrors the value
+    // across both iframes via postMessage, and updates its own label.
+    // Per the spec the state is GLOBAL (not per-match) and survives re-renders
+    // and match switches.
+    var COLLAPSE_KEY = 'fa_match_collapse_details_v1';
+    function getCollapseDetails() {
+        try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch (e) { return false; }
+    }
+    function setCollapseDetails(collapsed) {
+        try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+    }
+    function postCollapseDetailsTo(frame, collapsed) {
+        try {
+            if (!frame || !frame.contentWindow) return;
+            frame.contentWindow.postMessage({ type: 'setDetailsCollapsed', collapsed: !!collapsed }, '*');
+        } catch (e) { /* iframe may not be ready yet */ }
+    }
+    function broadcastCollapseDetails() {
+        var collapsed = getCollapseDetails();
+        postCollapseDetailsTo(myFrame, collapsed);
+        postCollapseDetailsTo(oppFrame, collapsed);
+        // The button itself is in the parent document, not inside an iframe —
+        // update its label here so the toggle feedback is immediate.
+        var btn = document.getElementById('btn-collapse-details');
+        if (btn) {
+            btn.textContent = collapsed ? 'Expand Details' : 'Collapse Details';
+            btn.setAttribute('title', collapsed
+                ? 'Show MV, Squad Role and Impact Score columns'
+                : 'Hide MV, Squad Role and Impact Score columns');
+        }
+    }
+    // Exposed on window so the inline onclick attribute can reach it.
+    window.toggleCollapseDetails = function() {
+        setCollapseDetails(!getCollapseDetails());
+        broadcastCollapseDetails();
+    };
+
     myFrame.onload = function() {
         hideHeaderElements(myFrame);
         resizeFrame(myFrame);
@@ -1119,6 +1167,8 @@ body {
         resizeFrame(oppFrame);
         checkFramesLoaded();
     };
+    // Initial paint: set button label before iframes finish loading.
+    broadcastCollapseDetails();
 
 
     // Match Save functionality

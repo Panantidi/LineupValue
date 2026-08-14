@@ -696,13 +696,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <tr data-last="{last_start}" data-player-name="{p.get("name", "–")}" data-player-number="{p.get("number", "–")}">
                 <td style="text-align:center;padding:4px 2px;"><span class="player-number-circle" data-player-name="{player_display_name}" data-player-number="{p.get('number', '?')}" data-player-club="{team_name}" data-is-wc="{wc_attr}" onclick="toggleFavorite(this)" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#e9ecef;color:#495057;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">{p.get('number', '?')}</span></td>
                 <td style="text-align:center;">{get_nat_html(p)}</td>
-                <td class="player-name" style="white-space:nowrap;">{"<strong>" + player_display_name + df_fire + mf_lightning + star_impact + top_impact + (top_scorer_badge if (unique_goal_leader and player_display_name == unique_goal_leader) else "") + (top_assist_badge if (unique_assist_leader and player_display_name == unique_assist_leader) else "") + "</strong>" if (unique_goal_leader and player_display_name == unique_goal_leader) or (unique_assist_leader and player_display_name == unique_assist_leader) else player_display_name + df_fire + mf_lightning + star_impact + top_impact}</td>
-                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Doubt + Last yellow card">⚠️ Doubt + Last yellow card</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
+<td class="player-name" style="white-space:nowrap;">{"<strong>" + player_display_name + df_fire + mf_lightning + star_impact + top_impact + (top_scorer_badge if (unique_goal_leader and player_display_name == unique_goal_leader) else "") + (top_assist_badge if (unique_assist_leader and player_display_name == unique_assist_leader) else "") + "</strong>" if (unique_goal_leader and player_display_name == unique_goal_leader) or (unique_assist_leader and player_display_name == unique_assist_leader) else player_display_name + df_fire + mf_lightning + star_impact + top_impact}</td>
+                <td class="status-cell"><div class="status-wrapper"><span class="status-emoji-display">✅</span><span class="status-chevron">▼</span><select class="status-select" onchange="updateStatusIcon(this)"><option value="Available">✅ Available</option><option value="Doubt">❓ Doubt</option><option value="Doubt + Last yellow card">⚠️ Doubt + Last yellow card</option><option value="Injury">❌ Injury</option><option value="Red card">🟥 Red card</option><option value="Yellow red card">🟥 Yellow/red card</option><option value="Last Yellow card">🟨 Last Yellow card</option><option value="Not playing (Called up)">✈️ Not playing (Called up)</option><option value="Not playing (Other)">🚫 Not playing (Other)</option><option value="Return (Injury)">🔙 Return (Injury)</option><option value="Return (Susp)">🔙 Return (Susp)</option><option value="Return (Called up)">🔙 Return (Called up)</option><option value="Return (Other)">🔙 Return (Other)</option><option value="New player">🆕 New player</option><option value="Left the team">🚪 Left the team</option></select></div></td>
                 <td style="text-align:center;padding:4px 2px;">{p["age"] if p.get("age") not in (None, "", 0) and str(p.get("age", "")).strip() not in ("–", "—", "-", "?", "N/A") else ""}</td>
-                <td style="text-align:center;">{p["market_value"] if p.get("market_value") not in (None, "", 0) and str(p.get("market_value", "")).strip() not in ("–", "—", "-", "?", "N/A") else ""}</td>
+                <td class="col-mv" style="text-align:center;">{p["market_value"] if p.get("market_value") not in (None, "", 0) and str(p.get("market_value", "")).strip() not in ("–", "—", "-", "?", "N/A") else ""}</td>
                 <td class="pos-{p.get("position", "").lower()}" style="color:#000;font-weight:400;text-align:center;padding:4px 2px;">{p.get("position", "–")}</td>
-                <td style="text-align:center;"><span class="squad-role {p.get('squad_role', '').lower()}">{p.get("squad_role", "–") if p.get("squad_role") else "–"}</span></td>
-                <td style="text-align:center;">{p.get("impact_score", "–") if p.get("impact_score") is not None else "–"}</td>
+                <td class="col-role" style="text-align:center;"><span class="squad-role {p.get('squad_role', '').lower()}">{p.get("squad_role", "–") if p.get("squad_role") else "–"}</span></td>
+                <td class="col-is" style="text-align:center;">{p.get("impact_score", "–") if p.get("impact_score") is not None else "–"}</td>
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="player" value="{p.get("name", "–")}" class="squad-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #333;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;vertical-align:middle;" onchange="if(this.checked){{this.style.background='#000';this.style.border='none';}}else{{this.style.background='#e0e0e0';this.style.border='2px solid #333';}}"></td>
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="possible_xi" value="{p.get("name", "–")}" class="xi-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #667eea;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateXICounter(this)"></td>
                 <td style="text-align:center;vertical-align:middle;"><input type="checkbox" name="starting_xi" value="{p.get("name", "–")}" class="starting-checkbox" style="width:20px;height:20px;border-radius:50%;border:2px solid #dc3545;background:#e0e0e0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:all 0.2s;vertical-align:middle;" onchange="updateStartingCounter(this)"></td>
@@ -1157,6 +1157,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         .squad-role.starter {{ background: #fff3cd; color: #000; border: 2px solid #856404; }}
         .squad-role.rotation {{ background: #e2e3e4; color: #000; border: 2px solid #6c757d; }}
         .squad-role.bench {{ background: #f8d7da; color: #000; border: 2px solid #dc3545; }}
+        /* Aug 14 2026: Collapse Details — toggle MV / Squad Role / Impact Score columns
+           via the header button in Match Mode. The compare-template postMessages
+           {type:'setDetailsCollapsed', collapsed:true|false} on load and on every
+           toggle; we add/remove `detail-hidden` on <body> so a single rule hides
+           all three columns across thead and tbody without touching layout. */
+        .detail-hidden .col-mv,
+        .detail-hidden .col-role,
+        .detail-hidden .col-is {{ display: none !important; }}
         .last-5 {{
             display: flex;
             gap: 4px;
@@ -2125,10 +2133,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="width:200px;padding:0 2px;white-space:nowrap;">Player</th>
                         <th rowspan="2" style="text-align:center;width:70px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearStatus();return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear Status">✖️</button><span title="Status" style="font-size:10px;margin-top:2px;">Status</span></div></th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Age</th>
-                        <th rowspan="2" style="text-align:center;width:60px;padding:0;" title="Market Value">MV</th>
+                        <th rowspan="2" style="text-align:center;width:60px;padding:0;" title="Market Value" class="col-mv">MV</th>
                         <th rowspan="2" style="text-align:center;width:30px;padding:0;">Pos</th>
-                        <th rowspan="2" style="text-align:center;width:60px;padding:0;font-size:11px;">Squad<br>Role</th>
-                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;" title="Impact Score">IS</th>
+                        <th rowspan="2" style="text-align:center;width:60px;padding:0;font-size:11px;" class="col-role">Squad<br>Role</th>
+                        <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;" title="Impact Score" class="col-is">IS</th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('squad');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear List">✖️</button><span title="Squad List" style="font-size:10px;margin-top:2px;">List</span></div></th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('possible');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear P-XI">✖️</button><span title="Possible XI" style="font-size:10px;margin-top:2px;">P-XI</span><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></div></th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('start');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear S-XI">✖️</button><span title="Starting XI" style="font-size:10px;margin-top:2px;">S-XI</span><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></div></th>
@@ -4730,6 +4738,36 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         applyBuilderVisibility();
     }}
     setInterval(applyBuilderVisibility, 1000);
+
+    // Aug 14 2026: listen for Collapse Details toggles from the parent (Match mode).
+    // The compare-template owns the global state and broadcasts {type:'setDetailsCollapsed'}
+    // on load and on every click. We mirror the state via `detail-hidden` on <body>;
+    // a single CSS rule (.detail-hidden .col-mv/.col-role/.col-is) hides the three
+    // columns across thead and tbody without touching layout. We also cache locally
+    // so the state survives a same-tab reload.
+    var DETAILS_KEY = 'fa_detail_collapsed_v1';
+    var applyDetailHidden = function(collapsed) {{
+        try {{
+            if (collapsed) document.body.classList.add('detail-hidden');
+            else document.body.classList.remove('detail-hidden');
+            try {{ sessionStorage.setItem(DETAILS_KEY, collapsed ? '1' : '0'); }} catch (e) {{ }}
+        }} catch (e) {{ /* noop */ }}
+    }};
+    window.addEventListener('message', function(ev) {{
+        try {{
+            var d = ev.data;
+            if (!d || typeof d !== 'object') return;
+            if (d.type === 'setDetailsCollapsed') {{
+                applyDetailHidden(!!d.collapsed);
+            }}
+        }} catch (e) {{ /* noop */ }}
+    }});
+    // Restore cached state on first paint (covers direct team-page visits that
+    // arrive with a stale collapsed preference from a prior Match-mode session).
+    try {{
+        var cached = sessionStorage.getItem(DETAILS_KEY);
+        if (cached === '1') applyDetailHidden(true);
+    }} catch (e) {{ /* noop */ }}
 }})();
 </script>
 
