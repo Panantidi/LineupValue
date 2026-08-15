@@ -1930,7 +1930,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                  State stored in sessionStorage (per-tab, shared with any open
                  Match-mode iframe on the same tab). Uses the same .header-action-btn
                  class so styling/hover matches the other right-side buttons. -->
-            <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Hide MV, Squad Role and Impact Score columns">Collapse Details</button>
+            <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Hide MV, Squad Role and Impact Score columns">🔽 Collapse Details</button>
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
             <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
@@ -4785,7 +4785,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         var btn = document.getElementById('btn-collapse-details');
         if (!btn) return;
         var collapsed = (document.body.className || '').indexOf('detail-hidden') !== -1;
-        btn.textContent = collapsed ? 'Expand Details' : 'Collapse Details';
+        btn.textContent = collapsed ? '🔼 Expand Details' : '🔽 Collapse Details';
         btn.setAttribute('title', collapsed
             ? 'Show MV, Squad Role and Impact Score columns'
             : 'Hide MV, Squad Role and Impact Score columns');

@@ -985,7 +985,7 @@ body {
              entire Match Mode (NOT per-match) and persisted in localStorage so it
              survives match switches and re-renders. Uses the same .header-action-btn
              class so styling/hover/border-radius/padding match Save + Add Lineups. -->
-        <button id="btn-collapse-details" class="header-action-btn" type="button" onclick="toggleCollapseDetails()" title="Hide MV, Squad Role and Impact Score columns">Collapse Details</button>
+        <button id="btn-collapse-details" class="header-action-btn" type="button" onclick="toggleCollapseDetails()" title="Hide MV, Squad Role and Impact Score columns">🔽 Collapse Details</button>
         <!-- Aug 13 2026: Save button (moved from sidebar). Uses the same .header-action-btn
              class as 👥 Add Lineups so styling/hover/active/border-radius/padding match
              exactly. Calls the same saveCurrentMatch() handler the old sidebar button did. -->
@@ -1143,7 +1143,7 @@ body {
         // update its label here so the toggle feedback is immediate.
         var btn = document.getElementById('btn-collapse-details');
         if (btn) {
-            btn.textContent = collapsed ? 'Expand Details' : 'Collapse Details';
+            btn.textContent = collapsed ? '🔼 Expand Details' : '🔽 Collapse Details';
             btn.setAttribute('title', collapsed
                 ? 'Show MV, Squad Role and Impact Score columns'
                 : 'Hide MV, Squad Role and Impact Score columns');
