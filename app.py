@@ -1177,7 +1177,14 @@ def _is_ip_banned(ip: str) -> bool:
 
     Always reads DB on every call. SQLite is fast enough.
     """
-    if not ip or ip in {"", "127.0.0.1", "::1"}:
+    if not ip or ip in {"", "127.0.0.1", "::1", "?"}:
+        # Aug 15 2026: also skip "?" — that's the placeholder the login
+        # handler writes when request.client is None (no peer socket, e.g.
+        # HTTP/2 h2 idle race). It's not a real IP and should never block
+        # the user. (Previously a "?" entry was inserted into banned_ips
+        # by the ban-on-sight v11 system on 2026-07-31, which then
+        # blocked every subsequent request that arrived with the same
+        # placeholder for the same reason.)
         return False
     try:
         import sqlite3 as _sq
