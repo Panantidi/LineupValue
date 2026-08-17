@@ -2387,6 +2387,25 @@ async def lineup_api_fetch(team_id: str):
         #    refresh_team writes _live_cache_{team_id}.json and returns True on success.
         ok = await asyncio.to_thread(refresh_team, team_id, True)
         if not ok:
+            # Aug 14 2026: refresh_team returning False isn't necessarily a
+            # hard error — it just means the cache wasn't updated. Common
+            # non-error cases:
+            #   - another refresh is already in progress (handled above)
+            #   - the team isn't in leagues_data.json (slug missing)
+            #   - the squad API returned no rows
+            # In all of those cases we still have a usable cache file on
+            # disk (built by the previous successful refresh). Returning
+            # 502 here floods the browser console with red errors even
+            # though the page itself renders fine. Distinguish:
+            existing = _read_team_cache(team_id)
+            if existing and existing.get("players"):
+                # No update — but cache is usable. 200 with changed=False.
+                return JSONResponse(content={
+                    "changed": False,
+                    "duration_seconds": round(time.time() - start_time, 1),
+                    "error": "refresh skipped (no change); cache still valid",
+                })
+            # No cache at all — real failure.
             return JSONResponse(content={
                 "changed": False,
                 "duration_seconds": round(time.time() - start_time, 1),
