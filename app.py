@@ -741,6 +741,38 @@ def ensure_db():
             UNIQUE(username, team_id, save_name)
         )
     """)
+    # Aug 19 2026: per-user match saves (List / P-XI / S-XI markings).
+    # Earlier schema had UNIQUE(mid) which meant ALL users shared a single
+    # save per match — admin's changes were overwriting EvgPant's etc.
+    # Now we use UNIQUE(username, mid). Old shared rows are migrated by
+    # dropping them (they were globally-visible and not user-attributed).
+    # Aug 19 2026: rename any pre-existing table with old schema, recreate
+    # with new schema, drop the old one. The pre-existing rows are NOT
+    # attributable to any user (all have username="match"), so they
+    # are dropped on schema migration — users will re-save their own.
+    if con.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='user_match_saves'"
+    ).fetchone():
+        old_schema = con.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='user_match_saves'"
+        ).fetchone()[0]
+        # Detect old schema by absence of UNIQUE(username, mid) — old SQL
+        # was either `mid TEXT NOT NULL UNIQUE` (raw UNIQUE) or
+        # `, UNIQUE(mid)`. Either way, no (username, mid) composite.
+        if "UNIQUE(username, mid)" not in (old_schema or ""):
+            con.execute("ALTER TABLE user_match_saves RENAME TO user_match_saves__legacy_20260819")
+            con.execute("DROP TABLE user_match_saves__legacy_20260819")
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS user_match_saves (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            username  TEXT NOT NULL,
+            mid       TEXT NOT NULL,
+            save_data TEXT NOT NULL,
+            saved_at  TEXT NOT NULL,
+            UNIQUE(username, mid)
+        )
+    """)
+    con.execute("CREATE INDEX IF NOT EXISTS idx_user_match_saves_user ON user_match_saves(username, mid)")
 
     con.execute("""
         CREATE TABLE IF NOT EXISTS user_lineup_snapshots (
@@ -2621,6 +2653,35 @@ async def lineup_match_h2h(match_id: str, my: str = "", opp: str = ""):
     return payload
 
 
+@app.get("/lineup_ai/api/tournaments/{team_id}")
+async def lineup_api_tournaments(team_id: str):
+    """Return the unique list of tournaments the team played in.
+
+    Source: cache["tournaments"] populated by refresh_team() in
+    api_refresh.py (Aug 17 2026). Each entry has a stable id from
+    the /teams/results endpoint, plus display name, country and image.
+
+    Returns:
+        200: {"tournaments": [{"id": "...", "name": "...", "country": "...",
+              "image_path": "...", "match_count": N}, ...], "team_id": "..."}
+        404: if the team cache file does not exist
+    """
+    try:
+        cache = _read_team_cache(team_id)
+    except FileNotFoundError:
+        return JSONResponse(
+            {"error": "team cache not found", "team_id": team_id},
+            status_code=404,
+        )
+    if not cache:
+        return JSONResponse(
+            {"error": "team cache empty", "team_id": team_id},
+            status_code=404,
+        )
+    tournaments = cache.get("tournaments") or []
+    return {"tournaments": tournaments, "team_id": team_id}
+
+
 @app.get("/lineup_ai/api/fixtures/{team_id}")
 async def lineup_api_fixtures(team_id: str):
     """Fetch upcoming fixtures from Soccerway and return as JSON.
@@ -3474,12 +3535,15 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
 # Match save endpoints - save data for both teams in a match
 @app.get("/lineup_ai/match_save/{mid}")
 async def match_get_save(mid: str, request: Request):
-    """Get saved match data for both teams. Uses mid only (no username)."""
+    """Get saved match data for the CURRENT USER only. Aug 19 2026:
+    per-user match saves (List / P-XI / S-XI markings). Was shared
+    per-mid which caused admin's saves to overwrite EvgPant's etc."""
     ensure_db()
+    username = _lineup_account(request)
     con = sqlite3.connect(DB_PATH)
     row = con.execute(
-        "SELECT save_data, saved_at FROM user_match_saves WHERE mid=?",
-        (mid,),
+        "SELECT save_data, saved_at FROM user_match_saves WHERE username=? AND mid=?",
+        (username, mid),
     ).fetchone()
     con.close()
     if not row:
@@ -3493,14 +3557,16 @@ async def match_get_save(mid: str, request: Request):
 
 @app.post("/lineup_ai/match_save/{mid}")
 async def match_save_post(mid: str, request: Request, payload: dict = Body(default_factory=dict)):
-    """Save match data for both teams. Uses mid only (no username)."""
+    """Save match data for the CURRENT USER only. Aug 19 2026:
+    per-user (was global — admin's save overwrote EvgPant's)."""
     ensure_db()
+    username = _lineup_account(request)
     saved_at = datetime.now(timezone.utc).isoformat()
     con = sqlite3.connect(DB_PATH)
     con.execute(
         "INSERT INTO user_match_saves(username, mid, save_data, saved_at) VALUES(?,?,?,?) "
-        "ON CONFLICT(mid) DO UPDATE SET save_data=excluded.save_data, saved_at=excluded.saved_at",
-        ("match", mid, json.dumps(payload, ensure_ascii=False), saved_at),
+        "ON CONFLICT(username, mid) DO UPDATE SET save_data=excluded.save_data, saved_at=excluded.saved_at",
+        (username, mid, json.dumps(payload, ensure_ascii=False), saved_at),
     )
     con.commit()
     con.close()
