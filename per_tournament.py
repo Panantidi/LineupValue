@@ -62,20 +62,37 @@ _INJURY_TOKENS = {
 }
 
 
-def _strip_injury_suffix(name):
-    """Drop trailing injury/reason tokens from a player name.
+# Aug 21 2026 — mirrors api_refresh._date_pattern() but inline so we
+# don't have to import the heavy refresh module.
+_DATE_PATTERN = __import__("re").compile(
+    r"\s+\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4}\s*$"
+)
 
-    Aug 21 2026 — see AIK real data:
-      "Wilson Omondi Stanley Groin Injury"  → "Wilson Omondi Stanley"
-    Mirrors api_refresh._strip_missing_reason_suffix but kept tiny so the
-    per_tournament module doesn't have to import the heavy refresh code.
+
+def _strip_injury_suffix(name):
+    """Drop trailing injury/reason tokens and date from a player name.
+
+    Aug 21 2026 — see AIK + IP5zl0cJ + IXVkvT2D + jNvak2f3 real data:
+      "Wilson Omondi Stanley Groin Injury"          → "Wilson Omondi Stanley"
+      "Egiluz Unai Knee Injury 15.02.2027"          → "Egiluz Unai"
+      "Zorin Daniil Achilles Tendon Injury 04.01.2027" → "Zorin Daniil"
+      "Odriozola Alvaro Knee Injury 02.11.2026"     → "Odriozola Alvaro"
+
+    Algorithm:
+      1. Strip any trailing date first (e.g. " 15.02.2027").
+      2. While the last token is an injury/reason word, drop it.
+      3. If everything got stripped (e.g. name was just a reason), return
+         the original so we never lose the player.
     """
     if not name:
         return name
+    original = str(name).strip()
+    name = _DATE_PATTERN.sub("", original).strip()
     parts = name.split()
     while len(parts) > 1 and parts[-1].lower().rstrip(",.") in _INJURY_TOKENS:
         parts.pop()
-    return " ".join(parts)
+    cleaned = " ".join(parts).strip()
+    return cleaned if cleaned else original
 
 
 CACHE_TTL_SECONDS = 24 * 60 * 60  # 24h
