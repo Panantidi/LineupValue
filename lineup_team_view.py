@@ -2651,6 +2651,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const isTotal = (tournamentKey === 'Total' || !tournamentKey);
             const rows = Array.from(tbody.querySelectorAll('tr'));
 
+            // Capture original (Total) values AND original row order on first
+            // touch. The original row order is what the user expects to see
+            // when they switch back to Total — restoring the cells but
+            // leaving rows in their sorted-by-Min order would be jarring.
+            if (!tbody.getAttribute('data-initial-order')) {{
+                tbody.setAttribute('data-initial-order', rows.map(function (r) {{ return r.getAttribute('data-player-name') || ''; }}).join('\u0001'));
+            }}
+
             // Capture original (Total) values on first touch so we can restore.
             const captureRow = (row) => {{
                 const cells = row.querySelectorAll('td');
@@ -2726,9 +2734,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 rowMinutes.push({{ row: row, minutes: parseInt(String(perTab.minutes || '0').replace(/[^\d]/g, ''), 10) || 0 }});
             }});
 
-            // When a non-Total tournament is selected, sort by Min desc so
-            // the most-used players float to the top.
-            if (!isTotal && rowMinutes.length > 0) {{
+            if (isTotal) {{
+                // Restore original DOM order so the user gets back to what
+                // they had before touching the dropdown. We re-find rows by
+                // their data-player-name marker (the order captured above)
+                // so this works even if the previous non-Total switch has
+                // already shuffled the rows.
+                const initialOrder = (tbody.getAttribute('data-initial-order') || '').split('\u0001');
+                if (initialOrder.length > 0) {{
+                    const rowByName = {{}};
+                    rows.forEach(function (r) {{
+                        const n = r.getAttribute('data-player-name') || '';
+                        rowByName[n] = r;
+                    }});
+                    initialOrder.forEach(function (name) {{
+                        const r = rowByName[name];
+                        if (r) tbody.appendChild(r);
+                    }});
+                }}
+            }} else if (rowMinutes.length > 0) {{
+                // Non-Total — sort by Min desc so the most-used players
+                // float to the top.
                 rowMinutes.sort(function (a, b) {{ return b.minutes - a.minutes; }});
                 rowMinutes.forEach(function (item) {{ tbody.appendChild(item.row); }});
             }}

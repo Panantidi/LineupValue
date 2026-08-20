@@ -43,6 +43,41 @@ HEADERS = {
 }
 
 CACHE_DIR = "/home/openclaw/.openclaw/workspace"
+
+
+# Aug 21 2026 — strip Flashscore's trailing injury reason so per-tournament
+# player keys match the clean "Surname Name" we get from /teams/squad.
+# Real example from lzqk4S68 (AIK, Stockholm):
+#   "Wilson Omondi Stanley Groin Injury"  → "Wilson Omondi Stanley"
+# Without this the dropdown can't find Stanley under either the DOM swap
+# ("Omondi Stanley Wilson") or the raw DOM name ("Stanley Wilson Omondi").
+_INJURY_TOKENS = {
+    "injury", "injured", "knock", "muscle", "muscles", "hamstring",
+    "achilles", "tendon", "ligament", "knee", "ankle", "thigh",
+    "calf", "foot", "feet", "toe", "back", "shoulder", "groin",
+    "broken", "fracture", "strain", "sprain", "rupture", "tear",
+    "suspension", "suspended", "ban", "red", "yellow", "card",
+    "covid", "covid-19", "ill", "illness", "sick", "fever",
+    "rest", "rested", "personal", "family", "birth", "private",
+}
+
+
+def _strip_injury_suffix(name):
+    """Drop trailing injury/reason tokens from a player name.
+
+    Aug 21 2026 — see AIK real data:
+      "Wilson Omondi Stanley Groin Injury"  → "Wilson Omondi Stanley"
+    Mirrors api_refresh._strip_missing_reason_suffix but kept tiny so the
+    per_tournament module doesn't have to import the heavy refresh code.
+    """
+    if not name:
+        return name
+    parts = name.split()
+    while len(parts) > 1 and parts[-1].lower().rstrip(",.") in _INJURY_TOKENS:
+        parts.pop()
+    return " ".join(parts)
+
+
 CACHE_TTL_SECONDS = 24 * 60 * 60  # 24h
 
 
@@ -113,6 +148,7 @@ def _build_per_tournament(raw_groups):
                 if not isinstance(p, dict):
                     continue
                 name = (p.get("name") or "").strip()
+                name = _strip_injury_suffix(name)
                 if not name:
                     continue
                 # Flashscore format: "Surname Name" (e.g. "Hahn Warner").
