@@ -2682,13 +2682,32 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const perTab = (playersByName[apiName] || {{}})[tournamentKey];
 
                 if (isTotal || !perTab) {{
-                    // Restore aggregated (Total) values, clear tint.
-                    STATS_MAP.forEach(function (m) {{
-                        const c = cells[m.idx];
-                        if (!c) return;
-                        c.textContent = c.getAttribute('data-orig') || '';
-                        c.style.color = '';
-                    }});
+                    if (isTotal) {{
+                        // Total tab — restore the aggregated values that
+                        // were on screen when the page first rendered.
+                        STATS_MAP.forEach(function (m) {{
+                            const c = cells[m.idx];
+                            if (!c) return;
+                            c.textContent = c.getAttribute('data-orig') || '';
+                            c.style.color = '';
+                        }});
+                    }} else {{
+                        // Non-Total tab + no per-tournament row for this
+                        // player. They never appeared in this tournament,
+                        // so the honest answer is "–", not the Total
+                        // numbers — some teams (e.g. IDmErJCR / Besiktas
+                        // Aug 2026) ship Total stats that are identical to
+                        // their Europa League group, which makes the row
+                        // look like the player played both competitions
+                        // when they only played one. Showing "–" fixes
+                        // that mismatch without hiding Total elsewhere.
+                        STATS_MAP.forEach(function (m) {{
+                            const c = cells[m.idx];
+                            if (!c) return;
+                            c.textContent = '–';
+                            c.style.color = '';
+                        }});
+                    }}
                     rowMinutes.push({{ row: row, minutes: parseInt(((cells[16] && cells[16].textContent) || '0').replace(/[^\d]/g, ''), 10) || 0 }});
                     return;
                 }}
