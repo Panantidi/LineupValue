@@ -2682,6 +2682,50 @@ async def lineup_api_tournaments(team_id: str):
     return {"tournaments": tournaments, "team_id": team_id}
 
 
+
+@app.get("/lineup_ai/api/per_tournament/{team_id}")
+async def lineup_api_per_tournament(team_id: str):
+    """Per-tournament player stats for the Tournament dropdown.
+
+    Aug 20 2026 — pulled out of api_refresh.refresh_squad() so it can
+    be served as a separate, lazy endpoint with its own cache.
+
+    Returns:
+        200: {
+          "tabs": [{"key": "Allsvenskan", "label": "Allsvenskan"}, ...],
+          "players": {
+            "Hahn Warner": {
+              "Allsvenskan": {"apps": "17", "minutes": "1530", ...},
+              "Total": {"apps": "21", "minutes": "1890", ...}
+            },
+            ...
+          },
+          "team_id": "SQsg3nME"
+        }
+        200 (empty): {"tabs": [], "players": {}, "empty": true, ...}
+        404: team cache not found AND squad endpoint unreachable
+    """
+    import per_tournament  # local module, sibling of app.py
+    info = _lookup_lineup_team(team_id)
+    slug = info.get("slug") or ""
+    if not slug:
+        try:
+            cache = _read_team_cache(team_id)
+            slug = (cache.get("team") or {}).get("slug") or ""
+        except Exception:
+            slug = ""
+    if not slug:
+        return JSONResponse(
+            {"error": "team slug not found", "team_id": team_id},
+            status_code=404,
+        )
+    data = per_tournament.get_per_tournament(team_id, slug)
+    if not data.get("players"):
+        # Still return 200 — UI can render an empty dropdown.
+        return JSONResponse(content=data, status_code=200)
+    return JSONResponse(content=data, status_code=200)
+
+
 @app.get("/lineup_ai/api/fixtures/{team_id}")
 async def lineup_api_fixtures(team_id: str):
     """Fetch upcoming fixtures from Soccerway and return as JSON.

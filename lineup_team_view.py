@@ -2119,6 +2119,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     <div style="display:flex;align-items:center;gap:12px;">
                         <button type="button" id="update-data-btn" class="header-action-btn" onclick="updateData()" title="Fetch latest updates">♻️ Refresh</button>
                         <span id="update-counter" style="color:rgba(255,255,255,0.85);font-size:13px;font-weight:500;min-width:60px;"></span>
+                        <select id="tournament-select" onchange="onTournamentChange(this.value)" title="Filter by tournament" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
+                            <option value="" style="color:#333;">Loading…</option>
+                        </select>
                         <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
                             <option value="Squad" style="color:#333;">All Squad</option>
                             <option value="Missing Players" style="color:#333;">Missing Players</option>
@@ -2554,6 +2557,164 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 btn.innerHTML = '♻️ Refresh';
             }}
         }}
+
+        // ===================================================================
+        // Tournament dropdown — per-tournament Apps/Min/G/A/YC/RC
+        // Aug 20 2026 — replaces /tournaments/ (Flashscore-only) with
+        // /per_tournament/ which is backed by /teams/squad on RapidAPI.
+        // API-only: no HTML scraping. The endpoint walks the squad tab_name
+        // groups (Allsvenskan / Europa League / Conference League / Total)
+        // and exposes per-player per-tab stats. We only display the value
+        // columns (15..20). DOM emoji and ⭐ / 👑 badges stay put — we just
+        // need a single canonical lookup name per row, and the Flashscore
+        // API returns clean "Surname Name" so all we have to do is swap
+        // the DOM's "Name Surname" before matching.
+        // ===================================================================
+        function _escapeAttr(s) {{
+            // Minimal escape for HTML attribute / option text. Tournament
+            // names are plain ASCII so the only chars we really need to
+            // handle are quotes / ampersand; the regex stays cheap.
+            return String(s).replace(/[&<>"']/g, function (c) {{
+                return {{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c];
+            }});
+        }}
+
+        async function loadTournaments() {{
+            const sel = document.getElementById('tournament-select');
+            if (!sel) return;
+            const teamId = (typeof CURRENT_TEAM_ID !== 'undefined' && CURRENT_TEAM_ID) ||
+                           (typeof TEAM_ID !== 'undefined' && TEAM_ID) || '';
+            if (!teamId) return;
+            sel.innerHTML = '<option value="" style="color:#333;">Loading…</option>';
+            try {{
+                const r = await fetch('/lineup_ai/api/per_tournament/' + encodeURIComponent(teamId), {{ cache: 'no-store' }});
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const data = await r.json();
+                const tabs = Array.isArray(data.tabs) ? data.tabs : [];
+                if (tabs.length === 0) {{
+                    sel.innerHTML = '<option value="" style="color:#333;">No tournaments</option>';
+                    return;
+                }}
+                // Build options. "Total" first (default — drives IS / Squad Role),
+                // then the rest in API order.
+                const ordered = [];
+                const total = tabs.find(t => t.key === 'Total');
+                if (total) ordered.push(total);
+                for (const t of tabs) {{
+                    if (t.key !== 'Total') ordered.push(t);
+                }}
+                let html = '';
+                for (const t of ordered) {{
+                    const label = t.label || t.key;
+                    html += '<option value="' + _escapeAttr(t.key) + '" style="color:#333;">' + _escapeAttr(label) + '</option>';
+                }}
+                sel.innerHTML = html;
+                // Stash the per-player map so applyTournamentFilter can find it
+                // without a second round-trip.
+                const tbody = document.querySelector('.main-table tbody');
+                if (tbody) {{
+                    tbody.setAttribute('data-tournament-players', JSON.stringify(data.players || {{}}));
+                }}
+                sel.value = 'Total';
+            }} catch (e) {{
+                console.error('[tournament] load failed:', e);
+                sel.innerHTML = '<option value="" style="color:#333;">—</option>';
+            }}
+        }}
+
+        function onTournamentChange(value) {{
+            const sel = document.getElementById('tournament-select');
+            if (sel) sel.value = value;
+            applyTournamentFilter(value);
+        }}
+
+        function _swapNameDomToApi(domName) {{
+            // DOM stores "Name Surname ⭐" (sometimes with emoji / 👑 / ⚽ / 👟).
+            // Flashscore returns "Surname Name" (clean). Strip emoji + badges
+            // via the last-word heuristic: keep only letters / spaces / accent,
+            // then move the LAST word to the front.
+            // (We deliberately do NOT use \p{{L}} unicode regex here — different
+            // browsers historically behaved differently with it. ASCII letters
+            // + a small set of accented letters is enough for the current
+            // Soccerway / Flashscore dataset, and keeps this code stable.)
+            let cleaned = (domName || '').replace(/[^A-Za-zÀ-ÿŒœ' .-]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (cleaned.indexOf(' ') <= 0) return cleaned;
+            const parts = cleaned.split(' ');
+            // Move last token (the surname, in DOM format) to the front.
+            return parts[parts.length - 1] + ' ' + parts.slice(0, -1).join(' ');
+        }}
+
+        function applyTournamentFilter(tournamentKey) {{
+            const tbody = document.querySelector('.main-table tbody');
+            if (!tbody) return;
+            const playersByName = JSON.parse(tbody.getAttribute('data-tournament-players') || '{{}}');
+            const isTotal = (tournamentKey === 'Total' || !tournamentKey);
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            // Capture original (Total) values on first touch so we can restore.
+            const captureRow = (row) => {{
+                const cells = row.querySelectorAll('td');
+                [15, 16, 17, 18, 19, 20].forEach(function (idx) {{
+                    const c = cells[idx];
+                    if (c && !c.getAttribute('data-orig')) {{
+                        c.setAttribute('data-orig', c.textContent || '');
+                    }}
+                }});
+            }};
+
+            const STATS_MAP = [
+                {{ idx: 15, field: 'apps' }},
+                {{ idx: 16, field: 'minutes' }},
+                {{ idx: 17, field: 'goals' }},
+                {{ idx: 18, field: 'assists' }},
+                {{ idx: 19, field: 'yellow' }},
+                {{ idx: 20, field: 'red' }},
+            ];
+
+            // Track per-row minutes so we can sort rows by Min desc afterwards.
+            const rowMinutes = [];
+
+            rows.forEach(function (row) {{
+                captureRow(row);
+                const cells = row.querySelectorAll('td');
+                const domName = cells[2] ? cells[2].textContent : '';
+                const apiName = _swapNameDomToApi(domName);
+                const perTab = (playersByName[apiName] || {{}})[tournamentKey];
+
+                if (isTotal || !perTab) {{
+                    // Restore aggregated (Total) values, clear tint.
+                    STATS_MAP.forEach(function (m) {{
+                        const c = cells[m.idx];
+                        if (!c) return;
+                        c.textContent = c.getAttribute('data-orig') || '';
+                        c.style.color = '';
+                    }});
+                    rowMinutes.push({{ row: row, minutes: parseInt(((cells[16] && cells[16].textContent) || '0').replace(/[^\d]/g, ''), 10) || 0 }});
+                    return;
+                }}
+                STATS_MAP.forEach(function (m) {{
+                    const c = cells[m.idx];
+                    if (!c) return;
+                    const v = perTab[m.field];
+                    if (v === undefined || v === null || v === '') {{
+                        c.textContent = '–';
+                    }} else {{
+                        c.textContent = String(v);
+                    }}
+                    // Same color as Total cells — no blue tint.
+                    c.style.color = '';
+                }});
+                rowMinutes.push({{ row: row, minutes: parseInt(String(perTab.minutes || '0').replace(/[^\d]/g, ''), 10) || 0 }});
+            }});
+
+            // When a non-Total tournament is selected, sort by Min desc so
+            // the most-used players float to the top.
+            if (!isTotal && rowMinutes.length > 0) {{
+                rowMinutes.sort(function (a, b) {{ return b.minutes - a.minutes; }});
+                rowMinutes.forEach(function (item) {{ tbody.appendChild(item.row); }});
+            }}
+        }}
+
 
         async function saveTeamState() {{
             const btn = document.getElementById('save-btn');
@@ -4122,6 +4283,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 document.addEventListener('DOMContentLoaded', loadNavData);
             }} else {{
                 loadNavData();
+            }}
+            // Aug 20 2026: kick off the Tournament dropdown load in parallel.
+            // Total is the default tab and the dropdown is rendered into the
+            // header — populating it doesn't touch the player table until the
+            // user changes the selection, so doing it in parallel is safe.
+            if (typeof loadTournaments === 'function') {{
+                if (document.readyState === 'loading') {{
+                    document.addEventListener('DOMContentLoaded', loadTournaments);
+                }} else {{
+                    loadTournaments();
+                }}
             }}
         }})();
 
