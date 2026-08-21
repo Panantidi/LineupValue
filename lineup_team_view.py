@@ -2134,7 +2134,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <select id="tournament-select" onchange="onTournamentChange(this.value)" title="Filter by tournament" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
                             <option value="" style="color:#333;">Loading…</option>
                         </select>
-                        <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
+                        <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;width:125px;">
                             <option value="Squad" style="color:#333;">All Squad</option>
                             <option value="Missing Players" style="color:#333;">Missing Players</option>
                             <option value="Doubtful Players" style="color:#333;">Doubtful Players</option>
@@ -2523,8 +2523,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
                 html += '<span style="font-weight:600;">' + _escapeText(homeName) + '</span>';
                 html += '<span style="color:#64748b;font-size:12px;">vs</span>';
-                if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
                 html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
+                if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
                 html += '</div>';
                 const mid = m.match_id || '';
                 const homeId = (m.home && m.home.team_id) || '';
@@ -2568,7 +2568,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 return (a === b) ? a : a + '–' + b;
             }})();
             html += '<div data-p11-toggle="' + roundId + '" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none;background:#0f1a2e;">';
-            html += '<span data-p11-chevron="' + roundId + '" style="color:#60a5fa;font-size:14px;transform:rotate(90deg);transition:transform 0.15s ease;">▶</span>';
+            html += '<span data-p11-chevron="' + roundId + '" style="color:#60a5fa;font-size:14px;transition:transform 0.15s ease;">▶</span>';
             html += '<div style="flex:1;display:flex;align-items:center;gap:10px;">';
             html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(activeRoundKey) + '</span>';
             html += '<span style="font-size:10px;background:#22c55e;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NEXT</span>';
@@ -2579,7 +2579,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             html += '<span style="font-size:11px;color:#64748b;">' + live.length + ' match' + (live.length === 1 ? '' : 'es') + '</span>';
             html += '</div>';
             // Inner body — the tournament sub-sections
-            html += '<div id="' + roundId + '" style="background:#0b1020;border-top:1px solid #1f2b40;">';
+            html += '<div id="' + roundId + '" style="background:#0b1020;border-top:1px solid #1f2b40;display:none;">';
             html += '<div style="display:flex;flex-direction:column;gap:6px;padding:10px 14px 14px 14px;">';
             // Aug 22 2026 — when only one tournament contributes matches
             // (e.g. just LaLiga in the current cache) we skip the
