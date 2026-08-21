@@ -1930,6 +1930,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                  State stored in sessionStorage (per-tab, shared with any open
                  Match-mode iframe on the same tab). Uses the same .header-action-btn
                  class so styling/hover matches the other right-side buttons. -->
+            <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="Show next Spain LaLiga fixtures">🔮 Predicted 11</button>
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Hide MV, Squad Role and Impact Score columns">🔽 Collapse Details</button>
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
@@ -2067,6 +2068,17 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
 
     <div class="page-main">
+<div id="predicted11-panel-host" style="display:none;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h3 style="margin:0;font-size:17px;font-weight:600;color:#fff;">🔮 Spain LaLiga — Next Matches</h3>
+            <button type="button" onclick="togglePredicted11()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">×</button>
+        </div>
+        <div id="predicted11-body">
+            <div style="color:#94a3b8;font-size:14px;">Loading next LaLiga fixtures…</div>
+        </div>
+        <div id="predicted11-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>
+    </div>
+
 <div id="bulk-lineup-panel-host" style="display:none;margin-bottom:12px;">
             <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
@@ -2335,6 +2347,106 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
             }}
         }}
+        // ===================================================================
+        // 🔮 Predicted 11 — Aug 21 2026
+        // Toggles the Spain LaLiga fixtures panel below the header.
+        // First open → fetches /lineup_ai/api/laliga_fixtures once, then
+        // reuses the cached payload for the rest of the session.
+        // ===================================================================
+        let _predicted11Loaded = false;
+
+        function togglePredicted11() {{
+            const host = document.getElementById('predicted11-panel-host');
+            const btn = document.getElementById('btn-predicted-11');
+            if (!host) return;
+            const willShow = host.style.display === 'none';
+            host.style.display = willShow ? 'block' : 'none';
+            if (btn) btn.classList.toggle('active', willShow);
+            if (willShow && !_predicted11Loaded) {{
+                loadPredicted11();
+            }}
+        }}
+
+        async function loadPredicted11() {{
+            const body = document.getElementById('predicted11-body');
+            const footer = document.getElementById('predicted11-footer');
+            if (!body) return;
+            body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">Loading next LaLiga fixtures…</div>';
+            try {{
+                const r = await fetch('/lineup_ai/api/laliga_fixtures', {{ cache: 'no-store' }});
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const data = await r.json();
+                renderPredicted11(data);
+                _predicted11Loaded = true;
+            }} catch (e) {{
+                body.innerHTML = '<div style="color:#f87171;font-size:14px;">⚠️ Could not load fixtures: ' + _escapeText(e.message) + '</div>';
+                if (footer) footer.textContent = '';
+            }}
+        }}
+
+        function renderPredicted11(data) {{
+            const body = document.getElementById('predicted11-body');
+            const footer = document.getElementById('predicted11-footer');
+            if (!body) return;
+            const fixtures = Array.isArray(data && data.fixtures) ? data.fixtures : [];
+            if (fixtures.length === 0) {{
+                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming LaLiga matches.</div>';
+                if (footer) footer.textContent = '';
+                return;
+            }}
+            // Group by date (dd.mm)
+            const groups = {{}};
+            fixtures.forEach(function (m) {{
+                const ts = m.timestamp;
+                if (!ts) return;
+                const d = new Date(ts * 1000);
+                const dayKey = pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1);
+                if (!groups[dayKey]) groups[dayKey] = [];
+                groups[dayKey].push({{ m: m, ts: ts, d: d }});
+            }});
+            const dayKeys = Object.keys(groups);
+            let html = '<div style="display:flex;flex-direction:column;gap:12px;">';
+            dayKeys.forEach(function (dk) {{
+                const items = groups[dk];
+                html += '<div>';
+                html += '<div style="font-size:12px;color:#60a5fa;font-weight:600;margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">' + dk + '</div>';
+                html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+                items.forEach(function (item) {{
+                    const m = item.m;
+                    const homeName = (m.home && m.home.name) || '?';
+                    const awayName = (m.away && m.away.name) || '?';
+                    const homeImg = (m.home && m.home.image) || '';
+                    const awayImg = (m.away && m.away.image) || '';
+                    const time = pad2(item.d.getHours()) + ':' + pad2(item.d.getMinutes());
+                    html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
+                    html += '<span style="font-size:13px;color:#94a3b8;min-width:42px;font-variant-numeric:tabular-nums;">' + time + '</span>';
+                    html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
+                    if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
+                    html += '<span style="font-weight:600;">' + _escapeText(homeName) + '</span>';
+                    html += '<span style="color:#64748b;font-size:12px;">vs</span>';
+                    if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
+                    html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                }});
+                html += '</div></div>';
+            }});
+            html += '</div>';
+            body.innerHTML = html;
+            if (footer) {{
+                const teamCount = data.team_count || 0;
+                const fetchedAt = data.fetched_at ? new Date(data.fetched_at * 1000) : null;
+                const fetchedStr = fetchedAt ? pad2(fetchedAt.getDate()) + '.' + pad2(fetchedAt.getMonth() + 1) + ' ' + pad2(fetchedAt.getHours()) + ':' + pad2(fetchedAt.getMinutes()) : '?';
+                footer.textContent = 'Aggregated from ' + teamCount + ' LaLiga teams · cached ' + fetchedStr;
+            }}
+        }}
+
+        function _escapeText(s) {{
+            return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {{
+                return {{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }}[c];
+            }});
+        }}
+
         function toggleFaq() {{
             var host = document.getElementById('faq-host');
             if (!host) return;

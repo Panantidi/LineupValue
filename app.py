@@ -2683,6 +2683,21 @@ async def lineup_api_tournaments(team_id: str):
 
 
 
+
+@app.get("/lineup_ai/api/laliga_fixtures")
+async def lineup_api_laliga_fixtures():
+    """Next N upcoming Spain LaLiga matches for the 🔮 Predicted 11 button.
+
+    Aug 21 2026 — see laliga_fixtures.py. Aggregates /teams/fixtures
+    across all 20 LaLiga teams, dedupes by match_id, returns the next
+    MAX_FIXTURES_RETURN matches sorted by timestamp. Cached 24h on
+    disk so the panel opens instantly on repeat visits.
+    """
+    import laliga_fixtures
+    data = laliga_fixtures.get_laliga_fixtures()
+    return JSONResponse(content=data, status_code=200)
+
+
 @app.get("/lineup_ai/api/per_tournament/{team_id}")
 async def lineup_api_per_tournament(team_id: str):
     """Per-tournament player stats for the Tournament dropdown.
