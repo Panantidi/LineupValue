@@ -1930,7 +1930,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                  State stored in sessionStorage (per-tab, shared with any open
                  Match-mode iframe on the same tab). Uses the same .header-action-btn
                  class so styling/hover matches the other right-side buttons. -->
-            <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="Show next Spain LaLiga fixtures">🔮 Predicted XI</button>
+            <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="Show next Spain - LaLiga fixtures">🔮 Predicted XI</button>
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Hide MV, Squad Role and Impact Score columns">🔽 Collapse Details</button>
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
@@ -2070,7 +2070,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div class="page-main">
 <div id="predicted11-panel-host" style="display:none;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <h3 style="margin:0;font-size:17px;font-weight:600;color:#fff;">🔮 Spain LaLiga — Next Matches</h3>
+            <h3 style="margin:0;font-size:17px;font-weight:600;color:#fff;">🔮 Spain - LaLiga</h3>
             <button type="button" onclick="togglePredicted11()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">×</button>
         </div>
         <div id="predicted11-body">
@@ -2581,25 +2581,39 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             // Inner body — the tournament sub-sections
             html += '<div id="' + roundId + '" style="background:#0b1020;border-top:1px solid #1f2b40;">';
             html += '<div style="display:flex;flex-direction:column;gap:6px;padding:10px 14px 14px 14px;">';
-            tournamentKeys.forEach(function (tk) {{
+            // Aug 22 2026 — when only one tournament contributes matches
+            // (e.g. just LaLiga in the current cache) we skip the
+            // sub-block entirely and render the rows directly inside
+            // the round panel. With multiple tournaments (Copa,
+            // Supercopa, etc.) we keep the sub-blocks so the user can
+            // collapse them individually as Max asked ("скрыты в
+            // Турнире"). The sub-block count-badge is gone so the
+            // match count is only shown on the round header.
+            const singleTournament = tournamentKeys.length === 1;
+            if (singleTournament) {{
+                const tk = tournamentKeys[0];
                 const matches = byTournament[tk];
-                const tournId = 'p11-tourn-' + encodeURIComponent(tk);
-                html += '<div style="background:#11192a;border-radius:6px;border:1px solid #1f2b40;overflow:hidden;">';
-                html += '<div data-p11-toggle="' + tournId + '" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none;">';
-                html += '<span data-p11-chevron="' + tournId + '" style="color:#60a5fa;font-size:12px;transition:transform 0.15s ease;">▶</span>';
-                html += '<div style="flex:1;display:flex;align-items:center;gap:8px;">';
-                html += '<span style="font-size:12px;color:#cbd5e1;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(tk) + '</span>';
-                html += '</div>';
-                html += '<span style="font-size:11px;color:#64748b;">' + matches.length + ' match' + (matches.length === 1 ? '' : 'es') + '</span>';
-                html += '</div>';
-                // Tournament body — closed by default per Max ("скрыты в Турнире")
-                html += '<div id="' + tournId + '" style="display:none;padding:8px 12px 12px 12px;background:#0d1525;">';
-                html += '<div style="display:flex;flex-direction:column;gap:6px;">';
                 matches.forEach(function (m) {{ html += renderMatchRow(m); }});
-                html += '</div>';
-                html += '</div>';
-                html += '</div>';
-            }});
+            }} else {{
+                tournamentKeys.forEach(function (tk) {{
+                    const matches = byTournament[tk];
+                    const tournId = 'p11-tourn-' + encodeURIComponent(tk);
+                    html += '<div style="background:#11192a;border-radius:6px;border:1px solid #1f2b40;overflow:hidden;">';
+                    html += '<div data-p11-toggle="' + tournId + '" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none;">';
+                    html += '<span data-p11-chevron="' + tournId + '" style="color:#60a5fa;font-size:12px;transition:transform 0.15s ease;">▶</span>';
+                    html += '<div style="flex:1;display:flex;align-items:center;gap:8px;">';
+                    html += '<span style="font-size:12px;color:#cbd5e1;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(tk) + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                    // Tournament body — closed by default per Max.
+                    html += '<div id="' + tournId + '" style="display:none;padding:8px 12px 12px 12px;background:#0d1525;">';
+                    html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+                    matches.forEach(function (m) {{ html += renderMatchRow(m); }});
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                }});
+            }}
             html += '</div>';
             html += '</div>';
             html += '</div>';
