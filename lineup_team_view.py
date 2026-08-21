@@ -2394,33 +2394,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (footer) footer.textContent = '';
                 return;
             }}
-            // Aug 21 2026 — Predicted XI show rules.
+            // Aug 21 2026 — Predicted XI show rules (v2).
             //
-            // Step 1: Drop "past" matches. A match is past if
-            //   timestamp + 10 minutes < now.
-            //   Real Madrid vs Real Sociedad 26 Aug 21:00 → past if today
-            //   is 26 Aug 21:11 or later; we drop it.
+            // LaLiga has two notions of "earliest":
+            //  * Round 2 — the matchday currently being played.
+            //  * Round 1 — postponed matches that haven't been replayed
+            //    yet (they sit at 25-27 Aug while Round 2 runs 21-24 Aug).
             //
-            // Step 2: Find the round whose earliest remaining match is
-            //   the soonest overall — that round is the "current round"
-            //   and we render its matches first.
+            // Max wants the panel to show, in this order:
+            //  1) The current round, minus matches that already kicked off
+            //     + 10 minutes ago. For every team whose current-round
+            //     match just dropped, surface their next LaLiga fixture.
+            //  2) If that next fixture is in the POSTPONED round (the
+            //     earliest round that still has unplayed matches AFTER the
+            //     current round's earliest ts), show it under the
+            //     "Next Matches" header and label it with that round.
+            //     Otherwise — if the team's next fixture is two+ rounds
+            //     away — don't show it (would clutter the panel).
             //
-            // Step 3: For each home team / away team whose match was
-            //   dropped in step 1, look ahead in the payload for the
-            //   next fixture involving the same team and append it as a
-            //   follow-up section labelled "Next Matches". Teams that
-            //   had a not-yet-started match in the current round are
-            //   skipped (they're already shown). Teams whose only
-            //   upcoming match is in the current round but has already
-            //   started are also skipped (no later match to show).
-            //
-            // Step 4: Dedupe by match_id (the original dropped match is
-            //   gone, but two teams might both point at the same next
-            //   match — drop the duplicate).
+            // Step 1: build round groups and find the current round and
+            // the postponed round.
             const nowSec = Math.floor(Date.now() / 1000);
             const PAST_GRACE_SEC = 10 * 60;
 
-            // Index fixtures by round, preserving timestamp order.
             const byRound = {{}};
             fixtures.forEach(function (m) {{
                 const rk = (m.round && String(m.round).trim()) || '__upcoming__';
@@ -2428,7 +2424,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 byRound[rk].push(m);
             }});
 
-            // Sort rounds so Round 1 → 2 → 3 numerically.
+            // Sort rounds numerically so Round 1 < Round 2 < Round 3.
             const sortRound = function (a, b) {{
                 if (a === '__upcoming__') return 1;
                 if (b === '__upcoming__') return -1;
@@ -2439,29 +2435,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }};
             const allRoundKeys = Object.keys(byRound).sort(sortRound);
 
-            // Index every fixture by team_id so we can resolve
-            // "next match for team X" in O(1) per team. The whole
-            // fixtures[] list is already sorted by timestamp in the
-            // backend, but we sort again here to be defensive.
-            const teamNext = {{}};   // team_id -> {m, idx} of the soonest fixture for that team
-            const allByTs = fixtures.slice().sort(function (a, b) {{
-                return (a.timestamp || 0) - (b.timestamp || 0);
-            }});
-            allByTs.forEach(function (m, idx) {{
-                const h = m.home && m.home.team_id;
-                const a = m.away && m.away.team_id;
-                if (h && !teamNext[h]) teamNext[h] = {{ m: m, idx: idx }};
-                if (a && !teamNext[a]) teamNext[a] = {{ m: m, idx: idx }};
+            // Earliest timestamp per round (for ordering rounds by date).
+            const roundEarliestTs = {{}};
+            allRoundKeys.forEach(function (rk) {{
+                const ts = byRound[rk]
+                    .map(function (m) {{ return m.timestamp || 0; }})
+                    .filter(function (t) {{ return t > 0; }});
+                roundEarliestTs[rk] = ts.length ? Math.min.apply(null, ts) : Infinity;
             }});
 
-            // Step 1+2: pick the round whose earliest live match has
-            // the smallest timestamp. This is what Max asked for —
-            // "ближайшие по дате и туру, приоритет сначала дата".
-            // Live = starts in the future OR started within the last
-            // 10 minutes.
+            // Sort rounds by earliest timestamp (so the calendar order
+            // wins, not the round number — useful when Round 1 is
+            // postponed and runs chronologically AFTER Round 2).
+            const roundByDate = allRoundKeys.slice().sort(function (a, b) {{
+                return roundEarliestTs[a] - roundEarliestTs[b];
+            }});
+
+            // Current round = earliest round that still has a LIVE
+            // match (future or within the 10-min grace). For LaLiga
+            // in late Aug 2026 that's Round 2 — its first match at
+            // 21 Aug 21:00 is still 11h away, while Round 1's matches
+            // are at 25-27 Aug, chronologically AFTER Round 2 but
+            // numerically smaller. So we still pick Round 2 here.
             let currentRoundKey = '';
             let currentRoundEarliest = Infinity;
-            allRoundKeys.forEach(function (rk) {{
+            roundByDate.forEach(function (rk) {{
                 const liveMatches = byRound[rk].filter(function (m) {{
                     return (m.timestamp + PAST_GRACE_SEC) >= nowSec;
                 }});
@@ -2474,8 +2472,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
             }});
             if (!currentRoundKey) {{
-                // Every match in every round is past — show a polite
-                // empty state rather than nothing.
                 body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming LaLiga matches in the cache. Hit Refresh after the next matchday is announced.</div>';
                 if (footer) {{
                     const teamCount = data.team_count || 0;
@@ -2484,86 +2480,114 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 return;
             }}
 
-            // Live matches in the current round, sorted by timestamp.
+            // Postponed round = the next round (by round number) after
+            // the current round that has matches. For Round 2 → Round 3
+            // is normal, but for the late-Aug-2026 window the postponed
+            // round is Round 1 (numerically smaller, chronologically
+            // later). So we look across ALL rounds in the cache, not
+            // just rounds with a higher number.
+            //
+            // We pick the round whose earliest timestamp is the smallest
+            // AMONG rounds that have unplayed matches AND are not the
+            // current round. That's the chronologically next matchday.
+            const nextRoundKey = roundByDate.filter(function (rk) {{
+                if (rk === currentRoundKey) return false;
+                return byRound[rk].some(function (m) {{
+                    return (m.timestamp + PAST_GRACE_SEC) >= nowSec;
+                }});
+            }})[0] || '';
+
+            // Live matches in current round.
             const liveCurrent = byRound[currentRoundKey]
                 .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
                 .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
 
-            // Teams that already appear in liveCurrent — no need to
-            // resolve their "next match", they're already on screen.
+            // Dropped matches in current round (already past).
+            const droppedCurrent = byRound[currentRoundKey].filter(function (m) {{
+                return (m.timestamp + PAST_GRACE_SEC) < nowSec;
+            }});
+
+            // Teams covered by liveCurrent — skip when picking next matches.
             const teamsCovered = {{}};
             liveCurrent.forEach(function (m) {{
                 if (m.home && m.home.team_id) teamsCovered[m.home.team_id] = true;
                 if (m.away && m.away.team_id) teamsCovered[m.away.team_id] = true;
             }});
+            // Also skip teams that already have a not-yet-passed match
+            // in the postponed round. For Aug 2026 that's Round 1, and
+            // every team playing Round 1 already has its postponed
+            // fixture lined up.
+            if (nextRoundKey) {{
+                byRound[nextRoundKey].forEach(function (m) {{
+                    if ((m.timestamp + PAST_GRACE_SEC) < nowSec) return;
+                    if (m.home && m.home.team_id) teamsCovered[m.home.team_id] = true;
+                    if (m.away && m.away.team_id) teamsCovered[m.away.team_id] = true;
+                }});
+            }}
 
-            // Step 1 (cont.) + Step 3: for each team whose current-round
-            // match already passed, look for their next match in the
-            // payload (it could be in the same round later, or in a
-            // later round). We step past the dropped current-round
-            // fixture by index, then take the first fixture for that
-            // team whose index is strictly greater.
-            // We need to know each team's position in allByTs to do
-            // "next fixture AFTER this one".
-            const teamPosInTs = {{}};   // team_id -> array of indices into allByTs
+            // Build the postponed-round list. Only matches whose both
+            // teams are dropped-from-current (so the postponed match
+            // is genuinely a replacement for that team) get shown.
+            // If only one side is dropped and the other side already
+            // appears in the postponed list (e.g. Celta Vigo and
+            // Osasuna both dropped from Round 2, both already in
+            // Round 1), we show it once.
+            const postponedLive = (nextRoundKey && byRound[nextRoundKey])
+                ? byRound[nextRoundKey]
+                    .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
+                    .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }})
+                : [];
+            // Map: which dropped teams already have a postponed fixture
+            // queued, so we don't try to add a Round-3 fixture for them
+            // when the postponed Round-1 fixture is enough.
+            const teamsInPostponed = {{}};
+            postponedLive.forEach(function (m) {{
+                if (m.home && m.home.team_id) teamsInPostponed[m.home.team_id] = true;
+                if (m.away && m.away.team_id) teamsInPostponed[m.away.team_id] = true;
+            }});
+            // Additional replacement matches: for each dropped-current
+            // team whose NEXT fixture is not already in the postponed
+            // list, look further ahead. Limit to matches in the
+            // chronologically next unplayed round after the postponed
+            // round, so we don't spam the panel with Round 3+ when
+            // only one team is missing a postponed fixture.
+            const allByTs = fixtures.slice().sort(function (a, b) {{
+                return (a.timestamp || 0) - (b.timestamp || 0);
+            }});
+            const teamPosInTs = {{}};
             allByTs.forEach(function (m, idx) {{
                 const h = m.home && m.home.team_id;
                 const a = m.away && m.away.team_id;
-                if (h) {{
-                    if (!teamPosInTs[h]) teamPosInTs[h] = [];
-                    teamPosInTs[h].push(idx);
-                }}
-                if (a) {{
-                    if (!teamPosInTs[a]) teamPosInTs[a] = [];
-                    teamPosInTs[a].push(idx);
-                }}
+                if (h) {{ if (!teamPosInTs[h]) teamPosInTs[h] = []; teamPosInTs[h].push(idx); }}
+                if (a) {{ if (!teamPosInTs[a]) teamPosInTs[a] = []; teamPosInTs[a].push(idx); }}
             }});
-            function nextMatchForTeam(teamId, afterIdx) {{
-                const arr = teamPosInTs[teamId];
+            function nextMatchForTeam(tid, afterIdx) {{
+                const arr = teamPosInTs[tid];
                 if (!arr) return null;
                 for (let i = 0; i < arr.length; i++) {{
                     if (arr[i] > afterIdx) return allByTs[arr[i]];
                 }}
                 return null;
             }}
-
-            // Collect the matches to render in the "Next Matches"
-            // section. Dedupe by match_id and skip anything already
-            // shown in liveCurrent.
-            const seenIds = {{}};
-            liveCurrent.forEach(function (m) {{ if (m.match_id) seenIds[m.match_id] = true; }});
-
-            const nextMatches = [];
-            const droppedTeams = {{}};
-            byRound[currentRoundKey].forEach(function (m) {{
-                if ((m.timestamp + PAST_GRACE_SEC) >= nowSec) return;  // still live, skip
+            const teamNext = {{}};
+            allByTs.forEach(function (m, idx) {{
                 const h = m.home && m.home.team_id;
                 const a = m.away && m.away.team_id;
-                [h, a].forEach(function (tid) {{
-                    if (!tid) return;
-                    if (teamsCovered[tid]) return;  // team already in liveCurrent
-                    if (droppedTeams[tid]) return;  // already added a follow-up for this team
-                    const cur = teamNext[tid];
-                    if (!cur) return;
-                    const nm = nextMatchForTeam(tid, cur.idx);
-                    if (!nm) return;
-                    // Aug 21 2026 — Max wants the dropped team's NEXT
-                    // match in the championship, period. The opponent
-                    // may be another dropped team (fine, dedupe by
-                    // match_id), the opponent may be a team already
-                    // shown live in the current round (fine, the
-                    // existing row covers the opponent, but this row
-                    // shows the dropped team catching up next), or
-                    // neither. Only block on a real duplicate: the
-                    // follow-up match is already in seenIds because
-                    // some other team pointed at it first.
-                    if (nm.match_id && seenIds[nm.match_id]) return;
-                    if (nm.match_id) seenIds[nm.match_id] = true;
-                    droppedTeams[tid] = true;
-                    nextMatches.push(nm);
-                }});
+                if (h && !teamNext[h]) teamNext[h] = {{ m: m, idx: idx }};
+                if (a && !teamNext[a]) teamNext[a] = {{ m: m, idx: idx }};
             }});
-            nextMatches.sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
+
+            // Aug 22 2026 — Max explicitly asked: Next Matches must
+            // correspond to the postponed round, NOT round 3+. If a
+            // team dropped from current doesn't have a postponed
+            // fixture queued, they're simply skipped here. The reasoning
+            // is that the panel should answer "who's playing next in
+            // the postponed slate", not "show every team's next
+            // fixture regardless of round".
+            //
+            // So additional replacements beyond postponedLive = none.
+            // We just leave teamsCovered + teamsInPostponed to do the
+            // dedupe work.
 
             // ----- Render -----
             const madridFmt = (function () {{
@@ -2587,7 +2611,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
                 return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '  ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
             }}
-
             function renderHeader(label, count, isNext) {{
                 let html = '<div>';
                 html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
@@ -2627,17 +2650,16 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             liveCurrent.forEach(function (m) {{ html += renderMatchRow(m); }});
             html += '</div>';
 
-            // Section 2: next matches for teams whose current-round
-            // match has already passed.
-            if (nextMatches.length > 0) {{
-                html += '<div style="margin-top:6px;font-size:11px;color:#94a3b8;letter-spacing:0.04em;text-transform:uppercase;">Next Matches</div>';
-                nextMatches.forEach(function (m) {{
-                    const label = (m.round && String(m.round).trim()) || '';
-                    html += '<div>';
-                    html += renderHeader(label || '—', 1, false);
-                    html += renderMatchRow(m);
-                    html += '</div></div>';
-                }});
+            // Section 2: postponed-round matches.
+            if (nextRoundKey && postponedLive.length > 0) {{
+                html += '<div>';
+                html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">';
+                html += '<div style="font-size:11px;color:#94a3b8;letter-spacing:0.04em;text-transform:uppercase;">Next Matches</div>';
+                html += '<div style="flex:1;border-bottom:1px solid #1f2b40;"></div>';
+                html += '</div>';
+                html += renderHeader(nextRoundKey, postponedLive.length, false);
+                postponedLive.forEach(function (m) {{ html += renderMatchRow(m); }});
+                html += '</div></div>';
             }}
 
             html += '</div>';
