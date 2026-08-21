@@ -2394,15 +2394,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (footer) footer.textContent = '';
                 return;
             }}
-            // Aug 21 2026 — Render times in the same timezone the Match-mode
-            // dropdown uses. The /api/fixtures/{{team_id}} endpoint (which
-            // backs the Match selector) formats times as "dd.mm HH:MM"
-            // from the Flashscore `time` field, which is local Spain time
-            // (CEST in summer = UTC+2, CET in winter = UTC+1). To stay
-            // consistent with that, we render the Predicted 11 times
-            // using `Intl.DateTimeFormat(\'en-GB\', {{ timeZone: \'Europe/Madrid\' }})`
-            // so the user sees the same HH:MM regardless of their browser
-            // timezone.
+            // Aug 21 2026 — group by round instead of by date. Each round
+            // gets its own section header so the user sees "next round
+            // + future unplayed rounds" as separate blocks instead of one
+            // flat list. The backend pre-sorts the round labels so Round
+            // 1 → Round 2 → ... comes out in chronological order. If a
+            // match has no round yet (rare; background thread may still
+            // be resolving) it lands in a generic "Upcoming" section at
+            // the bottom.
             const madridFmt = (function () {{
                 try {{
                     return new Intl.DateTimeFormat('en-GB', {{
@@ -2414,46 +2413,57 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     return null;
                 }}
             }})();
-            // Group by date (dd.mm) — also in Europe/Madrid.
-            const groups = {{}};
-            fixtures.forEach(function (m) {{
-                const ts = m.timestamp;
-                if (!ts) return;
+            function extractTime(ts) {{
                 const d = new Date(ts * 1000);
                 const parts = madridFmt ? madridFmt.formatToParts(d) : null;
-                let dayKey, hh, mm;
                 if (parts) {{
                     const map = {{}};
                     parts.forEach(function (p) {{ map[p.type] = p.value; }});
-                    dayKey = (map.day || '00') + '.' + (map.month || '00');
-                    hh = map.hour || '00';
-                    mm = map.minute || '00';
-                }} else {{
-                    // Fallback — render in the user's local timezone. Not
-                    // ideal but at least the page is functional.
-                    dayKey = pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1);
-                    hh = pad2(d.getHours());
-                    mm = pad2(d.getMinutes());
+                    return (map.day || '00') + '.' + (map.month || '00') + '  ' + (map.hour || '00') + ':' + (map.minute || '00');
                 }}
-                if (!groups[dayKey]) groups[dayKey] = [];
-                groups[dayKey].push({{ m: m, ts: ts, time: hh + ':' + mm }});
+                return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '  ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+            }}
+            // Group fixtures by round.
+            const groups = {{}};
+            fixtures.forEach(function (m) {{
+                let key = (m.round || '').trim();
+                if (!key) key = '__upcoming__';
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(m);
             }});
-            const dayKeys = Object.keys(groups);
-            let html = '<div style="display:flex;flex-direction:column;gap:12px;">';
-            dayKeys.forEach(function (dk) {{
-                const items = groups[dk];
+            // Sort round keys chronologically.
+            const roundKeys = Object.keys(groups).sort(function (a, b) {{
+                if (a === '__upcoming__') return 1;
+                if (b === '__upcoming__') return -1;
+                const na = parseInt((a.match(/\d+/) || ['999'])[0], 10);
+                const nb = parseInt((b.match(/\d+/) || ['999'])[0], 10);
+                if (na !== nb) return na - nb;
+                return a.localeCompare(b);
+            }});
+            const nextRoundKey = roundKeys[0] || '';
+            let html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+            roundKeys.forEach(function (rk) {{
+                const items = groups[rk];
+                const isNext = (rk === nextRoundKey);
+                const headerLabel = (rk === '__upcoming__') ? 'Upcoming (round pending)' : rk;
                 html += '<div>';
-                html += '<div style="font-size:12px;color:#60a5fa;font-weight:600;margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">' + dk + '</div>';
+                html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+                html += '<div style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(headerLabel) + '</div>';
+                if (isNext && rk !== '__upcoming__') {{
+                    html += '<span style="font-size:10px;background:#22c55e;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NEXT</span>';
+                }}
+                html += '<div style="flex:1;border-bottom:1px solid #1f2b40;"></div>';
+                html += '<div style="font-size:11px;color:#64748b;">' + items.length + ' match' + (items.length === 1 ? '' : 'es') + '</div>';
+                html += '</div>';
                 html += '<div style="display:flex;flex-direction:column;gap:6px;">';
-                items.forEach(function (item) {{
-                    const m = item.m;
+                items.forEach(function (m) {{
                     const homeName = (m.home && m.home.name) || '?';
                     const awayName = (m.away && m.away.name) || '?';
                     const homeImg = (m.home && m.home.image) || '';
                     const awayImg = (m.away && m.away.image) || '';
-                    const time = item.time || '??:??';
+                    const time = extractTime(m.timestamp);
                     html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
-                    html += '<span style="font-size:13px;color:#94a3b8;min-width:42px;font-variant-numeric:tabular-nums;">' + time + '</span>';
+                    html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
                     html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
                     if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
                     html += '<span style="font-weight:600;">' + _escapeText(homeName) + '</span>';
@@ -2474,7 +2484,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 footer.textContent = 'Aggregated from ' + teamCount + ' LaLiga teams · cached ' + fetchedStr;
             }}
         }}
-
         function _escapeText(s) {{
             return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {{
                 return {{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }}[c];

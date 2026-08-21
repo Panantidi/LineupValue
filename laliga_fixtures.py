@@ -1,5 +1,5 @@
 """
-Spain LaLiga fixtures aggregator — feeds the 🔮 Predicted 11 header button.
+Spain LaLiga fixtures aggregator — feeds the 🔮 Predicted XI header button.
 
 Aug 21 2026 — new module.
 
@@ -13,10 +13,15 @@ deduplicated by `match_id` (Barcelona vs Elche appears in both
 Barcelona's and Elche's /teams/fixtures payload) and sorted ascending
 by timestamp.
 
-Cached for CACHE_TTL_SECONDS (24h) in
-/home/openclaw/.openclaw/workspace/_laliga_fixtures.json so we don't
-hammer RapidAPI with 20 sequential calls every time someone opens the
-button.
+The /teams/fixtures payload does NOT carry round information — for
+that we additionally hit /matches/details per unique match_id, which
+returns `tournament.name` like "LaLiga - Round 2". The round value
+for each match is cached on disk in
+/home/openclaw/.openclaw/workspace/_match_round_cache.json so we
+don't hit the API for the same match repeatedly. Round lookups for
+matches not yet in the cache happen on a daemon thread so the
+user-facing response returns in <2s; the panel reloads the round
+labels on the next visit (24h TTL on the assembled fixtures cache).
 
 API-only — no HTML scraping, no Soccerway.
 """
@@ -24,6 +29,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import threading
 import time
 import urllib.request
 
@@ -37,16 +44,22 @@ HEADERS = {
 }
 
 CACHE_DIR = "/home/openclaw/.openclaw/workspace"
-CACHE_TTL_SECONDS = 24 * 60 * 60  # 24h
-MAX_FIXTURES_RETURN = 10  # user asked for next matches — keep panel compact
+FIXTURES_CACHE_TTL_SECONDS = 24 * 60 * 60  # 24h for assembled payload
+ROUND_CACHE_FILE = os.path.join(CACHE_DIR, "_match_round_cache.json")
+# Aug 21 2026 — bumped from 10 to 30 to cover 2-3 future rounds (10
+# matches per LaLiga round × ~3 rounds).
+MAX_FIXTURES_RETURN = 30
 
 
-def _cache_path():
+# ---------------------------------------------------------------------------
+# Cache helpers — assembled fixtures (24h TTL)
+# ---------------------------------------------------------------------------
+def _fixtures_cache_path():
     return os.path.join(CACHE_DIR, "_laliga_fixtures.json")
 
 
-def _read_cache():
-    path = _cache_path()
+def _read_fixtures_cache():
+    path = _fixtures_cache_path()
     if not os.path.exists(path):
         return None
     try:
@@ -56,8 +69,8 @@ def _read_cache():
         return None
 
 
-def _write_cache(data: dict) -> None:
-    path = _cache_path()
+def _write_fixtures_cache(data: dict) -> None:
+    path = _fixtures_cache_path()
     tmp = path + ".tmp"
     with open(tmp, "w") as f:
         json.dump(data, f, ensure_ascii=False)
@@ -65,27 +78,56 @@ def _write_cache(data: dict) -> None:
 
 
 def _is_fresh() -> bool:
-    path = _cache_path()
+    path = _fixtures_cache_path()
     if not os.path.exists(path):
         return False
     age = time.time() - os.path.getmtime(path)
-    return age < CACHE_TTL_SECONDS
+    return age < FIXTURES_CACHE_TTL_SECONDS
 
 
-# All 20 LaLiga teams. Source: leagues_data.json → Spain → LaLiga (Aug 21 2026).
-# The slug is not needed — /teams/fixtures only takes ?team_id=<id>.
-LALIGA_TEAM_IDS = [
-    "hxt57t2q",   # Alaves
-    "IP5zl0cJ",   # Ath Bilbao
-    "jaarqpLQ",   # Atl. Madrid
-    "SKbpVP5K",   # Barcelona
-    "vJbTeCGP",   # Betis
-    "8pvUZFhf",   # Celta Vigo
-    "hxt57t2q",   # (duplicate guard; will dedupe later)
-    # The rest are loaded from leagues_data.json on first cache miss.
-]
+# ---------------------------------------------------------------------------
+# Round lookup cache (persistent, no TTL — match_id never re-assigned)
+# ---------------------------------------------------------------------------
+def _read_round_cache() -> dict:
+    if not os.path.exists(ROUND_CACHE_FILE):
+        return {}
+    try:
+        with open(ROUND_CACHE_FILE) as f:
+            return json.load(f) or {}
+    except Exception:
+        return {}
 
 
+def _write_round_cache(cache: dict) -> None:
+    tmp = ROUND_CACHE_FILE + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(cache, f, ensure_ascii=False)
+    os.replace(tmp, ROUND_CACHE_FILE)
+
+
+def _parse_round_label(name: str) -> str:
+    """Extract a sortable round label from "LaLiga - Round 2" etc.
+
+    Aug 21 2026 — Flashscore's tournament.name for match details is a
+    free-form string. Common patterns seen in production:
+        "LaLiga - Round 2"
+        "LaLiga - Round 22"
+        "LaLiga2 - Round 1"   (Segunda)
+        "LaLiga - Play Offs"  (when the season has them)
+    We pull the numeric token out so the JS layer can sort rounds
+    chronologically.
+    """
+    if not name:
+        return ""
+    m = re.search(r"[Rr]ound\s+(\d+)", name)
+    if m:
+        return "Round " + m.group(1)
+    return name.strip()
+
+
+# ---------------------------------------------------------------------------
+# LaLiga team ids
+# ---------------------------------------------------------------------------
 def _load_laliga_team_ids():
     """Read LaLiga team ids from leagues_data.json (authoritative)."""
     leagues_file = os.path.join(
@@ -105,6 +147,9 @@ def _load_laliga_team_ids():
         return None
 
 
+# ---------------------------------------------------------------------------
+# API helpers
+# ---------------------------------------------------------------------------
 def _fetch_team_fixtures(team_id: str):
     """Hit /teams/fixtures for one team. Returns parsed list (or None)."""
     url = f"https://{HOST}/api/flashscore/v2/teams/fixtures?team_id={team_id}"
@@ -117,6 +162,18 @@ def _fetch_team_fixtures(team_id: str):
         return None
 
 
+def _fetch_match_details(match_id: str):
+    """Hit /matches/details for one match. Returns parsed dict (or None)."""
+    url = f"https://{HOST}/api/flashscore/v2/matches/details?match_id={match_id}"
+    req = urllib.request.Request(url, headers=HEADERS)
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read())
+    except Exception as e:
+        print(f"[laliga_fixtures] match details error for {match_id}: {e}")
+        return None
+
+
 def _laliga_matches_from_team_response(team_id: str, raw):
     """Pull just the LaLiga matches from a /teams/fixtures response."""
     if not isinstance(raw, list):
@@ -125,7 +182,6 @@ def _laliga_matches_from_team_response(team_id: str, raw):
     for tournament in raw:
         if not isinstance(tournament, dict):
             continue
-        # Identify the LaLiga tournament by name + country, or by URL.
         name = (tournament.get("name") or "").strip()
         country = (tournament.get("country_name") or "").strip().lower()
         url = (tournament.get("tournament_url") or "").strip()
@@ -160,22 +216,52 @@ def _laliga_matches_from_team_response(team_id: str, raw):
     return out
 
 
-def get_laliga_fixtures(force: bool = False) -> dict:
-    """Return the next MAX_FIXTURES_RETURN LaLiga matches.
+def _resolve_round(match_id: str, round_cache: dict) -> str:
+    """Look up (or fetch) the round label for one match_id."""
+    if not match_id:
+        return ""
+    if match_id in round_cache and round_cache[match_id]:
+        return round_cache[match_id]
+    details = _fetch_match_details(match_id)
+    if not details:
+        # Cache the empty string too so we don't hammer the API if
+        # the endpoint is temporarily flaky.
+        round_cache[match_id] = ""
+        return ""
+    tournament = (details.get("tournament") or {})
+    label = _parse_round_label(tournament.get("name") or "")
+    round_cache[match_id] = label
+    return label
 
-    Reads from cache when fresh. On miss/stale, hits the API for every
-    LaLiga team and aggregates.
+
+# ---------------------------------------------------------------------------
+# Public entry point
+# ---------------------------------------------------------------------------
+def get_laliga_fixtures(force: bool = False) -> dict:
+    """Return up to MAX_FIXTURES_RETURN upcoming LaLiga matches, each
+    with a `round` field attached (when known).
+
+    Aug 21 2026 — restructured for speed. Previously we did up to 30
+    sequential /matches/details calls inside the request handler, which
+    could take >60s and time out. Now:
+      1) If the on-disk fixtures cache is fresh (24h), return it
+         immediately. No network calls.
+      2) Otherwise assemble the aggregated fixtures list (20 teams × 1
+         /teams/fixtures call each, ~1-2s), persist that list to disk
+         with whatever rounds we already have from the round cache,
+         and return it within a second. Missing rounds are filled as
+         empty strings.
+      3) A separate background helper fills in missing rounds over
+         time and rewrites the on-disk fixtures cache.
     """
     if not force and _is_fresh():
-        cached = _read_cache()
+        cached = _read_fixtures_cache()
         if cached and cached.get("fixtures"):
             return cached
 
     team_ids = _load_laliga_team_ids()
     if not team_ids:
-        # Cache whatever stale state we have so the UI can still render
-        # a meaningful error message.
-        cached = _read_cache()
+        cached = _read_fixtures_cache()
         if cached:
             return cached
         return {
@@ -184,6 +270,7 @@ def get_laliga_fixtures(force: bool = False) -> dict:
             "error": "leagues_data.json missing or unreadable",
         }
 
+    # 1) Aggregate from /teams/fixtures for each LaLiga team.
     seen = set()
     aggregated = []
     for team_id in team_ids:
@@ -197,14 +284,71 @@ def get_laliga_fixtures(force: bool = False) -> dict:
             seen.add(mid)
             aggregated.append(m)
 
-    # Sort by timestamp, keep the soonest N.
     aggregated.sort(key=lambda x: x.get("timestamp") or 0)
-    next_matches = aggregated[:MAX_FIXTURES_RETURN]
+
+    # 2) Stamp known rounds from disk cache immediately; leave unknown
+    #    ones with empty string for now.
+    round_cache = _read_round_cache()
+    for m in aggregated:
+        mid = m.get("match_id")
+        m["round"] = round_cache.get(mid, "") if mid else ""
+
+    trimmed = aggregated[:MAX_FIXTURES_RETURN]
 
     payload = {
-        "fixtures": next_matches,
+        "fixtures": trimmed,
         "team_count": len(team_ids),
         "fetched_at": time.time(),
     }
-    _write_cache(payload)
+    _write_fixtures_cache(payload)
+
+    # 3) Kick off background round resolution for matches we still
+    #    don't know. Returns instantly; the user-facing response is
+    #    already on its way back to the browser.
+    threading.Thread(
+        target=_background_resolve_rounds,
+        args=(trimmed,),
+        daemon=True,
+    ).start()
+
     return payload
+
+
+def _background_resolve_rounds(fixtures: list) -> None:
+    """Fill in the round field for matches missing it.
+
+    Aug 21 2026 — runs on a daemon thread so it doesn't block the
+    FastAPI response. Walks the fixtures list, fetches /matches/details
+    for the ones still missing a round, updates the on-disk round
+    cache and the on-disk fixtures cache, then exits.
+    """
+    try:
+        round_cache = _read_round_cache()
+        updated = False
+        for m in fixtures:
+            mid = m.get("match_id")
+            if not mid:
+                continue
+            if mid in round_cache and round_cache[mid]:
+                continue
+            label = _resolve_round(mid, round_cache)
+            if label:
+                m["round"] = label
+                updated = True
+            # Tiny sleep to be polite to the upstream API.
+            time.sleep(0.05)
+        if updated:
+            _write_round_cache(round_cache)
+            # Refresh the fixtures cache with the round labels.
+            cached = _read_fixtures_cache() or {}
+            cached_fixtures = cached.get("fixtures") or []
+            label_by_id = {x.get("match_id"): x.get("round", "") for x in fixtures}
+            for cf in cached_fixtures:
+                mid = cf.get("match_id")
+                if mid in label_by_id and not cf.get("round"):
+                    cf["round"] = label_by_id[mid]
+                    updated = True
+            if updated:
+                _write_fixtures_cache(cached)
+    except Exception as e:
+        print(f"[laliga_fixtures] background resolve error: {e}")
