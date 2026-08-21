@@ -2394,15 +2394,49 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (footer) footer.textContent = '';
                 return;
             }}
-            // Group by date (dd.mm)
+            // Aug 21 2026 — Render times in the same timezone the Match-mode
+            // dropdown uses. The /api/fixtures/{{team_id}} endpoint (which
+            // backs the Match selector) formats times as "dd.mm HH:MM"
+            // from the Flashscore `time` field, which is local Spain time
+            // (CEST in summer = UTC+2, CET in winter = UTC+1). To stay
+            // consistent with that, we render the Predicted 11 times
+            // using `Intl.DateTimeFormat(\'en-GB\', {{ timeZone: \'Europe/Madrid\' }})`
+            // so the user sees the same HH:MM regardless of their browser
+            // timezone.
+            const madridFmt = (function () {{
+                try {{
+                    return new Intl.DateTimeFormat('en-GB', {{
+                        timeZone: 'Europe/Madrid',
+                        day: '2-digit', month: '2-digit',
+                        hour: '2-digit', minute: '2-digit', hour12: false,
+                    }});
+                }} catch (e) {{
+                    return null;
+                }}
+            }})();
+            // Group by date (dd.mm) — also in Europe/Madrid.
             const groups = {{}};
             fixtures.forEach(function (m) {{
                 const ts = m.timestamp;
                 if (!ts) return;
                 const d = new Date(ts * 1000);
-                const dayKey = pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1);
+                const parts = madridFmt ? madridFmt.formatToParts(d) : null;
+                let dayKey, hh, mm;
+                if (parts) {{
+                    const map = {{}};
+                    parts.forEach(function (p) {{ map[p.type] = p.value; }});
+                    dayKey = (map.day || '00') + '.' + (map.month || '00');
+                    hh = map.hour || '00';
+                    mm = map.minute || '00';
+                }} else {{
+                    // Fallback — render in the user's local timezone. Not
+                    // ideal but at least the page is functional.
+                    dayKey = pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1);
+                    hh = pad2(d.getHours());
+                    mm = pad2(d.getMinutes());
+                }}
                 if (!groups[dayKey]) groups[dayKey] = [];
-                groups[dayKey].push({{ m: m, ts: ts, d: d }});
+                groups[dayKey].push({{ m: m, ts: ts, time: hh + ':' + mm }});
             }});
             const dayKeys = Object.keys(groups);
             let html = '<div style="display:flex;flex-direction:column;gap:12px;">';
@@ -2417,7 +2451,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     const awayName = (m.away && m.away.name) || '?';
                     const homeImg = (m.home && m.home.image) || '';
                     const awayImg = (m.away && m.away.image) || '';
-                    const time = pad2(item.d.getHours()) + ':' + pad2(item.d.getMinutes());
+                    const time = item.time || '??:??';
                     html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
                     html += '<span style="font-size:13px;color:#94a3b8;min-width:42px;font-variant-numeric:tabular-nums;">' + time + '</span>';
                     html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
