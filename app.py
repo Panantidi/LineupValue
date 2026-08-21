@@ -2695,7 +2695,166 @@ async def lineup_api_laliga_fixtures():
     """
     import laliga_fixtures
     data = laliga_fixtures.get_laliga_fixtures()
+    # Aug 22 2026 — fold in per-match predicted XI status so the
+    # panel can render the голубой чекбокс without a second fetch.
+    try:
+        import predicted_xi
+        for m in data.get('fixtures', []):
+            mid = m.get('match_id') or ''
+            if not mid:
+                continue
+            cached = predicted_xi.get_match_xi(mid)
+            if cached:
+                m['pxi_home_matched'] = sum(1 for p in cached.get('home_players', []) if p.get('matched'))
+                m['pxi_away_matched'] = sum(1 for p in cached.get('away_players', []) if p.get('matched'))
+                m['pxi_home_total'] = len(cached.get('home_players', []))
+                m['pxi_away_total'] = len(cached.get('away_players', []))
+            else:
+                m['pxi_home_matched'] = 0
+                m['pxi_away_matched'] = 0
+                m['pxi_home_total'] = 0
+                m['pxi_away_total'] = 0
+    except Exception:
+        pass
     return JSONResponse(content=data, status_code=200)
+
+
+@app.get("/lineup_ai/api/predicted_xi/{match_id}")
+async def lineup_api_predicted_xi(match_id: str, refresh: int = 0):
+    """Predicted XI for a single match from futbolfantasy.
+
+    Aug 22 2026. Used by compare_template autopxi URL handler to set
+    .xi-checkbox checked state. Returns LV player_ids ready to match
+    the <input type="checkbox" name="possible_xi" value="NAME">
+    rows in the compare view.
+
+    Query params:
+        refresh=1   bypass cache and re-fetch from futbolfantasy.
+    """
+    import predicted_xi
+    cached = None if refresh else predicted_xi.get_match_xi(match_id)
+    if cached:
+        return {
+            'match_id': match_id,
+            'home_team_id': cached.get('home_team_id'),
+            'away_team_id': cached.get('away_team_id'),
+            'home_players': cached.get('home_players', []),
+            'away_players': cached.get('away_players', []),
+            'home_count': sum(1 for p in cached.get('home_players', []) if p.get('matched')),
+            'away_count': sum(1 for p in cached.get('away_players', []) if p.get('matched')),
+            'source': 'cache',
+            'fetched_at': cached.get('fetched_at'),
+        }
+    return {
+        'match_id': match_id,
+        'home_players': [],
+        'away_players': [],
+        'home_count': 0,
+        'away_count': 0,
+        'source': 'none',
+        'error': 'not in cache yet — T-18:00 fetch not run for this match',
+    }
+
+
+@app.post("/lineup_ai/api/predicted_xi/{match_id}/refresh")
+async def lineup_api_predicted_xi_refresh(match_id: str):
+    """Force-refresh a single match's predicted XI.
+
+    Called from the front-end when the user opens 🔮 Predicted XI and
+    a match has 0/11 matched — kicks a fresh futbolfantasy fetch in
+    the background and returns immediately.
+    """
+    import threading
+    import predicted_xi
+    import laliga_fixtures
+
+    def _bg():
+        try:
+            m = next((x for x in laliga_fixtures.get_laliga_fixtures().get('fixtures', [])
+                      if x.get('match_id') == match_id), None)
+            if not m:
+                return
+            home_id = m.get('home_team', {}).get('id')
+            away_id = m.get('away_team', {}).get('id')
+            slug = (m.get('pxi_slug') or '')
+            ff_id = (m.get('pxi_ff_id') or '')
+            if not (home_id and away_id and slug and ff_id):
+                return
+            home_lv = _load_lv_players(home_id)
+            away_lv = _load_lv_players(away_id)
+            predicted_xi.build_match_cache(
+                championship='laliga',
+                match_id=match_id,
+                ff_id=ff_id, slug=slug,
+                home_team_id=home_id, away_team_id=away_id,
+                kickoff_ts=int(m.get('timestamp') or 0),
+                home_lv_players=home_lv, away_lv_players=away_lv,
+            )
+        except Exception as e:
+            print(f'predicted_xi refresh error for {match_id}: {e}')
+
+    threading.Thread(target=_bg, daemon=True).start()
+    return {'match_id': match_id, 'queued': True}
+
+
+def _load_lv_players(team_id: str) -> list:
+    """Aug 22 2026 — pull the cached LineupValue squad for predicted_xi matching."""
+    p = f'/home/openclaw/.openclaw/workspace/_live_cache_{team_id}.json'
+    if not os.path.exists(p):
+        return []
+    try:
+        with open(p, encoding='utf-8') as f:
+            d = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+    return d.get('players') or d.get('squad') or []
+
+
+@app.get("/lineup_ai/api/predicted_xi_status/{team_id}")
+async def lineup_api_predicted_xi_status(team_id: str):
+    """Aug 22 2026 — aggregate predicted XI counts for the active round.
+
+    For each match in the next round that includes this team, return:
+        {match_id, home_team_id, away_team_id, home_count, away_count,
+         home_11/away_11 (bool — 11 matched)}
+
+    The Predicted XI panel polls this to decide when to render the
+    голубой чекбокс ✓.
+    """
+    import predicted_xi
+    import laliga_fixtures
+    try:
+        data = laliga_fixtures.get_laliga_fixtures()
+    except Exception:
+        return JSONResponse(content={'team_id': team_id, 'matches': []}, status_code=200)
+    out = []
+    for m in data.get('fixtures', []):
+        ht_id = (m.get('home_team') or {}).get('id') or m.get('home', {}).get('team_id') or ''
+        at_id = (m.get('away_team') or {}).get('id') or m.get('away', {}).get('team_id') or ''
+        if team_id not in (ht_id, at_id) or not team_id:
+            continue
+        mid = m.get('match_id') or ''
+        cached = predicted_xi.get_match_xi(mid) if mid else None
+        if cached:
+            hc = sum(1 for p in cached.get('home_players', []) if p.get('matched'))
+            ac = sum(1 for p in cached.get('away_players', []) if p.get('matched'))
+            ht_total = len(cached.get('home_players', []))
+            at_total = len(cached.get('away_players', []))
+        else:
+            hc = ac = 0
+            ht_total = at_total = 0
+        out.append({
+            'match_id': mid,
+            'home_team_id': ht_id,
+            'away_team_id': at_id,
+            'home_count': hc,
+            'away_count': ac,
+            'home_total': ht_total,
+            'away_total': at_total,
+            'home_11': hc == 11 and ht_total == 11,
+            'away_11': ac == 11 and at_total == 11,
+        })
+    return JSONResponse(content={'team_id': team_id, 'matches': out}, status_code=200)
 
 
 @app.get("/lineup_ai/api/per_tournament/{team_id}")
@@ -5494,6 +5653,76 @@ def scheduler_start():
         misfire_grace_time=120,
         replace_existing=True,
     )
+
+    # Aug 22 2026 — Predicted XI T-18:00 scheduler.
+    # Every 5 minutes, scan the next LaLiga round. For each match whose
+    # kickoff is in [now, now + 18h] AND cache is missing/stale,
+    # fetch futbolfantasy and write _predicted_xi_<match_id>.json.
+    def _predicted_xi_team_id_to_name(team_id):
+        if not team_id:
+            return ''
+        try:
+            with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+                leagues = json.load(f)
+        except Exception:
+            return ''
+        for _country, _ldict in leagues.items():
+            for _lname, _teams in _ldict.items():
+                for _team in _teams:
+                    if _team.get('id') == team_id:
+                        return _team.get('name') or ''
+        return ''
+
+    def _predicted_xi_cycle():
+        try:
+            import predicted_xi
+            import laliga_fixtures
+            data = laliga_fixtures.get_laliga_fixtures()
+            now = int(time.time())
+            horizon = now + 18 * 3600
+            for m in data.get('fixtures', []):
+                ts = int(m.get('timestamp') or 0)
+                if not ts or ts < now - 600 or ts > horizon:
+                    continue
+                mid = m.get('match_id') or ''
+                if not mid:
+                    continue
+                cached = predicted_xi.get_match_xi(mid)
+                if cached:
+                    continue
+                home_id = m.get('home_team', {}).get('id')
+                away_id = m.get('away_team', {}).get('id')
+                home_name = _predicted_xi_team_id_to_name(home_id).lower()
+                away_name = _predicted_xi_team_id_to_name(away_id).lower()
+                ff_match = next((x for x in predicted_xi.parse_round_matches('laliga')
+                                 if x.get('home', '').lower() == home_name
+                                 and x.get('away', '').lower() == away_name), None)
+                if not ff_match:
+                    continue
+                home_lv = _load_lv_players(home_id)
+                away_lv = _load_lv_players(away_id)
+                predicted_xi.build_match_cache(
+                    championship='laliga',
+                    match_id=mid,
+                    ff_id=ff_match['ff_id'], slug=ff_match['slug'],
+                    home_team_id=home_id, away_team_id=away_id,
+                    kickoff_ts=ts,
+                    home_lv_players=home_lv, away_lv_players=away_lv,
+                )
+                print(f'predicted_xi cached {mid} {home_id} vs {away_id}')
+        except Exception as ex:
+            print(f'predicted_xi_cycle error: {ex}')
+
+    scheduler.add_job(
+        _predicted_xi_cycle,
+        CronTrigger(minute='*/5', timezone='Europe/Moscow'),
+        id='predicted_xi_cycle',
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=120,
+        replace_existing=True,
+    )
+
     _scheduler_started = True
 
 
