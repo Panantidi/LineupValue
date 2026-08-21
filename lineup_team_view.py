@@ -2394,14 +2394,178 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (footer) footer.textContent = '';
                 return;
             }}
-            // Aug 21 2026 — group by round instead of by date. Each round
-            // gets its own section header so the user sees "next round
-            // + future unplayed rounds" as separate blocks instead of one
-            // flat list. The backend pre-sorts the round labels so Round
-            // 1 → Round 2 → ... comes out in chronological order. If a
-            // match has no round yet (rare; background thread may still
-            // be resolving) it lands in a generic "Upcoming" section at
-            // the bottom.
+            // Aug 21 2026 — Predicted XI show rules.
+            //
+            // Step 1: Drop "past" matches. A match is past if
+            //   timestamp + 10 minutes < now.
+            //   Real Madrid vs Real Sociedad 26 Aug 21:00 → past if today
+            //   is 26 Aug 21:11 or later; we drop it.
+            //
+            // Step 2: Find the round whose earliest remaining match is
+            //   the soonest overall — that round is the "current round"
+            //   and we render its matches first.
+            //
+            // Step 3: For each home team / away team whose match was
+            //   dropped in step 1, look ahead in the payload for the
+            //   next fixture involving the same team and append it as a
+            //   follow-up section labelled "Next Matches". Teams that
+            //   had a not-yet-started match in the current round are
+            //   skipped (they're already shown). Teams whose only
+            //   upcoming match is in the current round but has already
+            //   started are also skipped (no later match to show).
+            //
+            // Step 4: Dedupe by match_id (the original dropped match is
+            //   gone, but two teams might both point at the same next
+            //   match — drop the duplicate).
+            const nowSec = Math.floor(Date.now() / 1000);
+            const PAST_GRACE_SEC = 10 * 60;
+
+            // Index fixtures by round, preserving timestamp order.
+            const byRound = {{}};
+            fixtures.forEach(function (m) {{
+                const rk = (m.round && String(m.round).trim()) || '__upcoming__';
+                if (!byRound[rk]) byRound[rk] = [];
+                byRound[rk].push(m);
+            }});
+
+            // Sort rounds so Round 1 → 2 → 3 numerically.
+            const sortRound = function (a, b) {{
+                if (a === '__upcoming__') return 1;
+                if (b === '__upcoming__') return -1;
+                const na = parseInt((a.match(/\d+/) || ['999'])[0], 10);
+                const nb = parseInt((b.match(/\d+/) || ['999'])[0], 10);
+                if (na !== nb) return na - nb;
+                return a.localeCompare(b);
+            }};
+            const allRoundKeys = Object.keys(byRound).sort(sortRound);
+
+            // Index every fixture by team_id so we can resolve
+            // "next match for team X" in O(1) per team. The whole
+            // fixtures[] list is already sorted by timestamp in the
+            // backend, but we sort again here to be defensive.
+            const teamNext = {{}};   // team_id -> {m, idx} of the soonest fixture for that team
+            const allByTs = fixtures.slice().sort(function (a, b) {{
+                return (a.timestamp || 0) - (b.timestamp || 0);
+            }});
+            allByTs.forEach(function (m, idx) {{
+                const h = m.home && m.home.team_id;
+                const a = m.away && m.away.team_id;
+                if (h && !teamNext[h]) teamNext[h] = {{ m: m, idx: idx }};
+                if (a && !teamNext[a]) teamNext[a] = {{ m: m, idx: idx }};
+            }});
+
+            // Step 1+2: pick the round whose earliest live match has
+            // the smallest timestamp. This is what Max asked for —
+            // "ближайшие по дате и туру, приоритет сначала дата".
+            // Live = starts in the future OR started within the last
+            // 10 minutes.
+            let currentRoundKey = '';
+            let currentRoundEarliest = Infinity;
+            allRoundKeys.forEach(function (rk) {{
+                const liveMatches = byRound[rk].filter(function (m) {{
+                    return (m.timestamp + PAST_GRACE_SEC) >= nowSec;
+                }});
+                if (liveMatches.length === 0) return;
+                liveMatches.sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
+                const earliest = liveMatches[0].timestamp || 0;
+                if (earliest < currentRoundEarliest) {{
+                    currentRoundEarliest = earliest;
+                    currentRoundKey = rk;
+                }}
+            }});
+            if (!currentRoundKey) {{
+                // Every match in every round is past — show a polite
+                // empty state rather than nothing.
+                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming LaLiga matches in the cache. Hit Refresh after the next matchday is announced.</div>';
+                if (footer) {{
+                    const teamCount = data.team_count || 0;
+                    footer.textContent = 'Aggregated from ' + teamCount + ' LaLiga teams';
+                }}
+                return;
+            }}
+
+            // Live matches in the current round, sorted by timestamp.
+            const liveCurrent = byRound[currentRoundKey]
+                .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
+                .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
+
+            // Teams that already appear in liveCurrent — no need to
+            // resolve their "next match", they're already on screen.
+            const teamsCovered = {{}};
+            liveCurrent.forEach(function (m) {{
+                if (m.home && m.home.team_id) teamsCovered[m.home.team_id] = true;
+                if (m.away && m.away.team_id) teamsCovered[m.away.team_id] = true;
+            }});
+
+            // Step 1 (cont.) + Step 3: for each team whose current-round
+            // match already passed, look for their next match in the
+            // payload (it could be in the same round later, or in a
+            // later round). We step past the dropped current-round
+            // fixture by index, then take the first fixture for that
+            // team whose index is strictly greater.
+            // We need to know each team's position in allByTs to do
+            // "next fixture AFTER this one".
+            const teamPosInTs = {{}};   // team_id -> array of indices into allByTs
+            allByTs.forEach(function (m, idx) {{
+                const h = m.home && m.home.team_id;
+                const a = m.away && m.away.team_id;
+                if (h) {{
+                    if (!teamPosInTs[h]) teamPosInTs[h] = [];
+                    teamPosInTs[h].push(idx);
+                }}
+                if (a) {{
+                    if (!teamPosInTs[a]) teamPosInTs[a] = [];
+                    teamPosInTs[a].push(idx);
+                }}
+            }});
+            function nextMatchForTeam(teamId, afterIdx) {{
+                const arr = teamPosInTs[teamId];
+                if (!arr) return null;
+                for (let i = 0; i < arr.length; i++) {{
+                    if (arr[i] > afterIdx) return allByTs[arr[i]];
+                }}
+                return null;
+            }}
+
+            // Collect the matches to render in the "Next Matches"
+            // section. Dedupe by match_id and skip anything already
+            // shown in liveCurrent.
+            const seenIds = {{}};
+            liveCurrent.forEach(function (m) {{ if (m.match_id) seenIds[m.match_id] = true; }});
+
+            const nextMatches = [];
+            const droppedTeams = {{}};
+            byRound[currentRoundKey].forEach(function (m) {{
+                if ((m.timestamp + PAST_GRACE_SEC) >= nowSec) return;  // still live, skip
+                const h = m.home && m.home.team_id;
+                const a = m.away && m.away.team_id;
+                [h, a].forEach(function (tid) {{
+                    if (!tid) return;
+                    if (teamsCovered[tid]) return;  // team already in liveCurrent
+                    if (droppedTeams[tid]) return;  // already added a follow-up for this team
+                    const cur = teamNext[tid];
+                    if (!cur) return;
+                    const nm = nextMatchForTeam(tid, cur.idx);
+                    if (!nm) return;
+                    // Aug 21 2026 — Max wants the dropped team's NEXT
+                    // match in the championship, period. The opponent
+                    // may be another dropped team (fine, dedupe by
+                    // match_id), the opponent may be a team already
+                    // shown live in the current round (fine, the
+                    // existing row covers the opponent, but this row
+                    // shows the dropped team catching up next), or
+                    // neither. Only block on a real duplicate: the
+                    // follow-up match is already in seenIds because
+                    // some other team pointed at it first.
+                    if (nm.match_id && seenIds[nm.match_id]) return;
+                    if (nm.match_id) seenIds[nm.match_id] = true;
+                    droppedTeams[tid] = true;
+                    nextMatches.push(nm);
+                }});
+            }});
+            nextMatches.sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
+
+            // ----- Render -----
             const madridFmt = (function () {{
                 try {{
                     return new Intl.DateTimeFormat('en-GB', {{
@@ -2423,60 +2587,62 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
                 return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '  ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
             }}
-            // Group fixtures by round.
-            const groups = {{}};
-            fixtures.forEach(function (m) {{
-                let key = (m.round || '').trim();
-                if (!key) key = '__upcoming__';
-                if (!groups[key]) groups[key] = [];
-                groups[key].push(m);
-            }});
-            // Sort round keys chronologically.
-            const roundKeys = Object.keys(groups).sort(function (a, b) {{
-                if (a === '__upcoming__') return 1;
-                if (b === '__upcoming__') return -1;
-                const na = parseInt((a.match(/\d+/) || ['999'])[0], 10);
-                const nb = parseInt((b.match(/\d+/) || ['999'])[0], 10);
-                if (na !== nb) return na - nb;
-                return a.localeCompare(b);
-            }});
-            const nextRoundKey = roundKeys[0] || '';
-            let html = '<div style="display:flex;flex-direction:column;gap:14px;">';
-            roundKeys.forEach(function (rk) {{
-                const items = groups[rk];
-                const isNext = (rk === nextRoundKey);
-                const headerLabel = (rk === '__upcoming__') ? 'Upcoming (round pending)' : rk;
-                html += '<div>';
+
+            function renderHeader(label, count, isNext) {{
+                let html = '<div>';
                 html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-                html += '<div style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(headerLabel) + '</div>';
-                if (isNext && rk !== '__upcoming__') {{
+                html += '<div style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(label) + '</div>';
+                if (isNext) {{
                     html += '<span style="font-size:10px;background:#22c55e;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NEXT</span>';
                 }}
                 html += '<div style="flex:1;border-bottom:1px solid #1f2b40;"></div>';
-                html += '<div style="font-size:11px;color:#64748b;">' + items.length + ' match' + (items.length === 1 ? '' : 'es') + '</div>';
+                html += '<div style="font-size:11px;color:#64748b;">' + count + ' match' + (count === 1 ? '' : 'es') + '</div>';
                 html += '</div>';
                 html += '<div style="display:flex;flex-direction:column;gap:6px;">';
-                items.forEach(function (m) {{
-                    const homeName = (m.home && m.home.name) || '?';
-                    const awayName = (m.away && m.away.name) || '?';
-                    const homeImg = (m.home && m.home.image) || '';
-                    const awayImg = (m.away && m.away.image) || '';
-                    const time = extractTime(m.timestamp);
-                    html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
-                    html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
-                    html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
-                    if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
-                    html += '<span style="font-weight:600;">' + _escapeText(homeName) + '</span>';
-                    html += '<span style="color:#64748b;font-size:12px;">vs</span>';
-                    if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
-                    html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
-                    html += '</div>';
-                    html += '</div>';
+                return html;
+            }}
+            function renderMatchRow(m) {{
+                const homeName = (m.home && m.home.name) || '?';
+                const awayName = (m.away && m.away.name) || '?';
+                const homeImg = (m.home && m.home.image) || '';
+                const awayImg = (m.away && m.away.image) || '';
+                const time = extractTime(m.timestamp);
+                let html = '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
+                html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
+                html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
+                if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
+                html += '<span style="font-weight:600;">' + _escapeText(homeName) + '</span>';
+                html += '<span style="color:#64748b;font-size:12px;">vs</span>';
+                if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
+                html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
+                html += '</div>';
+                html += '</div>';
+                return html;
+            }}
+
+            let html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+
+            // Section 1: current round live matches.
+            html += renderHeader(currentRoundKey, liveCurrent.length, true);
+            liveCurrent.forEach(function (m) {{ html += renderMatchRow(m); }});
+            html += '</div>';
+
+            // Section 2: next matches for teams whose current-round
+            // match has already passed.
+            if (nextMatches.length > 0) {{
+                html += '<div style="margin-top:6px;font-size:11px;color:#94a3b8;letter-spacing:0.04em;text-transform:uppercase;">Next Matches</div>';
+                nextMatches.forEach(function (m) {{
+                    const label = (m.round && String(m.round).trim()) || '';
+                    html += '<div>';
+                    html += renderHeader(label || '—', 1, false);
+                    html += renderMatchRow(m);
+                    html += '</div></div>';
                 }});
-                html += '</div></div>';
-            }});
+            }}
+
             html += '</div>';
             body.innerHTML = html;
+
             if (footer) {{
                 const teamCount = data.team_count || 0;
                 const fetchedAt = data.fetched_at ? new Date(data.fetched_at * 1000) : null;
