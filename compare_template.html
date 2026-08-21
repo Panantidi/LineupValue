@@ -2064,7 +2064,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (params.get('autopxi') !== '1') return;
         var mid = params.get('mid') || '';
         if (!mid) return;
-        var send = function() {
+        // Defer once so the iframes' own DOMContentLoaded handlers have
+        // a chance to attach their message listener first.
+        setTimeout(function() {
             var frames = document.querySelectorAll('iframe.team-frame');
             for (var i = 0; i < frames.length; i++) {
                 try {
@@ -2074,11 +2076,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     );
                 } catch (e) {}
             }
-        };
-        // Defer slightly so the iframes' own DOMContentLoaded handlers
-        // have a chance to attach their message listener first.
-        setTimeout(send, 600);
-        setTimeout(send, 1800);
+        }, 600);
     } catch (e) { /* silent */ }
 });
 </script>

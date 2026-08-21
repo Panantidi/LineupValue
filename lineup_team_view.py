@@ -3792,44 +3792,62 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
         // Aug 22 2026 — when the compare-mode parent posts
-        // {{type:'applyPredictedXI', match_id}}, fetch the cached XI for
-        // this match and tick the matching .xi-checkbox rows. Only the
-        // rows whose squad player name appears in the cached XI get
-        // checked. Does NOT call any save endpoint.
+        // {{type:'applyPredictedXI', match_id}}, refresh the LV squad
+        // for this team BEFORE matching — data freshness matters, the
+        // panel users expect P-XI to use the latest squad state, not
+        // yesterday's cached one. Refresh = same call the ♻️ button
+        // makes (/lineup_ai/api/fetch/<TEAM_ID>) but without the page
+        // reload that updateData() triggers. Then fetch the cached XI
+        // and tick the matching .xi-checkbox rows. Does NOT call any
+        // save endpoint.
         function _applyPredictedXIIframe(match_id) {{
-            fetch('/lineup_ai/api/predicted_xi/' + encodeURIComponent(match_id))
-                .then(function(r){{ return r.json(); }})
-                .then(function(d) {{
-                    if (!d || !d.match_id) return;
-                    var target = (d.home_players || []).concat(d.away_players || [])
-                        .map(function(p){{ return (p.lv_name || '').toLowerCase().trim(); }})
-                        .filter(function(n){{ return !!n; }});
-                    if (!target.length) return;
-                    var applied = 0;
-                    var cbs = document.querySelectorAll('input.xi-checkbox');
-                    for (var i = 0; i < cbs.length; i++) {{
-                        var cb = cbs[i];
-                        var rowName = (cb.value || '').toLowerCase().trim();
-                        if (target.indexOf(rowName) !== -1 && !cb.checked) {{
-                            cb.checked = true;
-                            cb.dispatchEvent(new Event('change', {{bubbles:true}}));
-                            applied++;
+            var refreshThenApply = function() {{
+                fetch('/lineup_ai/api/predicted_xi/' + encodeURIComponent(match_id))
+                    .then(function(r){{ return r.json(); }})
+                    .then(function(d) {{
+                        if (!d || !d.match_id) return;
+                        var target = (d.home_players || []).concat(d.away_players || [])
+                            .map(function(p){{ return (p.lv_name || '').toLowerCase().trim(); }})
+                            .filter(function(n){{ return !!n; }});
+                        if (!target.length) return;
+                        var applied = 0;
+                        var cbs = document.querySelectorAll('input.xi-checkbox');
+                        for (var i = 0; i < cbs.length; i++) {{
+                            var cb = cbs[i];
+                            var rowName = (cb.value || '').toLowerCase().trim();
+                            if (target.indexOf(rowName) !== -1 && !cb.checked) {{
+                                cb.checked = true;
+                                cb.dispatchEvent(new Event('change', {{bubbles:true}}));
+                                applied++;
+                            }}
                         }}
-                    }}
-                    if (applied) updateXICounter();
-                    try {{
-                        if (window.parent && window.parent !== window) {{
-                            window.parent.postMessage({{
-                                type: 'p11-autopxi',
-                                match_id: match_id,
-                                applied: applied,
-                                home_count: d.home_count,
-                                away_count: d.away_count
-                            }}, '*');
-                        }}
-                    }} catch(e) {{}}
-                }})
-                .catch(function(){{}});
+                        if (applied) updateXICounter();
+                        try {{
+                            if (window.parent && window.parent !== window) {{
+                                window.parent.postMessage({{
+                                    type: 'p11-autopxi',
+                                    match_id: match_id,
+                                    applied: applied,
+                                    home_count: d.home_count,
+                                    away_count: d.away_count
+                                }}, '*');
+                            }}
+                        }} catch(e) {{}}
+                    }})
+                    .catch(function(){{}});
+            }};
+            // Aug 22 2026 — refresh this team's squad first, then apply.
+            // Same endpoint the ♻️ Refresh button calls, but without the
+            // page reload that updateData() would trigger. We bail out
+            // if the request fails so the user still sees the cached XI.
+            if (typeof TEAM_ID === 'string' && TEAM_ID) {{
+                fetch('/lineup_ai/api/fetch/' + encodeURIComponent(TEAM_ID) + '?_t=' + Date.now(), {{ cache: 'no-store' }})
+                    .then(function(r){{ return r.ok ? r.json() : Promise.reject('http ' + r.status); }})
+                    .then(function(){{ refreshThenApply(); }})
+                    .catch(function(){{ refreshThenApply(); }});
+            }} else {{
+                refreshThenApply();
+            }}
         }}
         
         // Starting XI counter - red fill, max 11
