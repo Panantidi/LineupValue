@@ -1930,7 +1930,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                  State stored in sessionStorage (per-tab, shared with any open
                  Match-mode iframe on the same tab). Uses the same .header-action-btn
                  class so styling/hover matches the other right-side buttons. -->
-            <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="Show next Spain LaLiga fixtures">🔮 Predicted 11</button>
+            <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="Show next Spain LaLiga fixtures">🔮 Predicted XI</button>
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Hide MV, Squad Role and Impact Score columns">🔽 Collapse Details</button>
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
@@ -2348,7 +2348,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
         }}
         // ===================================================================
-        // 🔮 Predicted 11 — Aug 21 2026
+        // 🔮 Predicted XI — Aug 21 2026
         // Toggles the Spain LaLiga fixtures panel below the header.
         // First open → fetches /lineup_ai/api/laliga_fixtures once, then
         // reuses the cached payload for the rest of the session.
