@@ -2401,23 +2401,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (footer) footer.textContent = '';
                 return;
             }}
-            // Aug 22 2026 — Predicted XI show rules (v4, single-section).
+            // Aug 22 2026 — Predicted XI show rules (v5, all-round dropdown).
             //
-            // Max wants EXACTLY ONE round visible at a time. The active
-            // round flips automatically: when all of round X's matches
-            // are past, the next round (by chronological date, not by
-            // round number — LaLiga's postponed Round 1 sits at 25-27
-            // Aug) becomes active.
+            // Max asked for ALL upcoming rounds to live in the panel,
+            // each in its own collapsable section. By default every
+            // section is collapsed except the "active" round (the one
+            // with the smallest earliest live timestamp — see the
+            // pickActiveRound helper below). Clicking the section
+            // header toggles open/close.
             //
-            // So in real time on 21 Aug the panel shows Round 2 (first
-            // match 21 Aug 21:00). On 25 Aug evening, Round 2 has fully
-            // elapsed and Round 1 (25-27 Aug, postponed) takes over.
-            // On 28 Aug Round 3 (28-31 Aug) takes over, etc.
+            // Within each section, matches are decorated with:
+            //   * team logos (m.home.image, m.away.image)
+            //   * date + time in Europe/Madrid (same as Match mode)
+            //   * round label (header)
+            //   * ▶ Open Match button (already wired last commit)
             //
-            // Past match rule: timestamp + 600s < now → drop.
+            // Past matches (ts + 600s < now) are dropped. Matches that
+            // have not started yet stay. There's no "Next Matches"
+            // sub-section anymore — the chronologically next round
+            // already has its own block.
             const nowSec = Math.floor(Date.now() / 1000);
             const PAST_GRACE_SEC = 10 * 60;
 
+            // Group by round.
             const byRound = {{}};
             fixtures.forEach(function (m) {{
                 const rk = (m.round && String(m.round).trim()) || '__upcoming__';
@@ -2436,30 +2442,26 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }};
             const allRoundKeys = Object.keys(byRound).sort(sortRound);
 
-            // For each round, find its earliest live timestamp (live =
-            // starts in the future OR within the 10-min grace).
+            // Aug 22 2026 — order the displayed rounds by earliest live
+            // timestamp ascending. Round 1's postponed matches sit at
+            // 25-27 Aug chronologically AFTER Round 2's 21-24 Aug, so
+            // the calendar order beats the numeric round order on this
+            // page. Each round gets the matches that are still "live"
+            // (future or within the 10-min grace).
+            const roundMatches = {{}};
             const roundEarliestLiveTs = {{}};
             allRoundKeys.forEach(function (rk) {{
-                const liveTs = byRound[rk]
-                    .map(function (m) {{ return m.timestamp || 0; }})
-                    .filter(function (t) {{ return (t + PAST_GRACE_SEC) >= nowSec; }});
-                roundEarliestLiveTs[rk] = liveTs.length ? Math.min.apply(null, liveTs) : Infinity;
+                const live = byRound[rk]
+                    .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
+                    .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
+                roundMatches[rk] = live;
+                roundEarliestLiveTs[rk] = live.length ? live[0].timestamp : Infinity;
             }});
+            const roundsByDate = allRoundKeys
+                .filter(function (rk) {{ return roundMatches[rk].length > 0; }})
+                .sort(function (a, b) {{ return roundEarliestLiveTs[a] - roundEarliestLiveTs[b]; }});
 
-            // Active round = round with smallest earliest live ts that
-            // still has at least one live match. If multiple rounds
-            // have the same earliest ts (rare), pick by round number.
-            let activeRoundKey = '';
-            let activeRoundEarliest = Infinity;
-            allRoundKeys.forEach(function (rk) {{
-                const e = roundEarliestLiveTs[rk];
-                if (e === Infinity) return;
-                if (e < activeRoundEarliest) {{
-                    activeRoundEarliest = e;
-                    activeRoundKey = rk;
-                }}
-            }});
-            if (!activeRoundKey) {{
+            if (roundsByDate.length === 0) {{
                 body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming LaLiga matches in the cache. Hit Refresh after the next matchday is announced.</div>';
                 if (footer) {{
                     const teamCount = data.team_count || 0;
@@ -2468,13 +2470,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 return;
             }}
 
-            // Single-round view: just the active round's live matches,
-            // sorted by timestamp.
-            const liveActive = byRound[activeRoundKey]
-                .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
-                .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
+            // Active round = first by-date round (closest live match).
+            const activeRoundKey = roundsByDate[0];
 
-            // ----- Render -----
+            // ----- Helpers shared across section renders -----
             const madridFmt = (function () {{
                 try {{
                     return new Intl.DateTimeFormat('en-GB', {{
@@ -2496,17 +2495,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
                 return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '  ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
             }}
-
-            function renderHeader(label, count) {{
-                let html = '<div>';
-                html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-                html += '<div style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(label) + '</div>';
-                html += '<div style="flex:1;border-bottom:1px solid #1f2b40;"></div>';
-                html += '<div style="font-size:11px;color:#64748b;">' + count + ' match' + (count === 1 ? '' : 'es') + '</div>';
-                html += '</div>';
-                html += '<div style="display:flex;flex-direction:column;gap:6px;">';
-                return html;
-            }}
+            function pad2(n) {{ return String(n).padStart(2, '0'); }}
 
             function renderMatchRow(m) {{
                 const homeName = (m.home && m.home.name) || '?';
@@ -2523,10 +2512,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
                 html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
                 html += '</div>';
-                // Aug 22 2026 — Open Match button. Opens the fixture in
-                // Match mode (compare view) in a new tab. URL mirrors
-                // the Match-mode dropdown handler in compare_template.html:
-                //   /lineup_ai/compare/{{home_id}}?mid=...&home_id=...
                 const mid = m.match_id || '';
                 const homeId = (m.home && m.home.team_id) || '';
                 const awayId = (m.away && m.away.team_id) || '';
@@ -2543,15 +2528,75 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 return html;
             }}
 
-            let html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+            function renderSection(rk, expanded, isActive) {{
+                const matches = roundMatches[rk];
+                if (!matches || matches.length === 0) return '';
+                const firstTs = matches[0].timestamp || 0;
+                const lastTs = matches[matches.length - 1].timestamp || 0;
+                const dateRange = (function () {{
+                    const firstDate = new Date(firstTs * 1000);
+                    const lastDate = new Date(lastTs * 1000);
+                    const fmt = function (d) {{
+                        const p = madridFmt ? madridFmt.formatToParts(d) : null;
+                        if (p) {{
+                            const m = {{}};
+                            p.forEach(function (x) {{ m[x.type] = x.value; }});
+                            return (m.day || '00') + '.' + (m.month || '00');
+                        }}
+                        return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1);
+                    }};
+                    const a = fmt(firstDate);
+                    const b = fmt(lastDate);
+                    return (a === b) ? a : a + '–' + b;
+                }})();
+                const sectionId = 'p11-sec-' + encodeURIComponent(rk);
+                let html = '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
+                html += '<div data-toggle="' + sectionId + '" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;background:' + (isActive ? '#0f1a2e' : 'transparent') + ';">';
+                html += '<span data-chevron="' + sectionId + '" style="color:#60a5fa;font-size:14px;transition:transform 0.15s ease;' + (expanded ? 'transform:rotate(90deg);' : '') + '">▶</span>';
+                html += '<div style="flex:1;display:flex;align-items:center;gap:10px;">';
+                html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(rk) + '</span>';
+                if (isActive) {{
+                    html += '<span style="font-size:10px;background:#22c55e;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NEXT</span>';
+                }}
+                html += '<span style="font-size:11px;color:#64748b;font-weight:500;">' + _escapeText(dateRange) + '</span>';
+                html += '</div>';
+                html += '<span style="font-size:11px;color:#64748b;">' + matches.length + ' match' + (matches.length === 1 ? '' : 'es') + '</span>';
+                html += '</div>';
+                html += '<div id="' + sectionId + '" style="' + (expanded ? '' : 'display:none;') + 'padding:10px 14px 14px 14px;background:#0b1020;border-top:1px solid #1f2b40;">';
+                html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+                matches.forEach(function (m) {{ html += renderMatchRow(m); }});
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+                return html;
+            }}
 
-            // Single round at a time, label = active round name.
-            html += renderHeader(activeRoundKey, liveActive.length);
-            liveActive.forEach(function (m) {{ html += renderMatchRow(m); }});
-            html += '</div>';
-
+            // ----- Render -----
+            let html = '<div id="p11-sections" style="display:flex;flex-direction:column;gap:8px;">';
+            roundsByDate.forEach(function (rk, idx) {{
+                html += renderSection(rk, idx === 0, rk === activeRoundKey);
+            }});
             html += '</div>';
             body.innerHTML = html;
+
+            // Wire click toggles. We use a single delegated handler so
+            // sections added by future re-renders keep working without
+            // removing stale listeners.
+            const sections = document.getElementById('p11-sections');
+            if (sections && !sections._wired) {{
+                sections.addEventListener('click', function (ev) {{
+                    const header = ev.target.closest('[data-toggle]');
+                    if (!header) return;
+                    const sid = header.getAttribute('data-toggle');
+                    const panel = document.getElementById(sid);
+                    const chev = sections.querySelector('[data-chevron="' + sid + '"]');
+                    if (!panel) return;
+                    const willOpen = panel.style.display === 'none';
+                    panel.style.display = willOpen ? 'block' : 'none';
+                    if (chev) chev.style.transform = willOpen ? 'rotate(90deg)' : '';
+                }});
+                sections._wired = true;
+            }}
 
             if (footer) {{
                 const teamCount = data.team_count || 0;
