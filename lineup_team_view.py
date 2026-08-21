@@ -2134,7 +2134,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <select id="tournament-select" onchange="onTournamentChange(this.value)" title="Filter by tournament" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
                             <option value="" style="color:#333;">Loading…</option>
                         </select>
-                        <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;width:125px;">
+                        <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;width:160px;">
                             <option value="Squad" style="color:#333;">All Squad</option>
                             <option value="Missing Players" style="color:#333;">Missing Players</option>
                             <option value="Doubtful Players" style="color:#333;">Doubtful Players</option>
