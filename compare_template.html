@@ -2053,6 +2053,34 @@ document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('match-h2h-toggle');
     if (btn) btn.addEventListener('click', toggleH2HPopup);
 });
+
+// Aug 22 2026 — when the URL has ?autopxi=1, postMessage every iframe
+// (team view) so they auto-mark the cached Predicted XI .xi-checkbox.
+// The actual checkbox mark happens in lineup_team_view.py's message
+// handler — compare_template only knows the match_id and orchestrates.
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('autopxi') !== '1') return;
+        var mid = params.get('mid') || '';
+        if (!mid) return;
+        var send = function() {
+            var frames = document.querySelectorAll('iframe.team-frame');
+            for (var i = 0; i < frames.length; i++) {
+                try {
+                    frames[i].contentWindow && frames[i].contentWindow.postMessage(
+                        {type: 'applyPredictedXI', match_id: mid, source: 'parent'},
+                        '*'
+                    );
+                } catch (e) {}
+            }
+        };
+        // Defer slightly so the iframes' own DOMContentLoaded handlers
+        // have a chance to attach their message listener first.
+        setTimeout(send, 600);
+        setTimeout(send, 1800);
+    } catch (e) { /* silent */ }
+});
 </script>
 
 

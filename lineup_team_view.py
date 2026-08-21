@@ -2520,11 +2520,32 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 let html = '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
                 html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
                 html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
+                // Aug 22 2026 — голубой чекбокс before home team name.
+                const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
+                const pxiAwayFull = (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
+                const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
+                const pxiAwayPartial = (m.pxi_away_matched > 0 && !pxiAwayFull);
+                if (pxiHomeFull) {{
+                    html += '<span class="p11-check" title="11/11 Predicted XI matched" ' +
+                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                }} else if (pxiHomePartial) {{
+                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_home_matched || 0) + '/11 matched" ' +
+                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                }} else {{
+                    html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
+                }}
                 if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
                 html += '<span style="font-weight:600;">' + _escapeText(homeName) + '</span>';
                 html += '<span style="color:#64748b;font-size:12px;">vs</span>';
                 html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
                 if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
+                if (pxiAwayFull) {{
+                    html += '<span class="p11-check" title="11/11 Predicted XI matched" ' +
+                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                }} else if (pxiAwayPartial) {{
+                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_away_matched || 0) + '/11 matched" ' +
+                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                }}
                 html += '</div>';
                 const mid = m.match_id || '';
                 const homeId = (m.home && m.home.team_id) || '';
@@ -2534,10 +2555,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     '&home_id=' + encodeURIComponent(homeId) +
                     '&away_id=' + encodeURIComponent(awayId) +
                     '&home_name=' + encodeURIComponent(homeName) +
-                    '&away_name=' + encodeURIComponent(awayName);
+                    '&away_name=' + encodeURIComponent(awayName) +
+                    '&autopxi=1';
                 html += '<a href="' + openHref + '" target="_blank" rel="noopener" ' +
                     'style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" ' +
-                    'title="Open this match in Match mode (new tab)">▶ Open Match</a>';
+                    'title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
                 return html;
             }}
@@ -3767,6 +3789,47 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (counter) {{
                 counter.textContent = selectedCount;
             }}
+        }}
+
+        // Aug 22 2026 — when the compare-mode parent posts
+        // {{type:'applyPredictedXI', match_id}}, fetch the cached XI for
+        // this match and tick the matching .xi-checkbox rows. Only the
+        // rows whose squad player name appears in the cached XI get
+        // checked. Does NOT call any save endpoint.
+        function _applyPredictedXIIframe(match_id) {{
+            fetch('/lineup_ai/api/predicted_xi/' + encodeURIComponent(match_id))
+                .then(function(r){{ return r.json(); }})
+                .then(function(d) {{
+                    if (!d || !d.match_id) return;
+                    var target = (d.home_players || []).concat(d.away_players || [])
+                        .map(function(p){{ return (p.lv_name || '').toLowerCase().trim(); }})
+                        .filter(function(n){{ return !!n; }});
+                    if (!target.length) return;
+                    var applied = 0;
+                    var cbs = document.querySelectorAll('input.xi-checkbox');
+                    for (var i = 0; i < cbs.length; i++) {{
+                        var cb = cbs[i];
+                        var rowName = (cb.value || '').toLowerCase().trim();
+                        if (target.indexOf(rowName) !== -1 && !cb.checked) {{
+                            cb.checked = true;
+                            cb.dispatchEvent(new Event('change', {{bubbles:true}}));
+                            applied++;
+                        }}
+                    }}
+                    if (applied) updateXICounter();
+                    try {{
+                        if (window.parent && window.parent !== window) {{
+                            window.parent.postMessage({{
+                                type: 'p11-autopxi',
+                                match_id: match_id,
+                                applied: applied,
+                                home_count: d.home_count,
+                                away_count: d.away_count
+                            }}, '*');
+                        }}
+                    }} catch(e) {{}}
+                }})
+                .catch(function(){{}});
         }}
         
         // Starting XI counter - red fill, max 11
@@ -5318,6 +5381,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (!d || typeof d !== 'object') return;
             if (d.type === 'setDetailsCollapsed') {{
                 applyDetailHidden(!!d.collapsed);
+            }} else if (d.type === 'applyPredictedXI' && d.match_id) {{
+                _applyPredictedXIIframe(d.match_id);
             }}
         }} catch (e) {{ /* noop */ }}
     }});
