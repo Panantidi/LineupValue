@@ -2362,6 +2362,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const willShow = host.style.display === 'none';
             host.style.display = willShow ? 'block' : 'none';
             if (btn) btn.classList.toggle('active', willShow);
+            // Aug 22 2026 — Max asked: when 🔮 Predicted XI is open the
+            // tweets sidebar disappears (it's a wide block that crowds the
+            // fixtures list). The CSS already supports .tweets-sidebar.hidden.
+            const sidebar = document.getElementById('tweets-sidebar');
+            if (sidebar) {{
+                sidebar.classList.toggle('hidden', willShow);
+            }}
             if (willShow && !_predicted11Loaded) {{
                 loadPredicted11();
             }}
@@ -4901,6 +4908,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     var SIDEBAR = document.getElementById('tweets-sidebar');
     var LIST = document.getElementById('tweets-list');
     var COUNT_EL = document.getElementById('tweets-count');
+    // Aug 22 2026 — flag consumed by applyBuilderVisibility so it
+    // doesn't strip the .hidden class while 🔮 Predicted XI owns
+    // the layout. Exposed on window for one-way consumption.
+    window._predictedXIOpen = function () {{
+        var host = document.getElementById('predicted11-panel-host');
+        if (!host) return false;
+        var cs = window.getComputedStyle(host);
+        return cs.display !== 'none' && host.offsetParent !== null;
+    }};
 
     function escapeHtml(s) {{
         return String(s).replace(/[&<>"]/g, function(c) {{ return {{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}}[c]; }});
@@ -5030,6 +5046,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         if (visible) {{
             SIDEBAR.classList.add('hidden');
         }} else {{
+            // Aug 22 2026 — when 🔮 Predicted XI is the open panel,
+            // it replaces the tweets sidebar instead of the builder.
+            // Don't let this routine strip the .hidden class the
+            // togglePredicted11 handler just applied. We check via a
+            // global flag rather than reading our own state — keeps the
+            // coupling one-way (P11 manages the flag, this just obeys).
+            if (typeof window._predictedXIOpen === 'function' && window._predictedXIOpen()) return;
             SIDEBAR.classList.remove('hidden');
         }}
     }}
