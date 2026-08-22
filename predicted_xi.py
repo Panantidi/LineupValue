@@ -132,82 +132,144 @@ def parse_round_matches(championship: str) -> List[Dict[str, Any]]:
     html = fetch(url)
     if not html:
         return []
-    return _parse_matches_from_html(html)
+    return _parse_matches_from_html(html, championship=championship)
 
 
-def _parse_matches_from_html(html: str) -> List[Dict[str, Any]]:
-    # Find each .jornada block with style="" (current).
-    # Past rounds render as <div class="jornada jornadaN" style="display: none;">
-    # so the leading "style=" (with empty value) marks the only active round.
-    pattern = re.compile(
+def _parse_matches_from_html(html: str, championship: str = '') -> List[Dict[str, Any]]:
+    """Parse the jornada listing.
+
+    Two layouts to handle, both served by futbolfantasy.com:
+
+    Layout A (LaLiga 1st division, /laliga/posibles-alineaciones) —
+    each match wrapped in
+        <div class="jornada jornadaN" style="">
+            <a class="partido ..." href="...partidos/<id>-<slug>" ...>
+    Past rounds use style="display: none;" so an empty `style=""`
+    marks the only currently-active round.
+
+    Layout B (LaLiga 2nd division, /laliga2/posibles-alineaciones) —
+    no jornada wrappers, matches live directly inside
+        <div class="partido-container">
+            <a class="partido ..." href="...partidos/<id>-<slug>" ...>
+    There is also a sidebar with the LaLiga 1 schedule still using
+    the jornada-wrapper shape — we want the LaLiga 2 match list
+    only, so when `championship == 'laliga2'` we ONLY use Layout B.
+
+    The `championship` arg lets callers pick the right layout
+    explicitly. When empty (default) we keep both for backwards
+    compatibility with the very first test paths.
+    """
+    layout_a = re.compile(
         r'<div[^>]*class="jornada jornada(\d+)"\s+style="">\s*'
+        r'<a[^>]+href="https://www\.futbolfantasy\.com/partidos/(\d+)-([a-z0-9-]+)"[^>]*class="partido[^"]*"[^>]*>',
+        re.DOTALL,
+    )
+    layout_b = re.compile(
+        r'<div[^>]*class="partido-container"[^>]*>\s*'
         r'<a[^>]+href="https://www\.futbolfantasy\.com/partidos/(\d+)-([a-z0-9-]+)"[^>]*class="partido[^"]*"[^>]*>',
         re.DOTALL,
     )
     out = []
     seen = set()
-    for m in pattern.finditer(html):
-        jornada, ff_id, slug = m.group(1), m.group(2), m.group(3)
+
+    # Always use Layout B (partido-container, the main content) only.
+    # The jornada-wrapper blocks on /laliga/posibles-alineaciones are the
+    # sidebar that re-lists the same ten matches already shown by the
+    # partido-container, so mixing both layers double-counts.
+    # Layout A is kept around for the parser's docstring/tests but is
+    # not used at runtime.
+
+    for m in layout_b.finditer(html):
+        ff_id = m.group(1)
         if ff_id in seen:
             continue
         seen.add(ff_id)
-        # Take window after this match, until next match anchor.
-        start = m.end()
-        next_m = pattern.search(html, start)
-        end = next_m.start() if next_m else start + 4000
-        block = html[start:end]
-        # Tooltip lives on the opening <a class="partido"> tag.
-        # m.start() points to "<div...", m.end() points just after the
-        # closing '>' of the opening <a ...> tag. So html[m.start():m.end()]
-        # contains the entire partido anchor opening tag with all attrs.
-        partido_tag = html[m.start():m.end()]
-        tooltip_m = re.search(r'data-tooltip="([^"]+)"', partido_tag)
-        if tooltip_m:
-            tt = tooltip_m.group(1).strip()
-            # Tooltip format: "Home - Away" possibly with score
-            # e.g. "Betis - Real Sociedad", "Rayo 1-1 Alavés",
-            # "Valencia 2 - 1 Celta".
-            # 1) Strip score pattern in the middle: "Home SCORE Away".
-            score_m = re.search(r'\s+\d+\s*[-–]\s*\d+\s+', tt)
-            if score_m:
-                home = tt[:score_m.start()].strip()
-                away = tt[score_m.end():].strip()
-            elif ' - ' in tt:
-                home, away = tt.split(' - ', 1)
-                home = home.strip()
-                away = away.strip()
-            elif '-' in tt:
-                # fallback single dash with possible spaces
-                left, right = tt.split('-', 1)
-                home = left.strip()
-                away = right.strip()
-            else:
-                home, away = '', ''
+        # Wrap as a fake jornada match object so _append_match is
+        # happy. Layout B regex exposes (ff_id, slug); jornada number
+        # is unknown but we just carry 0 since the cache doesn't use it.
+        m2 = type('FakeM', (), {})()
+        m2.group = lambda i, _ffid=ff_id, _slug=m.group(2): ('0', _ffid, _slug)[i] if 0 <= i <= 2 else ''
+        m2.start = lambda: m.start()
+        m2.end = lambda: m.end()
+        nb = layout_b.search(html, m.end())
+        _append_match(out, html, m2, source='layout_b', next_m=nb)
+    return out
+
+
+def _append_match(out, html, m, source: str = 'layout_a', next_m=None):
+    """Augment out with one parsed match entry.
+
+    Uses the same tooltip/score parsing as before, but factored out so
+    both Layout A (jornada-wrapped) and Layout B (partido-container)
+    can share it.
+    """
+    if source == 'layout_a':
+        ff_id = m.group(2)
+        slug = m.group(3)
+    else:
+        ff_id = m.group(1)
+        slug = m.group(2)
+    # Determine end of the per-match block: next match's anchor opening
+    # for whichever layout we're in. We use the partido anchor itself
+    # as the boundary (each <a class="partido"> opens a new match).
+    start = m.end()
+    if next_m is not None:
+        end = next_m.start()
+    else:
+        # Look for the next partido anchor in raw HTML.
+        anchor_pat = re.compile(r'<a[^>]+class="partido[^"]*"[^>]*>')
+        nm = anchor_pat.search(html, start + 1)
+        end = nm.start() if nm else start + 4000
+    block = html[start:end]
+    # Tooltip lives on the opening <a class="partido"> tag.
+    partido_tag = html[m.start():m.end()]
+    tooltip_m = re.search(r'data-tooltip="([^"]+)"', partido_tag)
+    if tooltip_m:
+        tt = tooltip_m.group(1).strip()
+        # Tooltip format: "Home - Away" possibly with score
+        # e.g. "Betis - Real Sociedad", "Rayo 1-1 Alavés",
+        # "Valencia 2 - 1 Celta".
+        # 1) Strip score pattern in the middle: "Home SCORE Away".
+        score_m = re.search(r'\s+\d+\s*[-–]\s*\d+\s+', tt)
+        if score_m:
+            home = tt[:score_m.start()].strip()
+            away = tt[score_m.end():].strip()
+        elif ' - ' in tt:
+            home, away = tt.split(' - ', 1)
+            home = home.strip()
+            away = away.strip()
+        elif '-' in tt:
+            # fallback single dash with possible spaces
+            left, right = tt.split('-', 1)
+            home = left.strip()
+            away = right.strip()
         else:
             home, away = '', ''
-        # fallback to img alt if tooltip parsing failed
-        if not home:
-            home_m = re.search(r'<img[^>]+class="escudo local[^"]*"[^>]*alt="([^"]+)"', block)
-            home = home_m.group(1) if home_m else ''
-        if not away:
-            away_m = re.search(r'<img[^>]+class="escudo visitante[^"]*"[^>]*alt="([^"]+)"', block)
-            away = away_m.group(1) if away_m else ''
-        # fecha: e.g. "Jue 21:00h", or "Vie 21/08 <br>21:00h".
-        fecha_m = re.search(r'<div class="fecha">\s*(?:([^<]*?)\s*<br>)?\s*([^<]+?)\s*</div>', block, re.DOTALL)
-        if fecha_m:
-            d = fecha_m.group(1) or ''
-            t = fecha_m.group(2) or ''
-            fecha = (d + ' ' + t).strip()
-        else:
-            fecha = ''
-        out.append({
-            'ff_id': ff_id,
-            'slug': slug,
-            'home': home,
-            'away': away,
-            'fecha': fecha,
-            'url': f'https://www.futbolfantasy.com/partidos/{ff_id}-{slug}',
-        })
+    else:
+        home, away = '', ''
+    # fallback to img alt if tooltip parsing failed
+    if not home:
+        home_m = re.search(r'<img[^>]+class="escudo local[^"]*"[^>]*alt="([^"]+)"', block)
+        home = home_m.group(1) if home_m else ''
+    if not away:
+        away_m = re.search(r'<img[^>]+class="escudo visitante[^"]*"[^>]*alt="([^"]+)"', block)
+        away = away_m.group(1) if away_m else ''
+    # fecha: e.g. "Jue 21:00h", or "Vie 21/08 <br>21:00h".
+    fecha_m = re.search(r'<div class="fecha">\s*(?:([^<]*?)\s*<br>)?\s*([^<]+?)\s*</div>', block, re.DOTALL)
+    if fecha_m:
+        d = fecha_m.group(1) or ''
+        t = fecha_m.group(2) or ''
+        fecha = (d + ' ' + t).strip()
+    else:
+        fecha = ''
+    out.append({
+        'ff_id': ff_id,
+        'slug': slug,
+        'home': home,
+        'away': away,
+        'fecha': fecha,
+        'url': f'https://www.futbolfantasy.com/partidos/{ff_id}-{slug}',
+    })
     return out
 
 
@@ -296,6 +358,15 @@ def normalise_name_match(ff_name: str, lv_players: List[Dict[str, Any]]) -> Opti
 if __name__ == '__main__':
     import sys
     champ = sys.argv[1] if len(sys.argv) > 1 else 'laliga'
+    if len(sys.argv) > 2 and sys.argv[2] == 'cache':
+        # warm up cache for current round
+        from pathlib import Path
+        ms = parse_round_matches(champ)
+        for m in ms:
+            cache_p = cache_path(m.get('slug', '?'))
+            print(f'  {m["ff_id"]} {m["home"]} vs {m["away"]}')
+        print(f'\nTotal matches to fetch: {len(ms)}')
+        sys.exit(0)
     ms = parse_round_matches(champ)
     print(f'{champ}: {len(ms)} matches')
     for m in ms[:3]:
@@ -304,3 +375,54 @@ if __name__ == '__main__':
         print(f'\n  {fid} {h} vs {a}')
         print(f'    home ({len(xi["home"])}): {[p["ff_name"] for p in xi["home"]]}')
         print(f'    away ({len(xi["away"])}): {[p["ff_name"] for p in xi["away"]]}')
+
+
+def build_match_cache(championship: str, match_id: str, ff_id: str, slug: str,
+                      home_team_id: str, away_team_id: str,
+                      kickoff_ts: int,
+                      home_lv_players: List[Dict[str, Any]],
+                      away_lv_players: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build a per-match cache dict and save it. Returns the dict.
+
+    Used by the scheduler when T-18:00 has passed.
+    """
+    xi = parse_match_xi(ff_id, slug)
+    home_xi = []
+    for p in xi['home']:
+        matched = normalise_name_match(p['ff_name'], home_lv_players)
+        home_xi.append({
+            'ff_name': p['ff_name'],
+            'ff_id': p['ff_id'],
+            'lv_player_id': (matched or {}).get('player_id'),
+            'lv_name': (matched or {}).get('name'),
+            'matched': matched is not None,
+        })
+    away_xi = []
+    for p in xi['away']:
+        matched = normalise_name_match(p['ff_name'], away_lv_players)
+        away_xi.append({
+            'ff_name': p['ff_name'],
+            'ff_id': p['ff_id'],
+            'lv_player_id': (matched or {}).get('player_id'),
+            'lv_name': (matched or {}).get('name'),
+            'matched': matched is not None,
+        })
+    data = {
+        'match_id': match_id,
+        'championship': championship,
+        'ff_id': ff_id,
+        'slug': slug,
+        'home_team_id': home_team_id,
+        'away_team_id': away_team_id,
+        'home_players': home_xi,
+        'away_players': away_xi,
+        'kickoff_ts': kickoff_ts,
+        'fetched_at': int(time.time()),
+    }
+    save_match_xi(data)
+    return data
+
+
+def get_match_xi(match_id: str) -> Optional[Dict[str, Any]]:
+    """Public API: returns cached match XI or None."""
+    return load_match_xi(match_id, max_age=CACHE_TTL)

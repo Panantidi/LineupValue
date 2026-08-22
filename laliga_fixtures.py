@@ -129,7 +129,15 @@ def _parse_round_label(name: str) -> str:
 # LaLiga team ids
 # ---------------------------------------------------------------------------
 def _load_laliga_team_ids():
-    """Read LaLiga team ids from leagues_data.json (authoritative)."""
+    """Read LaLiga + LaLiga 2 team ids from leagues_data.json.
+
+    Aug 22 2026 — Predicted XI panel was only fed LaLiga 1. LaLiga 2
+    (Segunda Division) shares the same Predicted XI panel header so
+    we pull both tournaments' team ids from leagues_data.json. The
+    /teams/fixtures endpoint is per-team anyway, so the cost is just
+    one extra round of network calls — fixtures are deduped later by
+    match_id.
+    """
     leagues_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         "leagues_data.json",
@@ -140,8 +148,13 @@ def _load_laliga_team_ids():
         with open(leagues_file) as f:
             data = json.load(f)
         spain = data.get("Spain") or {}
-        teams = spain.get("LaLiga") or []
-        ids = [t.get("id") for t in teams if t.get("id")]
+        ids = []
+        # Aug 22 2026 — leagues_data.json uses the literal key "LaLiga2"
+        # (no space) for Segunda División. We accept both spellings so
+        # a future rename doesn't break this loader.
+        for tournament_key in ("LaLiga", "LaLiga 2", "LaLiga2"):
+            teams = spain.get(tournament_key) or []
+            ids.extend(t.get("id") for t in teams if t.get("id"))
         return ids
     except Exception:
         return None
@@ -186,9 +199,17 @@ def _laliga_matches_from_team_response(team_id: str, raw):
         country = (tournament.get("country_name") or "").strip().lower()
         url = (tournament.get("tournament_url") or "").strip()
         is_laliga = (
-            name == "LaLiga"
-            and country == "spain"
-        ) or ("/spain/laliga/" in url.lower())
+            (name == "LaLiga" and country == "spain")
+            or ("/spain/laliga/" in url.lower())
+            # Aug 22 2026 — LaLiga 2 (Segunda División). Flashscore
+            # labels it "LaLiga 2" with country Spain, and the url is
+            # /football/spain/laliga-2/. We treat it as a sibling
+            # tournament so the Predicted XI panel can show its
+            # fixtures and the cache hydration loop can run for it.
+            or (name == "LaLiga 2" and country == "spain")
+            or ("/spain/laliga-2/" in url.lower())
+            or ("/spain/laliga2/" in url.lower())
+        )
         if not is_laliga:
             continue
         for m in tournament.get("matches") or []:

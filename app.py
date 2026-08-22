@@ -5694,9 +5694,37 @@ def scheduler_start():
                 away_id = m.get('away_team', {}).get('id')
                 home_name = _predicted_xi_team_id_to_name(home_id).lower()
                 away_name = _predicted_xi_team_id_to_name(away_id).lower()
-                ff_match = next((x for x in predicted_xi.parse_round_matches('laliga')
-                                 if x.get('home', '').lower() == home_name
-                                 and x.get('away', '').lower() == away_name), None)
+                # Aug 22 2026 — LaLiga + LaLiga 2 share a panel header. We try the
+                # LaLiga list first, then LaLiga 2 (Segunda), and pick
+                # the first match where home + away names line up.
+                # Fuzzy match — LV stores the short form ("Oviedo"),
+                # futbolfantasy uses the full form ("Real Oviedo").
+                def _name_eq(a, b):
+                    import unicodedata
+                    def _strip_accents(s):
+                        return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+                    al = _strip_accents((a or '').lower())
+                    bl = _strip_accents((b or '').lower())
+                    if not al or not bl:
+                        return False
+                    if al == bl:
+                        return True
+                    if al in bl or bl in al:
+                        return True
+                    at = al.replace('.', '').replace('-', ' ').split()
+                    bt = bl.replace('.', '').replace('-', ' ').split()
+                    return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])) for t in at)
+                ff_match = None
+                for championship_key in ('laliga', 'laliga2'):
+                    candidate = next(
+                        (x for x in predicted_xi.parse_round_matches(championship_key)
+                         if _name_eq(x.get('home', ''), home_name)
+                         and _name_eq(x.get('away', ''), away_name)),
+                        None,
+                    )
+                    if candidate:
+                        ff_match = candidate
+                        break
                 if not ff_match:
                     continue
                 home_lv = _load_lv_players(home_id)
