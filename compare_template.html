@@ -1094,16 +1094,89 @@ body {
     window.addEventListener('message', function(evt) {
         try {
             var data = evt.data || {};
-            if (data.type !== 'formalert-resize-iframe') return;
-            // Resize both frames (we don't track which child sent it)
-            var myFrame = document.getElementById('my-frame');
-            var oppFrame = document.getElementById('opp-frame');
-            // Wait one frame for DOM to settle
-            requestAnimationFrame(function() {
-                if (myFrame) resizeFrame(myFrame);
-                if (oppFrame) resizeFrame(oppFrame);
-            });
-        } catch (e) { /* ignore */ }
+            if (data.type === 'formalert-resize-iframe') {
+                // Resize both frames (we don't track which child sent it)
+                var myFrame = document.getElementById('my-frame');
+                var oppFrame = document.getElementById('opp-frame');
+                // Wait one frame for DOM to settle
+                requestAnimationFrame(function() {
+                    if (myFrame) resizeFrame(myFrame);
+                    if (oppFrame) resizeFrame(oppFrame);
+                });
+                return;
+            }
+            // Aug 22 2026 — 🔍 Check Predicted XI from one of the
+            // team iframes (a click on the button inside the Predicted
+            // XI panel). Broadcast to BOTH iframes so each refreshes
+            // its own squad + ticks its own .xi-checkbox rows. Each
+            // iframe acks with its own applied count; we forward the
+            // sum back to the originating frame so the row button can
+            // show "✓ Checked N" feedback.
+            if (data.type === 'checkPredictedXI' && data.match_id) {
+                var mid = data.match_id;
+                var sender = (evt && evt.source) || null;
+                var totalAck = 0;
+                var acks = 0;
+                var ackListener = function(ev2) {
+                    try {
+                        var d2 = ev2.data;
+                        if (!d2 || d2.type !== 'p11-checked-ack' || d2.match_id !== mid) return;
+                        acks++;
+                        totalAck += (d2.applied || 0);
+                        if (acks >= 2) {
+                            window.removeEventListener('message', ackListener);
+                            try {
+                                if (sender && typeof sender.postMessage === 'function') {
+                                    sender.postMessage({
+                                        type: 'p11-checked-ack',
+                                        match_id: mid,
+                                        applied: totalAck
+                                    }, '*');
+                                }
+                            } catch (e) {}
+                        }
+                    } catch (e) {}
+                };
+                window.addEventListener('message', ackListener);
+                // Failsafe — if a frame never acks (e.g. already torn
+                // down), give the originator a "best effort" reply
+                // after 25 s with whatever we did collect.
+                setTimeout(function() {
+                    try {
+                        if (acks > 0 && acks < 2) {
+                            window.removeEventListener('message', ackListener);
+                            if (sender && typeof sender.postMessage === 'function') {
+                                sender.postMessage({
+                                    type: 'p11-checked-ack',
+                                    match_id: mid,
+                                    applied: totalAck
+                                }, '*');
+                            }
+                        } else if (acks === 0) {
+                            window.removeEventListener('message', ackListener);
+                        }
+                    } catch (e) {}
+                }, 25000);
+                // Broadcast to both iframes.
+                var myFrame2 = document.getElementById('my-frame');
+                var oppFrame2 = document.getElementById('opp-frame');
+                if (myFrame2 && myFrame2.contentWindow) {
+                    myFrame2.contentWindow.postMessage({
+                        type: 'checkPredictedXI',
+                        match_id: mid,
+                        source: 'match-parent'
+                    }, '*');
+                }
+                if (oppFrame2 && oppFrame2.contentWindow) {
+                    oppFrame2.contentWindow.postMessage({
+                        type: 'checkPredictedXI',
+                        match_id: mid,
+                        source: 'match-parent'
+                    }, '*');
+                }
+                return;
+            }
+        } catch (e) { /* noop */ }
     });
 
     var framesLoaded = 0;

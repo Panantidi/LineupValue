@@ -2505,6 +2505,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         'Match starts in ' + body + '</span>';
                 }};
                 const countdownHtml = renderCountdown(m.timestamp);
+                const mid = m.match_id || '';
                 let html = '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
                 html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
                 html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
@@ -2535,7 +2536,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // interval-driven refresh below can find it without
                 // recomputing the whole panel.
                 if (countdownHtml) html += countdownHtml;
-                const mid = m.match_id || '';
                 const homeId = (m.home && m.home.team_id) || '';
                 const awayId = (m.away && m.away.team_id) || '';
                 const openHref = '/lineup_ai/compare/' + encodeURIComponent(homeId || awayId || '') +
@@ -2545,10 +2545,120 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     '&home_name=' + encodeURIComponent(homeName) +
                     '&away_name=' + encodeURIComponent(awayName) +
                     '&autopxi=1';
+                // Aug 22 2026 — 🔍 Check Predicted XI button. Triggers a
+                // squad refresh + predicted XI parse via the same
+                // _applyPredictedXIIframe flow the autopxi=1 URL does, but
+                // for this specific match without opening a new tab. The
+                // handler posts a `checkPredictedXI` message which both
+                // iframes (in Match Mode) or the single iframe (in Team
+                // Mode) listen for. Checkboxes are ticked live as the
+                // /api/predicted_xi?refresh=1 response arrives. The
+                // match id lives in data-mid; the handler reads it back
+                // with this.dataset.mid so we don't need to escape
+                // quotes inside the inline onclick.
+                html += '<button type="button" class="p11-check-btn header-action-btn" data-mid="' +
+                    _escapeText(mid) + '" onclick="checkPredictedXIMatch(this)" ' +
+                    'style="font-size:11px;color:#fff;background:#3b82f6;border:1px solid #2563eb;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;" ' +
+                    'title="Refresh squads and tick matching .xi-checkbox rows live">🔍 Check Predicted XI</button>';
                 html += '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
                 return html;
             }}
+
+            // Aug 22 2026 — 🔍 Check Predicted XI click handler.
+            // Posts a `checkPredictedXI` message that propagates to the
+            // right context:
+            //   - Inside the Match Mode parent (compare_template.html):
+            //     the parent broadcasts to both iframes.
+            //   - Inside a Team Mode iframe: the iframe's own listener
+            //     calls _applyPredictedXIIframe(match_id) — which
+            //     refreshes THIS team's squad and ticks checkboxes
+            //     matching the predicted XI of EITHER team (the /api
+            //     endpoint returns both home and away XI lists).
+            //   - Standalone (not inside a Match frame): fall back to
+            //     _applyPredictedXIIframe directly so the user still
+            //     gets the same result inline.
+            function checkPredictedXIMatch(btn) {{
+                if (!btn) return;
+                var match_id = btn.dataset ? (btn.dataset.mid || '') : '';
+                if (!match_id) return;
+                // Visual feedback — disable + show spinner-ish label.
+                if (btn) {{
+                    btn.disabled = true;
+                    btn.dataset.oldHtml = btn.innerHTML;
+                    btn.innerHTML = '⏳ Checking…';
+                    btn.style.opacity = '0.7';
+                }}
+                var done = function(ok, applied) {{
+                    if (!btn) return;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    if (ok && applied > 0) {{
+                        btn.innerHTML = '✓ Checked ' + applied;
+                        btn.style.background = '#16a34a';
+                        btn.style.borderColor = '#15803d';
+                    }} else if (ok) {{
+                        btn.innerHTML = '🔍 Check Predicted XI';
+                    }} else {{
+                        btn.innerHTML = '⚠ Retry';
+                        btn.style.background = '#b91c1c';
+                        btn.style.borderColor = '#991b1b';
+                    }}
+                    setTimeout(function() {{
+                        btn.innerHTML = btn.dataset.oldHtml || '🔍 Check Predicted XI';
+                        btn.style.background = '#3b82f6';
+                        btn.style.borderColor = '#2563eb';
+                    }}, 4000);
+                }};
+                // Aug 22 2026 — stash a one-shot listener so the
+                // iframe (or Match-mode parent) can ack with the
+                // number of checkboxes it ticked. Falls back to
+                // plain inline apply after 20 s if no ack arrives.
+                var acked = false;
+                var ackHandler = function(ev) {{
+                    try {{
+                        var d = ev.data;
+                        if (!d || d.type !== 'p11-checked-ack' || d.match_id !== match_id) return;
+                        acked = true;
+                        window.removeEventListener('message', ackHandler);
+                        done(true, d.applied || 0);
+                    }} catch (e) {{}}
+                }};
+                window.addEventListener('message', ackHandler);
+                setTimeout(function() {{
+                    if (acked) return;
+                    window.removeEventListener('message', ackHandler);
+                    // No ack — the broadcast may have run in
+                    // iframes that don't talk back. Treat as ok.
+                    done(true, 0);
+                }}, 20000);
+                // Propagate. If we're inside a Match-mode iframe,
+                // the postMessage crosses the iframe boundary; the
+                // parent (compare_template.html) listens for it
+                // and broadcasts to BOTH iframes.
+                try {{
+                    if (window.parent && window.parent !== window) {{
+                        window.parent.postMessage({{
+                            type: 'checkPredictedXI',
+                            match_id: match_id,
+                            source: 'p11-row'
+                        }}, '*');
+                    }} else {{
+                        // Standalone Team Mode — apply inline.
+                        if (typeof window._applyPredictedXIIframe === 'function') {{
+                            window._applyPredictedXIIframe(match_id);
+                        }}
+                    }}
+                }} catch (e) {{}}
+            }}
+
+            // Aug 22 2026 — expose the click handler on window so
+            // the inline `onclick="checkPredictedXIMatch(this)"`
+            // attribute (which evaluates in the global scope)
+            // can resolve it. renderPredicted11 only runs once per
+            // page, so this assignment happens immediately after
+            // the panel's first open.
+            window.checkPredictedXIMatch = checkPredictedXIMatch;
 
             const nowSec = Math.floor(Date.now() / 1000);
             const PAST_GRACE_SEC = 10 * 60;
@@ -5512,6 +5622,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (typeof window.togglePredicted11 === 'function') {{
                     window.togglePredicted11();
                 }}
+            }} else if (d.type === 'checkPredictedXI' && d.match_id) {{
+                // Aug 22 2026 — 🔍 Check Predicted XI button (inside
+                // Predicted XI panel). Same logic as applyPredictedXI
+                // but we ack back to the sender with the number of
+                // checkboxes ticked, so the row button can show
+                // "✓ Checked N" feedback.
+                var mid = d.match_id;
+                _applyPredictedXIIframe(mid);
+                // Count + ack after the async chain inside
+                // _applyPredictedXIIframe settles. Re-query the DOM
+                // a moment later — _applyPredictedXIIframe fires
+                // fetch(/api/predicted_xi?refresh=1) and ticks boxes
+                // inside its .then().
+                setTimeout(function() {{
+                    try {{
+                        var cbCount = document.querySelectorAll('input.xi-checkbox:checked').length;
+                        if (ev && ev.source && typeof ev.source.postMessage === 'function') {{
+                            ev.source.postMessage({{
+                                type: 'p11-checked-ack',
+                                match_id: mid,
+                                applied: cbCount
+                            }}, '*');
+                        }}
+                    }} catch (e) {{}}
+                }}, 2500);
             }}
         }} catch (e) {{ /* noop */ }}
     }});
