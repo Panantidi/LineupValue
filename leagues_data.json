@@ -4003,6 +4003,30 @@
         "name": "Valladolid",
         "slug": "Valladolid",
         "image_path": "https://static.flashscore.com/res/image/data/pCJjU8yB-htRvrFH6.png"
+      },
+      {
+        "id": "GQPCyIeG",
+        "name": "Celta Vigo B",
+        "slug": "celta-vigo",
+        "image_path": "https://static.flashscore.com/res/image/data/OYnX3M6k-xd1MqkTp.png"
+      },
+      {
+        "id": "8WUSyF3F",
+        "name": "Eldense",
+        "slug": "eldense",
+        "image_path": "https://static.flashscore.com/res/image/data/jPhpmDU0-IoNgvMPR.png"
+      },
+      {
+        "id": "lnS2YNhJ",
+        "name": "Sabadell",
+        "slug": "sabadell",
+        "image_path": "https://static.flashscore.com/res/image/data/vo9MFPBN-ChrYvuzD.png"
+      },
+      {
+        "id": "IHv6nz80",
+        "name": "Tenerife",
+        "slug": "tenerife",
+        "image_path": "https://static.flashscore.com/res/image/data/S8MpS386-UBV6BGsc.png"
       }
     ]
   },
