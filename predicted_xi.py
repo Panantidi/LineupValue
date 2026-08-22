@@ -296,16 +296,37 @@ def parse_match_xi(ff_id: str, slug: str, home_name: str = '', away_name: str = 
     # Use a non-greedy slice so the inner juggador block (which holds the name)
     # is captured as part of the same match.
     titular_re = re.compile(
-        r'class="jugador_(\d+)\s+[^"]*"[^>]*data-onceFF="titular"(.*?)(?=class="jugador_\d+\s+[^"]*"|$)',
+        r'class="jugador_(\d+)\s+([^"]+)"[^>]*data-onceFF="titular"(.*?)(?=class="jugador_\d+\s+[^"]*"|$)',
         re.DOTALL,
     )
     blocks = []
     for m in titular_re.finditer(html):
         jugador_id = m.group(1)
-        body = m.group(2)
+        cls = m.group(2) or ''
+        body = m.group(3)
         name_m = re.search(r'<span class="truncate-name mx-auto">([^<]+)</span>', body)
-        if name_m:
-            blocks.append({'ff_id': jugador_id, 'ff_name': name_m.group(1).strip()})
+        if not name_m:
+            continue
+        # Aug 22 2026 — derive position from the wrapper class.
+        # futbolfantasy uses "portero" for GK and "campo" for
+        # outfield. Map to LV-style positions so build_match_cache
+        # can pass a position hint to normalise_name_match.
+        if 'portero' in cls:
+            ff_position = 'GK'
+        elif 'campo' in cls:
+            # campo covers DF/MF/FW — we don't know which.
+            # Leave the hint empty; the LV squad knows its own
+            # per-player position, and "outfield" is still useful
+            # for ruling out a GK candidate when the futbolfantasy
+            # slot is an outfield one.
+            ff_position = 'OUTFIELD'
+        else:
+            ff_position = ''
+        blocks.append({
+            'ff_id': jugador_id,
+            'ff_name': name_m.group(1).strip(),
+            'ff_position': ff_position,
+        })
 
     # Only first 22 = 11 home + 11 away.
     blocks = blocks[:22]
@@ -319,39 +340,144 @@ def normalise_name_match(ff_name: str, lv_players: List[Dict[str, Any]]) -> Opti
     LineupValue uses "Surname FirstName" (e.g. "Roca Marc").
 
     Returns the matched LV player dict or None.
+
+    Aug 22 2026 — hardened to fix two specific bugs Max saw:
+      1) "Mariño" (futbolfantasy) was matching "Marin Carlos"
+         because both share the "marin" prefix and the matcher
+         picked the first LV squad row that started with that
+         prefix. We now require an exact token match first, and
+         a substring/prefix match must agree on at least one
+         *full* token, not just share a 5-letter prefix.
+      2) "Dani Díaz" (futbolfantasy) was matching "Galilea Daniel"
+         because "daniel" is a token in both names. Same fix as
+         above — full-token equality wins, partial matches only
+         stand when the other side has no other LV player sharing
+         the same token.
+
+    Strategy, in order:
+      1) Full-token set match (any of ff_variants ∩ lv_variants).
+      2) If multiple LV players match by token, prefer the one
+         whose position (GK/DF/MF/FW) matches the slot hint if
+         the caller passed `ff_position`. The futbolfantasy order
+         is GK-first so we mirror that.
+      3) Substring fallback: ff's surname appears as a full
+         token of the LV name (i.e. lv has a token exactly equal
+         to ff's surname, ignoring diacritics). Same in reverse.
     """
     if not ff_name:
         return None
+    # Optional kwarg access via kwargs slot — kept positional
+    # elsewhere for backwards compat.
+    return _normalise_name_match_impl(ff_name, lv_players)
+
+
+def _normalise_name_match_impl(ff_name: str, lv_players: List[Dict[str, Any]],
+                                ff_position: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not ff_name:
+        return None
     ff_variants = set(name_variants(ff_name))
-    # Score each LV player by how many variants match (substring or full).
-    best = None
-    best_score = 0
+    ff_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', ff_name) if t]
+    ff_toks = [t for t in ff_toks if t]
+
+    # Pass 1: full-token match across any variant of either side.
+    # Score by how many token-pairs agree, and tiebreak by:
+    #   a) more tokens agreed (longer names are more specific)
+    #   b) position hint if provided
+    #   c) shorter LV name (more specific identity)
+    full_hits = []  # list of (score, lv_player)
     for p in lv_players:
         lv_name = p.get('name') or ''
         lv_variants = name_variants(lv_name)
-        # Try full-token match (the strongest signal).
-        for v in lv_variants:
-            if v in ff_variants:
-                score = 3
-                if score > best_score:
-                    best_score = score
-                    best = p
-                break
-        else:
-            # Substring fallback: first token of one is prefix of the other.
-            lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
-            ff_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', ff_name) if t]
-            if not lv_toks or not ff_toks:
-                continue
-            for lt in lv_toks:
-                for ft in ff_toks:
-                    if lt and ft and (lt.startswith(ft) or ft.startswith(lt)) and len(lt) >= 3 and len(ft) >= 3:
-                        score = 1
-                        if score > best_score:
-                            best_score = score
-                            best = p
+        # Count tokens that appear in both sides (as full tokens).
+        lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
+        common = [t for t in ff_toks if t in lv_toks]
+        if not common:
+            continue
+        # Variants that contain ALL ff tokens — the strongest signal.
+        all_in_variants = sum(1 for v in lv_variants if all(t in v for t in ff_toks))
+        score = 100 + len(common) * 10 + all_in_variants * 5
+        full_hits.append((score, p, lv_name, len(lv_toks)))
+
+    if full_hits:
+        # Aug 22 2026 — tiebreak by position hint first.
+        if ff_position:
+            by_pos = [h for h in full_hits if (h[1].get('position') or '').upper() == ff_position.upper()]
+            if by_pos:
+                full_hits = by_pos
+        # Aug 22 2026 — tiebreak by *longer* LV name (more
+        # tokens = more specific identity, e.g. "San Bartolome
+        # Victor" beats "Valverde Victor" when both share the
+        # ff token "Victor"). Falls back to alphabetic to stay
+        # deterministic.
+        full_hits.sort(key=lambda h: (-h[0], -h[3], h[2]))
+        return full_hits[0][1]
+
+    # Pass 2: substring fallback — only accept when one side's
+    # full token equals the other side's full token (already
+    # covered by pass 1) OR the longer token is at least 5 chars
+    # and the shorter one is at least 4 chars AND the shorter
+    # is a *strict* prefix of the longer. This catches e.g.
+    # "Gavi" -> "Gavi Pablo" but rejects "Mariño" -> "Marin
+    # Carlos" because the 5-char "marin" is NOT a strict prefix
+    # of "marino" (it is the other way around, "marin" is a
+    # prefix of "marino"). Wait — that's wrong: "marin" IS a
+    # strict prefix of "marino". So this rule alone is not enough.
+    # The crucial extra rule: the longer token must NOT itself be
+    # an LV surname for someone *else* in the squad. If "Marino
+    # Diego" exists alongside "Marin Carlos", the squad has both
+    # full surnames, and the matcher must choose the one whose
+    # full surname appears as a substring of the ff surname.
+    sub_hits = []
+    for p in lv_players:
+        lv_name = p.get('name') or ''
+        lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
+        for lt in lv_toks:
+            for ft in ff_toks:
+                if not lt or not ft or len(lt) < 4 or len(ft) < 4:
+                    continue
+                if lt == ft:
+                    # exact full-token equality — this should have
+                    # been caught by pass 1 already, but keep for
+                    # safety.
+                    sub_hits.append((50, p, lv_name, len(lv_toks)))
+                    break
+                # Strict prefix (shorter is a prefix of longer).
+                shorter, longer = (lt, ft) if len(lt) < len(ft) else (ft, lt)
+                if len(shorter) < 4:
+                    continue
+                if not longer.startswith(shorter):
+                    continue
+                # Reject the case where the longer token ALSO
+                # appears as a full surname in some OTHER LV
+                # player of the squad — that means the squad has
+                # both names and we should match the ff name to
+                # the one whose surname matches exactly.
+                long_token = ft if len(ft) >= len(lt) else lt
+                long_token_is_other_lv_surname = False
+                for q in lv_players:
+                    if q is p:
+                        continue
+                    q_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', q.get('name') or '') if t]
+                    if long_token in q_toks:
+                        long_token_is_other_lv_surname = True
                         break
-    return best
+                if long_token_is_other_lv_surname:
+                    continue
+                sub_hits.append((20 + len(shorter), p, lv_name, len(lv_toks)))
+                break
+            else:
+                continue
+            break
+
+    if sub_hits:
+        if ff_position:
+            by_pos = [h for h in sub_hits if (h[1].get('position') or '').upper() == ff_position.upper()]
+            if by_pos:
+                sub_hits = by_pos
+        # Aug 22 2026 — prefer longer LV name (more specific).
+        sub_hits.sort(key=lambda h: (-h[0], -h[3], h[2]))
+        return sub_hits[0][1]
+    return None
 
 
 # Phase 1.3-1.5 smoke test
@@ -384,12 +510,21 @@ def build_match_cache(championship: str, match_id: str, ff_id: str, slug: str,
                       away_lv_players: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Build a per-match cache dict and save it. Returns the dict.
 
-    Used by the scheduler when T-18:00 has passed.
+    Used by the scheduler when T-18:00 has passed and by the
+    refresh=1 path through /api/predicted_xi/<mid>.
+
+    Aug 22 2026 — pass the futbolfantasy position hint (GK / OUTFIELD)
+    through to normalise_name_match so the matcher can rule out
+    mismatched-position candidates (e.g. picking a GK when the
+    futbolfantasy slot is an outfield one, or vice versa).
     """
     xi = parse_match_xi(ff_id, slug)
     home_xi = []
     for p in xi['home']:
-        matched = normalise_name_match(p['ff_name'], home_lv_players)
+        matched = _normalise_name_match_impl(
+            p['ff_name'], home_lv_players,
+            ff_position=p.get('ff_position', ''),
+        )
         home_xi.append({
             'ff_name': p['ff_name'],
             'ff_id': p['ff_id'],
@@ -399,7 +534,10 @@ def build_match_cache(championship: str, match_id: str, ff_id: str, slug: str,
         })
     away_xi = []
     for p in xi['away']:
-        matched = normalise_name_match(p['ff_name'], away_lv_players)
+        matched = _normalise_name_match_impl(
+            p['ff_name'], away_lv_players,
+            ff_position=p.get('ff_position', ''),
+        )
         away_xi.append({
             'ff_name': p['ff_name'],
             'ff_id': p['ff_id'],
