@@ -2745,19 +2745,140 @@ async def lineup_api_predicted_xi(match_id: str, refresh: int = 0):
         # after all); fall back to a fresh futbolfantasy listing when
         # no cache entry exists yet.
         cached = predicted_xi.get_match_xi(match_id)
+        # Aug 22 2026 — Aug 22 evening: LaLiga Round 2 (kickoff Aug 22
+        # 17:00–21:30) is already past. futbolfantasy.com has rotated
+        # /laliga/posibles-alineaciones/2 forward to Round 3, so a
+        # refresh for a Round-2 match returns the wrong pairing (or
+        # nothing) and the live data on disk is the most authoritative
+        # copy we have. Skip the rebuild whenever the cached match has
+        # already kicked off, so the user sees the 11/11 they had when
+        # they last opened the page instead of 0/11.
+        #
+        # get_match_xi returns None for an expired cache (>6h), but
+        # for finished matches we want to read the cache file
+        # directly without age filtering — load_match_xi with
+        # max_age=0 disables the filter.
+        if not cached:
+            cached = predicted_xi.load_match_xi(match_id, max_age=0)
+            if cached:
+                # mark as stale so the next debug session can see why
+                # we served this; the response payload still counts
+                # the cache content correctly.
+                pass
+        if cached:
+            kt = int(cached.get('kickoff_ts') or 0)
+            # Aug 22 2026 — older caches (built before kickoff_ts was
+            # recorded) leave it at 0. Fall back to the fixture
+            # timestamp so we still short-circuit on past matches.
+            if not kt:
+                try:
+                    import laliga_fixtures as _lf
+                    _fx = _lf.get_laliga_fixtures().get('fixtures', [])
+                    _fm = next((x for x in _fx if x.get('match_id') == match_id), None)
+                    if _fm:
+                        kt = int(_fm.get('timestamp') or 0)
+                except Exception:
+                    pass
+            if kt and kt < int(time.time()):
+                return {
+                    'match_id': match_id,
+                    'home_team_id': cached.get('home_team_id'),
+                    'away_team_id': cached.get('away_team_id'),
+                    'home_players': cached.get('home_players', []),
+                    'away_players': cached.get('away_players', []),
+                    'home_count': sum(1 for p in cached.get('home_players', []) if p.get('matched')),
+                    'away_count': sum(1 for p in cached.get('away_players', []) if p.get('matched')),
+                    'source': 'cache-past-match',
+                    'fetched_at': cached.get('fetched_at'),
+                }
         ff_id = (cached or {}).get('ff_id') or ''
         slug = (cached or {}).get('slug') or ''
-        championship = (cached or {}).get('championship') or 'laliga'
+        championship = (cached or {}).get('championship') or ''
         home_team_id = (cached or {}).get('home_team_id') or ''
         away_team_id = (cached or {}).get('away_team_id') or ''
         kickoff_ts = (cached or {}).get('kickoff_ts') or 0
-        if not ff_id or not slug or not home_team_id or not away_team_id:
+        # Aug 22 2026 — Max clicked "🔍 Check Predicted XI" on a match
+        # whose cache had not been built yet (e.g. h6xWMBdC Eldense vs
+        # Cadiz CF — added to fixtures after the last T-18h sweep).
+        # Look the match up in laliga_fixtures and pull its tournament,
+        # then resolve ff_id / slug from the matching futbolfantasy
+        # jornada page so we can build a fresh cache here instead of
+        # failing with "refresh=1 requires an existing cache entry".
+        if (not ff_id or not slug or not home_team_id or not away_team_id or not championship):
+            try:
+                import laliga_fixtures
+                fx = laliga_fixtures.get_laliga_fixtures().get('fixtures', [])
+                fm = next((x for x in fx if x.get('match_id') == match_id), None)
+                if fm:
+                    if not home_team_id:
+                        # Aug 22 2026 — fixtures use keys 'home' /
+                        # 'away' (not 'home_team' / 'away_team' which
+                        # are a different helper shape), each holding
+                        # 'team_id' and 'name'. Be defensive about
+                        # both shapes so we don't silently end up
+                        # with empty IDs.
+                        h = fm.get('home') or fm.get('home_team') or {}
+                        a = fm.get('away') or fm.get('away_team') or {}
+                        home_team_id = h.get('team_id') or h.get('id') or ''
+                        away_team_id = a.get('team_id') or a.get('id') or ''
+                    if not kickoff_ts:
+                        kickoff_ts = int(fm.get('timestamp') or 0)
+                    # Determine tournament from the fixtures record; fall
+                    # back to trying both and seeing which listing actually
+                    # exposes this match.
+                    tournament_label = (fm.get('tournament') or '').lower()
+                    cand_championships = []
+                    if '2' in tournament_label or 'segunda' in tournament_label or 'satelite' in tournament_label:
+                        cand_championships = ['laliga2']
+                    elif tournament_label in ('laliga', 'la liga', 'primera'):
+                        cand_championships = ['laliga']
+                    else:
+                        # No explicit hint — try both, prefer laliga2 since
+                        # many newer additions live in Segunda.
+                        cand_championships = ['laliga', 'laliga2']
+                    h = fm.get('home') or fm.get('home_team') or {}
+                    a = fm.get('away') or fm.get('away_team') or {}
+                    home_label = h.get('name') or ''
+                    away_label = a.get('name') or ''
+                    ff_found = False
+                    for champ in cand_championships:
+                        try:
+                            for cand in predicted_xi.parse_round_matches(champ):
+                                # fuzzy-equality helper copied from the
+                                # scheduler so we resolve slug + ff_id
+                                # the same way it does.
+                                import unicodedata
+                                def _strip_acc(s):
+                                    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+                                def _eq(a, b):
+                                    al = _strip_acc((a or '').lower())
+                                    bl = _strip_acc((b or '').lower())
+                                    if not al or not bl:
+                                        return False
+                                    if al == bl or al in bl or bl in al:
+                                        return True
+                                    at = al.replace('.', '').replace('-', ' ').split()
+                                    bt = bl.replace('.', '').replace('-', ' ').split()
+                                    return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])) for t in at)
+                                if _eq(cand.get('home', ''), home_label) and _eq(cand.get('away', ''), away_label):
+                                    ff_id = cand.get('ff_id') or ''
+                                    slug = cand.get('slug') or ''
+                                    championship = champ
+                                    ff_found = True
+                                    break
+                        except Exception:
+                            pass
+                        if ff_found:
+                            break
+            except Exception:
+                pass
+        if not ff_id or not slug or not home_team_id or not away_team_id or not championship:
             return {
                 'match_id': match_id,
                 'home_players': [], 'away_players': [],
                 'home_count': 0, 'away_count': 0,
                 'source': 'none',
-                'error': 'refresh=1 requires an existing cache entry to know ff_id / team_ids',
+                'error': 'refresh=1: no cache and could not resolve ff_id/slug from futbolfantasy',
             }
         # Read the (already refreshed) LV squads from disk so the
         # name matcher works against the freshest data.
@@ -2822,6 +2943,31 @@ async def lineup_api_predicted_xi(match_id: str, refresh: int = 0):
     }
 
 
+def _detect_match_championship(match_id: str) -> str:
+    """Aug 22 2026 — return 'laliga' / 'laliga2' / '' for a match_id.
+
+    Used by refresh endpoints to pick the right futbolfantasy page when
+    the cache is missing. Reads the fixtures manifest, then inspects
+    the `tournament` field (which can be 'LaLiga', 'LaLiga 2',
+    'Segunda División', …) and returns the championship key used
+    internally. Empty string means we could not figure it out.
+    """
+    try:
+        import laliga_fixtures
+        fx = laliga_fixtures.get_laliga_fixtures().get('fixtures', [])
+        m = next((x for x in fx if x.get('match_id') == match_id), None)
+        if not m:
+            return ''
+        label = (m.get('tournament') or '').lower()
+        if '2' in label or 'segunda' in label or 'satelite' in label:
+            return 'laliga2'
+        if label in ('laliga', 'la liga', 'primera', 'laliga primera', 'laliga1'):
+            return 'laliga'
+    except Exception:
+        pass
+    return ''
+
+
 @app.post("/lineup_ai/api/predicted_xi/{match_id}/refresh")
 async def lineup_api_predicted_xi_refresh(match_id: str):
     """Force-refresh a single match's predicted XI.
@@ -2849,7 +2995,7 @@ async def lineup_api_predicted_xi_refresh(match_id: str):
             home_lv = _load_lv_players(home_id)
             away_lv = _load_lv_players(away_id)
             predicted_xi.build_match_cache(
-                championship='laliga',
+                championship=_detect_match_championship(match_id) or 'laliga',
                 match_id=match_id,
                 ff_id=ff_id, slug=slug,
                 home_team_id=home_id, away_team_id=away_id,
@@ -5781,6 +5927,7 @@ def scheduler_start():
                     bt = bl.replace('.', '').replace('-', ' ').split()
                     return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])) for t in at)
                 ff_match = None
+                ff_championship = None
                 for championship_key in ('laliga', 'laliga2'):
                     candidate = next(
                         (x for x in predicted_xi.parse_round_matches(championship_key)
@@ -5790,20 +5937,21 @@ def scheduler_start():
                     )
                     if candidate:
                         ff_match = candidate
+                        ff_championship = championship_key
                         break
                 if not ff_match:
                     continue
                 home_lv = _load_lv_players(home_id)
                 away_lv = _load_lv_players(away_id)
                 predicted_xi.build_match_cache(
-                    championship='laliga',
+                    championship=ff_championship or 'laliga',
                     match_id=mid,
                     ff_id=ff_match['ff_id'], slug=ff_match['slug'],
                     home_team_id=home_id, away_team_id=away_id,
                     kickoff_ts=ts,
                     home_lv_players=home_lv, away_lv_players=away_lv,
                 )
-                print(f'predicted_xi cached {mid} {home_id} vs {away_id}')
+                print(f'predicted_xi cached {mid} {home_id} vs {away_id} champ={ff_championship}')
         except Exception as ex:
             print(f'predicted_xi_cycle error: {ex}')
 
