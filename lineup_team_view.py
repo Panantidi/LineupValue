@@ -2359,8 +2359,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         // scroll position and lose open round sections).
         let _p11CountdownTimer = null;
         function refreshPredicted11Countdowns() {{
-            const spans = document.querySelectorAll('#predicted11-body .p11-countdown');
+            const ACTIVE_WINDOW = 20 * 3600;
             const now = Math.floor(Date.now() / 1000);
+            // Aug 22 2026 — refresh every countdown span (existing
+            // behaviour) AND every Check Predicted XI button. Buttons
+            // unlock at T-20h, so we walk the row, look up the same
+            // data-ts, and either activate the button (replace the
+            // disabled grey placeholder with the blue active one) or
+            // leave it alone.
+            const spans = document.querySelectorAll('#predicted11-body .p11-countdown');
             spans.forEach(function (el) {{
                 const ts = parseInt(el.getAttribute('data-ts') || '0', 10);
                 if (!ts) return;
@@ -2374,6 +2381,32 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 else if (hours > 0) body = hours + 'h ' + pad2(minutes) + 'm';
                 else body = minutes + 'm';
                 el.textContent = 'Match starts in ' + body;
+            }});
+            // Aug 22 2026 — activate any 🔍 Check Predicted XI button
+            // whose kickoff crossed the T-20h boundary since the panel
+            // opened (or since the last tick). We do not rebuild the
+            // whole row — we just flip the disabled attribute and the
+            // background colour so the user can click it immediately.
+            const locked = document.querySelectorAll('#predicted11-body button.p11-check-btn-locked');
+            locked.forEach(function (btn) {{
+                const ts = parseInt(btn.getAttribute('data-ts') || '0', 10);
+                if (!ts) return;
+                const delta = ts - now;
+                if (delta > ACTIVE_WINDOW) return;
+                // Promote to active. The dataset attrs we need
+                // (home/away/homeN/awayN) are preserved by the
+                // disabled placeholder; we just re-enable and restyle.
+                btn.disabled = false;
+                btn.classList.remove('p11-check-btn-locked');
+                btn.classList.add('p11-check-btn');
+                btn.style.color = '#fff';
+                btn.style.background = '#3b82f6';
+                btn.style.borderColor = '#2563eb';
+                btn.style.cursor = 'pointer';
+                btn.style.opacity = '1';
+                btn.textContent = '🔍 Check Predicted XI';
+                btn.setAttribute('onclick', 'checkPredictedXIMatch(this)');
+                btn.setAttribute('title', 'Refresh this match predicted XI. Ticks live if THIS team plays; opens compare view if it is a different team.');
             }});
         }}
         function togglePredicted11() {{
@@ -2556,17 +2589,51 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // match id lives in data-mid; the handler reads it back
                 // with this.dataset.mid so we don't need to escape
                 // quotes inside the inline onclick.
-                html += '<button type="button" class="p11-check-btn header-action-btn" data-mid="' +
-                    _escapeText(mid) + '" data-home="' + _escapeText(homeId) +
-                    '" data-away="' + _escapeText(awayId) +
-                    '" data-home-n="' + _escapeText(homeName) +
-                    '" data-away-n="' + _escapeText(awayName) +
-                    '" onclick="checkPredictedXIMatch(this)" ' +
-                    'style="font-size:11px;color:#fff;background:#3b82f6;border:1px solid #2563eb;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;" ' +
-                    // Aug 22 2026 — tooltip explains the three-mode
-                    // dispatch (own iframe / match-mode parent /
-                    // foreign-match opens a new compare tab).
-                    'title="Refresh this match predicted XI. Ticks live if THIS team plays; opens compare view if it is a different team.">🔍 Check Predicted XI</button>';
+                // Aug 22 2026 — Max asked: the button must only become active
+                // in the T-20h window so users don't refresh the cache
+                // 2 weeks before kickoff (when futbolfantasy.com doesn't
+                // even have the round listed yet and we'd just blow
+                // away good cache). Compute the timestamp delta here
+                // (m.timestamp is the LV kickoff epoch) and skip the
+                // button until that delta drops under 20 h.
+                const nowSec0 = Math.floor(Date.now() / 1000);
+                const secUntilKickoff0 = (m.timestamp || 0) - nowSec0;
+                const ACTIVE_WINDOW_SEC = 20 * 3600; // 20 h
+                const isInActiveWindow = secUntilKickoff0 <= ACTIVE_WINDOW_SEC;
+
+                if (isInActiveWindow) {{
+                    html += '<button type="button" class="p11-check-btn header-action-btn" data-mid="' +
+                        _escapeText(mid) + '" data-home="' + _escapeText(homeId) +
+                        '" data-away="' + _escapeText(awayId) +
+                        '" data-home-n="' + _escapeText(homeName) +
+                        '" data-away-n="' + _escapeText(awayName) +
+                        '" data-ts="' + (m.timestamp || 0) + '" onclick="checkPredictedXIMatch(this)" ' +
+                        'style="font-size:11px;color:#fff;background:#3b82f6;border:1px solid #2563eb;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;" ' +
+                        // Aug 22 2026 — tooltip explains the three-mode
+                        // dispatch (own iframe / match-mode parent /
+                        // foreign-match opens a new compare tab).
+                        'title="Refresh this match predicted XI. Ticks live if THIS team plays; opens compare view if it is a different team.">🔍 Check Predicted XI</button>';
+                }} else {{
+                    // Aug 22 2026 — outside the 20 h window. Render a
+                    // disabled grey placeholder so the row layout stays
+                    // stable (the countdown span next to it still
+                    // announces when the button will activate).
+                    const unlockAt = (m.timestamp || 0) - ACTIVE_WINDOW_SEC;
+                    const unlockStr = (function() {{
+                        try {{
+                            const d = new Date(unlockAt * 1000);
+                            const pad = function(n) {{ return n < 10 ? '0' + n : '' + n; }};
+                            return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) +
+                                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+                        }} catch (e) {{ return 'T-20h'; }}
+                    }})();
+                    html += '<button type="button" disabled class="p11-check-btn-locked" data-mid="' +
+                        _escapeText(mid) + '" data-ts="' + (m.timestamp || 0) +
+                        '" style="font-size:11px;color:#94a3b8;background:#1e293b;border:1px solid #334155;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:not-allowed;opacity:0.6;" ' +
+                        'title="🔍 Check Predicted XI unlocks at ' + unlockStr +
+                        ' (20 h before kickoff). The match is too far away for futbolfantasy to publish a useful XI yet.">🔒 T-' +
+                        Math.ceil((secUntilKickoff0 - ACTIVE_WINDOW_SEC) / 3600) + 'h</button>';
+                }}
                 html += '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
                 return html;
