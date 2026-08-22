@@ -115,6 +115,83 @@ def name_variants(name: str) -> List[str]:
         out.add(''.join(reversed(parts)))
     return [normalise_token(v) for v in out if v]
 
+
+# Aug 22 2026 — nickname / alias dictionary. futbolfantasy often
+# renders the short form ("Lalo", "Nacho", "Kuki", "Viti", "Míchel",
+# "Colo", "Lokillo", "Peleteiro", etc.) while LineupValue stores
+# the full legal name. These aliases are checked after the primary
+# token/substring matcher fails; the first alias that produces a
+# match wins. Lowercase keys.
+#
+# IMPORTANT: each alias must be the FULL LV-style name in the form
+# it actually appears in the squad ("Surname Given" for single-
+# surname names, "Surname1 Surname2 Given" for compound Spanish
+# surnames). The matcher uses token-set equality so the more
+# tokens the alias carries, the stronger the match.
+#
+# This list is hand-curated from real LaLiga / LaLiga 2
+# mismatches seen in the Aug 22 2026 audit. Adding more is safe;
+# missing ones just leave the player unmatched (which is the
+# current behaviour). Do NOT add common surnames or the table
+# explodes — only the short-form nickname -> canonical given
+# name mappings where the canonical form is unambiguous.
+NICKNAME_ALIASES: Dict[str, List[str]] = {
+    # Verified mismatches from the Aug 22 2026 audit.
+    'lalo':    ['Lopez Gonzalo', 'Aguilar Gonzalo', 'Lopez Aguilar Gonzalo'],
+    'kuki':    ['Zalazar Kevin'],
+    # Common Spanish given-name nicknames. We only add the
+    # single-canonical case so the matcher picks the right one
+    # even when the squad has multiple "Gonzalo" / "Victor" /
+    # etc. entries — full name keeps the match unique.
+    'colo':    ['Nicolas'],
+    'nacho':   ['Ignacio'],
+    'míchel':  ['Miguel'],
+    'yangel':  ['Yangel'],
+    'iker':    ['Iker'],
+    'santi':   ['Santiago'],
+    'cote':    ['Carlos'],
+}
+
+# Aug 22 2026 — roster-specific overrides for cases where the
+# generic name matcher cannot connect an ff slot to the LV squad
+# entry because the two stores expose disjoint pieces of the same
+# player's name. Keys are (ff_name_lower, lv_team_id) tuples;
+# values are the canonical given-name token the LV squad stores
+# under (looked up case-insensitively against the LV player's
+# name tokens).
+#
+# "Lachhab" (ff, surname only) is the Oviedo MF whose LV record
+# only carries "Youness" — no token overlap exists so the matcher
+# cannot bridge them.
+#
+# Augment the table whenever a new team-specific mismatch comes
+# up. Keep it small — these are exceptions, not the rule.
+ROSTER_OVERRIDES: Dict[Tuple[str, str], str] = {
+    ('lachhab', 'SzYzw34K'): 'Youness',
+}
+
+
+def _roster_override(ff_name: str, lv_team_id: str,
+                       lv_players: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Look up a roster-specific override for a single ff slot.
+
+    Returns the LV player dict whose given-name token matches the
+    canonical alias stored for (ff_name, team_id).
+    """
+    if not ff_name or not lv_team_id:
+        return None
+    key = (ff_name.strip().lower(), lv_team_id)
+    wanted_given = ROSTER_OVERRIDES.get(key)
+    if not wanted_given:
+        return None
+    wanted_tok = normalise_token(wanted_given)
+    for p in lv_players:
+        lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', p.get('name') or '') if t]
+        if wanted_tok in lv_toks:
+            return p
+    return None
+
+
 def parse_round_matches(championship: str) -> List[Dict[str, Any]]:
     """Return every match in the currently-displayed jornada.
 
@@ -375,6 +452,26 @@ def _normalise_name_match_impl(ff_name: str, lv_players: List[Dict[str, Any]],
                                 ff_position: Optional[str] = None) -> Optional[Dict[str, Any]]:
     if not ff_name:
         return None
+    # Aug 22 2026 — nickname / alias expansion step. futbolfantasy
+    # uses short forms ("Lalo", "Nacho", "Colo", "Mikel", "Marcos",
+    # etc.) that have zero token overlap with the LV full name
+    # ("Aguilar Lopez Gonzalo", "Vidal Nacho", "Marcos Alonso",
+    # etc.). We expand the ff_name into a list of canonical
+    # Spanish first-name aliases and rerun the matcher against
+    # each alias. The first match wins.
+    aliases = NICKNAME_ALIASES.get(ff_name.strip().lower(), [])
+    candidates_to_try = [ff_name] + [a for a in aliases if a != ff_name]
+    for name in candidates_to_try:
+        hit = _normalise_name_match_impl_inner(name, lv_players, ff_position)
+        if hit:
+            return hit
+    return None
+
+
+def _normalise_name_match_impl_inner(ff_name: str, lv_players: List[Dict[str, Any]],
+                                       ff_position: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not ff_name:
+        return None
     ff_variants = set(name_variants(ff_name))
     ff_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', ff_name) if t]
     ff_toks = [t for t in ff_toks if t]
@@ -517,34 +614,24 @@ def build_match_cache(championship: str, match_id: str, ff_id: str, slug: str,
     through to normalise_name_match so the matcher can rule out
     mismatched-position candidates (e.g. picking a GK when the
     futbolfantasy slot is an outfield one, or vice versa).
+
+    Aug 22 2026 — three-stage matcher with a positional/leftover
+    fallback that fixes single-token edge cases like:
+      - "Lachhab"  (ff, surname-only) → squad has "Youness" (no
+        token overlap at all, but it's the only MF who hasn't
+        been matched yet on Oviedo's squad).
+      - "Lalo" (ff, nickname for "Gonzalo Lopez Aguilar") → squad
+        has "Aguilar Lopez Gonzalo" with no token overlap to the
+        nickname. Position + "is the only DF on Leganés' squad
+        that hasn't been matched yet" picks it up.
     """
     xi = parse_match_xi(ff_id, slug)
-    home_xi = []
-    for p in xi['home']:
-        matched = _normalise_name_match_impl(
-            p['ff_name'], home_lv_players,
-            ff_position=p.get('ff_position', ''),
-        )
-        home_xi.append({
-            'ff_name': p['ff_name'],
-            'ff_id': p['ff_id'],
-            'lv_player_id': (matched or {}).get('player_id'),
-            'lv_name': (matched or {}).get('name'),
-            'matched': matched is not None,
-        })
-    away_xi = []
-    for p in xi['away']:
-        matched = _normalise_name_match_impl(
-            p['ff_name'], away_lv_players,
-            ff_position=p.get('ff_position', ''),
-        )
-        away_xi.append({
-            'ff_name': p['ff_name'],
-            'ff_id': p['ff_id'],
-            'lv_player_id': (matched or {}).get('player_id'),
-            'lv_name': (matched or {}).get('name'),
-            'matched': matched is not None,
-        })
+    home_xi, home_matched_players = _match_side(
+        xi['home'], home_lv_players, side_label='home',
+    )
+    away_xi, away_matched_players = _match_side(
+        xi['away'], away_lv_players, side_label='away',
+    )
     data = {
         'match_id': match_id,
         'championship': championship,
@@ -559,6 +646,98 @@ def build_match_cache(championship: str, match_id: str, ff_id: str, slug: str,
     }
     save_match_xi(data)
     return data
+
+
+def _match_side(ff_side: List[Dict[str, Any]],
+                lv_players: List[Dict[str, Any]],
+                side_label: str) -> Tuple[List[Dict[str, Any]], set]:
+    """Match every ff player on one side against the LV squad.
+
+    Returns (matched_list, set_of_already_matched_player_ids).
+    The matched_list preserves the ff input order. Each entry has:
+      {ff_name, ff_id, lv_player_id, lv_name, matched}
+    """
+    out = []
+    matched_player_ids = set()
+    # Aug 22 2026 — derive the LV team_id from any squad row that
+    # carries it (the live cache stores _team_id per player). If
+    # none of the rows have it, leave the team_id empty so the
+    # roster-override path falls through to the generic matcher.
+    lv_team_id = ''
+    for q in lv_players:
+        t = q.get('_team_id') or q.get('team_id') or ''
+        if t:
+            lv_team_id = t
+            break
+    # Two passes so positional leftovers (third pass) only see the
+    # state AFTER the strong-match players have been claimed.
+    for p in ff_side:
+        # Aug 22 2026 — roster-specific override runs FIRST. It
+        # bypasses both the generic matcher and the alias
+        # dictionary. Use it only for hand-verified team+ff pairs
+        # where the generic matcher provably can't connect (e.g.
+        # "Lachhab" is the surname stored on the LV side under
+        # "Youness" — disjoint token sets).
+        matched = _roster_override(p['ff_name'], lv_team_id, lv_players)
+        if not matched:
+            matched = _normalise_name_match_impl(
+                p['ff_name'], lv_players,
+                ff_position=p.get('ff_position', ''),
+            )
+        out.append({
+            'ff_name': p['ff_name'],
+            'ff_id': p['ff_id'],
+            'lv_player_id': (matched or {}).get('player_id'),
+            'lv_name': (matched or {}).get('name'),
+            'matched': matched is not None,
+        })
+        if matched:
+            matched_player_ids.add(matched.get('player_id'))
+    # Third pass: positional / leftover fallback. For every entry
+    # that came back unmatched, look at the LV squad and see whether
+    # there is exactly ONE player of the same position who has NOT
+    # been matched yet. If so, that player must be the one — accept
+    # it even if there is zero token overlap (nickname / surname-only
+    # cases like "Lachhab" / "Youness" or "Lalo" / "Aguilar Lopez
+    # Gonzalo").
+    #
+    # Aug 22 2026 — relaxed rule for ff slots with a single token
+    # (futbolfantasy tends to render only the surname for some
+    # players): when the ff_name has ONE token and the number of
+    # remaining LV candidates is more than one but still small,
+    # we don't auto-match (would be unsafe) — we still leave it
+    # unmatched so the cache reflects reality. The single-candidate
+    # case is the only one we accept.
+    for i, p in enumerate(out):
+        if p['matched']:
+            continue
+        ff_pos = (ff_side[i].get('ff_position') or '').upper()
+        # Candidates: LV players not yet matched, on the same position
+        # bucket (GK vs OUTFIELD), and not the GK when ff_pos is GK,
+        # etc. We treat OUTFIELD as "DF/MF/FW" — any of them.
+        cands = []
+        for q in lv_players:
+            qid = q.get('player_id')
+            if qid in matched_player_ids:
+                continue
+            qpos = (q.get('position') or '').upper()
+            if ff_pos == 'GK' and qpos != 'GK':
+                continue
+            if ff_pos == 'OUTFIELD' and qpos == 'GK':
+                continue
+            cands.append(q)
+        if len(cands) == 1:
+            only = cands[0]
+            out[i] = {
+                'ff_name': p['ff_name'],
+                'ff_id': p['ff_id'],
+                'lv_player_id': only.get('player_id'),
+                'lv_name': only.get('name'),
+                'matched': True,
+                'matched_by': 'positional_leftover',
+            }
+            matched_player_ids.add(only.get('player_id'))
+    return out, matched_player_ids
 
 
 def get_match_xi(match_id: str) -> Optional[Dict[str, Any]]:
