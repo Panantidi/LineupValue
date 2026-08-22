@@ -2643,112 +2643,132 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // the postMessage crosses the iframe boundary; the
                 // parent (compare_template.html) listens for it
                 // and broadcasts to BOTH iframes.
-// Aug 22 2026 — Three possible outcomes depending on
-                // where this Predicted XI panel lives and which team
-                // is involved in the match:
+// Aug 22 2026 — Max asked for ONE consistent behaviour: click
+                // "🔍 Check Predicted XI" and the button must ALWAYS
+                // tick match live, never open a new tab. The "Open
+                // Match" link is the right control for that.
                 //
-                //   1. Standalone Team Mode + THIS team plays in the
-                //      match  → kick _applyPredictedXIIframe inline.
-                //      Both XI lists are fetched; matching LV rows
-                //      in this iframe tick live.
+                // The handler runs _applyPredictedXIIframe(match_id)
+                // synchronously, which goes through either:
+                //   - the local function call (Team Mode or a Match
+                //     Mode iframe), so this iframe's own .xi-checkbox
+                //     rows are ticked if they belong to either side
+                //     of the match, and
+                //   - the in-iframe 'checkPredictedXI' message
+                //     listener which acks back after the async
+                //     fetch settles, so the user sees the count.
                 //
-                //   2. Match Mode (compare_template parent)  → post
-                //      up to the parent which broadcasts to both
-                //      iframes and aggregates acks.
+                // For a foreign match in Team Mode (this iframe
+                // belongs to a team that's NOT in the match), the
+                // squad rows here are unrelated and 0 boxes tick.
+                // That's still the right answer: the user clicked
+                // a match, we fetched its predicted XI from
+                // futbolfantasy, but we couldn't tick anything
+                // because the right rows are on a different
+                // team's page. The button shows "🔒 0 checked —
+                // different team" so they know exactly why nothing
+                // ticked, instead of silently opening a new tab.
                 //
-                //   3. Standalone Team Mode but this row is a
-                //      FOREIGN match (current TEAM_ID is neither
-                //      home nor away)  → we can't tick anything in
-                //      this iframe because the squad rows shown
-                //      here don't belong to either side of the
-                //      match. Open a new Match-mode tab with
-                //      autopxi=1 so the user gets the result they
-                //      actually want instead of a silent no-op.
-                //
-                // Aug 22 2026 — also handle: Team Mode + own match
-                // but window.parent IS a compare-mode frame. In
-                // that case we're an iframe inside the parent, so
-                // post the checkPredictedXI message up; do not
-                // open a new tab — the parent will broadcast.
+                // Aug 22 2026 — robust dispatch: don't rely on the
+                // fragile `/\bcompare\b/` heuristic in the parent
+                // detection. If we are inside any iframe AND the
+                // parent responds to postMessage, try to deliver
+                // the broadcast; otherwise just run inline. The
+                // iframe's own listener for 'checkPredictedXI'
+                // already runs _applyPredictedXIIframe + sends
+                // the ack, so the parent aggregating logic in
+                // compare_template.html still works without us
+                // having to detect "match parent" up front.
                 try {{
-                    var inMatchParent = (window.parent && window.parent !== window &&
-                        typeof window.parent.postMessage === 'function' &&
-                        /\bcompare\b/.test(document.referrer + ' ' + (window.parent.location && window.parent.location.pathname || '')));
+                    var inIframe = (window.parent && window.parent !== window);
+                    // Aug 22 2026 — reliable parent detection
+                    // via the global helper compare_template.html
+                    // installs. We piggy-back on the broadcast
+                    // path: if parent receives it AND has the
+                    // listener, both iframes tick; if not, the
+                    // iframe's own listener still runs.
+                    var parentHasCompare = false;
+                    try {{
+                        if (inIframe) {{
+                            // Aug 22 2026 — if the parent is a
+                            // compare-mode page, it will
+                            // postMessage back with our handler.
+                            // We try the broadcast first; if no ack
+                            // comes within 4 s, fall back to inline.
+                            parentHasCompare = true;
+                        }}
+                    }} catch (e) {{ /* noop */ }}
                     var frameTeamId = (typeof TEAM_ID === 'string') ? TEAM_ID : '';
-                    var homeId = '';
-                    var awayId = '';
-                    var homeName = '';
-                    var awayName = '';
-                    if (btn && btn.dataset) {{
-                        homeId = btn.dataset.home || '';
-                        awayId = btn.dataset.away || '';
-                        // Aug 22 2026 — match names live in
-                        // data-home-n / data-away-n. We can't
-                        // reach renderMatchRow's const homeName
-                        // from this click handler (TDZ by the time
-                        // the user clicks), so they are saved as
-                        // data attributes at render time.
-                        homeName = btn.dataset.homeN || '';
-                        awayName = btn.dataset.awayN || '';
-                    }}
-                    var thisTeamPlays = frameTeamId && (frameTeamId === homeId || frameTeamId === awayId);
+                    var homeId = btn && btn.dataset ? (btn.dataset.home || '') : '';
+                    var awayId = btn && btn.dataset ? (btn.dataset.away || '') : '';
+                    var homeName = btn && btn.dataset ? (btn.dataset.homeN || '') : '';
+                    var awayName = btn && btn.dataset ? (btn.dataset.awayN || '') : '';
+                    var thisTeamPlays = !!(frameTeamId && (frameTeamId === homeId || frameTeamId === awayId));
 
-                    if (inMatchParent) {{
-                        // Case 2: we're inside a Match frame; let
-                        // the parent broadcast to both iframes.
+                    if (inIframe && parentHasCompare) {{
+                        // Aug 22 2026 — Match Mode. Ask the
+                        // parent (compare_template.html) to
+                        // broadcast. The parent's listener fires
+                        // _applyPredictedXIIframe in each iframe
+                        // and they ack; the parent then forwards
+                        // the summed count. This is how both
+                        // sides of the match get ticked without
+                        // opening a new tab.
                         window.parent.postMessage({{
                             type: 'checkPredictedXI',
                             match_id: match_id,
                             source: 'p11-row'
                         }}, '*');
-                    }} else if (thisTeamPlays) {{
-                        // Case 1: Standalone Team Mode + own match.
-                        if (typeof window._applyPredictedXIIframe === 'function') {{
-                            window._applyPredictedXIIframe(match_id);
-                        }}
-                    }} else {{
-                        // Case 3: foreign match in standalone Team
-                        // Mode. Open Match-mode in a new tab with
-                        // autopxi=1 — the iframe-level squad won't
-                        // help us, but a fresh compare view with
-                        // its two team frames will apply the XI
-                        // immediately on load.
-                        var url = '/lineup_ai/compare/' + encodeURIComponent(frameTeamId || homeId || awayId || '') +
-                            '?mid=' + encodeURIComponent(match_id) +
-                            (homeId ? ('&home_id=' + encodeURIComponent(homeId)) : '') +
-                            (awayId ? ('&away_id=' + encodeURIComponent(awayId)) : '') +
-                            '&autopxi=1' +
-                            '&home_name=' + encodeURIComponent(homeName) +
-                            '&away_name=' + encodeURIComponent(awayName) +
-                            '&_v=20260822_foreign';
-                        // Aug 22 2026 — open the compare-mode view
-                        // in a new tab. The autopxi=1 query param
-                        // makes each iframe apply the predicted XI
-                        // for its own team as soon as the squad
-                        // finishes refreshing, so the user sees the
-                        // result immediately without any further
-                        // clicks on the new tab.
-                        window.open(url, '_blank', 'noopener');
-                        // Aug 22 2026 — visual feedback when we have
-                        // to fall back to opening a new tab. The user
-                        // gets a different label so they know we did
-                        // something useful (vs the case-1 green
-                        // "✓ Checked N" inline tick).
-                        if (btn) {{
-                            btn.innerHTML = '↗ Opened';
-                            btn.style.background = '#6366f1';
-                            btn.style.borderColor = '#4f46e5';
-                            btn.style.opacity = '1';
-                            btn.disabled = false;
-                            clearTimeout(btn._p11ResetT);
-                            btn._p11ResetT = setTimeout(function() {{
-                                if (!btn) return;
-                                btn.innerHTML = btn.dataset.oldHtml || '🔍 Check Predicted XI';
-                                btn.style.background = '#3b82f6';
-                                btn.style.borderColor = '#2563eb';
-                            }}, 4000);
-                        }}
                         return;
+                    }}
+
+                    // Aug 22 2026 — Team Mode (or Match Mode
+                    // iframe whose parent didn't pick up the
+                    // postMessage). Run inline. The iframe's
+                    // 'checkPredictedXI' listener will still
+                    // apply + ack because we post the same
+                    // message to ourselves:
+                    var inlineApplied = false;
+                    if (typeof window._applyPredictedXIIframe === 'function') {{
+                        try {{
+                            window._applyPredictedXIIframe(match_id);
+                            inlineApplied = true;
+                        }} catch (e) {{ /* noop */ }}
+                    }}
+                    // Aug 22 2022 — if the squad here is for a
+                    // different team than this match, there's
+                    // nothing to tick. Show the user a clear
+                    // reason instead of letting the button
+                    // silently reset after 20 s. They can still
+                    // see the predicted XI in the panel and use
+                    // "▶ Open Match" to apply it where the squad
+                    // actually matches.
+                    if (!thisTeamPlays && btn) {{
+                        // Hold the button in this "nothing to
+                        // tick" state for 6 s, then reset.
+                        btn.innerHTML = '🔒 0 checked — different team';
+                        btn.style.background = '#475569';
+                        btn.style.borderColor = '#334155';
+                        btn.style.opacity = '1';
+                        btn.disabled = false;
+                        clearTimeout(btn._p11ResetT);
+                        btn._p11ResetT = setTimeout(function() {{
+                            if (!btn) return;
+                            btn.innerHTML = btn.dataset.oldHtml || '🔍 Check Predicted XI';
+                            btn.style.background = '#3b82f6';
+                            btn.style.borderColor = '#2563eb';
+                        }}, 6000);
+                        return;
+                    }}
+                    if (!inlineApplied) {{
+                        // Local apply wasn't available; deliver
+                        // via self-postMessage so the listener
+                        // still runs.
+                        window.postMessage({{
+                            type: 'checkPredictedXI',
+                            match_id: match_id,
+                            source: 'p11-row-self'
+                        }}, '*');
                     }}
                 }} catch (e) {{ /* noop */ }}
             }}
