@@ -220,9 +220,20 @@ def _laliga_matches_from_team_response(team_id: str, raw):
             ts = m.get("timestamp")
             if not ts:
                 continue
+            # Aug 22 2026 — carry the division name so the JS panel
+            # can group fixtures into separate LaLiga / LaLiga 2
+            # dropdowns instead of lumping them under one selector.
+            # Use "LaLiga 2" for Segunda Division fixtures (matches
+            # the panel header we'd write in lineup_team_view.py),
+            # and the short "LaLiga" for everything else that
+            # matched the is_laliga test above.
+            division = "LaLiga 2" if (name == "LaLiga 2"
+                                       or "/laliga-2/" in url.lower()
+                                       or "/laliga2/" in url.lower()) else "LaLiga"
             out.append({
                 "match_id": m.get("match_id"),
                 "timestamp": ts,
+                "tournament": division,
                 "home": {
                     "team_id": home.get("team_id"),
                     "name": home.get("name"),

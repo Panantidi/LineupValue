@@ -2401,93 +2401,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (footer) footer.textContent = '';
                 return;
             }}
-            // Aug 22 2026 — Predicted XI show rules (v6, two-level dropdown).
+            // Aug 22 2026 — Predicted XI show rules (v7, per-division
+            // dropdown).
             //
-            // Max reverted the all-rounds view to a single-round view
-            // (the next active Round by the rules from earlier today).
-            // Within that round, matches are grouped by tournament
-            // (LaLiga, Copa del Rey, Supercopa, etc.). The round header
-            // is the OUTER dropdown and the tournament groups are the
-            // INNER collapsable blocks — closed by default, opens on
-            // click.
-            //
-            // Currently the cache only carries LaLiga fixtures, so
-            // every round exposes exactly one LaLiga sub-section. The
-            // structure is ready for Copa del Rey / Supercopa / Premier
-            // / etc. matches to slot in alongside without a re-render.
+            // Max asked for LaLiga and LaLiga 2 to live in separate
+            // round pickers, not share one. The panel now renders one
+            // outer block per division. Each block carries its own
+            // active round header (the next round to play in that
+            // division), expandable to reveal the matches.
             //
             // Group math:
-            //   * activeRoundKey = round with the smallest earliest
-            //     still-live timestamp (the "next round to play").
-            //   * drop past matches (ts + 600s < now).
-            //   * group the rest by m.tournament (falls back to "LaLiga"
-            //     when the field is missing so legacy cache rows still
-            //     have a home).
-            const nowSec = Math.floor(Date.now() / 1000);
-            const PAST_GRACE_SEC = 10 * 60;
+            //   * Group fixtures by m.tournament (LaLiga vs LaLiga 2).
+            //     Falls back to "LaLiga" when missing.
+            //   * Inside each division, group by round label.
+            //   * Active round = round with the smallest earliest
+            //     still-live timestamp within that division.
+            //   * Drop past matches (ts + 600s < now).
 
-            const byRound = {{}};
-            fixtures.forEach(function (m) {{
-                const rk = (m.round && String(m.round).trim()) || '__upcoming__';
-                if (!byRound[rk]) byRound[rk] = [];
-                byRound[rk].push(m);
-            }});
-
-            // Sort rounds numerically so Round 1 < Round 2 < Round 3.
-            const sortRound = function (a, b) {{
-                if (a === '__upcoming__') return 1;
-                if (b === '__upcoming__') return -1;
-                const na = parseInt((a.match(/\d+/) || ['999'])[0], 10);
-                const nb = parseInt((b.match(/\d+/) || ['999'])[0], 10);
-                if (na !== nb) return na - nb;
-                return a.localeCompare(b);
-            }};
-            const allRoundKeys = Object.keys(byRound).sort(sortRound);
-
-            // Earliest live timestamp per round — drives the active pick.
-            const roundEarliestLiveTs = {{}};
-            allRoundKeys.forEach(function (rk) {{
-                const liveTs = byRound[rk]
-                    .map(function (m) {{ return m.timestamp || 0; }})
-                    .filter(function (t) {{ return (t + PAST_GRACE_SEC) >= nowSec; }});
-                roundEarliestLiveTs[rk] = liveTs.length ? Math.min.apply(null, liveTs) : Infinity;
-            }});
-
-            // Active round = round with smallest earliest live ts that
-            // still has at least one live match. This is "next round"
-            // by Max's earlier rules.
-            let activeRoundKey = '';
-            let activeRoundEarliest = Infinity;
-            allRoundKeys.forEach(function (rk) {{
-                const e = roundEarliestLiveTs[rk];
-                if (e === Infinity) return;
-                if (e < activeRoundEarliest) {{
-                    activeRoundEarliest = e;
-                    activeRoundKey = rk;
-                }}
-            }});
-            if (!activeRoundKey) {{
-                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming LaLiga matches in the cache. Hit Refresh after the next matchday is announced.</div>';
-                if (footer) {{
-                    const teamCount = data.team_count || 0;
-                    footer.textContent = 'Aggregated from ' + teamCount + ' LaLiga teams';
-                }}
-                return;
-            }}
-
-            // Group the active round's matches by tournament.
-            const live = byRound[activeRoundKey]
-                .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
-                .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
-            const byTournament = {{}};
-            live.forEach(function (m) {{
-                const tk = (m.tournament && String(m.tournament).trim()) || 'LaLiga';
-                if (!byTournament[tk]) byTournament[tk] = [];
-                byTournament[tk].push(m);
-            }});
-            const tournamentKeys = Object.keys(byTournament).sort();
-
-            // ----- Helpers shared across renders -----
+            // ----- Helpers shared across renders (moved up here
+            // because every block below uses them) -----
             const madridFmt = (function () {{
                 try {{
                     return new Intl.DateTimeFormat('en-GB', {{
@@ -2499,6 +2431,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     return null;
                 }}
             }})();
+            function pad2(n) {{ return String(n).padStart(2, '0'); }}
             function extractTime(ts) {{
                 const d = new Date(ts * 1000);
                 const parts = madridFmt ? madridFmt.formatToParts(d) : null;
@@ -2509,8 +2442,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }}
                 return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '  ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
             }}
-            function pad2(n) {{ return String(n).padStart(2, '0'); }}
-
             function renderMatchRow(m) {{
                 const homeName = (m.home && m.home.name) || '?';
                 const awayName = (m.away && m.away.name) || '?';
@@ -2520,17 +2451,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 let html = '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
                 html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
                 html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
-                // Aug 22 2026 — голубой чекбокс before home team name.
                 const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
                 const pxiAwayFull = (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
                 const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
                 const pxiAwayPartial = (m.pxi_away_matched > 0 && !pxiAwayFull);
                 if (pxiHomeFull) {{
-                    html += '<span class="p11-check" title="11/11 Predicted XI matched" ' +
-                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                    html += '<span class="p11-check" title="11/11 Predicted XI matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
                 }} else if (pxiHomePartial) {{
-                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_home_matched || 0) + '/11 matched" ' +
-                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_home_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
                 }} else {{
                     html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
                 }}
@@ -2540,11 +2468,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
                 if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
                 if (pxiAwayFull) {{
-                    html += '<span class="p11-check" title="11/11 Predicted XI matched" ' +
-                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                    html += '<span class="p11-check" title="11/11 Predicted XI matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
                 }} else if (pxiAwayPartial) {{
-                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_away_matched || 0) + '/11 matched" ' +
-                        'style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
                 }}
                 html += '</div>';
                 const mid = m.match_id || '';
@@ -2557,108 +2483,216 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     '&home_name=' + encodeURIComponent(homeName) +
                     '&away_name=' + encodeURIComponent(awayName) +
                     '&autopxi=1';
-                html += '<a href="' + openHref + '" target="_blank" rel="noopener" ' +
-                    'style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" ' +
-                    'title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
+                html += '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
                 return html;
             }}
 
-            // Outer dropdown: the active round header. Expanded by
-            // default — the user explicitly asked for the active round
-            // to be the visible content.
-            const roundId = 'p11-round';
-            let html = '<div id="p11-root" style="display:flex;flex-direction:column;gap:8px;">';
-            html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
-            // Round header (always visible, click toggles the inner body)
-            const roundFirst = live[0] ? live[0].timestamp : 0;
-            const roundLast = live.length ? live[live.length - 1].timestamp : 0;
-            const roundDateRange = (function () {{
-                if (!live.length) return '';
-                const fmt = function (ts) {{
-                    const d = new Date(ts * 1000);
-                    const p = madridFmt ? madridFmt.formatToParts(d) : null;
-                    if (p) {{
-                        const m = {{}};
-                        p.forEach(function (x) {{ m[x.type] = x.value; }});
-                        return (m.day || '00') + '.' + (m.month || '00');
-                    }}
-                    return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1);
-                }};
-                const a = fmt(roundFirst);
-                const b = fmt(roundLast);
-                return (a === b) ? a : a + '–' + b;
-            }})();
-            html += '<div data-p11-toggle="' + roundId + '" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none;background:#0f1a2e;">';
-            html += '<span data-p11-chevron="' + roundId + '" style="color:#60a5fa;font-size:14px;transition:transform 0.15s ease;">▶</span>';
-            html += '<div style="flex:1;display:flex;align-items:center;gap:10px;">';
-            html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(activeRoundKey) + '</span>';
-            html += '<span style="font-size:10px;background:#22c55e;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NEXT</span>';
-            if (roundDateRange) {{
-                html += '<span style="font-size:11px;color:#64748b;font-weight:500;">' + _escapeText(roundDateRange) + '</span>';
-            }}
-            html += '</div>';
-            html += '<span style="font-size:11px;color:#64748b;">' + live.length + ' match' + (live.length === 1 ? '' : 'es') + '</span>';
-            html += '</div>';
-            // Inner body — the tournament sub-sections
-            html += '<div id="' + roundId + '" style="background:#0b1020;border-top:1px solid #1f2b40;display:none;">';
-            html += '<div style="display:flex;flex-direction:column;gap:6px;padding:10px 14px 14px 14px;">';
-            // Aug 22 2026 — when only one tournament contributes matches
-            // (e.g. just LaLiga in the current cache) we skip the
-            // sub-block entirely and render the rows directly inside
-            // the round panel. With multiple tournaments (Copa,
-            // Supercopa, etc.) we keep the sub-blocks so the user can
-            // collapse them individually as Max asked ("скрыты в
-            // Турнире"). The sub-block count-badge is gone so the
-            // match count is only shown on the round header.
-            const singleTournament = tournamentKeys.length === 1;
-            if (singleTournament) {{
-                const tk = tournamentKeys[0];
-                const matches = byTournament[tk];
-                matches.forEach(function (m) {{ html += renderMatchRow(m); }});
-            }} else {{
-                tournamentKeys.forEach(function (tk) {{
-                    const matches = byTournament[tk];
-                    const tournId = 'p11-tourn-' + encodeURIComponent(tk);
-                    html += '<div style="background:#11192a;border-radius:6px;border:1px solid #1f2b40;overflow:hidden;">';
-                    html += '<div data-p11-toggle="' + tournId + '" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none;">';
-                    html += '<span data-p11-chevron="' + tournId + '" style="color:#60a5fa;font-size:12px;transition:transform 0.15s ease;">▶</span>';
-                    html += '<div style="flex:1;display:flex;align-items:center;gap:8px;">';
-                    html += '<span style="font-size:12px;color:#cbd5e1;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(tk) + '</span>';
-                    html += '</div>';
-                    html += '</div>';
-                    // Tournament body — closed by default per Max.
-                    html += '<div id="' + tournId + '" style="display:none;padding:8px 12px 12px 12px;background:#0d1525;">';
-                    html += '<div style="display:flex;flex-direction:column;gap:6px;">';
-                    matches.forEach(function (m) {{ html += renderMatchRow(m); }});
-                    html += '</div>';
-                    html += '</div>';
-                    html += '</div>';
+            const nowSec = Math.floor(Date.now() / 1000);
+            const PAST_GRACE_SEC = 10 * 60;
+
+            // Sort rounds numerically so Round 1 < Round 2 < Round 3.
+            const sortRound = function (a, b) {{
+                if (a === '__upcoming__') return 1;
+                if (b === '__upcoming__') return -1;
+                const na = parseInt((a.match(/\d+/) || ['999'])[0], 10);
+                const nb = parseInt((b.match(/\d+/) || ['999'])[0], 10);
+                if (na !== nb) return na - nb;
+                return a.localeCompare(b);
+            }};
+
+            // First-level split: by tournament/division.
+            const byDivision = {{}};
+            fixtures.forEach(function (m) {{
+                const tk = (m.tournament && String(m.tournament).trim()) || 'LaLiga';
+                if (!byDivision[tk]) byDivision[tk] = [];
+                byDivision[tk].push(m);
+            }});
+            const divisionKeys = Object.keys(byDivision).sort();
+
+            // For each division, group matches by round and find the
+            // active round. We store the rendered HTML per division
+            // and concatenate below.
+            const divisionBlocks = [];
+            divisionKeys.forEach(function (divisionKey) {{
+                const divMatches = byDivision[divisionKey];
+                // Group by round.
+                const byRound = {{}};
+                divMatches.forEach(function (m) {{
+                    const rk = (m.round && String(m.round).trim()) || '__upcoming__';
+                    if (!byRound[rk]) byRound[rk] = [];
+                    byRound[rk].push(m);
                 }});
+                const roundKeys = Object.keys(byRound).sort(sortRound);
+
+                // Earliest live ts per round.
+                const earliest = {{}};
+                roundKeys.forEach(function (rk) {{
+                    const liveTs = byRound[rk]
+                        .map(function (m) {{ return m.timestamp || 0; }})
+                        .filter(function (t) {{ return (t + PAST_GRACE_SEC) >= nowSec; }});
+                    earliest[rk] = liveTs.length ? Math.min.apply(null, liveTs) : Infinity;
+                }});
+                // Active round within this division.
+                let activeRk = '';
+                let activeEarliest = Infinity;
+                roundKeys.forEach(function (rk) {{
+                    const e = earliest[rk];
+                    if (e === Infinity) return;
+                    if (e < activeEarliest) {{
+                        activeEarliest = e;
+                        activeRk = rk;
+                    }}
+                }});
+                const live = activeRk
+                    ? byRound[activeRk]
+                        .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
+                        .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }})
+                    : [];
+
+                divisionBlocks.push({{
+                    divisionKey: divisionKey,
+                    activeRoundKey: activeRk,
+                    roundKeys: roundKeys,
+                    live: live,
+                    byRound: byRound,
+                }});
+            }});
+
+            // Outer container.
+            let html = '<div id="p11-root" style="display:flex;flex-direction:column;gap:10px;">';
+            if (!divisionBlocks.length) {{
+                html += '<div style="color:#94a3b8;font-size:14px;padding:6px 2px;">No upcoming LaLiga matches.</div>';
             }}
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
+            divisionBlocks.forEach(function (block) {{
+                const divisionKey = block.divisionKey;
+                const live = block.live;
+                if (!live.length) {{
+                    // No active round with live matches in this division.
+                    // Still render the block so the user knows the
+                    // division is tracked; show a tiny hint instead of
+                    // a dropdown.
+                    html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
+                    html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#0f1a2e;">';
+                    html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(divisionKey) + '</span>';
+                    html += '<span style="font-size:10px;background:#475569;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NO LIVE ROUND</span>';
+                    html += '</div>';
+                    html += '<div style="background:#0b1020;border-top:1px solid #1f2b40;padding:10px 14px;color:#64748b;font-size:12px;">No upcoming fixtures in this division.</div>';
+                    html += '</div>';
+                    return;
+                }}
+
+                // Round date range for the active round.
+                const roundFirst = live[0] ? live[0].timestamp : 0;
+                const roundLast = live.length ? live[live.length - 1].timestamp : 0;
+                const roundDateRange = (function () {{
+                    if (!live.length) return '';
+                    const fmt = function (ts) {{
+                        const d = new Date(ts * 1000);
+                        const p = madridFmt ? madridFmt.formatToParts(d) : null;
+                        if (p) {{
+                            const m = {{}};
+                            p.forEach(function (x) {{ m[x.type] = x.value; }});
+                            return (m.day || '00') + '.' + (m.month || '00');
+                        }}
+                        return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1);
+                    }};
+                    const a = fmt(roundFirst);
+                    const b = fmt(roundLast);
+                    return (a === b) ? a : a + '–' + b;
+                }})();
+
+                // Outer per-division block. Aug 22 2026 — every
+                // division now renders its own OUTER dropdown (the
+                // round picker). The tournament sub-block that v6 had
+                // is gone — it was redundant once we promoted LaLiga
+                // and LaLiga 2 to top-level peers.
+                const divId = 'p11-div-' + encodeURIComponent(divisionKey).replace(/%/g, '_');
+                const roundId = 'p11-round-' + encodeURIComponent(divisionKey).replace(/%/g, '_');
+                html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
+                // Division header (always visible)
+                html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#0f1a2e;border-bottom:1px solid #1f2b40;">';
+                html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(divisionKey) + '</span>';
+                html += '</div>';
+                // Round picker: header is the active round, opens on
+                // click to reveal the round selector and the matches.
+                html += '<div data-p11-toggle="' + roundId + '" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none;">';
+                html += '<span data-p11-chevron="' + roundId + '" style="color:#60a5fa;font-size:14px;transition:transform 0.15s ease;">▶</span>';
+                html += '<div style="flex:1;display:flex;align-items:center;gap:10px;">';
+                html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(block.activeRoundKey) + '</span>';
+                html += '<span style="font-size:10px;background:#22c55e;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NEXT</span>';
+                if (roundDateRange) {{
+                    html += '<span style="font-size:11px;color:#64748b;font-weight:500;">' + _escapeText(roundDateRange) + '</span>';
+                }}
+                html += '</div>';
+                html += '<span style="font-size:11px;color:#64748b;">' + live.length + ' match' + (live.length === 1 ? '' : 'es') + '</span>';
+                html += '</div>';
+                // Round body — closed by default. Inside: a row of
+                // round chips that the user can click to switch the
+                // active round for this division.
+                html += '<div id="' + roundId + '" style="background:#0b1020;border-top:1px solid #1f2b40;display:none;">';
+                // Round picker row — every round the division has.
+                html += '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 6px 14px;">';
+                block.roundKeys.forEach(function (rk) {{
+                    const isActive = rk === block.activeRoundKey;
+                    const rkClass = isActive
+                        ? 'p11-round-chip p11-round-chip-active'
+                        : 'p11-round-chip';
+                    html += '<button type="button" data-p11-round-key="' + _escapeText(rk) + '" data-p11-division="' + _escapeText(divisionKey) + '" class="' + rkClass + '" style="font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid ' + (isActive ? '#60a5fa' : '#1f2b40') + ';background:' + (isActive ? '#60a5fa' : 'transparent') + ';color:' + (isActive ? '#0b1020' : '#cbd5e1') + ';cursor:pointer;font-weight:600;letter-spacing:0.04em;">' + _escapeText(rk) + '</button>';
+                }});
+                html += '</div>';
+                // Match list for the currently selected round.
+                html += '<div data-p11-round-body="' + _escapeText(divisionKey) + '" style="display:flex;flex-direction:column;gap:6px;padding:6px 14px 14px 14px;">';
+                live.forEach(function (m) {{ html += renderMatchRow(m); }});
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+            }});
             html += '</div>';
             body.innerHTML = html;
 
-            // Delegated click handler for both round and tournament
-            // toggles. We use data-p11-toggle to mark any header that
-            // expands a sibling panel identified by its data-panel
-            // value. The handler is attached once and survives
-            // re-renders (same flag the earlier v5 used).
+            // Delegated click handler for both the round picker toggle
+            // and the per-division chip selector.
             const root = document.getElementById('p11-root');
             if (root && !root._wired) {{
                 root.addEventListener('click', function (ev) {{
                     const header = ev.target.closest('[data-p11-toggle]');
-                    if (!header) return;
-                    const pid = header.getAttribute('data-p11-toggle');
-                    const panel = document.getElementById(pid);
-                    const chev = root.querySelector('[data-p11-chevron="' + pid + '"]');
-                    if (!panel) return;
-                    const willOpen = panel.style.display === 'none' || getComputedStyle(panel).display === 'none';
-                    panel.style.display = willOpen ? 'block' : 'none';
-                    if (chev) chev.style.transform = willOpen ? 'rotate(90deg)' : '';
+                    if (header) {{
+                        const pid = header.getAttribute('data-p11-toggle');
+                        const panel = document.getElementById(pid);
+                        const chev = root.querySelector('[data-p11-chevron="' + pid + '"]');
+                        if (!panel) return;
+                        const willOpen = panel.style.display === 'none' || getComputedStyle(panel).display === 'none';
+                        panel.style.display = willOpen ? 'block' : 'none';
+                        if (chev) chev.style.transform = willOpen ? 'rotate(90deg)' : '';
+                        return;
+                    }}
+                    const chip = ev.target.closest('[data-p11-round-key]');
+                    if (chip) {{
+                        const division = chip.getAttribute('data-p11-division');
+                        const rk = chip.getAttribute('data-p11-round-key');
+                        if (!division || !rk) return;
+                        // Update active chip styles.
+                        root.querySelectorAll('[data-p11-round-key][data-p11-division="' + division + '"]').forEach(function (b) {{
+                            const active = b === chip;
+                            b.style.background = active ? '#60a5fa' : 'transparent';
+                            b.style.color = active ? '#0b1020' : '#cbd5e1';
+                            b.style.borderColor = active ? '#60a5fa' : '#1f2b40';
+                        }});
+                        // Find the block and re-render its body with
+                        // the picked round's matches.
+                        const block = divisionBlocks.find(function (b) {{ return b.divisionKey === division; }});
+                        if (!block) return;
+                        const picks = (block.byRound[rk] || [])
+                            .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
+                            .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
+                        const bodyDiv = root.querySelector('[data-p11-round-body="' + division + '"]');
+                        if (bodyDiv) {{
+                            let inner = '';
+                            picks.forEach(function (m) {{ inner += renderMatchRow(m); }});
+                            bodyDiv.innerHTML = inner || '<div style="color:#64748b;font-size:12px;padding:8px 2px;">No matches in this round yet.</div>';
+                        }}
+                    }}
                 }});
                 root._wired = true;
             }}
