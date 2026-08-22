@@ -3836,7 +3836,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         // save endpoint.
         function _applyPredictedXIIframe(match_id) {{
             var refreshThenApply = function() {{
-                fetch('/lineup_ai/api/predicted_xi/' + encodeURIComponent(match_id))
+                // Aug 22 2026 — ask the server to re-parse futbolfantasy
+                // against the just-refreshed LV squads. refresh=1 hits
+                // build_match_cache synchronously so the response carries
+                // the freshest name matching. Without this, the iframe
+                // would happily tick stale player names even though
+                // /api/fetch/<TEAM_ID> had just updated the squad cache.
+                fetch('/lineup_ai/api/predicted_xi/' + encodeURIComponent(match_id) + '?refresh=1')
                     .then(function(r){{ return r.json(); }})
                     .then(function(d) {{
                         if (!d || !d.match_id) return;

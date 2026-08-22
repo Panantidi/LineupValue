@@ -2730,9 +2730,75 @@ async def lineup_api_predicted_xi(match_id: str, refresh: int = 0):
 
     Query params:
         refresh=1   bypass cache and re-fetch from futbolfantasy.
+                    This path runs synchronously (blocks until futbolfantasy
+                    returns) so the iframe sees the freshest squad
+                    mapping right after the team-level /api/fetch/<TEAM_ID>
+                    refresh. The scheduler already keeps the cache fresh
+                    via T-18:00, so the normal call uses cache.
     """
     import predicted_xi
-    cached = None if refresh else predicted_xi.get_match_xi(match_id)
+    if refresh:
+        # Aug 22 2026 — force rebuild. We need the ff_id / slug of the
+        # match to know which futbolfantasy page to fetch, plus the LV
+        # team_ids to feed build_match_cache's name matcher. Read those
+        # from the existing cache when present (we are refreshing it
+        # after all); fall back to a fresh futbolfantasy listing when
+        # no cache entry exists yet.
+        cached = predicted_xi.get_match_xi(match_id)
+        ff_id = (cached or {}).get('ff_id') or ''
+        slug = (cached or {}).get('slug') or ''
+        championship = (cached or {}).get('championship') or 'laliga'
+        home_team_id = (cached or {}).get('home_team_id') or ''
+        away_team_id = (cached or {}).get('away_team_id') or ''
+        kickoff_ts = (cached or {}).get('kickoff_ts') or 0
+        if not ff_id or not slug or not home_team_id or not away_team_id:
+            return {
+                'match_id': match_id,
+                'home_players': [], 'away_players': [],
+                'home_count': 0, 'away_count': 0,
+                'source': 'none',
+                'error': 'refresh=1 requires an existing cache entry to know ff_id / team_ids',
+            }
+        # Read the (already refreshed) LV squads from disk so the
+        # name matcher works against the freshest data.
+        def _load(tid):
+            import json
+            p = f'/home/openclaw/.openclaw/workspace/_live_cache_{tid}.json'
+            try:
+                with open(p, encoding='utf-8') as f:
+                    return json.load(f).get('players') or []
+            except Exception:
+                return []
+        try:
+            new = predicted_xi.build_match_cache(
+                championship=championship,
+                match_id=match_id,
+                ff_id=ff_id, slug=slug,
+                home_team_id=home_team_id, away_team_id=away_team_id,
+                kickoff_ts=kickoff_ts,
+                home_lv_players=_load(home_team_id),
+                away_lv_players=_load(away_team_id),
+            )
+            return {
+                'match_id': match_id,
+                'home_team_id': home_team_id,
+                'away_team_id': away_team_id,
+                'home_players': new.get('home_players', []),
+                'away_players': new.get('away_players', []),
+                'home_count': sum(1 for p in new.get('home_players', []) if p.get('matched')),
+                'away_count': sum(1 for p in new.get('away_players', []) if p.get('matched')),
+                'source': 'refresh',
+                'fetched_at': new.get('fetched_at'),
+            }
+        except Exception as ex:
+            return {
+                'match_id': match_id,
+                'home_players': [], 'away_players': [],
+                'home_count': 0, 'away_count': 0,
+                'source': 'error',
+                'error': f'refresh failed: {ex}',
+            }
+    cached = predicted_xi.get_match_xi(match_id)
     if cached:
         return {
             'match_id': match_id,
