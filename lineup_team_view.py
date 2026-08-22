@@ -2352,7 +2352,30 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         // reuses the cached payload for the rest of the session.
         // ===================================================================
         let _predicted11Loaded = false;
-
+        // Aug 22 2026 — Countdown refresh timer. While the Predicted
+        // XI panel is open we recompute every .p11-countdown span
+        // every 30 seconds so "Match starts in 5h 12m" ticks down
+        // without re-rendering the whole panel (which would reset
+        // scroll position and lose open round sections).
+        let _p11CountdownTimer = null;
+        function refreshPredicted11Countdowns() {{
+            const spans = document.querySelectorAll('#predicted11-body .p11-countdown');
+            const now = Math.floor(Date.now() / 1000);
+            spans.forEach(function (el) {{
+                const ts = parseInt(el.getAttribute('data-ts') || '0', 10);
+                if (!ts) return;
+                const delta = ts - now;
+                if (delta <= 0) {{ el.parentNode && el.parentNode.removeChild(el); return; }}
+                const days = Math.floor(delta / 86400);
+                const hours = Math.floor((delta % 86400) / 3600);
+                const minutes = Math.floor((delta % 3600) / 60);
+                let body;
+                if (days > 0) body = days + 'd ' + hours + 'h';
+                else if (hours > 0) body = hours + 'h ' + pad2(minutes) + 'm';
+                else body = minutes + 'm';
+                el.textContent = 'Match starts in ' + body;
+            }});
+        }}
         function togglePredicted11() {{
             const host = document.getElementById('predicted11-panel-host');
             const btn = document.getElementById('btn-predicted-11');
@@ -2369,6 +2392,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
             if (willShow && !_predicted11Loaded) {{
                 loadPredicted11();
+            }}
+            // Aug 22 2026 — start/stop the countdown ticker so the
+            // "Match starts in ..." labels stay current while the panel
+            // is open, and we don't leak a timer when it's hidden.
+            if (willShow) {{
+                if (!_p11CountdownTimer) _p11CountdownTimer = setInterval(refreshPredicted11Countdowns, 30000);
+            }} else {{
+                if (_p11CountdownTimer) {{ clearInterval(_p11CountdownTimer); _p11CountdownTimer = null; }}
             }}
         }}
         // Aug 22 2026 — expose so the Match-mode header button
@@ -2449,6 +2480,31 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const homeImg = (m.home && m.home.image) || '';
                 const awayImg = (m.away && m.away.image) || '';
                 const time = extractTime(m.timestamp);
+                // Aug 22 2026 — countdown helper for "Match starts in 5h 12m".
+                // Returns null for matches already started (or starting
+                // in < 1 minute) so the caller can omit the span.
+                const renderCountdown = function(ts) {{
+                    if (!ts) return null;
+                    const delta = ts - nowSec;
+                    if (delta <= 0) return null;
+                    const days = Math.floor(delta / 86400);
+                    const hours = Math.floor((delta % 86400) / 3600);
+                    const minutes = Math.floor((delta % 3600) / 60);
+                    let body;
+                    if (days > 0) {{
+                        body = days + 'd ' + hours + 'h';
+                    }} else if (hours > 0) {{
+                        body = hours + 'h ' + pad2(minutes) + 'm';
+                    }} else if (minutes > 0) {{
+                        body = minutes + 'm';
+                    }} else {{
+                        return null;  // under 1 minute — start is imminent
+                    }}
+                    return '<span class="p11-countdown" data-ts="' + ts + '" ' +
+                        'style="font-size:11px;color:#94a3b8;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:4px;">' +
+                        'Match starts in ' + body + '</span>';
+                }};
+                const countdownHtml = renderCountdown(m.timestamp);
                 let html = '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
                 html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
                 html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
@@ -2474,6 +2530,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
                 }}
                 html += '</div>';
+                // Aug 22 2026 — countdown lives between the team names and
+                // the Open Match button. Marked with .p11-countdown so the
+                // interval-driven refresh below can find it without
+                // recomputing the whole panel.
+                if (countdownHtml) html += countdownHtml;
                 const mid = m.match_id || '';
                 const homeId = (m.home && m.home.team_id) || '';
                 const awayId = (m.away && m.away.team_id) || '';
