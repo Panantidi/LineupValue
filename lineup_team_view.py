@@ -2433,6 +2433,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 byRound[rk].push(m);
             }});
 
+            // Aug 22 2026 — a match counts as "live enough to render"
+            // if either (a) it hasn't been past-grace yet, OR (b) the
+            // cached Predicted XI is fully matched for both sides. The
+            // original filter (only future + 10 min grace) dropped every
+            // past match from the panel, which meant the голубой чекбокс ✓
+            // vanished the moment kickoff happened. Max wants past
+            // matches that already have a Predicted XI cached to
+            // *stay* visible in the panel so the голубой чекбокс stays.
+            const hasPxI = function (m) {{
+                return (m.pxi_home_matched === 11 && m.pxi_home_total === 11)
+                    || (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
+            }};
+            const liveEnough = function (m) {{
+                return (m.timestamp + PAST_GRACE_SEC) >= nowSec || hasPxI(m);
+            }};
+
             // Sort rounds numerically so Round 1 < Round 2 < Round 3.
             const sortRound = function (a, b) {{
                 if (a === '__upcoming__') return 1;
@@ -2448,8 +2464,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             const roundEarliestLiveTs = {{}};
             allRoundKeys.forEach(function (rk) {{
                 const liveTs = byRound[rk]
-                    .map(function (m) {{ return m.timestamp || 0; }})
-                    .filter(function (t) {{ return (t + PAST_GRACE_SEC) >= nowSec; }});
+                    .filter(liveEnough)
+                    .map(function (m) {{ return m.timestamp || 0; }});
                 roundEarliestLiveTs[rk] = liveTs.length ? Math.min.apply(null, liveTs) : Infinity;
             }});
 
@@ -2477,7 +2493,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 
             // Group the active round's matches by tournament.
             const live = byRound[activeRoundKey]
-                .filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) >= nowSec; }})
+                .filter(liveEnough)
                 .sort(function (a, b) {{ return (a.timestamp || 0) - (b.timestamp || 0); }});
             const byTournament = {{}};
             live.forEach(function (m) {{
@@ -2569,6 +2585,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             // to be the visible content.
             const roundId = 'p11-round';
             let html = '<div id="p11-root" style="display:flex;flex-direction:column;gap:8px;">';
+            // Aug 22 2026 — "Recent Predicted XI" section. Renders past
+            // matches whose cached futbolfantasy XI is fully matched
+            // (any side). Without this, голубой чекбокс ✓ vanished the
+            // second kickoff happened and the panel silently dropped
+            // the match from view. Max asked for the чекбоксы to
+            // persist so the post-game review keeps the Predicted XI
+            // context visible.
+            const pastWithPxI = fixtures.filter(function (m) {{ return (m.timestamp + PAST_GRACE_SEC) < nowSec && hasPxI(m); }}).sort(function (a, b) {{ return (b.timestamp || 0) - (a.timestamp || 0); }});
+            if (pastWithPxI.length) {{
+                html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
+                html += '<div data-p11-toggle="p11-past" style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;user-select:none;background:#0f1a2e;">';
+                html += '<span data-p11-chevron="p11-past" style="color:#60a5fa;font-size:14px;transition:transform 0.15s ease;">▶</span>';
+                html += '<div style="flex:1;display:flex;align-items:center;gap:10px;">';
+                html += '<span style="font-size:12px;color:#94a3b8;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Recent Predicted XI</span>';
+                html += '</div>';
+                const pastSuffix = pastWithPxI.length === 1 ? '' : 'es';
+                html += '<span style="font-size:11px;color:#64748b;">' + pastWithPxI.length + ' match' + pastSuffix + '</span>';
+                html += '</div>';
+                html += '<div id="p11-past" style="background:#0b1020;border-top:1px solid #1f2b40;display:none;">';
+                html += '<div style="display:flex;flex-direction:column;gap:6px;padding:10px 14px 14px 14px;">';
+                pastWithPxI.forEach(function (m) {{ html += renderMatchRow(m); }});
+                html += '</div></div></div>';
+            }}
             html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
             // Round header (always visible, click toggles the inner body)
             const roundFirst = live[0] ? live[0].timestamp : 0;
