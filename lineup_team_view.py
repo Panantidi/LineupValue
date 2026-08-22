@@ -1918,24 +1918,22 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 </head>
 <body class="{('embed-mode' if embed else '')}">
     <div class="header">
-        <!-- Left utility buttons: My Favorites + Screenshot -->
+        <!-- Aug 22 2026 — Max asked for a left-to-right header layout:
+             LEFT  : ❓ FAQ, 🔼 Expand Details, 🔮 Predicted XI
+             RIGHT : 👥 Add Lineups, 🧩 Build Lineup, 📸 Screenshot
+             The 💎 My Favorites button is hidden in Team mode per
+             the same instruction.
+        -->
         <div style="display:flex;align-items:center;gap:8px;margin-right:auto;">
-            <a href="/lineup_ai/favorites" class="header-action-btn"><span>💎</span> My Favorites</a>
-            <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
-        </div>
-        <!-- Right action buttons: lineups toggles + back -->
-        <div style="display:flex;align-items:center;gap:8px;">
-            <!-- Aug 14 2026: Collapse Details button — also exposed in Team mode
-                 so a user can hide MV / Squad Role / Impact Score columns here too.
-                 State stored in sessionStorage (per-tab, shared with any open
-                 Match-mode iframe on the same tab). Uses the same .header-action-btn
-                 class so styling/hover matches the other right-side buttons. -->
+            <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
+            <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Show MV, Squad Role and Impact Score columns">🔼 Expand Details</button>
             <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="Show next Spain - LaLiga fixtures">🔮 Predicted XI</button>
-            <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Hide MV, Squad Role and Impact Score columns">🔽 Collapse Details</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
-            <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
-            </div>
+            <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
+        </div>
     </div>
 
     <div class="container">
@@ -2373,6 +2371,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 loadPredicted11();
             }}
         }}
+        // Aug 22 2026 — expose so the Match-mode header button
+        // (compare_template.html) can trigger it via postMessage.
+        window.togglePredicted11 = togglePredicted11;
 
         async function loadPredicted11() {{
             const body = document.getElementById('predicted11-body');
@@ -5441,14 +5442,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 applyDetailHidden(!!d.collapsed);
             }} else if (d.type === 'applyPredictedXI' && d.match_id) {{
                 _applyPredictedXIIframe(d.match_id);
+            }} else if (d.type === 'togglePredictedXI') {{
+                // Aug 22 2026 — Match-mode header button delegates
+                // to the team-mode iframe via postMessage so the
+                // Predicted XI panel can be opened/closed from
+                // either mode without duplicating the rendering
+                // logic.
+                if (typeof window.togglePredicted11 === 'function') {{
+                    window.togglePredicted11();
+                }}
             }}
         }} catch (e) {{ /* noop */ }}
     }});
-    // Restore cached state on first paint (covers direct team-page visits that
-    // arrive with a stale collapsed preference from a prior Match-mode session).
+    // Aug 22 2026 — Max asked the toolbar button to read
+    // "🔼 Expand Details" by default. We honour an explicit cached
+    // collapse preference (set by a prior click in this tab), but
+    // when nothing is cached we now default to COLLAPSED so the
+    // button label and the visible columns match on first paint.
     try {{
         var cached = sessionStorage.getItem(DETAILS_KEY);
         if (cached === '1') applyDetailHidden(true);
+        else if (cached === null) applyDetailHidden(true);  // default = hidden
     }} catch (e) {{ /* noop */ }}
 
     // Aug 14 2026: Team-mode toolbar button. The header button mirrors the

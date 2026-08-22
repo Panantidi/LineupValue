@@ -973,25 +973,26 @@ body {
 
 
 <div class="compare-header">
-    <!-- Left utility buttons: My Favorites + Screenshot (mirrors Team mode) -->
+    <!-- Aug 22 2026 — Max asked for a left-to-right header layout:
+         LEFT  : ❓ FAQ, 🔼 Expand Details, 🔮 Predicted XI
+         RIGHT : 👥 Add Lineups, 📸 Screenshot, 💾 Save
+         The 💎 My Favorites button is hidden in Match mode per
+         the same instruction.
+    -->
     <div class="compare-header-left">
-        <a href="/lineup_ai/favorites" class="header-action-btn"><span>💎</span> My Favorites</a>
-        <button type="button" class="header-action-btn" onclick="exportMatchScreenshot()" id="btn-match-screenshot">📸 Screenshot</button>
+        <button id="match-btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
+        <button id="btn-collapse-details" class="header-action-btn" type="button" onclick="toggleCollapseDetails()" title="Show MV, Squad Role and Impact Score columns">🔼 Expand Details</button>
+        <!-- Aug 22 2026 — Predicted XI is owned by the team-mode iframe
+             (ltv.py::togglePredicted11), so the Match-mode button here
+             just delegates via postMessage to both frames.
+        -->
+        <button id="match-btn-predicted-11" class="header-action-btn" type="button" onclick="toggleMatchPredictedXI()" title="Show next Spain - LaLiga fixtures">🔮 Predicted XI</button>
     </div>
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="compare-header-controls">
-        <!-- Aug 14 2026: Collapse Details button. Toggles MV / Squad Role / Impact
-             Score columns in BOTH iframes via postMessage. State is global for the
-             entire Match Mode (NOT per-match) and persisted in localStorage so it
-             survives match switches and re-renders. Uses the same .header-action-btn
-             class so styling/hover/border-radius/padding match Save + Add Lineups. -->
-        <button id="btn-collapse-details" class="header-action-btn" type="button" onclick="toggleCollapseDetails()" title="Hide MV, Squad Role and Impact Score columns">🔽 Collapse Details</button>
-        <!-- Aug 13 2026: Save button (moved from sidebar). Uses the same .header-action-btn
-             class as 👥 Add Lineups so styling/hover/active/border-radius/padding match
-             exactly. Calls the same saveCurrentMatch() handler the old sidebar button did. -->
-        <button id="btn-save-match" class="header-action-btn" type="button" onclick="saveCurrentMatch()" title="Save this match to favorites">💾 Save</button>
         <button id="match-btn-add-lineups" class="header-action-btn" onclick="toggleBothFrames('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both teams)">👥 Add Lineups</button>
-        <button id="match-btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
+        <button type="button" class="header-action-btn" onclick="exportMatchScreenshot()" id="btn-match-screenshot">📸 Screenshot</button>
+        <button id="btn-save-match" class="header-action-btn" type="button" onclick="saveCurrentMatch()" title="Save this match to favorites">💾 Save</button>
     </div>
 </div>
 <div class="compare-wrapper" id="scroll-wrapper">
@@ -1124,7 +1125,15 @@ body {
     // and match switches.
     var COLLAPSE_KEY = 'fa_match_collapse_details_v1';
     function getCollapseDetails() {
-        try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch (e) { return false; }
+        try {
+            // Aug 22 2026 — Max asked the toolbar button to read
+            // "🔼 Expand Details" by default. We honour an explicit
+            // '0' (user previously expanded), but treat the
+            // "never visited" case (null) the same as '1' (collapsed).
+            var v = localStorage.getItem(COLLAPSE_KEY);
+            if (v === null) return true;
+            return v === '1';
+        } catch (e) { return true; }
     }
     function setCollapseDetails(collapsed) {
         try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch (e) {}
@@ -1135,6 +1144,24 @@ body {
             frame.contentWindow.postMessage({ type: 'setDetailsCollapsed', collapsed: !!collapsed }, '*');
         } catch (e) { /* iframe may not be ready yet */ }
     }
+    // Aug 22 2026 — Match-mode handler for the 🔮 Predicted XI
+    // header button. The actual Predicted XI panel lives inside
+    // each team-mode iframe (ltv.py's togglePredicted11), so this
+    // button just sends a postMessage to both iframes. The first
+    // iframe that already has the panel open becomes the source of
+    // truth; if neither has it, the toggle will open it in both.
+    function toggleMatchPredictedXI() {
+        try {
+            var frames = [myFrame, oppFrame];
+            for (var i = 0; i < frames.length; i++) {
+                var f = frames[i];
+                if (f && f.contentWindow) {
+                    f.contentWindow.postMessage({ type: 'togglePredictedXI' }, '*');
+                }
+            }
+        } catch (e) { /* iframe may not be ready yet */ }
+    }
+    window.toggleMatchPredictedXI = toggleMatchPredictedXI;
     function broadcastCollapseDetails() {
         var collapsed = getCollapseDetails();
         postCollapseDetailsTo(myFrame, collapsed);
