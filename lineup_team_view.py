@@ -1927,10 +1927,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         <div style="display:flex;align-items:center;gap:8px;margin-right:auto;">
             <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()" title="Show MV, Squad Role and Impact Score columns">🔼 Expand Details</button>
-            <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="Show next Spain - LaLiga fixtures">🔮 Predicted XI</button>
+            <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()" title="🔮 Predicted XI">🔮 Predicted XI</button>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-            <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="Add Lineups + Compare (both panels together)">👥 Add Lineups</button>
+            <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="👥 Add Lineups">👥 Add Lineups</button>
             <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
             <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
         </div>
@@ -2157,7 +2157,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         <th rowspan="2" style="text-align:center;width:60px;padding:0;font-size:11px;" class="col-role">Squad<br>Role</th>
                         <th rowspan="2" style="text-align:center;width:40px;padding:0;font-size:11px;" title="Impact Score" class="col-is">IS</th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('squad');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear List">✖️</button><span title="Squad List" style="font-size:10px;margin-top:2px;">List</span></div></th>
-                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('possible');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear P-XI">✖️</button><span title="Possible XI" style="font-size:10px;margin-top:2px;">P-XI</span><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></div></th>
+                        <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('possible');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear P-XI">✖️</button><span title="Predicted XI" style="font-size:10px;margin-top:2px;">P-XI</span><span id="xi-counter" style="color:#667eea;font-size:9px;">0/11</span></div></th>
                         <th rowspan="2" style="text-align:center;width:37px;padding:0;font-size:10px;vertical-align:top;"><div style="display:flex;flex-direction:column;align-items:center;height:100%;"><button onclick="clearColumn('start');return false;" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;margin:0;" title="Clear S-XI">✖️</button><span title="Starting XI" style="font-size:10px;margin-top:2px;">S-XI</span><span id="starting-counter" style="color:#dc3545;font-size:9px;">0/11</span></div></th>
                         {last3_header_row1}
                         <th rowspan="2" style="text-align:center;width:32px;padding:0;border-left:1px solid #ddd;">Apps</th>
