@@ -986,13 +986,13 @@ body {
              (ltv.py::togglePredicted11), so the Match-mode button here
              just delegates via postMessage to both frames.
         -->
-        <button id="match-btn-predicted-11" class="header-action-btn" type="button" onclick="toggleMatchPredictedXI()" title="🔮 Predicted XI">🔮 Predicted XI</button>
+        <button id="match-btn-predicted-11" class="header-action-btn" type="button" onclick="toggleMatchPredictedXI()">🔮 Predicted XI</button>
     </div>
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="compare-header-controls">
-        <button id="match-btn-add-lineups" class="header-action-btn" onclick="toggleBothFrames('bulk-lineup-panel-host', this, ['comparison-table-host'])" title="👥 Add Lineups">👥 Add Lineups</button>
+        <button id="match-btn-add-lineups" class="header-action-btn" onclick="toggleBothFrames('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
         <button type="button" class="header-action-btn" onclick="exportMatchScreenshot()" id="btn-match-screenshot">📸 Screenshot</button>
-        <button id="btn-save-match" class="header-action-btn" type="button" onclick="saveCurrentMatch()" title="💾 Save">💾 Save</button>
+        <button id="btn-save-match" class="header-action-btn" type="button" onclick="saveCurrentMatch()">💾 Save</button>
     </div>
 </div>
 <!-- Aug 22 2026 — Max asked: in Match Mode the Predicted XI panel
