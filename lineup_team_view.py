@@ -5810,6 +5810,24 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (typeof window.togglePredicted11 === 'function') {{
                     window.togglePredicted11();
                 }}
+            }} else if (d.type === 'hidePredictedXI') {{
+                // Aug 22 2026 — Match-mode parent renders a single
+                // Predicted XI panel across both team tables. When
+                // that panel opens, the parent posts this message to
+                // every iframe so each iframe hides its own panel —
+                // otherwise the same list would appear three times.
+                try {{
+                    var host = document.getElementById('predicted11-panel-host');
+                    if (host && host.style.display !== 'none') {{
+                        host.style.display = 'none';
+                    }}
+                    if (_p11CountdownTimer) {{
+                        clearInterval(_p11CountdownTimer);
+                        _p11CountdownTimer = null;
+                    }}
+                    var b = document.getElementById('btn-predicted-11');
+                    if (b) b.classList.remove('active');
+                }} catch (e) {{ /* noop */ }}
             }} else if (d.type === 'checkPredictedXI' && d.match_id) {{
                 // Aug 22 2026 — 🔍 Check Predicted XI button (inside
                 // Predicted XI panel). Same logic as applyPredictedXI

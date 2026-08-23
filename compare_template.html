@@ -995,6 +995,27 @@ body {
         <button id="btn-save-match" class="header-action-btn" type="button" onclick="saveCurrentMatch()" title="Save this match to favorites">💾 Save</button>
     </div>
 </div>
+<!-- Aug 22 2026 — Max asked: in Match Mode the Predicted XI panel
+     must span the full width of both team tables instead of appearing
+     once inside each iframe. The header button above opens this
+     single parent-hosted panel. The actual data + per-row Check
+     Predicted XI logic still lives in ltv.py's iframe so we don't
+     duplicate the parser / Tick code; the parent fetches the same
+     /api/laliga_fixtures endpoint, renders the rows, and dispatches
+     each 🔍 click to BOTH iframes via postMessage.
+-->
+<div id="match-predicted11-panel-host" style="display:none;margin:0 0 14px 0;background:#0f1623;border:1px solid #1f2b40;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;width:100%;box-sizing:border-box;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:15px;font-weight:600;color:#e8eef7;">
+            🔮 Spain - LaLiga <span id="match-p11-subtitle" style="color:#94a3b8;font-weight:400;font-size:12px;margin-left:8px;">Next matches</span>
+        </div>
+        <button type="button" onclick="toggleMatchPredictedXI()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">×</button>
+    </div>
+    <div id="match-predicted11-body" style="font-size:13px;line-height:1.4;">
+        <div style="color:#94a3b8;font-size:14px;">Loading next LaLiga fixtures…</div>
+    </div>
+    <div id="match-predicted11-footer" style="margin-top:8px;color:#64748b;font-size:11px;"></div>
+</div>
 <div class="compare-wrapper" id="scroll-wrapper">
 <div class="compare-container" id="frames-container">
     <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1&v=2" title="{{my_name}}" scrolling="no"></iframe>
@@ -1217,24 +1238,308 @@ body {
             frame.contentWindow.postMessage({ type: 'setDetailsCollapsed', collapsed: !!collapsed }, '*');
         } catch (e) { /* iframe may not be ready yet */ }
     }
-    // Aug 22 2026 — Match-mode handler for the 🔮 Predicted XI
-    // header button. The actual Predicted XI panel lives inside
-    // each team-mode iframe (ltv.py's togglePredicted11), so this
-    // button just sends a postMessage to both iframes. The first
-    // iframe that already has the panel open becomes the source of
-    // truth; if neither has it, the toggle will open it in both.
-    function toggleMatchPredictedXI() {
-        try {
-            var frames = [myFrame, oppFrame];
-            for (var i = 0; i < frames.length; i++) {
+// Aug 22 2026 — Match-mode handler for the 🔮 Predicted XI header
+    // button. The panel itself now lives in the parent (so it spans
+    // both team tables); this function fetches /api/laliga_fixtures,
+    // renders the rows, and asks each iframe to hide its own panel
+    // to avoid duplication.
+    var _matchP11Loaded = false;
+    var _matchP11Timer = null;
+    function _matchP11ShowHide(willShow) {
+        var host = document.getElementById('match-predicted11-panel-host');
+        var btn = document.getElementById('match-btn-predicted-11');
+        if (host) host.style.display = willShow ? 'block' : 'none';
+        if (btn) btn.classList.toggle('active', willShow);
+        // Ask both iframes to close their OWN Predicted XI panels so
+        // we don't show the same list three times. Each iframe's
+        // existing 'hidePredictedXI' handler is wired up below.
+        var frames = [myFrame, oppFrame];
+        for (var i = 0; i < frames.length; i++) {
+            try {
                 var f = frames[i];
                 if (f && f.contentWindow) {
-                    f.contentWindow.postMessage({ type: 'togglePredictedXI' }, '*');
+                    f.contentWindow.postMessage({ type: 'hidePredictedXI' }, '*');
                 }
+            } catch (e) { /* iframe may not be ready */ }
+        }
+        if (willShow) {
+            if (!_matchP11Loaded) {
+                _matchP11Load();
             }
-        } catch (e) { /* iframe may not be ready yet */ }
+            if (!_matchP11Timer) {
+                _matchP11Timer = setInterval(_matchP11Tick, 30000);
+                _matchP11Tick();
+            }
+        } else {
+            if (_matchP11Timer) { clearInterval(_matchP11Timer); _matchP11Timer = null; }
+        }
+    }
+    function toggleMatchPredictedXI() {
+        var host = document.getElementById('match-predicted11-panel-host');
+        var willShow = host ? (host.style.display === 'none') : true;
+        _matchP11ShowHide(willShow);
     }
     window.toggleMatchPredictedXI = toggleMatchPredictedXI;
+
+    function _matchP11Load() {
+        var body = document.getElementById('match-predicted11-body');
+        var footer = document.getElementById('match-predicted11-footer');
+        if (!body) return;
+        body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">Loading next LaLiga fixtures…</div>';
+        fetch('/lineup_ai/api/laliga_fixtures', { cache: 'no-store' })
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(function (data) { _matchP11Render(data); _matchP11Loaded = true; })
+            .catch(function (e) {
+                body.innerHTML = '<div style="color:#f87171;font-size:14px;">⚠️ Could not load fixtures: ' +
+                    String(e && e.message || e) + '</div>';
+                if (footer) footer.textContent = '';
+            });
+    }
+
+    // Aug 22 2026 — predicates that mirror ltv.py's renderPredicted11
+    // rules. We avoid the iframe-side helpers because we cannot call
+    // across an iframe boundary without exposing dozens of helper
+    // functions; the rules are small enough to live in two places.
+    var _ACTIVE_WINDOW = 20 * 3600; // 20 h
+    var _PAST_GRACE = 600;
+    function _pad2(n) { n = parseInt(n, 10); return (n < 10 ? '0' + n : '' + n); }
+    function _formatCountdown(ts, now) {
+        var delta = ts - now;
+        if (delta <= 0) return '';
+        var days = Math.floor(delta / 86400);
+        var hours = Math.floor((delta % 86400) / 3600);
+        var mins = Math.floor((delta % 3600) / 60);
+        if (mins < 1) return '';
+        if (days > 0) return days + 'd ' + hours + 'h';
+        if (hours > 0) return hours + 'h ' + _pad2(mins) + 'm';
+        return mins + 'm';
+    }
+    function _escape(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function _extractTime(ts) {
+        try {
+            var d = new Date(ts * 1000);
+            return _pad2(d.getHours()) + ':' + _pad2(d.getMinutes());
+        } catch (e) { return '?'; }
+    }
+
+    function _matchP11Render(data) {
+        var body = document.getElementById('match-predicted11-body');
+        var footer = document.getElementById('match-predicted11-footer');
+        if (!body) return;
+        var fixtures = (data && data.fixtures) || [];
+        if (!fixtures.length) {
+            body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming LaLiga matches.</div>';
+            if (footer) footer.textContent = '';
+            return;
+        }
+        // Sort by tournament label (LaLiga before LaLiga 2), then by timestamp
+        fixtures = fixtures.slice().sort(function (a, b) {
+            var ta = (a.tournament || '').toLowerCase();
+            var tb = (b.tournament || '').toLowerCase();
+            if (ta !== tb) return ta < tb ? -1 : 1;
+            return (a.timestamp || 0) - (b.timestamp || 0);
+        });
+        // Past filter (mirrors ltv.py PAST_GRACE)
+        var now = Math.floor(Date.now() / 1000);
+        var horizon = now + 24 * 3600;
+        fixtures = fixtures.filter(function (m) {
+            var ts = m.timestamp || 0;
+            if (!ts) return false;
+            if (ts + _PAST_GRACE < now) return false;
+            if (ts > horizon) return false;
+            return true;
+        });
+        if (!fixtures.length) {
+            body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming matches in the next 24 h.</div>';
+            if (footer) footer.textContent = '';
+            return;
+        }
+        // Group by round
+        var byRound = {};
+        fixtures.forEach(function (m) {
+            var r = m.round || m.round_num || '?';
+            if (!byRound[r]) byRound[r] = [];
+            byRound[r].push(m);
+        });
+        var rounds = Object.keys(byRound);
+        var html = '';
+        rounds.forEach(function (roundLabel, ridx) {
+            var rid = 'mp11r' + ridx;
+            html += '<div style="margin-bottom:14px;border:1px solid #1f2b40;border-radius:8px;overflow:hidden;">';
+            html += '<button type="button" data-mp11-toggle="' + rid + '" style="display:block;width:100%;text-align:left;background:#15203a;border:none;color:#e8eef7;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;box-sizing:border-box;">';
+            html += '<span style="margin-right:8px;display:inline-block;width:14px;">▸</span>' + _escape(roundLabel);
+            html += ' <span style="color:#64748b;font-weight:400;font-size:11px;margin-left:6px;">' + byRound[roundLabel].length + ' matches</span>';
+            html += '</button>';
+            html += '<div data-mp11-body="' + rid + '" style="display:none;background:#0a1220;padding:8px 14px;">';
+            byRound[roundLabel].forEach(function (m) {
+                var mid = m.match_id || '';
+                var homeName = (m.home && m.home.name) || '?';
+                var awayName = (m.away && m.away.name) || '?';
+                var homeId = (m.home && m.home.team_id) || '';
+                var awayId = (m.away && m.away.team_id) || '';
+                var ts = m.timestamp || 0;
+                var secUntil = ts - now;
+                var inActiveWin = secUntil <= _ACTIVE_WINDOW;
+                var time = _extractTime(ts);
+                var cd = _formatCountdown(ts, now);
+                html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #1f2b40;">';
+                html += '<span style="color:#94a3b8;font-size:12px;min-width:42px;">' + time + '</span>';
+                html += '<div style="flex:1;min-width:0;">';
+                html += '<span style="color:#e8eef7;font-weight:600;">' + _escape(homeName) + '</span>';
+                html += ' <span style="color:#64748b;">—</span> ';
+                html += '<span style="color:#e8eef7;font-weight:600;">' + _escape(awayName) + '</span>';
+                html += '</div>';
+                if (cd) {
+                    html += '<span data-mp11-cd="' + mid + '" data-ts="' + ts + '" style="color:#64748b;font-size:11px;min-width:96px;text-align:right;">Match starts in ' + cd + '</span>';
+                } else {
+                    html += '<span style="min-width:96px;"></span>';
+                }
+                if (inActiveWin) {
+                    html += '<button type="button" data-mp11-check="' + mid + '" data-home="' + _escape(homeId) + '" data-away="' + _escape(awayId) + '" data-home-n="' + _escape(homeName) + '" data-away-n="' + _escape(awayName) + '" onclick="_matchP11CheckBtn(this)" style="font-size:11px;color:#fff;background:#3b82f6;border:1px solid #2563eb;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;">🔍 Check Predicted XI</button>';
+                } else {
+                    var unlockAt = ts - _ACTIVE_WINDOW;
+                    var ud = new Date(unlockAt * 1000);
+                    var unlockStr = _pad2(ud.getDate()) + '/' + _pad2(ud.getMonth() + 1) + ' ' + _pad2(ud.getHours()) + ':' + _pad2(ud.getMinutes());
+                    html += '<button type="button" disabled data-mp11-locked="' + mid + '" data-ts="' + ts + '" style="font-size:11px;color:#94a3b8;background:#1e293b;border:1px solid #334155;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:not-allowed;opacity:0.6;" title="🔍 Check Predicted XI unlocks at ' + unlockStr + ' (20 h before kickoff). The match is too far away for futbolfantasy to publish a useful XI yet.">🔒 T-' + Math.ceil((secUntil - _ACTIVE_WINDOW) / 3600) + 'h</button>';
+                }
+                html += '<a href="/lineup_ai/compare/' + _escape(homeId || awayId) + '?mid=' + _escape(mid) + '&home_id=' + _escape(homeId) + '&away_id=' + _escape(awayId) + '&home_name=' + _escape(homeName) + '&away_name=' + _escape(awayName) + '&autopxi=1" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
+                html += '</div>';
+            });
+            html += '</div></div>';
+        });
+        body.innerHTML = html;
+        if (footer) footer.textContent = fixtures.length + ' matches · click 🔍 to refresh live, ▶ to open in a new tab';
+        // Round-toggle handlers
+        body.querySelectorAll('button[data-mp11-toggle]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var rid = btn.getAttribute('data-mp11-toggle');
+                var inner = body.querySelector('[data-mp11-body="' + rid + '"]');
+                if (!inner) return;
+                var willShow = inner.style.display === 'none';
+                inner.style.display = willShow ? 'block' : 'none';
+                var arrow = btn.querySelector('span');
+                if (arrow) arrow.textContent = willShow ? '▾' : '▸';
+            });
+        });
+    }
+
+    // Aug 22 2026 — 🔍 button click from parent panel. Post the
+    // checkPredictedXI message to BOTH iframes, each iframe runs
+    // _applyPredictedXIIframe on its own squad + acks back with
+    // 'p11-checked-ack'. We sum the two counts and update the row
+    // button label. If neither iframe applies anything (foreign
+    // match for both), show the grey "different team" feedback
+    // instead of green "✓ Checked 0".
+    var _mp11Acks = {};
+    function _matchP11CheckBtn(btn) {
+        var mid = btn.getAttribute('data-mp11-check');
+        if (!mid) return;
+        var oldHtml = btn.dataset.oldHtml || btn.innerHTML;
+        btn.dataset.oldHtml = oldHtml;
+        btn.innerHTML = '⏳ Checking…';
+        btn.style.background = '#1e40af';
+        btn.style.borderColor = '#1d4ed8';
+        btn.disabled = true;
+        _mp11Acks[mid] = { total: 0, n: 0, btn: btn };
+        try {
+            myFrame && myFrame.contentWindow && myFrame.contentWindow.postMessage({
+                type: 'checkPredictedXI', match_id: mid, source: 'match-parent-panel'
+            }, '*');
+            oppFrame && oppFrame.contentWindow && oppFrame.contentWindow.postMessage({
+                type: 'checkPredictedXI', match_id: mid, source: 'match-parent-panel'
+            }, '*');
+        } catch (e) { /* noop */ }
+        // Failsafe: if a frame never acks, show best-effort count
+        // after 25 s and re-enable the button.
+        setTimeout(function () {
+            var a = _mp11Acks[mid];
+            if (!a || a.n >= 2) return;
+            if ((a.total || 0) === 0) {
+                btn.innerHTML = '🔒 0 checked — different team';
+                btn.style.background = '#1e293b';
+                btn.style.borderColor = '#334155';
+                btn.style.color = '#94a3b8';
+            } else {
+                btn.innerHTML = '✓ Checked ' + (a.total || 0);
+                btn.style.background = '#16a34a';
+                btn.style.borderColor = '#15803d';
+            }
+            btn.disabled = false;
+            delete _mp11Acks[mid];
+            setTimeout(function () {
+                btn.innerHTML = btn.dataset.oldHtml || '🔍 Check Predicted XI';
+                btn.style.background = '#3b82f6';
+                btn.style.borderColor = '#2563eb';
+                btn.style.color = '#fff';
+            }, 5000);
+        }, 25000);
+    }
+    window._matchP11CheckBtn = _matchP11CheckBtn;
+
+    // Aug 22 2026 — Listen for the per-iframe ack and aggregate.
+    window.addEventListener('message', function (evt) {
+        var d = evt.data;
+        if (!d || d.type !== 'p11-checked-ack' || !d.match_id) return;
+        var a = _mp11Acks[d.match_id];
+        if (!a) return;
+        a.total += (d.applied || 0);
+        a.n += 1;
+        if (a.n >= 2) {
+            var btn = a.btn;
+            if ((a.total || 0) === 0) {
+                btn.innerHTML = '🔒 0 checked — different team';
+                btn.style.background = '#1e293b';
+                btn.style.borderColor = '#334155';
+                btn.style.color = '#94a3b8';
+            } else {
+                btn.innerHTML = '✓ Checked ' + a.total;
+                btn.style.background = '#16a34a';
+                btn.style.borderColor = '#15803d';
+            }
+            btn.disabled = false;
+            delete _mp11Acks[d.match_id];
+            setTimeout(function () {
+                btn.innerHTML = btn.dataset.oldHtml || '🔍 Check Predicted XI';
+                btn.style.background = '#3b82f6';
+                btn.style.borderColor = '#2563eb';
+                btn.style.color = '#fff';
+            }, 5000);
+        }
+    });
+
+    // Aug 22 2026 — 30 s tick for countdowns + lock unlock promotion
+    function _matchP11Tick() {
+        var now = Math.floor(Date.now() / 1000);
+        var body = document.getElementById('match-predicted11-body');
+        if (!body) return;
+        body.querySelectorAll('[data-mp11-cd]').forEach(function (el) {
+            var ts = parseInt(el.getAttribute('data-ts') || '0', 10);
+            if (!ts) return;
+            var cd = _formatCountdown(ts, now);
+            el.textContent = cd ? ('Match starts in ' + cd) : '';
+        });
+        body.querySelectorAll('[data-mp11-locked]').forEach(function (btn) {
+            var ts = parseInt(btn.getAttribute('data-ts') || '0', 10);
+            if (!ts) return;
+            if (ts - now > _ACTIVE_WINDOW) return;
+            // Promote to active button
+            btn.removeAttribute('disabled');
+            btn.removeAttribute('data-mp11-locked');
+            btn.style.color = '#fff';
+            btn.style.background = '#3b82f6';
+            btn.style.borderColor = '#2563eb';
+            btn.style.cursor = 'pointer';
+            btn.style.opacity = '1';
+            btn.textContent = '🔍 Check Predicted XI';
+            btn.title = 'Refresh this match predicted XI. Ticks live if THIS team plays; opens compare view if it is a different team.';
+            btn.setAttribute('data-mp11-check', btn.getAttribute('data-mp11-locked') || '');
+            btn.onclick = function () { _matchP11CheckBtn(btn); };
+        });
+    }
     function broadcastCollapseDetails() {
         var collapsed = getCollapseDetails();
         postCollapseDetailsTo(myFrame, collapsed);
