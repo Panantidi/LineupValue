@@ -5841,6 +5841,19 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // a moment later — _applyPredictedXIIframe fires
                 // fetch(/api/predicted_xi?refresh=1) and ticks boxes
                 // inside its .then().
+                // Aug 22 2026 — bumped from 2.5 s → 5 s. The parent panel's
+                // aggregation logic uses the FIRST p11-checked-ack
+                // to close out the row (it deletes _mp11Acks[mid]
+                // and resets the label). With the old 2.5 s
+                // timeout the ack often landed before
+                // _applyPredictedXIIframe's fetch chain had a
+                // chance to tick any boxes, so the parent saw
+                // applied=0 → "🔒 0 checked — different team"
+                // even when the second `p11-autopxi` ack a moment
+                // later would have shown applied=10. Waiting 5 s
+                // lets the XI tick complete first; the post is
+                // still best-effort and the parent has its own
+                // 8 s failsafe in case this iframe never ticks.
                 setTimeout(function() {{
                     try {{
                         var cbCount = document.querySelectorAll('input.xi-checkbox:checked').length;
@@ -5852,7 +5865,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                             }}, '*');
                         }}
                     }} catch (e) {{}}
-                }}, 2500);
+                }}, 5000);
             }}
         }} catch (e) {{ /* noop */ }}
     }});

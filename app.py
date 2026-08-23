@@ -2840,36 +2840,202 @@ async def lineup_api_predicted_xi(match_id: str, refresh: int = 0):
                     a = fm.get('away') or fm.get('away_team') or {}
                     home_label = h.get('name') or ''
                     away_label = a.get('name') or ''
-                    ff_found = False
-                    for champ in cand_championships:
+                    # Aug 22 2026 — fixtures round is the *current*
+                    # active round for the season; futbolfantasy
+                    # rotates jornada pages quickly (the page at
+                    # /laliga/posibles-alineaciones/<N> sometimes
+                    # already shows N+1 once the round is past).
+                    # Try the fixtures round first, then neighbours.
+                    fixture_round = (fm.get('round') or fm.get('round_num') or '').strip()
+                    rr_n = 0
+                    m_round = re.search(r'(\d+)', fixture_round)
+                    if m_round:
                         try:
-                            for cand in predicted_xi.parse_round_matches(champ):
-                                # fuzzy-equality helper copied from the
-                                # scheduler so we resolve slug + ff_id
-                                # the same way it does.
-                                import unicodedata
-                                def _strip_acc(s):
-                                    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
-                                def _eq(a, b):
-                                    al = _strip_acc((a or '').lower())
-                                    bl = _strip_acc((b or '').lower())
-                                    if not al or not bl:
-                                        return False
-                                    if al == bl or al in bl or bl in al:
-                                        return True
-                                    at = al.replace('.', '').replace('-', ' ').split()
-                                    bt = bl.replace('.', '').replace('-', ' ').split()
-                                    return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])) for t in at)
-                                if _eq(cand.get('home', ''), home_label) and _eq(cand.get('away', ''), away_label):
-                                    ff_id = cand.get('ff_id') or ''
-                                    slug = cand.get('slug') or ''
-                                    championship = champ
-                                    ff_found = True
-                                    break
+                            rr_n = int(m_round.group(1))
                         except Exception:
-                            pass
+                            rr_n = 0
+                    if rr_n <= 0:
+                        candidate_rounds = [2, 3]
+                    else:
+                        candidate_rounds = [rr_n]
+                        if rr_n > 1:
+                            candidate_rounds.append(rr_n - 1)
+                        if rr_n < 12:
+                            candidate_rounds.append(rr_n + 1)
+                    ff_found = False
+                    ff_id = ff_id or ''
+                    slug = slug or ''
+                    # Aug 22 2026 — Max opens compare pages like
+                    # /compare/SzYzw34K?mid=GrGmugCt where GrGmugCt
+                    # is a Round-2 LaLiga 2 match. When a T-2 fresh
+                    # match arrives, its cache file is missing AND
+                    # the fixture names may differ from the
+                    # futbolfantasy names by a common abbreviation
+                    # ("Atl. Madrid" vs "Atlético", "Ath Bilbao"
+                    # vs "Athletic", "Sevilla CF" vs "Sevilla").
+                    # We normalise both sides through a small
+                    # alias dictionary before fuzzy-matching so the
+                    # two name flavours compare equal.
+                    name_aliases = {
+                        'atl': 'atletico',
+                        'ath': 'athletic',
+                        'cf': '',
+                        'fc': '',
+                        'r c d': 'racing',
+                        'rcd': 'racing',
+                        's d': 'sabadell',
+                        'sd': 'sabadell',
+                        'r s': 'real sociedad',
+                        'rs': 'real sociedad',
+                        'r m': 'real madrid',
+                        'rm': 'real madrid',
+                        'bet': 'betis',
+                        'lev': 'levante',
+                        'val': 'valencia',
+                        'vallecano': 'rayo',
+                        'cel': 'celta',
+                        'mal': 'malaga',
+                        'get': 'getafe',
+                        'esp': 'espanyol',
+                        'ray': 'rayo',
+                        'ala': 'alaves',
+                        'dep': 'deportivo',
+                        'gir': 'girona',
+                        'mai': 'mallorca',
+                        'spo': 'sporting',
+                        'spo r g': 'gijon',
+                        'spor': 'gijon',
+                        'ten': 'tenerife',
+                        'alb': 'albacete',
+                        'eib': 'eibar',
+                        'gra': 'granada',
+                        'las': 'las palmas',
+                        'cdt': 'castellon',
+                        'cad': 'cadiz',
+                        'cor': 'cordoba',
+                        'eld': 'eldense',
+                        'hues': 'huesca',
+                        'lag': 'lagos',
+                        'lug': 'lugo',
+                        'mir': 'mirandes',
+                        'pon': 'ponferradina',
+                        'log': 'logrones',
+                        'and': 'andorra',
+                        'bur': 'burgos',
+                        'fer': 'ferrol',
+                        'amore': 'amorebieta',
+                        'alcor': 'alcorcon',
+                        'tara': 'tarazona',
+                        'alba': 'albacete',
+                        'almeria': 'almeria',
+                        'cart': 'cartagena',
+                        'ibiz': 'ibiza',
+                        'lin': 'linense',
+                        'mel': 'melilla',
+                        'mur': 'murcia',
+                        'real ov': 'realoviedo',
+                    }
+                    def _alias_norm(s):
+                        # Aug 22 2026 — inlined _norm because the
+                        # helper defined further down is in a
+                        # deeper nested scope and Python refuses
+                        # to capture it as a free variable.
+                        n = re.sub(
+                            r'\s+', ' ',
+                            ''.join(
+                                c for c in unicodedata.normalize(
+                                    'NFD', (s or '').lower()
+                                ) if unicodedata.category(c) != 'Mn'
+                            ).replace('.', '').replace('-', ' ').strip()
+                        )
+                        for k, v in name_aliases.items():
+                            if not v:
+                                n = re.sub(r'\b' + re.escape(k) + r'\b', '', n)
+                            else:
+                                n = re.sub(r'\b' + re.escape(k) + r'\b', v, n)
+                        n = re.sub(r'\s+', ' ', n).strip()
+                        return n
+                    home_label_a = _alias_norm(home_label)
+                    away_label_a = _alias_norm(away_label)
+                    for champ in cand_championships:
                         if ff_found:
                             break
+                        for rr in candidate_rounds:
+                            if ff_found:
+                                break
+                            try:
+                                try:
+                                    from urllib.parse import urljoin
+                                    ff_url = f'https://www.futbolfantasy.com/{champ}/posibles-alineaciones/{rr}'
+                                except Exception:
+                                    ff_url = None
+                                # Aug 22 2026 — predicates for matching
+                                # fixture names to futbolfantasy names.
+                                # We REQUIRE the FIRST significant token
+                                # (≥ 3 letters) to match exactly on
+                                # both sides — this rejects e.g.
+                                # "Atlético" vs "Atl. Madrid" (only
+                                # the first 3 letters match but
+                                # "Atlético" has 8 letters and the
+                                # fixture's first token is "Atl" not
+                                # "Atlético"). Earlier _eq helper
+                                # accepted this case incorrectly.
+                                def _strip_acc(s):
+                                    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+                                def _norm(s):
+                                    return re.sub(r'\s+', ' ', _strip_acc((s or '').lower()).replace('.', '').replace('-', ' ').strip())
+                                def _first_token(s):
+                                    for tok in _norm(s).split():
+                                        if len(tok) >= 4:
+                                            return tok
+                                    return _norm(s).split()[0] if _norm(s).split() else ''
+                                def _eq_strict(a, b):
+                                    aa, bb = _norm(a), _norm(b)
+                                    if not aa or not bb:
+                                        return False
+                                    if aa == bb or aa in bb or bb in aa:
+                                        return True
+                                    # Require the first significant
+                                    # token to match — this is what
+                                    # makes Atlético vs Atl. Madrid
+                                    # fail cleanly.
+                                    at, bt = _first_token(a), _first_token(b)
+                                    if at and bt and (at == bt or at.startswith(bt) or bt.startswith(at)) and len(at) >= 4 and len(bt) >= 4:
+                                        return True
+                                    return False
+                                # Aug 22 2026 — keep _eq loose as a
+                                # fallback (in case fixtures use a
+                                # weird short form) but only if both
+                                # sides share ≥ 4 chars of overlap.
+                                def _eq_loose(a, b):
+                                    aa, bb = _norm(a), _norm(b)
+                                    if not aa or not bb:
+                                        return False
+                                    if aa in bb or bb in aa:
+                                        return True
+                                    at = aa.split()
+                                    bt = bb.split()
+                                    if not at or not bt:
+                                        return False
+                                    a0, b0 = at[0], bt[0]
+                                    if a0 == b0:
+                                        return True
+                                    if (a0.startswith(b0) or b0.startswith(a0)) and min(len(a0), len(b0)) >= 4:
+                                        return True
+                                    return False
+                                for cand in predicted_xi.parse_round_matches(champ, jornada=rr, url=ff_url):
+                                    cand_home_a = _alias_norm(cand.get('home', ''))
+                                    cand_away_a = _alias_norm(cand.get('away', ''))
+                                    h_eq = _eq_strict(cand_home_a, home_label_a) or _eq_loose(cand_home_a, home_label_a)
+                                    a_eq = _eq_strict(cand_away_a, away_label_a) or _eq_loose(cand_away_a, away_label_a)
+                                    if h_eq and a_eq:
+                                        ff_id = cand.get('ff_id') or ''
+                                        slug = cand.get('slug') or ''
+                                        championship = champ
+                                        ff_found = True
+                                        break
+                            except Exception:
+                                pass
             except Exception:
                 pass
         if not ff_id or not slug or not home_team_id or not away_team_id or not championship:

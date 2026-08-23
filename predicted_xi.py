@@ -192,27 +192,51 @@ def _roster_override(ff_name: str, lv_team_id: str,
     return None
 
 
-def parse_round_matches(championship: str) -> List[Dict[str, Any]]:
-    """Return every match in the currently-displayed jornada.
+def parse_round_matches(championship: str, jornada: int = 0, url: str = '') -> List[Dict[str, Any]]:
+    """Return every match in the displayed jornada.
 
     futbolfantasy.com renders each match as a `.partido` link inside a
     `.jornada.jornadaN` wrapper. The CURRENT jornada is the only one
     whose wrapper has style="" (others have display:none applied
     by their jornada selector).
 
+    Args:
+        championship: 'laliga' or 'laliga2'
+        jornada: optional explicit jornada number (1..N). When 0
+            the parser uses the "currently visible" jornada. When
+            non-zero the parser fetches /<champ>/posibles-alineaciones/<j>
+            and returns ALL matches on that page regardless of
+            visibility — used by the on-demand cache builder in
+            app.py so we can probe neighbouring rounds.
+        url: optional explicit URL to fetch (overrides the
+            championship+jornada derivation).
+
     Returns list of dicts:
         [{ff_id, slug, home, away, fecha, url}, ...]
     """
-    url = CHAMPIONSHIPS.get(championship.lower())
-    if not url:
+    fetch_url = url or CHAMPIONSHIPS.get(championship.lower())
+    if not fetch_url:
         return []
-    html = fetch(url)
+    if jornada and not url:
+        fetch_url = f'https://www.futbolfantasy.com/{championship}/posibles-alineaciones/{jornada}'
+    if jornada:
+        # Aug 22 2026 — explicit jornada: fetch and parse ALL
+        # matches, regardless of display:none wrappers, because
+        # we want to be able to look up a round that hasn't
+        # rotated to "current" yet. _parse_matches_from_html
+        # already iterates every jornadaN block; we just need
+        # to make sure the parser keeps non-current rounds.
+        html = fetch(fetch_url)
+        if not html:
+            return []
+        return _parse_matches_from_html(html, championship=championship, include_all_jornadas=True)
+    html = fetch(fetch_url)
     if not html:
         return []
     return _parse_matches_from_html(html, championship=championship)
 
 
-def _parse_matches_from_html(html: str, championship: str = '') -> List[Dict[str, Any]]:
+def _parse_matches_from_html(html: str, championship: str = '', include_all_jornadas: bool = False) -> List[Dict[str, Any]]:
     """Parse the jornada listing.
 
     Two layouts to handle, both served by futbolfantasy.com:

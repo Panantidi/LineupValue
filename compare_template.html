@@ -1336,6 +1336,52 @@ body {
             if (footer) footer.textContent = '';
             return;
         }
+        // Aug 22 2026 — Max opens compare pages like
+        //   /compare/<team>?mid=<match_id>&home_id=...&away_id=...
+        // The match in the URL is the one he's actually inspecting.
+        // Without a Current Match row at the top of the panel, his
+        // match is hidden by the PAST_GRACE filter (it's typically
+        // already kicked off). Read the URL params once and inject
+        // a 🎯 Current Match row pinned above the round list.
+        var urlParams = (function () {
+            try {
+                var s = window.location.search.replace(/^\?/, '');
+                var out = {};
+                s.split('&').forEach(function (kv) {
+                    var p = kv.split('=');
+                    out[decodeURIComponent(p[0] || '')] = decodeURIComponent(p[1] || '');
+                });
+                return out;
+            } catch (e) { return {}; }
+        })();
+        var curMid = urlParams.mid || '';
+        var curHomeN = urlParams.home_name || '';
+        var curAwayN = urlParams.away_name || '';
+        var curHomeId = urlParams.home_id || '';
+        var curAwayId = urlParams.away_id || '';
+        var curM = null;
+        if (curMid && curHomeN && curAwayN) {
+            // Aug 22 2026 — Max opens compare pages with
+            // ?mid=<id>&home_id=...&away_id=... to inspect a
+            // specific match. That match is typically past the
+            // PAST_GRACE cutoff (already kicked off) so it gets
+            // filtered out of the regular fixtures list — making
+            // 🔍 Check Predicted XI look broken for the very
+            // match he's looking at. We build a synthetic record
+            // for it and pin it as a "🎯 Current match" row above
+            // the round list.
+            curM = {
+                match_id: curMid,
+                home: { team_id: curHomeId, name: curHomeN },
+                away: { team_id: curAwayId, name: curAwayN },
+                timestamp: 0,
+                tournament: '',
+                round: '🎯 Current match'
+            };
+            // Also strip any duplicate that the fixtures list
+            // might carry so we don't render the same row twice.
+            fixtures = fixtures.filter(function (m) { return m.match_id !== curMid; });
+        }
         // Sort by tournament label (LaLiga before LaLiga 2), then by timestamp
         fixtures = fixtures.slice().sort(function (a, b) {
             var ta = (a.tournament || '').toLowerCase();
@@ -1346,6 +1392,7 @@ body {
         // Past filter (mirrors ltv.py PAST_GRACE)
         var now = Math.floor(Date.now() / 1000);
         var horizon = now + 24 * 3600;
+        var beforeCount = fixtures.length;
         fixtures = fixtures.filter(function (m) {
             var ts = m.timestamp || 0;
             if (!ts) return false;
@@ -1367,6 +1414,27 @@ body {
         });
         var rounds = Object.keys(byRound);
         var html = '';
+        // Aug 22 2026 — Pin the match from the URL as a
+        // 🎯 Current match row above the round list. We render
+        // it OUTSIDE the per-round wrapper so it stays visible
+        // even if the user collapses every round.
+        if (curM) {
+            html += '<div style="margin-bottom:14px;border:1px solid #7c3aed;border-radius:8px;overflow:hidden;background:#1a1230;">';
+            html += '<div style="background:#2a1f4a;padding:8px 14px;color:#c4b5fd;font-size:12px;font-weight:600;letter-spacing:0.5px;">🎯 CURRENT MATCH (from URL)</div>';
+            html += '<div style="padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1f2b40;">';
+            html += '<span style="color:#94a3b8;font-size:11px;min-width:60px;">(played)</span>';
+            html += '<div style="flex:1;min-width:0;">';
+            html += '<span style="color:#e8eef7;font-weight:600;">' + _escape(curHomeN) + '</span>';
+            html += ' <span style="color:#64748b;">—</span> ';
+            html += '<span style="color:#e8eef7;font-weight:600;">' + _escape(curAwayN) + '</span>';
+            html += '</div>';
+            html += '<span style="min-width:96px;"></span>';
+            // Aug 22 2026 — current match is always clickable
+            // (T-20h gate is meaningless for a finished match —
+            // backend returns the cached XI via cache-past-match).
+            html += '<button type="button" data-mp11-check="' + _escape(curMid) + '" data-home="' + _escape(curHomeId) + '" data-away="' + _escape(curAwayId) + '" data-home-n="' + _escape(curHomeN) + '" data-away-n="' + _escape(curAwayN) + '" onclick="_matchP11CheckBtn(this)" style="font-size:11px;color:#fff;background:#7c3aed;border:1px solid #6d28d9;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;" title="Refresh the cached XI for this match. Past matches return their on-disk cache; live matches rebuild it from futbolfantasy.">🔍 Check Predicted XI</button>';
+            html += '</div></div>';
+        }
         rounds.forEach(function (roundLabel, ridx) {
             var rid = 'mp11r' + ridx;
             html += '<div style="margin-bottom:14px;border:1px solid #1f2b40;border-radius:8px;overflow:hidden;">';
@@ -1444,20 +1512,49 @@ body {
         btn.style.background = '#1e40af';
         btn.style.borderColor = '#1d4ed8';
         btn.disabled = true;
-        _mp11Acks[mid] = { total: 0, n: 0, btn: btn };
-        try {
-            myFrame && myFrame.contentWindow && myFrame.contentWindow.postMessage({
-                type: 'checkPredictedXI', match_id: mid, source: 'match-parent-panel'
-            }, '*');
-            oppFrame && oppFrame.contentWindow && oppFrame.contentWindow.postMessage({
-                type: 'checkPredictedXI', match_id: mid, source: 'match-parent-panel'
-            }, '*');
-        } catch (e) { /* noop */ }
-        // Failsafe: if a frame never acks, show best-effort count
-        // after 25 s and re-enable the button.
+        _mp11Acks[mid] = { total: 0, n: 0, btn: btn, expected: 0 };
+        // Aug 22 2026 — only count acks from iframes that were
+        // actually ready when we clicked. Without the readiness
+        // check, posting to a not-yet-loaded iframe drops the
+        // message on the floor and the parent ends up waiting
+        // 25 s for a failsafe label reset.
+        var frames = [myFrame, oppFrame];
+        for (var i = 0; i < frames.length; i++) {
+            try {
+                var f = frames[i];
+                if (!f || !f.contentWindow) continue;
+                // Aug 22 2026 — contentWindow.readyState tells us
+                // if the iframe document is parsed; the parent's
+                // onload handler we set up earlier exposes this
+                // on the iframe element itself.
+                var ready = !!f.dataset.p11Ready || false;
+                if (ready) {
+                    _mp11Acks[mid].expected += 1;
+                    f.contentWindow.postMessage({
+                        type: 'checkPredictedXI', match_id: mid, source: 'match-parent-panel'
+                    }, '*');
+                }
+            } catch (e) { /* noop */ }
+        }
+        // Failsafe: if no iframe was ready, just reset the button
+        if (!_mp11Acks[mid].expected) {
+            btn.innerHTML = '🔍 Check Predicted XI';
+            btn.style.background = '#3b82f6';
+            btn.style.borderColor = '#2563eb';
+            btn.disabled = false;
+            delete _mp11Acks[mid];
+        }
+        // Failsafe: if expected acks don't arrive in time, show
+        // best-effort count and re-enable the button.
         setTimeout(function () {
             var a = _mp11Acks[mid];
-            if (!a || a.n >= 2) return;
+            if (!a) return;
+            // Aug 22 2026 — bumped failsafe from 8 s → 12 s so a slow
+            // iframe (cold cache fetch on a fresh squad) has
+            // time to deliver its `p11-autopxi` ack before we
+            // resolve the row with a partial count.
+            if (a.n >= (a.expected || 2)) return;
+            var btn = a.btn;
             if ((a.total || 0) === 0) {
                 btn.innerHTML = '🔒 0 checked — different team';
                 btn.style.background = '#1e293b';
@@ -1476,19 +1573,30 @@ body {
                 btn.style.borderColor = '#2563eb';
                 btn.style.color = '#fff';
             }, 5000);
-        }, 25000);
+        }, 12000);
     }
     window._matchP11CheckBtn = _matchP11CheckBtn;
 
-    // Aug 22 2026 — Listen for the per-iframe ack and aggregate.
+    // Aug 22 2026 — listen only for `p11-autopxi`, which fires
+    // AFTER _applyPredictedXIIframe's fetch chain has actually
+    // ticked boxes. (The legacy `p11-checked-ack` fires from a
+    // hard-coded setTimeout, often BEFORE the XI fetch settles,
+    // so its count is unreliable. We deliberately drop it now.)
     window.addEventListener('message', function (evt) {
         var d = evt.data;
-        if (!d || d.type !== 'p11-checked-ack' || !d.match_id) return;
+        if (!d || !d.match_id) return;
+        if (d.type !== 'p11-autopxi') return;
         var a = _mp11Acks[d.match_id];
         if (!a) return;
         a.total += (d.applied || 0);
         a.n += 1;
-        if (a.n >= 2) {
+        // Aug 22 2026 — only finish aggregating when we've heard
+        // from every iframe we posted to. If both iframes were
+        // ready at click time, expected = 2; if only one was,
+        // expected = 1 and we finish after the first ack so the
+        // user isn't stuck on ⏳ Checking… for 25 s.
+        var exp = a.expected || 2;
+        if (a.n >= exp) {
             var btn = a.btn;
             if ((a.total || 0) === 0) {
                 btn.innerHTML = '🔒 0 checked — different team';
@@ -1565,12 +1673,19 @@ body {
         resizeFrame(myFrame);
         resizeFrame(oppFrame);
         checkFramesLoaded();
+        // Aug 22 2026 — mark this iframe as ready so the parent
+        // panel's 🔍 click handler can count its acks. Without
+        // this, messages posted to a not-yet-loaded iframe get
+        // dropped silently and the parent label sits at
+        // ⏳ Checking… for 25 s before the failsafe fires.
+        try { myFrame.dataset.p11Ready = '1'; } catch (e) {}
     };
     oppFrame.onload = function() {
         hideHeaderElements(oppFrame);
         resizeFrame(myFrame);
         resizeFrame(oppFrame);
         checkFramesLoaded();
+        try { oppFrame.dataset.p11Ready = '1'; } catch (e) {}
     };
     // Initial paint: set button label before iframes finish loading.
     broadcastCollapseDetails();
