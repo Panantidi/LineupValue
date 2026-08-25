@@ -6068,8 +6068,17 @@ def scheduler_start():
                 cached = predicted_xi.get_match_xi(mid)
                 if cached:
                     continue
-                home_id = m.get('home_team', {}).get('id')
-                away_id = m.get('away_team', {}).get('id')
+                # Aug 23 2026 — fixtures use `home` / `away` keys,
+                # NOT `home_team` / `away_team`. Using the wrong keys
+                # made the scheduler silently skip every LaLiga +
+                # LaLiga 2 match (home_id / away_id came back as
+                # None, so the rest of the cycle never resolved the
+                # team names, ff_match stayed None, and the cache
+                # was never built).
+                home_obj = m.get('home') or m.get('home_team') or {}
+                away_obj = m.get('away') or m.get('away_team') or {}
+                home_id = home_obj.get('team_id') or home_obj.get('id')
+                away_id = away_obj.get('team_id') or away_obj.get('id')
                 home_name = _predicted_xi_team_id_to_name(home_id).lower()
                 away_name = _predicted_xi_team_id_to_name(away_id).lower()
                 # Aug 22 2026 — LaLiga + LaLiga 2 share a panel header. We try the
@@ -6094,16 +6103,50 @@ def scheduler_start():
                     return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])) for t in at)
                 ff_match = None
                 ff_championship = None
+                # Aug 23 2026 — Try the round's currently-visible jornada
+                # AND the immediately previous/next ones (some ff pages
+                # rotate at midnight and a match can disappear from the
+                # current slot). Each jornada parse returns matches for
+                # that specific round.
+                round_num = 0
+                raw_round = m.get('round') or ''
+                if isinstance(raw_round, int):
+                    round_num = raw_round
+                elif isinstance(raw_round, str):
+                    # Fixtures store round as "Round 1" / "R1" / etc.
+                    # Pull out the first integer we find.
+                    import re as _re
+                    m_round = _re.search(r'(\d+)', raw_round)
+                    if m_round:
+                        try:
+                            round_num = int(m_round.group(1))
+                        except (TypeError, ValueError):
+                            round_num = 0
+                jornada_candidates = [round_num] if round_num else [0]
+                for delta in (-1, 1):
+                    nxt = round_num + delta
+                    if nxt > 0:
+                        jornada_candidates.append(nxt)
                 for championship_key in ('laliga', 'laliga2'):
-                    candidate = next(
-                        (x for x in predicted_xi.parse_round_matches(championship_key)
-                         if _name_eq(x.get('home', ''), home_name)
-                         and _name_eq(x.get('away', ''), away_name)),
-                        None,
-                    )
-                    if candidate:
-                        ff_match = candidate
-                        ff_championship = championship_key
+                    for jn in jornada_candidates:
+                        try:
+                            ff_round = predicted_xi.parse_round_matches(championship_key, jornada=jn)
+                        except TypeError:
+                            # Older signature without jornada param
+                            ff_round = predicted_xi.parse_round_matches(championship_key)
+                        if not ff_round:
+                            continue
+                        candidate = next(
+                            (x for x in ff_round
+                             if _name_eq(x.get('home', ''), home_name)
+                             and _name_eq(x.get('away', ''), away_name)),
+                            None,
+                        )
+                        if candidate:
+                            ff_match = candidate
+                            ff_championship = championship_key
+                            break
+                    if ff_match:
                         break
                 if not ff_match:
                     continue
@@ -6134,6 +6177,151 @@ def scheduler_start():
     _scheduler_started = True
 
 
+# Aug 23 2026 — separate entry point so the Predicted XI T-18h
+# scheduler runs even when the X fetcher is disabled. This is
+# what Max asked for: PXIs auto-build for LaLiga + LaLiga 2
+# matches ~18h before kickoff, no manual refresh required.
+#
+# Note: the inner body is a duplicate of the closure-bound
+# _predicted_xi_cycle that lives inside scheduler_start(). We
+# duplicate it here so the PXI scheduler can run independently
+# of FETCH_ENABLED. The two implementations stay in sync because
+# they share the same helpers (_predicted_xi_team_id_to_name,
+# _load_lv_players) and the same fuzzy-name logic.
+_pxi_scheduler_started = False
+
+def _predicted_xi_team_id_to_name_v2(team_id):
+    if not team_id:
+        return ''
+    try:
+        with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+            leagues = json.load(f)
+    except Exception:
+        return ''
+    for _country, _ldict in leagues.items():
+        for _lname, _teams in _ldict.items():
+            for _team in _teams:
+                if _team.get('id') == team_id:
+                    return _team.get('name') or ''
+    return ''
+
+def _predicted_xi_cycle_v2():
+    try:
+        import predicted_xi
+        import laliga_fixtures
+        data = laliga_fixtures.get_laliga_fixtures()
+        now = int(time.time())
+        horizon = now + 18 * 3600
+        for m in data.get('fixtures', []):
+            ts = int(m.get('timestamp') or 0)
+            if not ts or ts < now - 600 or ts > horizon:
+                continue
+            mid = m.get('match_id') or ''
+            if not mid:
+                continue
+            cached = predicted_xi.get_match_xi(mid)
+            if cached:
+                continue
+            home_obj = m.get('home') or m.get('home_team') or {}
+            away_obj = m.get('away') or m.get('away_team') or {}
+            home_id = home_obj.get('team_id') or home_obj.get('id')
+            away_id = away_obj.get('team_id') or away_obj.get('id')
+            home_name = _predicted_xi_team_id_to_name_v2(home_id).lower()
+            away_name = _predicted_xi_team_id_to_name_v2(away_id).lower()
+            import unicodedata as _unicodedata
+            def _name_eq(a, b):
+                def _strip(s):
+                    return ''.join(c for c in _unicodedata.normalize('NFD', s) if _unicodedata.category(c) != 'Mn')
+                al = _strip((a or '').lower())
+                bl = _strip((b or '').lower())
+                if not al or not bl:
+                    return False
+                if al == bl:
+                    return True
+                if al in bl or bl in al:
+                    return True
+                at = al.replace('.', '').replace('-', ' ').split()
+                bt = bl.replace('.', '').replace('-', ' ').split()
+                return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])) for t in at)
+            round_num = 0
+            raw_round = m.get('round') or ''
+            if isinstance(raw_round, int):
+                round_num = raw_round
+            elif isinstance(raw_round, str):
+                import re as _re
+                m_round = _re.search(r'(\d+)', raw_round)
+                if m_round:
+                    try:
+                        round_num = int(m_round.group(1))
+                    except (TypeError, ValueError):
+                        round_num = 0
+            jornada_candidates = [round_num] if round_num else [0]
+            for delta in (-1, 1):
+                nxt = round_num + delta
+                if nxt > 0:
+                    jornada_candidates.append(nxt)
+            ff_match = None
+            ff_championship = None
+            for championship_key in ('laliga', 'laliga2'):
+                for jn in jornada_candidates:
+                    try:
+                        ff_round = predicted_xi.parse_round_matches(championship_key, jornada=jn)
+                    except TypeError:
+                        ff_round = predicted_xi.parse_round_matches(championship_key)
+                    if not ff_round:
+                        continue
+                    candidate = next(
+                        (x for x in ff_round
+                         if _name_eq(x.get('home', ''), home_name)
+                         and _name_eq(x.get('away', ''), away_name)),
+                        None,
+                    )
+                    if candidate:
+                        ff_match = candidate
+                        ff_championship = championship_key
+                        break
+                if ff_match:
+                    break
+            if not ff_match:
+                continue
+            home_lv = _load_lv_players(home_id)
+            away_lv = _load_lv_players(away_id)
+            predicted_xi.build_match_cache(
+                championship=ff_championship or 'laliga',
+                match_id=mid,
+                ff_id=ff_match['ff_id'], slug=ff_match['slug'],
+                home_team_id=home_id, away_team_id=away_id,
+                kickoff_ts=ts,
+                home_lv_players=home_lv, away_lv_players=away_lv,
+            )
+            print(f'predicted_xi cached {mid} {home_id} vs {away_id} champ={ff_championship}')
+    except Exception as ex:
+        print(f'predicted_xi_cycle_v2 error: {ex}')
+
+def predicted_xi_scheduler_start():
+    global _pxi_scheduler_started
+    if _pxi_scheduler_started:
+        return
+    if not scheduler.running:
+        scheduler.start()
+    # Kick the cycle once on startup so we don't wait 5 minutes
+    # for the very first sweep.
+    try:
+        _predicted_xi_cycle_v2()
+    except Exception as _ex:
+        print(f'predicted_xi initial run error: {_ex}')
+    scheduler.add_job(
+        _predicted_xi_cycle_v2,
+        CronTrigger(minute='*/5', timezone='Europe/Moscow'),
+        id='predicted_xi_cycle_v2',
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=120,
+        replace_existing=True,
+    )
+    _pxi_scheduler_started = True
+
+
 def scheduler_stop():
     global _scheduler_started
     if not _scheduler_started:
@@ -6151,8 +6339,15 @@ def scheduler_stop():
 @app.on_event("startup")
 async def _startup():
     ensure_db()
-
-    # background loop (runtime start/stop supported)
+    # Aug 23 2026 — _predicted_xi_cycle (T-18h Predicted XI
+    # builder) used to live inside scheduler_start() which was
+    # gated by FETCH_ENABLED. That meant the auto-PXI pipeline
+    # never ran because Max normally keeps the X fetcher off.
+    # Always start the PXI scheduler so LaLiga / LaLiga 2
+    # matches get cached before the 18h kickoff window opens.
+    # The X tweets fetcher (controlled by FETCH_ENABLED) still
+    # starts separately via scheduler_start().
+    predicted_xi_scheduler_start()
     if FETCH_ENABLED:
         scheduler_start()
 
