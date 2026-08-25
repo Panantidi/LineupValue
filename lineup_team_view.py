@@ -5491,18 +5491,35 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         return String(s).replace(/[&<>"]/g, function(c) {{ return {{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}}[c]; }});
     }}
 
-    function highlightText(text, players, keywords) {{
+    function highlightText(text, players, keywords, opts) {{
+        // Aug 23 2026 — Max asked to render Markdown-style
+        // **bold** as actual <strong> tags so the player name
+        // inside live-event posts (e.g. red-card templates) shows
+        // up bold without a yellow highlight background. The bold
+        // runs are processed BEFORE the player/keyword scans so
+        // the regex below can't accidentally grab a substring
+        // from inside the <strong>…</strong> we just emitted.
         var out = escapeHtml(text);
+        out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
         // Aug 7 2026: convert literal newline chars to <br> for line breaks.
         out = out.split('\\n').join('<br>');
         var sortedP = [...players].sort(function(a, b) {{ return b.length - a.length; }});
         var sortedK = [...keywords].sort(function(a, b) {{ return b.length - a.length; }});
         var escRe = function(s) {{ return String(s).replace(/[.*+?^$()|\[\]\\/]/g, '\\$&'); }};
-        for (var i = 0; i < sortedP.length; i++) {{
-            var p = sortedP[i];
-            if (!p) continue;
-            var re = new RegExp('(' + escRe(p) + ')', 'gi');
-            out = out.replace(re, '<mark class="player">$1</mark>');
+        // Aug 23 2026 — Max asked to drop the yellow
+        // <mark class="player"> highlight on live-event posts
+        // (red cards, substitutions). The card CSS already paints
+        // the background orange-ish so the additional yellow pill
+        // was redundant and noisy. Player highlights on regular
+        // tweets remain unchanged. Opt-out via opts.live = true.
+        var isLive = !!(opts && opts.live);
+        if (!isLive) {{
+            for (var i = 0; i < sortedP.length; i++) {{
+                var p = sortedP[i];
+                if (!p) continue;
+                var re = new RegExp('(' + escRe(p) + ')', 'gi');
+                out = out.replace(re, '<mark class="player">$1</mark>');
+            }}
         }}
         for (var i = 0; i < sortedK.length; i++) {{
             var k = sortedK[i];
@@ -5538,7 +5555,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var t = tweets[i];
             var highlighted;
             try {{
-                highlighted = highlightText(t.text || '', t.matched_players || [], t.matched_keywords || []);
+                // Aug 23 2026 — live-event posts (red cards,
+                // substitutions) opt out of the yellow
+                // <mark class="player"> highlight via the
+                // opts.live flag. Regular tweets still get the
+                // highlight.
+                highlighted = highlightText(t.text || '', t.matched_players || [], t.matched_keywords || [], {{ live: !!t.is_live_event }});
             }} catch (he) {{
                 // Aug 9 2026: highlightText throws on pathological player text
                 // (e.g. un-escaped regex chars). Fall back to plain escaped text.
@@ -5700,21 +5722,48 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // "🔁 Замена " from player text. Keep only the actual player name.
                 // Patterns observed: red_card = "<min>': 🟥 <word> игроку <NAME>";
                 // substitution = "🔁 Замена <NAME>"; yellow = "🟨 <word> <NAME>".
+                // Aug 23 2026 — expanded: also drop the full "90+3': 🟥 Красная
+                // карточка игроку " blob that some sources pack into the
+                // player field, plus a leading ⏪ (rewind-symbol) sometimes
+                // prepended by the mirror. The regex walks through every
+                // possible prefix the upstream can attach; what remains is
+                // assumed to be the bare player name.
                 evtPlayer = evtPlayer
-                    .replace(/^\d+\'[:\s]*/u, '')
-                    .replace(/^[🟥🟨🔴🟠🔁]\s*/u, '')
+                    .replace(/^[⏪🔁🟥🟨🔴🟠]\s*/u, '')
+                    .replace(/^[\d+\s']*'?[:\s]*/u, '')
+                    .replace(/^[🟥🟨🔴🟠🔁⏪⏮️]\s*/u, '')
                     .replace(/^Красная\s+карточка\s+игроку\s+/iu, '')
                     .replace(/^Жёлтая\s+карточка\s+игроку\s+/iu, '')
                     .replace(/^Желтая\s+карточка\s+игроку\s+/iu, '')
+                    .replace(/^Замена\s+в\s+команде\s+[^:]*:\s*/iu, '')
                     .replace(/^Замена\s+/iu, '')
                     .replace(/^Удаление\s+/iu, '')
+                    .replace(/^Удалён\s+/iu, '')
+                    .replace(/^[🟥🟨🔴🟠🔁⏪⏮️]\s*/u, '')
                     .replace(/\*/g, '')
                     .trim();
-                // Aug 8 2026: user spec - line 2 is icon + ' ' + N + ' min - ' + player + ' (' + team + ')'
-                // Substitutions get an extra orange circle prefix on the player.
+                // Aug 23 2026 — Max asked for one canonical red-card
+                // post template:
+                //   <Home Team> - <Away Team>
+                //
+                //   RED-CARD <minute> min - <Player> (<Team>)
+                // Player name is bold (Markdown **), minute is the
+                // bare game-minute (e.g. 90+13 becomes 90), no
+                // Russian text is emitted, no leading ORANGE marker
+                // (that is for substitutions only), and the
+                // highlightText call below must NOT wrap this
+                // player in a yellow <mark class="player">.
+                var evtIcon = ev.event_type === 'red_card' ? '🟥' : '🔁';
+                var rawMinute = String(ev.minute || 0);
+                var evtMinute = rawMinute.replace(/^\s*\d+\s*/, function (m) {{
+                    // Keep just the leading integer - drops the "+13" stoppage
+                    // time suffix and any stray quote or whitespace.
+                    return m.replace(/[^0-9]/g, '');
+                }}) + ' min';
+                var evtTeam = ev.team || '';
                 var evtPrefix = ev.event_type === 'red_card' ? '' : '🟠 ';
                 var evtLine1 = evtHeader;
-                var evtLine2 = evtIcon + ' ' + evtMinute + ' — ' + evtPrefix + evtPlayer +
+                var evtLine2 = evtIcon + ' ' + evtMinute + ' — ' + evtPrefix + '**' + evtPlayer + '**' +
                     (evtTeam ? ' (' + evtTeam + ')' : '');
                 // Use String.fromCharCode(10) to embed newline char. highlightText converts it to <br>.
                 var nl = String.fromCharCode(10);
