@@ -2998,7 +2998,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     const rkClass = isActive
                         ? 'p11-round-chip p11-round-chip-active'
                         : 'p11-round-chip';
-                    html += '<button type="button" data-p11-round-key="' + _escapeText(rk) + '" data-p11-division="' + _escapeText(divisionKey) + '" class="' + rkClass + '" style="font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid ' + (isActive ? '#60a5fa' : '#1f2b40') + ';background:' + (isActive ? '#60a5fa' : 'transparent') + ';color:' + (isActive ? '#0b1020' : '#cbd5e1') + ';cursor:pointer;font-weight:600;letter-spacing:0.04em;">Round</button>';
+                    html += '<button type="button" data-p11-round-key="' + _escapeText(rk) + '" data-p11-division="' + _escapeText(divisionKey) + '" class="' + rkClass + '" style="font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid ' + (isActive ? '#60a5fa' : '#1f2b40') + ';background:' + (isActive ? '#60a5fa' : 'transparent') + ';color:' + (isActive ? '#0b1020' : '#cbd5e1') + ';cursor:pointer;font-weight:600;letter-spacing:0.04em;">' + _escapeText(rk) + '</button>';
                 }});
                 html += '</div>';
                 // Match list for the currently selected round.
