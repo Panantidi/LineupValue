@@ -2068,7 +2068,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div class="page-main">
 <div id="predicted11-panel-host" style="display:none;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <h3 style="margin:0;font-size:17px;font-weight:600;color:#fff;">Spain - LaLiga</h3>
+            <h3 style="margin:0;font-size:17px;font-weight:600;color:#fff;">Spain</h3>
             <button type="button" onclick="togglePredicted11()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">×</button>
         </div>
         <div id="predicted11-body">
@@ -2979,7 +2979,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 html += '<div data-p11-toggle="' + roundId + '" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none;">';
                 html += '<span data-p11-chevron="' + roundId + '" style="color:#60a5fa;font-size:14px;transition:transform 0.15s ease;">▶</span>';
                 html += '<div style="flex:1;display:flex;align-items:center;gap:10px;">';
-                html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(block.activeRoundKey) + '</span>';
+                html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Round</span>';
                 html += '<span style="font-size:10px;background:#22c55e;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NEXT</span>';
                 if (roundDateRange) {{
                     html += '<span style="font-size:11px;color:#64748b;font-weight:500;">' + _escapeText(roundDateRange) + '</span>';
@@ -2998,7 +2998,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     const rkClass = isActive
                         ? 'p11-round-chip p11-round-chip-active'
                         : 'p11-round-chip';
-                    html += '<button type="button" data-p11-round-key="' + _escapeText(rk) + '" data-p11-division="' + _escapeText(divisionKey) + '" class="' + rkClass + '" style="font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid ' + (isActive ? '#60a5fa' : '#1f2b40') + ';background:' + (isActive ? '#60a5fa' : 'transparent') + ';color:' + (isActive ? '#0b1020' : '#cbd5e1') + ';cursor:pointer;font-weight:600;letter-spacing:0.04em;">' + _escapeText(rk) + '</button>';
+                    html += '<button type="button" data-p11-round-key="' + _escapeText(rk) + '" data-p11-division="' + _escapeText(divisionKey) + '" class="' + rkClass + '" style="font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid ' + (isActive ? '#60a5fa' : '#1f2b40') + ';background:' + (isActive ? '#60a5fa' : 'transparent') + ';color:' + (isActive ? '#0b1020' : '#cbd5e1') + ';cursor:pointer;font-weight:600;letter-spacing:0.04em;">Round</button>';
                 }});
                 html += '</div>';
                 // Match list for the currently selected round.
