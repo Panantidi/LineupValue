@@ -2380,7 +2380,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (days > 0) body = days + 'd ' + hours + 'h';
                 else if (hours > 0) body = hours + 'h ' + pad2(minutes) + 'm';
                 else body = minutes + 'm';
-                el.textContent = 'Match starts in ' + body;
+                // Aug 24 2026 — prefix changed from
+                // "Match starts in " to the 🕒 clock emoji so the row
+                // reads "🕒 4h 21m" / "🕒 2d 4h" / "🕒 18m" instead of
+                // "Match starts in 4h 21m". The clock glyph also
+                // visually anchors it as a countdown chip on the left
+                // edge of the row.
+                el.textContent = '🕒 ' + body;
             }});
             // Aug 24 2026 — the "🔍 Check Predicted XI" button was
             // removed from the predicted XI row, so there is no
@@ -2514,12 +2520,18 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         return null;  // under 1 minute — start is imminent
                     }}
                     return '<span class="p11-countdown" data-ts="' + ts + '" ' +
-                        'style="font-size:11px;color:#94a3b8;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:4px;">' +
-                        'Match starts in ' + body + '</span>';
+                        'style="font-size:11px;color:#94a3b8;white-space:nowrap;font-variant-numeric:tabular-nums;margin-right:8px;">' +
+                        '🕒 ' + body + '</span>';
                 }};
                 const countdownHtml = renderCountdown(m.timestamp);
                 const mid = m.match_id || '';
                 let html = '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
+                // Aug 24 2026 — Max asked for the countdown to live on
+                // the LEFT of the date/time column. Previously it was
+                // placed between team names and Open Match link; the
+                // tick handler updated `textContent` with the
+                // `Match starts in …` prefix which we no longer want.
+                if (countdownHtml) html += countdownHtml;
                 html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
                 html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
                 const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
@@ -2544,11 +2556,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
                 }}
                 html += '</div>';
-                // Aug 22 2026 — countdown lives between the team names and
-                // the Open Match button. Marked with .p11-countdown so the
-                // interval-driven refresh below can find it without
-                // recomputing the whole panel.
-                if (countdownHtml) html += countdownHtml;
+                // Aug 24 2026 — countdown was moved to the LEFT of the
+                // date/time column above. Removed the duplicate append
+                // that used to live here.
                 const homeId = (m.home && m.home.team_id) || '';
                 const awayId = (m.away && m.away.team_id) || '';
                 const openHref = '/lineup_ai/compare/' + encodeURIComponent(homeId || awayId || '') +
