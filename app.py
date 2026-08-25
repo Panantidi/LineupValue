@@ -3097,6 +3097,13 @@ async def lineup_api_predicted_xi(match_id: str, refresh: int = 0):
             'away_count': sum(1 for p in cached.get('away_players', []) if p.get('matched')),
             'source': 'cache',
             'fetched_at': cached.get('fetched_at'),
+            # Aug 24 2026 — expose kickoff_ts so the iframe can store
+            # it in localStorage and trust its tick list only while
+            # the lineup might still be reshuffling. Without this the
+            # localStorage cache has to fall back to the page-level
+            # _kickoff guess, which is always 0 and disables the
+            # freshness check entirely.
+            'kickoff_ts': cached.get('kickoff_ts') or 0,
         }
     return {
         'match_id': match_id,
@@ -3710,10 +3717,16 @@ COUNTRY_ALIASES = {
 }
 
 @app.get("/lineup_ai/compare/{team_id}")
-async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id: str = "", home_name: str = "", away_name: str = ""):
+async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id: str = "", home_name: str = "", away_name: str = "", kickoff_ts: int = 0):
     """Render two full team views side-by-side for an upcoming match.
     All match data (home_id, away_id, names) is passed from the select page
-    which already has it from the fixtures API — no Playwright needed here."""
+    which already has it from the fixtures API — no Playwright needed here.
+
+    Aug 24 2026 — Max asked to skip squad refreshes for matches that are
+    still > 1 h away. We forward `kickoff_ts` from the autopxi URL into
+    the iframe URLs (see the `{{kickoff_ts}}` replacement further down)
+    so the team-mode iframe can decide whether the squad is stable.
+    """
     import os, json
 
     if not mid:
@@ -4122,6 +4135,11 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     result = result.replace("{{match_round}}", _safe(match_round))
     result = result.replace("{{match_stadium}}", _safe(match_stadium))
     result = result.replace("{{info_box}}", _safe(info_box_text))
+    # Aug 24 2026 — Max asked to skip squad refreshes on subsequent
+    # Open Match clicks. Forward kickoff_ts (read from the autopxi URL
+    # by the caller) to the iframe URLs so the team-mode iframe
+    # can decide whether the squad is stable or still shifting.
+    result = result.replace("{{kickoff_ts}}", _safe(str(kickoff_ts or 0)))
 
     return HTMLResponse(content=result)
 

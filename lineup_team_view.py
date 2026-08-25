@@ -2599,7 +2599,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // keeps the autopxi=1 URL flow alive for cases
                 // where the user wants to drill into a specific
                 // match.
-                html += '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
+                html += '<a href="' + openHref + '&kickoff_ts=' + (m.timestamp || 0) + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
                 return html;
             }}
@@ -3948,23 +3948,82 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
 
         // Aug 22 2026 — when the compare-mode parent posts
-        // {{type:'applyPredictedXI', match_id}}, refresh the LV squad
-        // for this team BEFORE matching — data freshness matters, the
-        // panel users expect P-XI to use the latest squad state, not
-        // yesterday's cached one. Refresh = same call the ♻️ button
-        // makes (/lineup_ai/api/fetch/<TEAM_ID>) but without the page
-        // reload that updateData() triggers. Then fetch the cached XI
-        // and tick the matching .xi-checkbox rows. Does NOT call any
-        // save endpoint.
+        // {{type:'applyPredictedXI', match_id}} OR the user opens a
+        // Match URL with ?autopxi=1, refresh the LV squad for this
+        // team BEFORE matching if needed, then fetch the cached XI
+        // and tick the matching .xi-checkbox rows.
+        //
+        // Aug 24 2026 — Max asked to stop wasting API calls on every
+        // Open Match click. The T-18h auto-builder already populates
+        // the predicted XI cache, and the squad cache for a team
+        // rarely changes inside the 18 h window. So:
+        //   1. Try a localStorage "pxi-applied" cache first. If a
+        //      tick list is present AND the cache.fetched_at it
+        //      remembers is still recent, tick the boxes SYNCHRONOUSLY
+        //      (0 ms perceived delay) and skip the API entirely.
+        //      Then optionally fire-and-forget a background refresh
+        //      if the squad might be stale.
+        //   2. Without a local cache, fetch /api/predicted_xi/<mid>
+        //      WITHOUT refresh=1 (51 ms instead of 3-10 s) and tick
+        //      the boxes from that. Still refresh the squad in the
+        //      background if it's been more than 10 minutes since
+        //      the last fetch (kept short enough that staleness
+        //      doesn't bite inside the 18 h window).
+        //   3. Skip the squad fetch entirely if we're more than 1 h
+        //      before kickoff (squads are stable in that window).
         function _applyPredictedXIIframe(match_id) {{
-            var refreshThenApply = function() {{
-                // Aug 22 2026 — ask the server to re-parse futbolfantasy
-                // against the just-refreshed LV squads. refresh=1 hits
-                // build_match_cache synchronously so the response carries
-                // the freshest name matching. Without this, the iframe
-                // would happily tick stale player names even though
-                // /api/fetch/<TEAM_ID> had just updated the squad cache.
-                fetch('/lineup_ai/api/predicted_xi/' + encodeURIComponent(match_id) + '?refresh=1')
+            var _kickoff = (typeof window.PXI_KICKOFF_TS === 'number') ? window.PXI_KICKOFF_TS : 0;
+            var _now = Math.floor(Date.now() / 1000);
+            var _hoursUntilKickoff = _kickoff ? (_kickoff - _now) / 3600 : 999;
+
+            // ---- Step 1: tick from localStorage immediately ----
+            // TEAM_ID is the IIFE-scoped variable defined further
+            // down in this same closure (see "var TEAM_ID = …" near
+            // line 5334). Use it directly instead of window.TEAM_ID
+            // because the parent page's `w.TEAM_ID` lookup wouldn't
+            // see an IIFE-local var anyway.
+            var _lsKey = 'pxi-applied:' + match_id + ':' + (TEAM_ID || '');
+            var _lsAppliedTick = 0;
+            var _lsCacheFetchedAt = 0;
+            var _lsUsed = false;
+            try {{
+                var raw = localStorage.getItem(_lsKey);
+                if (raw) {{
+                    var obj = JSON.parse(raw);
+                    // Aug 24 2026 — only trust the local cache if BOTH
+                    // (a) the cached tick list is recent (< 6 h old)
+                    // AND (b) the kickoff is still in the future. A
+                    // past kickoff means the lineup is locked and the
+                    // XI we cached is the final one — but a future
+                    // kickoff more than 6 h after our cache was written
+                    // means the auto-builder might have already rebuilt
+                    // the cache and the squad might have shifted, so
+                    // fall through to the network.
+                    var _ageOk = (_now - (obj.cached_at || 0)) < 6 * 3600;
+                    var _kickoffOk = !obj.kickoff_ts || (obj.kickoff_ts > _now - 6 * 3600);
+                    if (_ageOk && _kickoffOk && obj.players && obj.players.length) {{
+                        var cbs = document.querySelectorAll('input.xi-checkbox');
+                        for (var i = 0; i < cbs.length; i++) {{
+                            var cb = cbs[i];
+                            var rowName = (cb.value || '').toLowerCase().trim();
+                            if (obj.players.indexOf(rowName) !== -1 && !cb.checked) {{
+                                cb.checked = true;
+                                cb.dispatchEvent(new Event('change', {{bubbles:true}}));
+                                _lsAppliedTick++;
+                            }}
+                        }}
+                        _lsCacheFetchedAt = obj.cached_at || 0;
+                        _lsUsed = true;
+                        if (_lsAppliedTick) updateXICounter();
+                    }}
+                }}
+            }} catch (e) {{ /* corrupt cache — ignore */ }}
+
+            // ---- Step 2: fresh XI fetch (no refresh=1 — server
+            // returns the cached payload directly, 50 ms) ----
+            var _freshApplied = 0;
+            var _refreshThenApply = function() {{
+                fetch('/lineup_ai/api/predicted_xi/' + encodeURIComponent(match_id))
                     .then(function(r){{ return r.json(); }})
                     .then(function(d) {{
                         if (!d || !d.match_id) return;
@@ -3972,7 +4031,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                             .map(function(p){{ return (p.lv_name || '').toLowerCase().trim(); }})
                             .filter(function(n){{ return !!n; }});
                         if (!target.length) return;
-                        var applied = 0;
                         var cbs = document.querySelectorAll('input.xi-checkbox');
                         for (var i = 0; i < cbs.length; i++) {{
                             var cb = cbs[i];
@@ -3980,35 +4038,78 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                             if (target.indexOf(rowName) !== -1 && !cb.checked) {{
                                 cb.checked = true;
                                 cb.dispatchEvent(new Event('change', {{bubbles:true}}));
-                                applied++;
+                                _freshApplied++;
                             }}
                         }}
-                        if (applied) updateXICounter();
+                        if (_freshApplied) updateXICounter();
+                        // Persist the tick list so the next Open Match
+                        // click ticks without hitting the network.
+                        // Aug 24 2026 — kickoff_ts is read from the
+                        // server response so the next open knows when
+                        // the lineup is locked.
+                        try {{
+                            localStorage.setItem(_lsKey, JSON.stringify({{
+                                players: target,
+                                cached_at: Math.floor(Date.now() / 1000),
+                                kickoff_ts: d.kickoff_ts || 0,
+                                source: 'fresh-fetch'
+                            }}));
+                        }} catch (e) {{ /* quota or disabled */ }}
                         try {{
                             if (window.parent && window.parent !== window) {{
                                 window.parent.postMessage({{
                                     type: 'p11-autopxi',
                                     match_id: match_id,
-                                    applied: applied,
+                                    applied: _freshApplied,
                                     home_count: d.home_count,
-                                    away_count: d.away_count
+                                    away_count: d.away_count,
+                                    source: 'fresh'
                                 }}, '*');
                             }}
                         }} catch(e) {{}}
                     }})
                     .catch(function(){{}});
             }};
-            // Aug 22 2026 — refresh this team's squad first, then apply.
-            // Same endpoint the ♻️ Refresh button calls, but without the
-            // page reload that updateData() would trigger. We bail out
-            // if the request fails so the user still sees the cached XI.
-            if (typeof TEAM_ID === 'string' && TEAM_ID) {{
+
+            // ---- Step 3: refresh squad only if it's stale. ----
+            // Squads move on injuries / transfers but stay flat inside
+            // the T-18h window. The auto-builder already keeps the XI
+            // cache fresh; the squad fetch (8-37 s) only matters when
+            // (a) we have NO localStorage tick list yet OR
+            // (b) our localStorage list is older than 10 min OR
+            // (c) kickoff is within 1 h (lineups stabilize late).
+            var _squadRefreshIntervalMs = 10 * 60 * 1000; // 10 min
+            var _needsSquadRefresh = (
+                !_lsUsed ||                       // first time, no local cache
+                (_now * 1000 - _lsCacheFetchedAt * 1000) > _squadRefreshIntervalMs ||
+                _hoursUntilKickoff < 1            // very close to kickoff
+            );
+
+            if (_needsSquadRefresh && typeof TEAM_ID === 'string' && TEAM_ID) {{
                 fetch('/lineup_ai/api/fetch/' + encodeURIComponent(TEAM_ID) + '?_t=' + Date.now(), {{ cache: 'no-store' }})
                     .then(function(r){{ return r.ok ? r.json() : Promise.reject('http ' + r.status); }})
-                    .then(function(){{ refreshThenApply(); }})
-                    .catch(function(){{ refreshThenApply(); }});
+                    .then(function(){{ _refreshThenApply(); }})
+                    .catch(function(){{ _refreshThenApply(); }});
             }} else {{
-                refreshThenApply();
+                // Aug 24 2026 — if we already ticked from localStorage
+                // and the squad is fresh, skip the redundant /api/predicted_xi
+                // fetch entirely. The XI was just verified a few seconds
+                // ago when localStorage was written, so the user sees
+                // the same tick list with zero network calls.
+                if (_lsUsed && _lsAppliedTick > 0) {{
+                    try {{
+                        if (window.parent && window.parent !== window) {{
+                            window.parent.postMessage({{
+                                type: 'p11-autopxi',
+                                match_id: match_id,
+                                applied: _lsAppliedTick,
+                                source: 'localstorage-cache'
+                            }}, '*');
+                        }}
+                    }} catch(e) {{}}
+                    return;
+                }}
+                _refreshThenApply();
             }}
         }}
         
@@ -5236,6 +5337,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 <script>
 (function() {{
     var TEAM_ID = (new URLSearchParams(location.search).get('team_id')) || ((location.pathname.match(/\/lineup_ai\/([^/?]+)/) || [])[1]) || '';
+    // Aug 24 2026 — Max asked to skip squad refreshes for matches
+    // that are still > 1 h away. Read kickoff_ts from the parent
+    // page URL (the parent passes ?kickoff_ts=<epoch> when opening
+    // a match via ▶ Open Match). This lets _applyPredictedXIIframe
+    // know whether the lineup is still being reshuffled (within 1 h)
+    // or stable (further out) so it can skip the 8-37 s squad fetch.
+    var PXI_KICKOFF_TS = parseInt(new URLSearchParams(location.search).get('kickoff_ts') || '0', 10) || 0;
+    window.PXI_KICKOFF_TS = PXI_KICKOFF_TS;
     var SIDEBAR = document.getElementById('tweets-sidebar');
     var LIST = document.getElementById('tweets-list');
     var COUNT_EL = document.getElementById('tweets-count');

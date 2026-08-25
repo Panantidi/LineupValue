@@ -1017,7 +1017,7 @@ body {
 </div>
 <div class="compare-wrapper" id="scroll-wrapper">
 <div class="compare-container" id="frames-container">
-    <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1&v=2" title="{{my_name}}" scrolling="no"></iframe>
+    <iframe id="my-frame" class="team-frame" src="/lineup_ai/{{my_team_id}}?embed=1&v=2&kickoff_ts={{kickoff_ts}}" title="{{my_name}}" scrolling="no"></iframe>
     <!-- 🆚 H2H button: compact 36px circle, sits in the gap between the two iframes
          (NOT inside any header — see CSS for absolute positioning). Lazy-loads
          Flashscore /matches/h2h + /teams/results on first click. -->
@@ -1033,7 +1033,7 @@ body {
             <div class="match-h2h-loading">Click 🆚 to load H2H + Last Matches…</div>
         </div>
     </div>
-    <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}?embed=1&v=2" title="{{opponent_name}}" scrolling="no"></iframe>
+    <iframe id="opp-frame" class="team-frame" src="/lineup_ai/{{opp_team_id}}?embed=1&v=2&kickoff_ts={{kickoff_ts}}" title="{{opponent_name}}" scrolling="no"></iframe>
     <!-- Aug 12 2026: Saved Matches panel (right of second team table). Same data as the sidebar's Saved Matches list. -->
     <div class="saved-matches-panel" id="saved-matches-panel" aria-label="Saved matches">
         <div class="sm-empty" id="saved-matches-panel-empty">No saved matches yet.</div>
@@ -1471,7 +1471,7 @@ body {
                 // cache). The ▶ Open Match link below still
                 // works because the new auto-builder runs from
                 // _predicted_xi_cycle_v2 in app.py.
-                html += '<a href="/lineup_ai/compare/' + _escape(homeId || awayId) + '?mid=' + _escape(mid) + '&home_id=' + _escape(homeId) + '&away_id=' + _escape(awayId) + '&home_name=' + _escape(homeName) + '&away_name=' + _escape(awayName) + '&autopxi=1" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
+                html += '<a href="/lineup_ai/compare/' + _escape(homeId || awayId) + '?mid=' + _escape(mid) + '&home_id=' + _escape(homeId) + '&away_id=' + _escape(awayId) + '&home_name=' + _escape(homeName) + '&away_name=' + _escape(awayName) + '&autopxi=1&kickoff_ts=' + ts + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
             });
             html += '</div></div>';
