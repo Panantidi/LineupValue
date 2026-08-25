@@ -982,11 +982,10 @@ body {
     <div class="compare-header-left">
         <button id="match-btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
         <button id="btn-collapse-details" class="header-action-btn" type="button" onclick="toggleCollapseDetails()" title="Show MV, Squad Role and Impact Score columns">🔼 Expand Details</button>
-        <!-- Aug 22 2026 — Predicted XI is owned by the team-mode iframe
-             (ltv.py::togglePredicted11), so the Match-mode button here
-             just delegates via postMessage to both frames.
-        -->
-        <button id="match-btn-predicted-11" class="header-action-btn" type="button" onclick="toggleMatchPredictedXI()">🔮 Predicted XI</button>
+        <!-- Aug 23 2026 — Match-mode no longer needs its own Predicted XI
+             button. Each iframe already owns one (ltv.py::togglePredicted11)
+             and clicking it from here would only confuse the user. Team mode
+             keeps its button (ltv.py:btn-predicted-11). -->
     </div>
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
     <div class="compare-header-controls">
