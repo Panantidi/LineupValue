@@ -1428,10 +1428,10 @@ body {
             html += '<span style="color:#e8eef7;font-weight:600;">' + _escape(curAwayN) + '</span>';
             html += '</div>';
             html += '<span style="min-width:96px;"></span>';
-            // Aug 22 2026 — current match is always clickable
-            // (T-20h gate is meaningless for a finished match —
-            // backend returns the cached XI via cache-past-match).
-            html += '<button type="button" data-mp11-check="' + _escape(curMid) + '" data-home="' + _escape(curHomeId) + '" data-away="' + _escape(curAwayId) + '" data-home-n="' + _escape(curHomeN) + '" data-away-n="' + _escape(curAwayN) + '" onclick="_matchP11CheckBtn(this)" style="font-size:11px;color:#fff;background:#7c3aed;border:1px solid #6d28d9;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;" title="Refresh the cached XI for this match. Past matches return their on-disk cache; live matches rebuild it from futbolfantasy.">🔍 Check Predicted XI</button>';
+            // Aug 24 2026 — 🔍 Check Predicted XI button was
+            // removed. Current Match row no longer carries a
+            // per-row refresh control; the T-18h auto-builder
+            // scheduler populates the predicted XI on its own.
             html += '</div></div>';
         }
         rounds.forEach(function (roundLabel, ridx) {
@@ -1465,21 +1465,19 @@ body {
                 } else {
                     html += '<span style="min-width:96px;"></span>';
                 }
-                if (inActiveWin) {
-                    html += '<button type="button" data-mp11-check="' + mid + '" data-home="' + _escape(homeId) + '" data-away="' + _escape(awayId) + '" data-home-n="' + _escape(homeName) + '" data-away-n="' + _escape(awayName) + '" onclick="_matchP11CheckBtn(this)" style="font-size:11px;color:#fff;background:#3b82f6;border:1px solid #2563eb;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;">🔍 Check Predicted XI</button>';
-                } else {
-                    var unlockAt = ts - _ACTIVE_WINDOW;
-                    var ud = new Date(unlockAt * 1000);
-                    var unlockStr = _pad2(ud.getDate()) + '/' + _pad2(ud.getMonth() + 1) + ' ' + _pad2(ud.getHours()) + ':' + _pad2(ud.getMinutes());
-                    html += '<button type="button" disabled data-mp11-locked="' + mid + '" data-ts="' + ts + '" style="font-size:11px;color:#94a3b8;background:#1e293b;border:1px solid #334155;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:not-allowed;opacity:0.6;" title="🔍 Check Predicted XI unlocks at ' + unlockStr + ' (20 h before kickoff). The match is too far away for futbolfantasy to publish a useful XI yet.">🔒 T-' + Math.ceil((secUntil - _ACTIVE_WINDOW) / 3600) + 'h</button>';
-                }
+                // Aug 24 2026 — 🔍 Check Predicted XI button
+                // removed (Max wants the T-18h auto-builder to
+                // be the only path that fills the predicted XI
+                // cache). The ▶ Open Match link below still
+                // works because the new auto-builder runs from
+                // _predicted_xi_cycle_v2 in app.py.
                 html += '<a href="/lineup_ai/compare/' + _escape(homeId || awayId) + '?mid=' + _escape(mid) + '&home_id=' + _escape(homeId) + '&away_id=' + _escape(awayId) + '&home_name=' + _escape(homeName) + '&away_name=' + _escape(awayName) + '&autopxi=1" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
             });
             html += '</div></div>';
         });
         body.innerHTML = html;
-        if (footer) footer.textContent = fixtures.length + ' matches · click 🔍 to refresh live, ▶ to open in a new tab';
+        if (footer) footer.textContent = fixtures.length + ' matches · auto-built by the T-18h scheduler; click ▶ to open in a new tab';
         // Round-toggle handlers
         body.querySelectorAll('button[data-mp11-toggle]').forEach(function (btn) {
             btn.addEventListener('click', function () {

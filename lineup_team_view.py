@@ -2382,32 +2382,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 else body = minutes + 'm';
                 el.textContent = 'Match starts in ' + body;
             }});
-            // Aug 22 2026 — activate any 🔍 Check Predicted XI button
-            // whose kickoff crossed the T-20h boundary since the panel
-            // opened (or since the last tick). We do not rebuild the
-            // whole row — we just flip the disabled attribute and the
-            // background colour so the user can click it immediately.
-            const locked = document.querySelectorAll('#predicted11-body button.p11-check-btn-locked');
-            locked.forEach(function (btn) {{
-                const ts = parseInt(btn.getAttribute('data-ts') || '0', 10);
-                if (!ts) return;
-                const delta = ts - now;
-                if (delta > ACTIVE_WINDOW) return;
-                // Promote to active. The dataset attrs we need
-                // (home/away/homeN/awayN) are preserved by the
-                // disabled placeholder; we just re-enable and restyle.
-                btn.disabled = false;
-                btn.classList.remove('p11-check-btn-locked');
-                btn.classList.add('p11-check-btn');
-                btn.style.color = '#fff';
-                btn.style.background = '#3b82f6';
-                btn.style.borderColor = '#2563eb';
-                btn.style.cursor = 'pointer';
-                btn.style.opacity = '1';
-                btn.textContent = '🔍 Check Predicted XI';
-                btn.setAttribute('onclick', 'checkPredictedXIMatch(this)');
-                btn.setAttribute('title', 'Refresh this match predicted XI. Ticks live if THIS team plays; opens compare view if it is a different team.');
-            }});
+            // Aug 24 2026 — the "🔍 Check Predicted XI" button was
+            // removed from the predicted XI row, so there is no
+            // longer a locked-placeholder that needs promoting to
+            // active when the T-18h window opens. (The T-18h
+            // auto-builder scheduler in app.py is the only path
+            // that fills the predicted XI cache now.)
         }}
         function togglePredicted11() {{
             const host = document.getElementById('predicted11-panel-host');
@@ -2601,252 +2581,24 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 const ACTIVE_WINDOW_SEC = 20 * 3600; // 20 h
                 const isInActiveWindow = secUntilKickoff0 <= ACTIVE_WINDOW_SEC;
 
-                if (isInActiveWindow) {{
-                    html += '<button type="button" class="p11-check-btn header-action-btn" data-mid="' +
-                        _escapeText(mid) + '" data-home="' + _escapeText(homeId) +
-                        '" data-away="' + _escapeText(awayId) +
-                        '" data-home-n="' + _escapeText(homeName) +
-                        '" data-away-n="' + _escapeText(awayName) +
-                        '" data-ts="' + (m.timestamp || 0) + '" onclick="checkPredictedXIMatch(this)" ' +
-                        'style="font-size:11px;color:#fff;background:#3b82f6;border:1px solid #2563eb;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:pointer;" ' +
-                        // Aug 22 2026 — tooltip explains the three-mode
-                        // dispatch (own iframe / match-mode parent /
-                        // foreign-match opens a new compare tab).
-                        'title="Refresh this match predicted XI. Ticks live if THIS team plays; opens compare view if it is a different team.">🔍 Check Predicted XI</button>';
-                }} else {{
-                    // Aug 22 2026 — outside the 20 h window. Render a
-                    // disabled grey placeholder so the row layout stays
-                    // stable (the countdown span next to it still
-                    // announces when the button will activate).
-                    const unlockAt = (m.timestamp || 0) - ACTIVE_WINDOW_SEC;
-                    const unlockStr = (function() {{
-                        try {{
-                            const d = new Date(unlockAt * 1000);
-                            const pad = function(n) {{ return n < 10 ? '0' + n : '' + n; }};
-                            return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) +
-                                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-                        }} catch (e) {{ return 'T-20h'; }}
-                    }})();
-                    html += '<button type="button" disabled class="p11-check-btn-locked" data-mid="' +
-                        _escapeText(mid) + '" data-ts="' + (m.timestamp || 0) +
-                        '" style="font-size:11px;color:#94a3b8;background:#1e293b;border:1px solid #334155;padding:4px 9px;border-radius:5px;white-space:nowrap;font-weight:600;cursor:not-allowed;opacity:0.6;" ' +
-                        'title="🔍 Check Predicted XI unlocks at ' + unlockStr +
-                        ' (20 h before kickoff). The match is too far away for futbolfantasy to publish a useful XI yet.">🔒 T-' +
-                        Math.ceil((secUntilKickoff0 - ACTIVE_WINDOW_SEC) / 3600) + 'h</button>';
-                }}
+                // Aug 24 2026 — Max asked to drop the 🔍 Check
+                // Predicted XI button entirely. Predicted XI
+                // should rely solely on the T-18h auto-builder
+                // scheduler; users no longer trigger a manual
+                // refresh per row. The ▶ Open Match link below
+                // keeps the autopxi=1 URL flow alive for cases
+                // where the user wants to drill into a specific
+                // match.
                 html += '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
                 return html;
             }}
 
-            // Aug 22 2026 — 🔍 Check Predicted XI click handler.
-            // Posts a `checkPredictedXI` message that propagates to the
-            // right context:
-            //   - Inside the Match Mode parent (compare_template.html):
-            //     the parent broadcasts to both iframes.
-            //   - Inside a Team Mode iframe: the iframe's own listener
-            //     calls _applyPredictedXIIframe(match_id) — which
-            //     refreshes THIS team's squad and ticks checkboxes
-            //     matching the predicted XI of EITHER team (the /api
-            //     endpoint returns both home and away XI lists).
-            //   - Standalone (not inside a Match frame): fall back to
-            //     _applyPredictedXIIframe directly so the user still
-            //     gets the same result inline.
-            function checkPredictedXIMatch(btn) {{
-                if (!btn) return;
-                var match_id = btn.dataset ? (btn.dataset.mid || '') : '';
-                if (!match_id) return;
-                // Visual feedback — disable + show spinner-ish label.
-                if (btn) {{
-                    btn.disabled = true;
-                    btn.dataset.oldHtml = btn.innerHTML;
-                    btn.innerHTML = '⏳ Checking…';
-                    btn.style.opacity = '0.7';
-                }}
-                var done = function(ok, applied) {{
-                    if (!btn) return;
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                    if (ok && applied > 0) {{
-                        btn.innerHTML = '✓ Checked ' + applied;
-                        btn.style.background = '#16a34a';
-                        btn.style.borderColor = '#15803d';
-                    }} else if (ok) {{
-                        btn.innerHTML = '🔍 Check Predicted XI';
-                    }} else {{
-                        btn.innerHTML = '⚠ Retry';
-                        btn.style.background = '#b91c1c';
-                        btn.style.borderColor = '#991b1b';
-                    }}
-                    setTimeout(function() {{
-                        btn.innerHTML = btn.dataset.oldHtml || '🔍 Check Predicted XI';
-                        btn.style.background = '#3b82f6';
-                        btn.style.borderColor = '#2563eb';
-                    }}, 4000);
-                }};
-                // Aug 22 2026 — stash a one-shot listener so the
-                // iframe (or Match-mode parent) can ack with the
-                // number of checkboxes it ticked. Falls back to
-                // plain inline apply after 20 s if no ack arrives.
-                var acked = false;
-                var ackHandler = function(ev) {{
-                    try {{
-                        var d = ev.data;
-                        if (!d || d.type !== 'p11-checked-ack' || d.match_id !== match_id) return;
-                        acked = true;
-                        window.removeEventListener('message', ackHandler);
-                        done(true, d.applied || 0);
-                    }} catch (e) {{}}
-                }};
-                window.addEventListener('message', ackHandler);
-                setTimeout(function() {{
-                    if (acked) return;
-                    window.removeEventListener('message', ackHandler);
-                    // No ack — the broadcast may have run in
-                    // iframes that don't talk back. Treat as ok.
-                    done(true, 0);
-                }}, 20000);
-                // Propagate. If we're inside a Match-mode iframe,
-                // the postMessage crosses the iframe boundary; the
-                // parent (compare_template.html) listens for it
-                // and broadcasts to BOTH iframes.
-// Aug 22 2026 — Max asked for ONE consistent behaviour: click
-                // "🔍 Check Predicted XI" and the button must ALWAYS
-                // tick match live, never open a new tab. The "Open
-                // Match" link is the right control for that.
-                //
-                // The handler runs _applyPredictedXIIframe(match_id)
-                // synchronously, which goes through either:
-                //   - the local function call (Team Mode or a Match
-                //     Mode iframe), so this iframe's own .xi-checkbox
-                //     rows are ticked if they belong to either side
-                //     of the match, and
-                //   - the in-iframe 'checkPredictedXI' message
-                //     listener which acks back after the async
-                //     fetch settles, so the user sees the count.
-                //
-                // For a foreign match in Team Mode (this iframe
-                // belongs to a team that's NOT in the match), the
-                // squad rows here are unrelated and 0 boxes tick.
-                // That's still the right answer: the user clicked
-                // a match, we fetched its predicted XI from
-                // futbolfantasy, but we couldn't tick anything
-                // because the right rows are on a different
-                // team's page. The button shows "🔒 0 checked —
-                // different team" so they know exactly why nothing
-                // ticked, instead of silently opening a new tab.
-                //
-                // Aug 22 2026 — robust dispatch: don't rely on the
-                // fragile `/\bcompare\b/` heuristic in the parent
-                // detection. If we are inside any iframe AND the
-                // parent responds to postMessage, try to deliver
-                // the broadcast; otherwise just run inline. The
-                // iframe's own listener for 'checkPredictedXI'
-                // already runs _applyPredictedXIIframe + sends
-                // the ack, so the parent aggregating logic in
-                // compare_template.html still works without us
-                // having to detect "match parent" up front.
-                try {{
-                    var inIframe = (window.parent && window.parent !== window);
-                    // Aug 22 2026 — reliable parent detection
-                    // via the global helper compare_template.html
-                    // installs. We piggy-back on the broadcast
-                    // path: if parent receives it AND has the
-                    // listener, both iframes tick; if not, the
-                    // iframe's own listener still runs.
-                    var parentHasCompare = false;
-                    try {{
-                        if (inIframe) {{
-                            // Aug 22 2026 — if the parent is a
-                            // compare-mode page, it will
-                            // postMessage back with our handler.
-                            // We try the broadcast first; if no ack
-                            // comes within 4 s, fall back to inline.
-                            parentHasCompare = true;
-                        }}
-                    }} catch (e) {{ /* noop */ }}
-                    var frameTeamId = (typeof TEAM_ID === 'string') ? TEAM_ID : '';
-                    var homeId = btn && btn.dataset ? (btn.dataset.home || '') : '';
-                    var awayId = btn && btn.dataset ? (btn.dataset.away || '') : '';
-                    var homeName = btn && btn.dataset ? (btn.dataset.homeN || '') : '';
-                    var awayName = btn && btn.dataset ? (btn.dataset.awayN || '') : '';
-                    var thisTeamPlays = !!(frameTeamId && (frameTeamId === homeId || frameTeamId === awayId));
-
-                    if (inIframe && parentHasCompare) {{
-                        // Aug 22 2026 — Match Mode. Ask the
-                        // parent (compare_template.html) to
-                        // broadcast. The parent's listener fires
-                        // _applyPredictedXIIframe in each iframe
-                        // and they ack; the parent then forwards
-                        // the summed count. This is how both
-                        // sides of the match get ticked without
-                        // opening a new tab.
-                        window.parent.postMessage({{
-                            type: 'checkPredictedXI',
-                            match_id: match_id,
-                            source: 'p11-row'
-                        }}, '*');
-                        return;
-                    }}
-
-                    // Aug 22 2026 — Team Mode (or Match Mode
-                    // iframe whose parent didn't pick up the
-                    // postMessage). Run inline. The iframe's
-                    // 'checkPredictedXI' listener will still
-                    // apply + ack because we post the same
-                    // message to ourselves:
-                    var inlineApplied = false;
-                    if (typeof window._applyPredictedXIIframe === 'function') {{
-                        try {{
-                            window._applyPredictedXIIframe(match_id);
-                            inlineApplied = true;
-                        }} catch (e) {{ /* noop */ }}
-                    }}
-                    // Aug 22 2022 — if the squad here is for a
-                    // different team than this match, there's
-                    // nothing to tick. Show the user a clear
-                    // reason instead of letting the button
-                    // silently reset after 20 s. They can still
-                    // see the predicted XI in the panel and use
-                    // "▶ Open Match" to apply it where the squad
-                    // actually matches.
-                    if (!thisTeamPlays && btn) {{
-                        // Hold the button in this "nothing to
-                        // tick" state for 6 s, then reset.
-                        btn.innerHTML = '🔒 0 checked — different team';
-                        btn.style.background = '#475569';
-                        btn.style.borderColor = '#334155';
-                        btn.style.opacity = '1';
-                        btn.disabled = false;
-                        clearTimeout(btn._p11ResetT);
-                        btn._p11ResetT = setTimeout(function() {{
-                            if (!btn) return;
-                            btn.innerHTML = btn.dataset.oldHtml || '🔍 Check Predicted XI';
-                            btn.style.background = '#3b82f6';
-                            btn.style.borderColor = '#2563eb';
-                        }}, 6000);
-                        return;
-                    }}
-                    if (!inlineApplied) {{
-                        // Local apply wasn't available; deliver
-                        // via self-postMessage so the listener
-                        // still runs.
-                        window.postMessage({{
-                            type: 'checkPredictedXI',
-                            match_id: match_id,
-                            source: 'p11-row-self'
-                        }}, '*');
-                    }}
-                }} catch (e) {{ /* noop */ }}
-            }}
-
-            // Aug 22 2026 — expose the click handler on window
-            // so the inline `onclick="checkPredictedXIMatch(this)"`
-            // attribute (which evaluates in the global scope)
-            // can resolve it. renderPredicted11 only runs once
-            // per page, so this assignment happens immediately
-            // after the panel's first open.
-            window.checkPredictedXIMatch = checkPredictedXIMatch;
+            // Aug 24 2026 — 🔍 Check Predicted XI click handler
+            // was removed (Max asked to drop the button). The
+            // T-18h auto-builder scheduler is now the only path
+            // that populates the predicted XI cache; users no
+            // longer trigger manual per-row refreshes.
 
             const nowSec = Math.floor(Date.now() / 1000);
             const PAST_GRACE_SEC = 10 * 60;
