@@ -1928,6 +1928,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()">🔼 Expand Details</button>
             <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()">🔮 Predicted XI</button>
+            <button type="button" id="btn-reverse-odds" class="header-action-btn" onclick="toggleReverseOdds()">🔄 Reverse Odds</button>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
@@ -2819,10 +2820,72 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var isVisible = host.style.display === 'flex';
             host.style.display = isVisible ? 'none' : 'flex';
         }}
+        // 🔄 Reverse Odds calculator — Aug 26 2026 (Max).
+        // Modal-only feature: open via the 🔄 Reverse Odds button next
+        // to 🔮 Predicted XI, fill 3 inputs, press Calculate.
+        // Pure client-side: no fetch, no DB, no persistence.
+        function toggleReverseOdds() {{
+            var host = document.getElementById('reverse-odds-host');
+            if (!host) return;
+            var willOpen = host.style.display !== 'flex';
+            host.style.display = willOpen ? 'flex' : 'none';
+        }}
+        function _roFmt(n) {{
+            // Standard mathematical rounding to 2 decimals. Avoid
+            // toFixed's known quirks with floating point — round via
+            // scaling to integer first.
+            return (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2);
+        }}
+        function _roParseField(el, label) {{
+            var raw = (el && el.value ? el.value : '').trim();
+            if (!raw) return {{ ok: false, msg: label + ' is required.' }};
+            // Allow "1,83" (comma decimal) — replace with dot.
+            var normalized = raw.replace(',', '.');
+            var n = Number(normalized);
+            if (typeof n !== 'number' || !isFinite(n) || isNaN(n)) {{
+                return {{ ok: false, msg: label + ' must be a number.' }};
+            }}
+            if (n < 0) return {{ ok: false, msg: label + ' cannot be negative.' }};
+            return {{ ok: true, value: n }};
+        }}
+        function calculateReverseOdds() {{
+            var errEl = document.getElementById('ro-error');
+            var resultEl = document.getElementById('ro-result');
+            var h2aEl = document.getElementById('ro-h2a');
+            var a2hEl = document.getElementById('ro-a2h');
+            function hideError() {{
+                if (errEl) {{ errEl.style.display = 'none'; errEl.textContent = ''; }}
+            }}
+            function showError(msg) {{
+                if (!errEl) return;
+                errEl.textContent = msg;
+                errEl.style.display = 'block';
+            }}
+            function hideResult() {{
+                if (resultEl) resultEl.style.display = 'none';
+                if (h2aEl) h2aEl.textContent = '—';
+                if (a2hEl) a2hEl.textContent = '—';
+            }}
+            var home = _roParseField(document.getElementById('ro-home-odd'), 'Home Odd');
+            if (!home.ok) {{ hideResult(); showError(home.msg); return; }}
+            var away = _roParseField(document.getElementById('ro-away-odd'), 'Away Odd');
+            if (!away.ok) {{ hideResult(); showError(away.msg); return; }}
+            var htl = _roParseField(document.getElementById('ro-htl-index'), 'HTL-Index');
+            if (!htl.ok) {{ hideResult(); showError(htl.msg); return; }}
+            if (htl.value === 0) {{ hideResult(); showError('HTL-Index cannot be zero.'); return; }}
+            var h2a = (home.value - 1) * htl.value + 1;
+            var a2h = (away.value - 1) / htl.value + 1;
+            hideError();
+            if (resultEl) resultEl.style.display = 'block';
+            if (h2aEl) h2aEl.textContent = _roFmt(h2a);
+            if (a2hEl) a2hEl.textContent = _roFmt(a2h);
+        }}
         document.addEventListener('keydown', function(e) {{
             if (e.key === 'Escape') {{
-                var host = document.getElementById('faq-host');
-                if (host && host.style.display === 'flex') host.style.display = 'none';
+                var faq = document.getElementById('faq-host');
+                if (faq && faq.style.display === 'flex') faq.style.display = 'none';
+                var ro = document.getElementById('reverse-odds-host');
+                if (ro && ro.style.display === 'flex') ro.style.display = 'none';
             }}
         }});
         document.addEventListener('click', function(e) {{
@@ -5265,6 +5328,47 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
     </div>
     </div>
+    <!-- Reverse Odds Modal (Aug 26 2026) -->
+    <div id="reverse-odds-host" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;justify-content:center;align-items:flex-end;padding:40px 20px;overflow-y:auto;box-sizing:border-box;">
+        <div style="background:white;border-radius:12px;width:480px;max-width:100%;padding:22px 26px 24px 26px;box-shadow:0 10px 40px rgba(0,0,0,0.25);position:relative;font-family:inherit;">
+            <button type="button" onclick="toggleReverseOdds()" style="position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;padding:2px 8px;" title="Close">&times;</button>
+            <h2 style="margin:0 0 16px 0;color:#043fb6;font-size:19px;">🔄 Reverse Odds</h2>
+            <div style="font-size:13px;color:#333;line-height:1.5;">
+                <label for="ro-home-odd" style="display:block;font-weight:600;margin:8px 0 4px 0;font-size:13px;">Home Odd</label>
+                <input id="ro-home-odd" type="text" inputmode="decimal" placeholder="Enter home odd" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;outline:none;" />
+
+                <label for="ro-away-odd" style="display:block;font-weight:600;margin:12px 0 4px 0;font-size:13px;">Away Odd</label>
+                <input id="ro-away-odd" type="text" inputmode="decimal" placeholder="Enter away odd" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;outline:none;" />
+
+                <label for="ro-htl-index" style="display:block;font-weight:600;margin:12px 0 4px 0;font-size:13px;">HTL-Index</label>
+                <input id="ro-htl-index" type="text" inputmode="decimal" placeholder="Enter league index" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;outline:none;" />
+
+                <div id="ro-error" style="display:none;color:#c53030;font-size:12px;margin:10px 0 0 0;"></div>
+
+                <div style="display:flex;justify-content:center;margin:18px 0 14px 0;">
+                    <button type="button" id="ro-calculate" onclick="calculateReverseOdds()" style="background:#043fb6;color:#fff;border:none;padding:9px 28px;font-size:14px;font-weight:600;border-radius:6px;cursor:pointer;">Calculate</button>
+                </div>
+
+                <div id="ro-result" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:14px;">
+                    <div style="font-size:13px;color:#043fb6;font-weight:700;text-align:center;margin-bottom:10px;">Result</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:14px;">
+                        <span style="color:#475569;">H2A (Home → Away)</span>
+                        <span id="ro-h2a" style="font-weight:700;font-size:15px;color:#0f172a;">—</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:14px;">
+                        <span style="color:#475569;">A2H (Away → Home)</span>
+                        <span id="ro-a2h" style="font-weight:700;font-size:15px;color:#0f172a;">—</span>
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid #e2e8f0;padding-top:12px;color:#64748b;font-size:12px;line-height:1.55;">
+                    <div style="font-weight:600;color:#475569;margin-bottom:3px;">ℹ️ HTL-Index</div>
+                    <div>100% / % of all Home team wins in the previous championship season</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- FAQ Modal -->
     <div id="faq-host" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto;box-sizing:border-box;">
         <div style="background:white;border-radius:12px;max-width:930px;width:100%;padding:24px 28px;box-shadow:0 10px 40px rgba(0,0,0,0.25);position:relative;">
