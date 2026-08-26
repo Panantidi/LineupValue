@@ -2520,20 +2520,24 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                         return null;  // under 1 minute — start is imminent
                     }}
                     return '<span class="p11-countdown" data-ts="' + ts + '" ' +
-                        'style="font-size:11px;color:#94a3b8;white-space:nowrap;font-variant-numeric:tabular-nums;margin-right:8px;">' +
+                        'style="grid-column:1;font-size:11px;color:#94a3b8;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;">' +
                         '🕒 ' + body + '</span>';
                 }};
                 const countdownHtml = renderCountdown(m.timestamp);
                 const mid = m.match_id || '';
-                let html = '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
-                // Aug 24 2026 — Max asked for the countdown to live on
-                // the LEFT of the date/time column. Previously it was
-                // placed between team names and Open Match link; the
-                // tick handler updated `textContent` with the
-                // `Match starts in …` prefix which we no longer want.
+                // Aug 24 2026 — Max asked to fix the columns in 🔮 Predicted XI
+                // so dates / team names / Open Match button stay vertically
+                // aligned across rows. The previous flex layout relied on
+                // `min-width:90px` for the date and `flex:1` for the team
+                // names which let long team names push the Open Match button
+                // back and forth between rows. Switching to CSS Grid with
+                // fixed column widths keeps every column locked in place.
+                // Columns: 1=countdown (60px), 2=time (88px), 3=teams (1fr),
+                // 4=Open Match (auto, justified end).
+                let html = '<div style="display:grid;grid-template-columns:60px 88px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
                 if (countdownHtml) html += countdownHtml;
-                html += '<span style="font-size:12px;color:#94a3b8;min-width:90px;font-variant-numeric:tabular-nums;">' + time + '</span>';
-                html += '<div style="display:flex;align-items:center;gap:8px;flex:1;font-size:14px;color:#e8eef7;">';
+                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;width:88px;font-variant-numeric:tabular-nums;justify-self:start;">' + time + '</span>';
+                html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
                 const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
                 const pxiAwayFull = (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
                 const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
@@ -2545,11 +2549,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }} else {{
                     html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
                 }}
-                if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
-                html += '<span style="font-weight:600;">' + _escapeText(homeName) + '</span>';
-                html += '<span style="color:#64748b;font-size:12px;">vs</span>';
-                html += '<span style="font-weight:600;">' + _escapeText(awayName) + '</span>';
-                if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;" />';
+                if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;flex-shrink:0;" />';
+                html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _escapeText(homeName) + '</span>';
+                html += '<span style="color:#64748b;font-size:12px;flex-shrink:0;">vs</span>';
+                html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _escapeText(awayName) + '</span>';
+                if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;flex-shrink:0;" />';
                 if (pxiAwayFull) {{
                     html += '<span class="p11-check" title="11/11 Predicted XI matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
                 }} else if (pxiAwayPartial) {{
@@ -2568,29 +2572,6 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     '&home_name=' + encodeURIComponent(homeName) +
                     '&away_name=' + encodeURIComponent(awayName) +
                     '&autopxi=1';
-                // Aug 22 2026 — 🔍 Check Predicted XI button. Triggers a
-                // squad refresh + predicted XI parse via the same
-                // _applyPredictedXIIframe flow the autopxi=1 URL does, but
-                // for this specific match without opening a new tab. The
-                // handler posts a `checkPredictedXI` message which both
-                // iframes (in Match Mode) or the single iframe (in Team
-                // Mode) listen for. Checkboxes are ticked live as the
-                // /api/predicted_xi?refresh=1 response arrives. The
-                // match id lives in data-mid; the handler reads it back
-                // with this.dataset.mid so we don't need to escape
-                // quotes inside the inline onclick.
-                // Aug 22 2026 — Max asked: the button must only become active
-                // in the T-20h window so users don't refresh the cache
-                // 2 weeks before kickoff (when futbolfantasy.com doesn't
-                // even have the round listed yet and we'd just blow
-                // away good cache). Compute the timestamp delta here
-                // (m.timestamp is the LV kickoff epoch) and skip the
-                // button until that delta drops under 20 h.
-                const nowSec0 = Math.floor(Date.now() / 1000);
-                const secUntilKickoff0 = (m.timestamp || 0) - nowSec0;
-                const ACTIVE_WINDOW_SEC = 20 * 3600; // 20 h
-                const isInActiveWindow = secUntilKickoff0 <= ACTIVE_WINDOW_SEC;
-
                 // Aug 24 2026 — Max asked to drop the 🔍 Check
                 // Predicted XI button entirely. Predicted XI
                 // should rely solely on the T-18h auto-builder
@@ -2599,7 +2580,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 // keeps the autopxi=1 URL flow alive for cases
                 // where the user wants to drill into a specific
                 // match.
-                html += '<a href="' + openHref + '&kickoff_ts=' + (m.timestamp || 0) + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
+                html += '<a href="' + openHref + '&kickoff_ts=' + (m.timestamp || 0) + '" target="_blank" rel="noopener" style="grid-column:4;font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;justify-self:end;" title="Open this match in Match mode (new tab) with Predicted XI applied">▶ Open Match</a>';
                 html += '</div>';
                 return html;
             }}
