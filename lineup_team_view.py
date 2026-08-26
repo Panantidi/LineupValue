@@ -2889,6 +2889,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             }}
         }});
         document.addEventListener('click', function(e) {{
+            // Aug 26 2026 — Max asked the 🔄 Reverse Odds modal to close
+            // on any click outside the white card (same pattern as the
+            // FAQ modal below). Only trigger when the click target is
+            // the host backdrop itself, NOT the card or its descendants,
+            // so clicking inputs / buttons / labels keeps the modal open.
+            var roHost = document.getElementById('reverse-odds-host');
+            if (roHost && roHost.style.display === 'flex' && e.target === roHost) {{
+                roHost.style.display = 'none';
+            }}
             var host = document.getElementById('faq-host');
             if (host && host.style.display === 'flex' && e.target === host) {{
                 host.style.display = 'none';
