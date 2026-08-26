@@ -2881,20 +2881,20 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 showError('Enter at least one of Home Odd or Away Odd.');
                 return;
             }}
-            var htl = _roParseField(document.getElementById('ro-htl-index'), 'HTL-Index');
+            var htl = _roParseField(document.getElementById('ro-htl-index'), 'ORI');
             if (!htl.ok) {{ hideResult(); showError(htl.msg); return; }}
-            // HTL-Index is still REQUIRED even for a single-side
+            // ORI is still REQUIRED even for a single-side
             // calculation — the spec didn't drop this requirement
             // when adding partial support.
             if (htl.value === null) {{
                 hideResult();
-                showError('HTL-Index is required.');
+                showError('ORI is required.');
                 return;
             }}
-            if (htl.value === 0) {{ hideResult(); showError('HTL-Index cannot be zero.'); return; }}
+            if (htl.value === 0) {{ hideResult(); showError('ORI cannot be zero.'); return; }}
             // Aug 26 2026 — H2A / A2H are now independent:
-            //   - H2A computed only when Home Odd + HTL-Index are set
-            //   - A2H computed only when Away Odd + HTL-Index are set
+            //   - H2A computed only when Home Odd + ORI are set
+            //   - A2H computed only when Away Odd + ORI are set
             //   - missing side stays as "—" in the result panel.
             var h2a = (home.value !== null) ? (home.value - 1) * htl.value + 1 : null;
             var a2h = (away.value !== null) ? (away.value - 1) / htl.value + 1 : null;
@@ -5372,7 +5372,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <label for="ro-away-odd" style="display:block;font-weight:600;margin:12px 0 4px 0;font-size:13px;">Away Odd</label>
                 <input id="ro-away-odd" type="text" inputmode="decimal" placeholder="Enter away odd" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;outline:none;" />
 
-                <label for="ro-htl-index" style="display:block;font-weight:600;margin:12px 0 4px 0;font-size:13px;">HTL-Index</label>
+                <label for="ro-htl-index" style="display:block;font-weight:600;margin:12px 0 4px 0;font-size:13px;">ORI</label>
                 <input id="ro-htl-index" type="text" inputmode="decimal" placeholder="Enter league index" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;outline:none;" />
 
                 <div id="ro-error" style="display:none;color:#c53030;font-size:12px;margin:10px 0 0 0;"></div>
@@ -5394,7 +5394,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </div>
 
                 <div style="border-top:1px solid #e2e8f0;padding-top:12px;color:#64748b;font-size:12px;line-height:1.55;">
-                    <div style="font-weight:600;color:#475569;margin-bottom:3px;">ℹ️ HTL-Index (Home Team League-Index)</div>
+                    <div style="font-weight:600;color:#475569;margin-bottom:3px;">ℹ️ ORI (Odds Reversal Index)</div>
                     <div>100% / Total Home Winning Rate (Previous Season)</div>
                 </div>
             </div>
