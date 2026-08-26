@@ -5329,7 +5329,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     </div>
     </div>
     <!-- Reverse Odds Modal (Aug 26 2026) -->
-    <div id="reverse-odds-host" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;justify-content:center;align-items:flex-end;padding:40px 20px;overflow-y:auto;box-sizing:border-box;">
+    <div id="reverse-odds-host" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;justify-content:flex-end;align-items:flex-end;padding:40px 20px;overflow-y:auto;box-sizing:border-box;">
         <div style="background:white;border-radius:12px;width:480px;max-width:100%;padding:22px 26px 24px 26px;box-shadow:0 10px 40px rgba(0,0,0,0.25);position:relative;font-family:inherit;">
             <button type="button" onclick="toggleReverseOdds()" style="position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;padding:2px 8px;" title="Close">&times;</button>
             <h2 style="margin:0 0 16px 0;color:#043fb6;font-size:19px;">🔄 Reverse Odds</h2>
