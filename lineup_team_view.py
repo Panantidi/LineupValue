@@ -2838,7 +2838,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         }}
         function _roParseField(el, label) {{
             var raw = (el && el.value ? el.value : '').trim();
-            if (!raw) return {{ ok: false, msg: label + ' is required.' }};
+            // Aug 26 2026 — Max asked: a user should be able to
+            // calculate ONLY the Home side or ONLY the Away side
+            // (i.e. leave one odd blank). Empty input is now a
+            // valid "skip this side" signal, not an error.
+            if (!raw) return {{ ok: true, value: null }};
             // Allow "1,83" (comma decimal) — replace with dot.
             var normalized = raw.replace(',', '.');
             var n = Number(normalized);
@@ -2870,15 +2874,34 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (!home.ok) {{ hideResult(); showError(home.msg); return; }}
             var away = _roParseField(document.getElementById('ro-away-odd'), 'Away Odd');
             if (!away.ok) {{ hideResult(); showError(away.msg); return; }}
+            // Aug 26 2026 — at least ONE of Home/Away must be filled,
+            // otherwise there is nothing to calculate.
+            if (home.value === null && away.value === null) {{
+                hideResult();
+                showError('Enter at least one of Home Odd or Away Odd.');
+                return;
+            }}
             var htl = _roParseField(document.getElementById('ro-htl-index'), 'HTL-Index');
             if (!htl.ok) {{ hideResult(); showError(htl.msg); return; }}
+            // HTL-Index is still REQUIRED even for a single-side
+            // calculation — the spec didn't drop this requirement
+            // when adding partial support.
+            if (htl.value === null) {{
+                hideResult();
+                showError('HTL-Index is required.');
+                return;
+            }}
             if (htl.value === 0) {{ hideResult(); showError('HTL-Index cannot be zero.'); return; }}
-            var h2a = (home.value - 1) * htl.value + 1;
-            var a2h = (away.value - 1) / htl.value + 1;
+            // Aug 26 2026 — H2A / A2H are now independent:
+            //   - H2A computed only when Home Odd + HTL-Index are set
+            //   - A2H computed only when Away Odd + HTL-Index are set
+            //   - missing side stays as "—" in the result panel.
+            var h2a = (home.value !== null) ? (home.value - 1) * htl.value + 1 : null;
+            var a2h = (away.value !== null) ? (away.value - 1) / htl.value + 1 : null;
             hideError();
             if (resultEl) resultEl.style.display = 'block';
-            if (h2aEl) h2aEl.textContent = _roFmt(h2a);
-            if (a2hEl) a2hEl.textContent = _roFmt(a2h);
+            if (h2aEl) h2aEl.textContent = (h2a !== null) ? _roFmt(h2a) : '—';
+            if (a2hEl) a2hEl.textContent = (a2h !== null) ? _roFmt(a2h) : '—';
         }}
         document.addEventListener('keydown', function(e) {{
             if (e.key === 'Escape') {{
@@ -5341,7 +5364,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div id="reverse-odds-host" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;justify-content:flex-end;align-items:flex-end;padding:40px 20px;overflow-y:auto;box-sizing:border-box;">
         <div style="background:white;border-radius:12px;width:480px;max-width:100%;padding:22px 26px 24px 26px;box-shadow:0 10px 40px rgba(0,0,0,0.25);position:relative;font-family:inherit;">
             <button type="button" onclick="toggleReverseOdds()" style="position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;padding:2px 8px;" title="Close">&times;</button>
-            <h2 style="margin:0 0 16px 0;color:#043fb6;font-size:19px;">🔄 Reverse Odds</h2>
+            <h2 style="margin:0 0 16px 0;color:#043fb6;font-size:19px;text-align:center;">🔄 Reverse Odds</h2>
             <div style="font-size:13px;color:#333;line-height:1.5;">
                 <label for="ro-home-odd" style="display:block;font-weight:600;margin:8px 0 4px 0;font-size:13px;">Home Odd</label>
                 <input id="ro-home-odd" type="text" inputmode="decimal" placeholder="Enter home odd" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;outline:none;" />
@@ -5371,8 +5394,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </div>
 
                 <div style="border-top:1px solid #e2e8f0;padding-top:12px;color:#64748b;font-size:12px;line-height:1.55;">
-                    <div style="font-weight:600;color:#475569;margin-bottom:3px;">ℹ️ HTL-Index</div>
-                    <div>100% / % of all Home team wins in the previous championship season</div>
+                    <div style="font-weight:600;color:#475569;margin-bottom:3px;">ℹ️ HTL-Index (Home Team League-Index) 100% / % of all home team wins in the previous league season</div>
                 </div>
             </div>
         </div>
