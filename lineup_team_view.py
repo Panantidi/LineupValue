@@ -5394,7 +5394,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 </div>
 
                 <div style="border-top:1px solid #e2e8f0;padding-top:12px;color:#64748b;font-size:12px;line-height:1.55;">
-                    <div style="font-weight:600;color:#475569;margin-bottom:3px;">ℹ️ HTL-Index (Home Team League-Index) 100% / % of all home team wins in the previous league season</div>
+                    <div style="font-weight:600;color:#475569;margin-bottom:3px;">ℹ️ HTL-Index (Home Team League-Index)</div>
+                    <div>100% / Total Home Winning Rate (Previous Season)</div>
                 </div>
             </div>
         </div>
