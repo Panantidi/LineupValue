@@ -2575,6 +2575,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // (team view) so they auto-mark the cached Predicted XI .xi-checkbox.
 // The actual checkbox mark happens in lineup_team_view.py's message
 // handler — compare_template only knows the match_id and orchestrates.
+// Aug 26 2026 — Max asked: also flip the bulk lineup mode dropdown
+// to "🔴 S-XI" (option value "start") in every iframe at the same
+// moment. Predicted XI is built around the predicted lineup, so when
+// the user drills into a specific match they want to see / edit the
+// starting XI immediately, not the broader possible-XI prediction.
 document.addEventListener('DOMContentLoaded', function() {
     try {
         var params = new URLSearchParams(window.location.search);
@@ -2589,6 +2594,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     frames[i].contentWindow && frames[i].contentWindow.postMessage(
                         {type: 'applyPredictedXI', match_id: mid, source: 'parent'},
+                        '*'
+                    );
+                    // Aug 26 2026 — flip bulk lineup mode to S-XI.
+                    frames[i].contentWindow && frames[i].contentWindow.postMessage(
+                        {type: 'setBulkMode', value: 'start'},
                         '*'
                     );
                 } catch (e) {}

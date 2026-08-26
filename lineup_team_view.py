@@ -5838,6 +5838,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 applyDetailHidden(!!d.collapsed);
             }} else if (d.type === 'applyPredictedXI' && d.match_id) {{
                 _applyPredictedXIIframe(d.match_id);
+            }} else if (d.type === 'setBulkMode' && d.value) {{
+                // Aug 26 2026 — Max asked: when a user opens a match
+                // via the ▶ Open Match link in 🔮 Predicted XI
+                // (which sets ?autopxi=1 in the URL), the bulk
+                // lineup panel should default to "🔴 S-XI" instead
+                // of the regular "🔵 P-XI". The compare-template
+                // parent fires this postMessage to every iframe
+                // right after it fires applyPredictedXI, so both
+                // iframes flip their dropdown to S-XI in lockstep.
+                try {{
+                    var sel = document.getElementById('bulk-lineup-mode');
+                    if (sel) {{
+                        sel.value = d.value;
+                        // Fire a synthetic change event so any
+                        // downstream listeners (counters, etc.)
+                        // pick up the new value.
+                        var ev2 = document.createEvent('Event');
+                        ev2.initEvent('change', true, true);
+                        sel.dispatchEvent(ev2);
+                    }}
+                }} catch (e) {{ /* noop */ }}
             }} else if (d.type === 'togglePredictedXI') {{
                 // Aug 22 2026 — Match-mode header button delegates
                 // to the team-mode iframe via postMessage so the
