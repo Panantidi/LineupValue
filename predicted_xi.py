@@ -168,6 +168,13 @@ NICKNAME_ALIASES: Dict[str, List[str]] = {
 # up. Keep it small — these are exceptions, not the rule.
 ROSTER_OVERRIDES: Dict[Tuple[str, str], str] = {
     ('lachhab', 'SzYzw34K'): 'Youness',
+    # Aug 27 2026 — Levante (G8FL0ShI) vs Betis match O4LEM1zA flagged two
+    # unmatched ff slots: ff uses "De la Fuente" but LV stores the player
+    # under the short surname "Dela". Also ff "Brugui" (Catalan nickname
+    # form) but LV stores the full "Brugue Roger". Both confirmed by reading
+    # _live_cache_G8FL0ShI.json on VPS.
+    ('de la fuente', 'G8FL0ShI'): 'Dela',
+    ('brugui',     'G8FL0ShI'): 'Brugue',
 }
 
 
