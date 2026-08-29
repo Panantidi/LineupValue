@@ -4052,6 +4052,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var _now = Math.floor(Date.now() / 1000);
             var _hoursUntilKickoff = _kickoff ? (_kickoff - _now) / 3600 : 999;
 
+            // Helper: render unmatched PXI players in the bulk-lineup-text
+            // textarea so the user sees exactly who could not be mapped to
+            // the LV squad (e.g. transferred / injured players).
+            function _renderPxiNotFound(players) {{
+                var el = document.getElementById('bulk-lineup-text');
+                if (!el) return;
+                var esc = function(s) {{ return String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;'); }};
+                var nf = (players || []).filter(function(p) {{ return p && !p.matched && p.ff_name; }});
+                if (!nf.length) {{
+                    // Only clear if the textarea still contains our previous
+                    // NOT FOUND markup; never wipe a user-typed manual list.
+                    if (el.querySelector && el.querySelector('[data-pxi-nf="1"]')) el.innerHTML = '';
+                    return;
+                }}
+                el.innerHTML = nf.map(function(p) {{
+                    return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;">' + esc(p.ff_name) + ' — NOT FOUND</div>';
+                }}).join('');
+            }}
+
             // ---- Step 1: tick from localStorage immediately ----
             // TEAM_ID is the IIFE-scoped variable defined further
             // down in this same closure (see "var TEAM_ID = …" near
@@ -4118,6 +4137,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                             }}
                         }}
                         if (_freshApplied) updateXICounter();
+                        // Aug 28 2026 — show unmatched players for THIS team's
+                        // side in the bulk-lineup-text area, marked NOT FOUND.
+                        var sideKey = (d.home_team_id === TEAM_ID) ? 'home_players' : 'away_players';
+                        _renderPxiNotFound(d[sideKey]);
                         // Persist the tick list so the next Open Match
                         // click ticks without hitting the network.
                         // Aug 24 2026 — kickoff_ts is read from the
