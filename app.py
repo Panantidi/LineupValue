@@ -4140,8 +4140,24 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     # by the caller) to the iframe URLs so the team-mode iframe
     # can decide whether the squad is stable or still shifting.
     result = result.replace("{{kickoff_ts}}", _safe(str(kickoff_ts or 0)))
+    # Aug 28 2026 — unique per-render bust so every Open Match click
+    # loads fresh iframe content even if a browser/proxy cached an
+    # earlier /lineup_ai/<team_id>?embed=1... response.
+    result = result.replace("{{cache_bust}}", _safe(str(int(time.time()))))
 
-    return HTMLResponse(content=result)
+    # Aug 28 2026 — Max reported stale data when opening a match from
+    # Predicted XI. Browsers (and any reverse proxy in front) must not
+    # cache the compare page HTML or the inner iframe src, otherwise
+    # the user keeps seeing old squad/last-match data even after the
+    # server-side cache was refreshed. no-store covers both.
+    return HTMLResponse(
+        content=result,
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 
