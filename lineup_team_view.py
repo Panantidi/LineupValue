@@ -4069,6 +4069,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 el.innerHTML = nf.map(function(p) {{
                     return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;">' + esc(p.ff_name) + ' — NOT FOUND</div>';
                 }}).join('');
+                // Auto-open the bulk-lineup panel so the user sees the
+                // unmatched names without clicking 👥 Add Lineups first.
+                try {{
+                    var host = document.getElementById('bulk-lineup-panel-host');
+                    if (host && host.style.display === 'none') {{
+                        host.style.display = 'block';
+                    }}
+                }} catch (e) {{}}
             }}
 
             // ---- Step 1: tick from localStorage immediately ----
