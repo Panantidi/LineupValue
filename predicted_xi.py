@@ -175,6 +175,13 @@ ROSTER_OVERRIDES: Dict[Tuple[str, str], str] = {
     # _live_cache_G8FL0ShI.json on VPS.
     ('de la fuente', 'G8FL0ShI'): 'Dela',
     ('brugui',     'G8FL0ShI'): 'Brugue',
+    # Aug 28 2026 — Girona (nNNpcUSL): the Korean forward appears on
+    # FutbolFantasy as "Min Su" (and sometimes "Minsu Kim") while
+    # LineupValue stores him as "Kim Minsu". The generic surname matcher
+    # sees no overlapping token, so we bridge both surface forms to the
+    # token that appears in the LV record ("Minsu").
+    ('min su', 'nNNpcUSL'): 'Minsu',
+    ('minsu kim', 'nNNpcUSL'): 'Minsu',
 }
 
 
