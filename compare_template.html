@@ -2616,6 +2616,12 @@ function _reloadFrames() {
 }
 
 function _refreshTeamsAndReload(homeId, awayId, mid) {
+    // Check if we already refreshed for this match_id in this session
+    var refreshKey = 'autopxi_refreshed:' + mid;
+    if (localStorage.getItem(refreshKey) === '1') {
+        return; // already refreshed this match — skip to save API calls
+    }
+
     var statusEl = document.getElementById('autopxi-refresh-status');
     if (statusEl) statusEl.style.display = 'inline-block';
 
@@ -2629,6 +2635,8 @@ function _refreshTeamsAndReload(homeId, awayId, mid) {
             _reloadFrames();
             setTimeout(function() { _applyPxiToFrames(mid); }, 800);
         }
+        // Mark as refreshed so subsequent opens skip the fetch
+        localStorage.setItem(refreshKey, '1');
     }
 
     function fetchTeam(teamId) {
