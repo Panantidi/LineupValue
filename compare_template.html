@@ -2580,30 +2580,84 @@ document.addEventListener('DOMContentLoaded', function() {
 // moment. Predicted XI is built around the predicted lineup, so when
 // the user drills into a specific match they want to see / edit the
 // starting XI immediately, not the broader possible-XI prediction.
+// Aug 28 2026 — Max reported: when opening a match from 🔮 Predicted XI,
+// the team data in the iframes can be stale (e.g. Las Palmas last
+// match dated 16/08 instead of 22/08). Trigger a background refresh of
+// both teams via /lineup_ai/api/fetch/<team_id>, then reload the
+// iframes only when the cache actually changed. After reload, re-send
+// applyPredictedXI and setBulkMode so the PXI markings stay applied.
+function _postToFrames(type, payload) {
+    var frames = document.querySelectorAll('iframe.team-frame');
+    for (var i = 0; i < frames.length; i++) {
+        try {
+            var cw = frames[i].contentWindow;
+            if (cw && typeof cw.postMessage === 'function') {
+                cw.postMessage(Object.assign({type: type}, payload), '*');
+            }
+        } catch (e) {}
+    }
+}
+
+function _applyPxiToFrames(mid) {
+    _postToFrames('applyPredictedXI', {match_id: mid, source: 'parent'});
+    setTimeout(function() {
+        _postToFrames('setBulkMode', {value: 'start'});
+    }, 200);
+}
+
+function _reloadFrames() {
+    var frames = document.querySelectorAll('iframe.team-frame');
+    for (var i = 0; i < frames.length; i++) {
+        try {
+            var f = frames[i];
+            f.src = f.src;
+        } catch (e) {}
+    }
+}
+
+function _refreshTeamsAndReload(homeId, awayId, mid) {
+    var statusEl = document.getElementById('autopxi-refresh-status');
+    if (statusEl) statusEl.style.display = 'inline-block';
+
+    var left = 2;
+    var changed = false;
+    function check() {
+        left--;
+        if (left > 0) return;
+        if (statusEl) statusEl.style.display = 'none';
+        if (changed) {
+            _reloadFrames();
+            setTimeout(function() { _applyPxiToFrames(mid); }, 800);
+        }
+    }
+
+    function fetchTeam(teamId) {
+        if (!teamId) { check(); return; }
+        fetch('/lineup_ai/api/fetch/' + encodeURIComponent(teamId))
+            .then(function(r) { return r.json(); })
+            .then(function(data) { if (data && data.changed) changed = true; })
+            .catch(function() { /* keep existing cache */ })
+            .finally(check);
+    }
+
+    fetchTeam(homeId);
+    fetchTeam(awayId);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     try {
         var params = new URLSearchParams(window.location.search);
         if (params.get('autopxi') !== '1') return;
         var mid = params.get('mid') || '';
+        var homeId = params.get('home_id') || '';
+        var awayId = params.get('away_id') || '';
         if (!mid) return;
-        // Defer once so the iframes' own DOMContentLoaded handlers have
-        // a chance to attach their message listener first.
-        setTimeout(function() {
-            var frames = document.querySelectorAll('iframe.team-frame');
-            for (var i = 0; i < frames.length; i++) {
-                try {
-                    frames[i].contentWindow && frames[i].contentWindow.postMessage(
-                        {type: 'applyPredictedXI', match_id: mid, source: 'parent'},
-                        '*'
-                    );
-                    // Aug 26 2026 — flip bulk lineup mode to S-XI.
-                    frames[i].contentWindow && frames[i].contentWindow.postMessage(
-                        {type: 'setBulkMode', value: 'start'},
-                        '*'
-                    );
-                } catch (e) {}
-            }
-        }, 600);
+
+        // 1) Apply cached PXI quickly so the user sees something immediately.
+        setTimeout(function() { _applyPxiToFrames(mid); }, 600);
+
+        // 2) Refresh both teams in the background; reload iframes if data changed.
+        _refreshTeamsAndReload(homeId, awayId, mid);
     } catch (e) { /* silent */ }
 });
 </script>
