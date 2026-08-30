@@ -175,6 +175,13 @@ def get_seriea_fixtures(force: bool = False) -> Dict:
             if not mid or mid in seen:
                 continue
             seen.add(mid)
+            # Aug 30 2026 — drop matches involving teams that are NOT in
+            # the Serie A team id set (wrong team ids in the list pull in
+            # fixtures of other competitions: Real Madrid, Arsenal, etc.)
+            h_id = m.get('home', {}).get('id')
+            a_id = m.get('away', {}).get('id')
+            if h_id not in SERIEA_TEAM_IDS or a_id not in SERIEA_TEAM_IDS:
+                continue
             aggregated.append(m)
     
     aggregated.sort(key=lambda x: x.get('timestamp') or 0)

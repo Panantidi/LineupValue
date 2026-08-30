@@ -2550,11 +2550,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 }} else {{
                     html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
                 }}
-                if (homeImg) html += '<img src="' + homeImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;flex-shrink:0;" />';
+                // Aug 30 2026 — team logos removed (Max): the panel
+                // shows names only, no club crests.
                 html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _escapeText(homeName) + '</span>';
                 html += '<span style="color:#64748b;font-size:12px;flex-shrink:0;">vs</span>';
                 html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _escapeText(awayName) + '</span>';
-                if (awayImg) html += '<img src="' + awayImg + '" alt="" style="width:18px;height:18px;border-radius:3px;object-fit:contain;background:#fff;flex-shrink:0;" />';
                 if (pxiAwayFull) {{
                     html += '<span class="p11-check" title="11/11 Predicted XI matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
                 }} else if (pxiAwayPartial) {{
@@ -2671,19 +2671,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             divisionBlocks.forEach(function (block) {{
                 const divisionKey = block.divisionKey;
                 const live = block.live;
-                // Aug 30 2026 — Italy country grouping: Serie A/B get a
-                // standalone ITALY country header block, then each
-                // championship renders as a normal division block
-                // (same structure as LaLiga/LaLiga 2).
-                const isItalyDivision = ('Serie A' === divisionKey || 'Serie B' === divisionKey);
-                if (isItalyDivision) {{
-                    html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
-                    // Country header (standalone, always visible)
-                    html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#0f1a2e;">';
-                    html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Italy</span>';
-                    html += '</div>';
-                    html += '</div>';
-                }}
+                // Aug 30 2026 — display names: country merged into the
+                // division header, so no separate country label blocks.
+                const P11_DISPLAY_NAMES = {{
+                    'LaLiga': 'Spain - La Liga',
+                    'LaLiga 2': 'Spain - La Liga 2',
+                    'Serie A': 'Italy - Serie A'
+                }};
+                const divLabel = P11_DISPLAY_NAMES[divisionKey] || divisionKey;
                 if (!live.length) {{
                     // No active round with live matches in this division.
                     // Still render the block so the user knows the
@@ -2691,7 +2686,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     // a dropdown.
                     html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
                     html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#0f1a2e;">';
-                    html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(divisionKey) + '</span>';
+                    html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(divLabel) + '</span>';
                     html += '<span style="font-size:10px;background:#475569;color:#0b1020;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.04em;">NO LIVE ROUND</span>';
                     html += '</div>';
                     html += '<div style="background:#0b1020;border-top:1px solid #1f2b40;padding:10px 14px;color:#64748b;font-size:12px;">No upcoming fixtures in this division.</div>';
@@ -2729,7 +2724,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
                 // Division header (always visible)
                 html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#0f1a2e;border-bottom:1px solid #1f2b40;">';
-                html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(divisionKey) + '</span>';
+                html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(divLabel) + '</span>';
                 html += '</div>';
                 // Round picker: header is the active round, opens on
                 // click to reveal the round selector and the matches.
