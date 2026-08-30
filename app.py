@@ -2695,6 +2695,27 @@ async def lineup_api_laliga_fixtures():
     """
     import laliga_fixtures
     data = laliga_fixtures.get_laliga_fixtures()
+    # Aug 30 2026 — fold in Serie A fixtures so the panel renders its
+    # own division block (the frontend groups by m.tournament, which
+    # is dynamic — 'Serie A' gets a separate dropdown automatically).
+    try:
+        import seriea_fixtures as _sfx
+        sdata = _sfx.get_seriea_fixtures()
+        _now = int(time.time())
+        smatches = []
+        for m in sdata.get('fixtures', []):
+            m['tournament'] = 'Serie A'
+            m.setdefault('home', {})['team_id'] = m['home'].get('id')
+            m.setdefault('away', {})['team_id'] = m['away'].get('id')
+            # Keep only upcoming matches (past ones are dropped by the
+            # frontend anyway) and cap the list to keep the payload small.
+            ts = int(m.get('timestamp') or 0)
+            if ts and ts >= _now - 600:
+                smatches.append(m)
+        smatches.sort(key=lambda x: int(x.get('timestamp') or 0))
+        data.setdefault('fixtures', []).extend(smatches[:20])
+    except Exception:
+        pass
     # Aug 22 2026 — fold in per-match predicted XI status so the
     # panel can render the голубой чекбокс without a second fetch.
     try:
