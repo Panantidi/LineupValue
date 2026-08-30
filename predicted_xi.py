@@ -145,6 +145,7 @@ NICKNAME_ALIASES: Dict[str, List[str]] = {
     'carlos': ['carlos'],
     'marco': ['marco'],
     'ivan': ['ivan'],
+    'chupete': ['chupe'],
 }
 
 
