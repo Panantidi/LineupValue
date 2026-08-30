@@ -1240,21 +1240,17 @@ body {
     }
     // Aug 30 2026 — 🔄 Reverse Odds in Match mode (Max): the button sits
     // next to 🔽 Collapse Details. The modal itself lives inside each
-    // team-view iframe; clicking the header button broadcasts an
-    // 'openReverseOdds' postMessage to both frames, which opens the
-    // modal inside whichever frame the user works with.
+    // team-view iframe; clicking the header button asks ONE frame (the
+    // left / "my team" one) to open its modal — broadcasting to both
+    // stacked two identical calculators in the bottom-right corner.
+    // Clicking the header button again closes it (toggle semantics).
     function openReverseOddsInFrames() {
         var myFrame = document.getElementById('my-frame');
-        var oppFrame = document.getElementById('opp-frame');
-        var frames = [myFrame, oppFrame];
-        for (var i = 0; i < frames.length; i++) {
-            try {
-                var f = frames[i];
-                if (f && f.contentWindow) {
-                    f.contentWindow.postMessage({ type: 'openReverseOdds' }, '*');
-                }
-            } catch (e) { /* iframe may not be ready */ }
-        }
+        try {
+            if (myFrame && myFrame.contentWindow) {
+                myFrame.contentWindow.postMessage({ type: 'openReverseOdds' }, '*');
+            }
+        } catch (e) { /* iframe may not be ready */ }
     }
     window.openReverseOddsInFrames = openReverseOddsInFrames;
 // Aug 22 2026 — Match-mode handler for the 🔮 Predicted XI header
