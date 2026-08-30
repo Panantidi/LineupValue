@@ -600,6 +600,23 @@ def _normalise_name_match_impl_inner(ff_name: str, lv_players: List[Dict[str, An
     if best:
         return best
 
+    # Pass 1b (Aug 30 2026) — token-set match: the same tokens in ANY
+    # order (reversed or permuted name order). Handles LV's
+    # "Surname FirstName" vs ff's "FirstName Surname" even when the
+    # name_variants permutations don't line up (e.g. 3-token names).
+    ff_tok_set = set(ff_toks)
+    if len(ff_toks) >= 2:
+        for p in lv_players:
+            lv_name = p.get('name') or ''
+            if not lv_name:
+                continue
+            lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
+            if set(lv_toks) == ff_tok_set:
+                best = p
+                break
+    if best:
+        return best
+
     # Pass 2: substring fallback — ff's surname as full token of LV name
     ff_surname_tok = ff_toks[-1] if ff_toks else ''
     if ff_surname_tok:
