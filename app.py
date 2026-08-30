@@ -2737,7 +2737,12 @@ async def lineup_api_laliga_fixtures():
                 m['pxi_away_total'] = 0
     except Exception:
         pass
-    return JSONResponse(content=data, status_code=200)
+    resp = JSONResponse(content=data, status_code=200)
+    # Aug 30 2026 — prevent the browser from caching stale pxi counts
+    # (stale cached responses showed 10/11 after the cache was rebuilt).
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 @app.get("/lineup_ai/api/predicted_xi/{match_id}")
