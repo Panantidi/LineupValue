@@ -308,6 +308,10 @@ def _extract_sky_formation(text: str, team_name: str) -> List[str]:
         # Remove jersey numbers, positions, etc.
         p = re.sub(r'\s*\(\d+\)', '', p)  # remove (10) etc
         p = re.sub(r'^\d+\.\s*', '', p)   # remove leading "1. "
+        # Aug 30 2026 — strip a leading colon/glue left over from the
+        # "<b>Team (4-3-3)</b>: Player1; ..." pattern, otherwise the
+        # first "player" is ': Mandas' (12th phantom entry).
+        p = re.sub(r'^[:\-\s]+', '', p)
         p = p.strip()
         if p:
             cleaned.append(p)
@@ -799,6 +803,13 @@ def build_match_cache(
             away_matched.append(e)
             if e.get('lv_player_id'):
                 matched_away_ids.add(e.get('lv_player_id'))
+
+    # Aug 30 2026 — HARD CAP 11: a side can never have more than 11
+    # matched players. The split-merge matcher can inflate an 11-entry
+    # XI to 12+ entries (e.g. "Dia/Pinamonti" -> 2); extra entries are
+    # truncated. The counts shown in the panel can then never exceed 11.
+    home_matched = home_matched[:11]
+    away_matched = away_matched[:11]
 
     cache = {
         'match_id': match_id,
