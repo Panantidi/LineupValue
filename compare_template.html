@@ -1238,21 +1238,42 @@ body {
             frame.contentWindow.postMessage({ type: 'setDetailsCollapsed', collapsed: !!collapsed }, '*');
         } catch (e) { /* iframe may not be ready yet */ }
     }
-    // Aug 30 2026 — 🔄 Reverse Odds in Match mode (Max): the button sits
-    // next to 🔽 Collapse Details. The modal itself lives inside each
-    // team-view iframe; clicking the header button asks ONE frame (the
-    // left / "my team" one) to open its modal — broadcasting to both
-    // stacked two identical calculators in the bottom-right corner.
-    // Clicking the header button again closes it (toggle semantics).
+    // Aug 30 2026 — 🔄 Reverse Odds in Match mode (Max): the modal opens
+    // in the RIGHT frame (opp-frame — its bottom-right corner is the
+    // viewport's bottom-right), while BOTH frames read as dimmed: the
+    // right one by its own modal backdrop, the left one via a
+    // 'setReverseOddsDim' gray overlay. When the modal closes, the
+    // frame notifies the parent ('reverseOddsClosed') and the dim on
+    // the other frame is cleared. Clicking the header button again
+    // toggles the modal closed (same toggle path).
     function openReverseOddsInFrames() {
         var myFrame = document.getElementById('my-frame');
+        var oppFrame = document.getElementById('opp-frame');
+        try {
+            if (oppFrame && oppFrame.contentWindow) {
+                oppFrame.contentWindow.postMessage({ type: 'openReverseOdds' }, '*');
+            }
+        } catch (e) { /* iframe may not be ready */ }
         try {
             if (myFrame && myFrame.contentWindow) {
-                myFrame.contentWindow.postMessage({ type: 'openReverseOdds' }, '*');
+                myFrame.contentWindow.postMessage({ type: 'setReverseOddsDim', on: true }, '*');
             }
         } catch (e) { /* iframe may not be ready */ }
     }
     window.openReverseOddsInFrames = openReverseOddsInFrames;
+    // Clear the gray highlight on the left frame when the modal closes
+    window.addEventListener('message', function (ev) {
+        try {
+            var d = ev.data;
+            if (!d || typeof d !== 'object') return;
+            if (d.type === 'reverseOddsClosed') {
+                var myFrame = document.getElementById('my-frame');
+                if (myFrame && myFrame.contentWindow) {
+                    myFrame.contentWindow.postMessage({ type: 'setReverseOddsDim', on: false }, '*');
+                }
+            }
+        } catch (e) { /* noop */ }
+    });
 // Aug 22 2026 — Match-mode handler for the 🔮 Predicted XI header
     // button. The panel itself now lives in the parent (so it spans
     // both team tables); this function fetches /api/laliga_fixtures,

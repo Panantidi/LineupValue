@@ -989,6 +989,19 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             border-color: rgba(255,255,255,0.7);
             font-weight: 600;
         }}
+        /* Aug 30 2026 — Match-mode Reverse Odds: the frame that hosts NO
+           modal gets this gray highlight overlay (the parent asks one
+           frame to open the modal and the other to dim itself, so BOTH
+           frames read as "behind the modal"). Sits below the modal host
+           (z-index 99999) and blocks clicks on the dimmed frame. */
+        body.ro-dim::after {{
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(100, 116, 139, 0.45);
+            z-index: 99998;
+            pointer-events: auto;
+        }}
         .container {{
             padding: 0 32px 24px 32px;
             max-width: 1400px;
@@ -2836,6 +2849,12 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             if (!host) return;
             var willOpen = host.style.display !== 'flex';
             host.style.display = willOpen ? 'flex' : 'none';
+            // Aug 30 2026 — Match mode: when the modal closes, tell the
+            // parent so it clears the gray highlight on the other frame.
+            if (!willOpen) {{
+                document.body.classList.remove('ro-dim');
+                try {{ window.parent.postMessage({{ type: 'reverseOddsClosed' }}, '*'); }} catch (e) {{ }}
+            }}
         }}
         function _roFmt(n) {{
             // Standard mathematical rounding to 2 decimals. Avoid
@@ -5914,6 +5933,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (typeof window.toggleReverseOdds === 'function') {{
                     window.toggleReverseOdds();
                 }}
+            }} else if (d.type === 'setReverseOddsDim') {{
+                // Aug 30 2026 — the parent dims the frame that hosts NO
+                // modal, so BOTH frames read as "behind the modal".
+                try {{
+                    if (d.on) document.body.classList.add('ro-dim');
+                    else document.body.classList.remove('ro-dim');
+                }} catch (e) {{ /* noop */ }}
             }} else if (d.type === 'hidePredictedXI') {{
                 // Aug 22 2026 — Match-mode parent renders a single
                 // Predicted XI panel across both team tables. When
