@@ -2069,8 +2069,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
     <div class="page-main">
 <div id="predicted11-panel-host" style="display:none;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <h3 style="margin:0;font-size:17px;font-weight:600;color:#fff;">Spain</h3>
-            <button type="button" onclick="togglePredicted11()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">×</button>
+            <button type="button" onclick="togglePredicted11()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;margin-left:auto;" title="Close">×</button>
         </div>
         <div id="predicted11-body">
             <div style="color:#94a3b8;font-size:14px;">Loading next LaLiga fixtures…</div>
