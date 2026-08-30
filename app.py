@@ -4807,14 +4807,13 @@ async def ingest_live_event(payload: dict):
         event_type = str(payload.get("event_type") or "").strip()
         if event_type not in ("red_card", "substitution"):
             return {"ok": False, "error": "event_type must be red_card or substitution"}
-        # Sanity-check: substitutions must be <= 35' (matches
-        # SUBST_MINUTE_LIMIT=35 in telegram-mirror/bot.py). Aug 30 2026
-        # — raised from 30: a 35' sub (e.g. Leeds, Elvedi/Rodon) passed
-        # the bot filter but was REJECTED here, so it never appeared in
-        # Latest news.
+        # Sanity-check: substitutions must be <= 40' inclusive (matches
+        # SUBST_MINUTE_LIMIT=40 in telegram-mirror/bot.py). Aug 30 2026
+        # — raised from 35 per Max: early-sub posts must work up to and
+        # including the 40th minute.
         minute = int(payload.get("minute") or 0)
-        if event_type == "substitution" and minute > 35:
-            return {"ok": False, "error": "substitution minute > 35 not allowed"}
+        if event_type == "substitution" and minute > 40:
+            return {"ok": False, "error": "substitution minute > 40 not allowed"}
         if event_type == "red_card" and minute < 1:
             return {"ok": False, "error": "red_card minute invalid"}
         ensure_db()
