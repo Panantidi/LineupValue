@@ -1261,7 +1261,9 @@ body {
         } catch (e) { /* iframe may not be ready */ }
     }
     window.openReverseOddsInFrames = openReverseOddsInFrames;
-    // Clear the gray highlight on the left frame when the modal closes
+    // Clear the gray highlight on the left frame when the modal closes;
+    // a click anywhere in the dimmed frame closes the modal too (same
+    // click-outside UX as Team mode).
     window.addEventListener('message', function (ev) {
         try {
             var d = ev.data;
@@ -1270,6 +1272,11 @@ body {
                 var myFrame = document.getElementById('my-frame');
                 if (myFrame && myFrame.contentWindow) {
                     myFrame.contentWindow.postMessage({ type: 'setReverseOddsDim', on: false }, '*');
+                }
+            } else if (d.type === 'reverseOddsOutsideClick') {
+                var oppFrame = document.getElementById('opp-frame');
+                if (oppFrame && oppFrame.contentWindow) {
+                    oppFrame.contentWindow.postMessage({ type: 'closeReverseOdds' }, '*');
                 }
             }
         } catch (e) { /* noop */ }

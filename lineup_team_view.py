@@ -992,13 +992,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         /* Aug 30 2026 — Match-mode Reverse Odds: the frame that hosts NO
            modal gets this gray highlight overlay (the parent asks one
            frame to open the modal and the other to dim itself, so BOTH
-           frames read as "behind the modal"). Sits below the modal host
-           (z-index 99999) and blocks clicks on the dimmed frame. */
+           frames read as "behind the modal"). Same rgba as the modal
+           host backdrop below, so both frames dim IDENTICALLY. Sits
+           below the modal host (z-index 99999) and intercepts clicks on
+           the dimmed frame (they close the modal via the parent). */
         body.ro-dim::after {{
             content: '';
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(100, 116, 139, 0.45);
+            background: rgba(0, 0, 0, 0.55);
             z-index: 99998;
             pointer-events: auto;
         }}
@@ -2844,6 +2846,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         // Modal-only feature: open via the 🔄 Reverse Odds button next
         // to 🔮 Predicted XI, fill 3 inputs, press Calculate.
         // Pure client-side: no fetch, no DB, no persistence.
+        function _roNotifyClosed() {{
+            // Aug 30 2026 — single close-notification path: clear the
+            // Match-mode dim on THIS frame (if any) and tell the parent
+            // so it clears the dim on the OTHER frame too.
+            document.body.classList.remove('ro-dim');
+            try {{ window.parent.postMessage({{ type: 'reverseOddsClosed' }}, '*'); }} catch (e) {{ }}
+        }}
         function toggleReverseOdds() {{
             var host = document.getElementById('reverse-odds-host');
             if (!host) return;
@@ -2852,8 +2861,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             // Aug 30 2026 — Match mode: when the modal closes, tell the
             // parent so it clears the gray highlight on the other frame.
             if (!willOpen) {{
-                document.body.classList.remove('ro-dim');
-                try {{ window.parent.postMessage({{ type: 'reverseOddsClosed' }}, '*'); }} catch (e) {{ }}
+                _roNotifyClosed();
             }}
         }}
         function _roFmt(n) {{
@@ -2934,10 +2942,25 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 var faq = document.getElementById('faq-host');
                 if (faq && faq.style.display === 'flex') faq.style.display = 'none';
                 var ro = document.getElementById('reverse-odds-host');
-                if (ro && ro.style.display === 'flex') ro.style.display = 'none';
+                if (ro && ro.style.display === 'flex') {{
+                    ro.style.display = 'none';
+                    // Aug 30 2026 — notify the parent so the OTHER frame's
+                    // gray highlight is cleared too (Match mode).
+                    _roNotifyClosed();
+                }}
             }}
         }});
         document.addEventListener('click', function(e) {{
+            // Aug 30 2026 — Match mode: THIS frame is dimmed (ro-dim)
+            // while the Reverse Odds modal is open in the OTHER frame.
+            // The dim overlay intercepts every click here; any click in
+            // the dimmed frame should close that modal too (same UX as
+            // Team mode's click-outside).
+            if (document.body.classList.contains('ro-dim')) {{
+                _roNotifyClosed();
+                try {{ window.parent.postMessage({{ type: 'reverseOddsOutsideClick' }}, '*'); }} catch (e) {{ }}
+                return;
+            }}
             // Aug 26 2026 — Max asked the 🔄 Reverse Odds modal to close
             // on any click outside the white card (same pattern as the
             // FAQ modal below). Only trigger when the click target is
@@ -2946,6 +2969,9 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             var roHost = document.getElementById('reverse-odds-host');
             if (roHost && roHost.style.display === 'flex' && e.target === roHost) {{
                 roHost.style.display = 'none';
+                // Aug 30 2026 — Match mode: the parent must clear the
+                // gray highlight on the OTHER frame as well.
+                _roNotifyClosed();
             }}
             var host = document.getElementById('faq-host');
             if (host && host.style.display === 'flex' && e.target === host) {{
@@ -5940,6 +5966,13 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     if (d.on) document.body.classList.add('ro-dim');
                     else document.body.classList.remove('ro-dim');
                 }} catch (e) {{ /* noop */ }}
+            }} else if (d.type === 'closeReverseOdds') {{
+                // Aug 30 2026 — the user clicked anywhere in the OTHER
+                // (dimmed) frame; close the modal here if it is open.
+                var roHostX = document.getElementById('reverse-odds-host');
+                if (roHostX && roHostX.style.display === 'flex' && typeof window.toggleReverseOdds === 'function') {{
+                    window.toggleReverseOdds();
+                }}
             }} else if (d.type === 'hidePredictedXI') {{
                 // Aug 22 2026 — Match-mode parent renders a single
                 // Predicted XI panel across both team tables. When
