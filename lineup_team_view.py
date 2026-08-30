@@ -2671,6 +2671,27 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             divisionBlocks.forEach(function (block) {{
                 const divisionKey = block.divisionKey;
                 const live = block.live;
+                // Aug 30 2026 — Italy country grouping: Serie A/B render
+                // inside an ITALY country block with a championship
+                // dropdown, so the panel shows country → championship →
+                // round. Spain divisions keep their existing structure.
+                const isItalyDivision = ('Serie A' === divisionKey || 'Serie B' === divisionKey);
+                if (isItalyDivision) {{
+                    html += '<div style="background:#0f1623;border-radius:8px;border:1px solid #1f2b40;overflow:hidden;">';
+                    // Country header (always visible)
+                    html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#0f1a2e;border-bottom:1px solid #1f2b40;">';
+                    html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Italy</span>';
+                    html += '</div>';
+                    // Championship dropdown (open by default so the
+                    // round picker below is visible right away)
+                    const champId = 'p11-champ-' + encodeURIComponent(divisionKey).replace(/%/g, '_');
+                    html += '<div data-p11-toggle="' + champId + '" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none;">';
+                    html += '<span data-p11-chevron="' + champId + '" style="color:#60a5fa;font-size:14px;transition:transform 0.15s ease;">▾</span>';
+                    html += '<span style="font-size:13px;color:#60a5fa;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' + _escapeText(divisionKey) + '</span>';
+                    html += '</div>';
+                    // Championship body — contains the round picker.
+                    html += '<div id="' + champId + '" style="border-top:1px solid #1f2b40;">';
+                }}
                 if (!live.length) {{
                     // No active round with live matches in this division.
                     // Still render the block so the user knows the
@@ -2683,6 +2704,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                     html += '</div>';
                     html += '<div style="background:#0b1020;border-top:1px solid #1f2b40;padding:10px 14px;color:#64748b;font-size:12px;">No upcoming fixtures in this division.</div>';
                     html += '</div>';
+                    if (isItalyDivision) {{
+                        html += '</div>';
+                        html += '</div>';
+                    }}
                     return;
                 }}
 
@@ -2751,6 +2776,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 html += '</div>';
                 html += '</div>';
                 html += '</div>';
+                if (isItalyDivision) {{
+                    html += '</div>';
+                    html += '</div>';
+                }}
             }});
             html += '</div>';
             body.innerHTML = html;
