@@ -5906,6 +5906,14 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if (typeof window.togglePredicted11 === 'function') {{
                     window.togglePredicted11();
                 }}
+            }} else if (d.type === 'openReverseOdds') {{
+                // Aug 30 2026 — 🔄 Reverse Odds header button in Match
+                // mode delegates to this iframe via postMessage; open
+                // the Reverse Odds modal inside whichever frame the
+                // user works with.
+                if (typeof window.toggleReverseOdds === 'function') {{
+                    window.toggleReverseOdds();
+                }}
             }} else if (d.type === 'hidePredictedXI') {{
                 // Aug 22 2026 — Match-mode parent renders a single
                 // Predicted XI panel across both team tables. When

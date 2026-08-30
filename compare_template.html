@@ -982,6 +982,7 @@ body {
     <div class="compare-header-left">
         <button id="match-btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
         <button id="btn-collapse-details" class="header-action-btn" type="button" onclick="toggleCollapseDetails()" title="Show MV, Squad Role and Impact Score columns">🔼 Expand Details</button>
+        <button id="btn-reverse-odds" class="header-action-btn" type="button" onclick="openReverseOddsInFrames()">🔄 Reverse Odds</button>
         <!-- Aug 23 2026 — Match-mode no longer needs its own Predicted XI
              button. Each iframe already owns one (ltv.py::togglePredicted11)
              and clicking it from here would only confuse the user. Team mode
@@ -1237,6 +1238,25 @@ body {
             frame.contentWindow.postMessage({ type: 'setDetailsCollapsed', collapsed: !!collapsed }, '*');
         } catch (e) { /* iframe may not be ready yet */ }
     }
+    // Aug 30 2026 — 🔄 Reverse Odds in Match mode (Max): the button sits
+    // next to 🔽 Collapse Details. The modal itself lives inside each
+    // team-view iframe; clicking the header button broadcasts an
+    // 'openReverseOdds' postMessage to both frames, which opens the
+    // modal inside whichever frame the user works with.
+    function openReverseOddsInFrames() {
+        var myFrame = document.getElementById('my-frame');
+        var oppFrame = document.getElementById('opp-frame');
+        var frames = [myFrame, oppFrame];
+        for (var i = 0; i < frames.length; i++) {
+            try {
+                var f = frames[i];
+                if (f && f.contentWindow) {
+                    f.contentWindow.postMessage({ type: 'openReverseOdds' }, '*');
+                }
+            } catch (e) { /* iframe may not be ready */ }
+        }
+    }
+    window.openReverseOddsInFrames = openReverseOddsInFrames;
 // Aug 22 2026 — Match-mode handler for the 🔮 Predicted XI header
     // button. The panel itself now lives in the parent (so it spans
     // both team tables); this function fetches /api/laliga_fixtures,
