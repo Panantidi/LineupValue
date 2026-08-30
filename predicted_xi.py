@@ -637,6 +637,90 @@ def _normalise_name_match_impl_inner(ff_name: str, lv_players: List[Dict[str, An
     return None
 
 
+def _try_split_merged(ff_name: str, lv_players: List[Dict[str, Any]]) -> Optional[List[Dict[str, Any]]]:
+    """Try splitting a merged ff entry into two players.
+
+    Aug 30 2026 — Sky sometimes merges two adjacent player names into
+    one entry ("Politano Hojlund" = Politano + Højlund). Split at each
+    token boundary; if both parts match distinct LV players, return
+    two matched entries.
+    """
+    toks = [t for t in re.split(r'[\s\.\-]+', ff_name) if t]
+    for i in range(1, len(toks)):
+        p1, p2 = ' '.join(toks[:i]), ' '.join(toks[i:])
+        m1 = normalise_name_match(p1, lv_players)
+        if not m1:
+            continue
+        m2 = normalise_name_match(
+            p2, [x for x in lv_players if x.get('player_id') != m1.get('player_id')])
+        if m2:
+            return [
+                {
+                    'ff_name': p1,
+                    'ff_id': None,
+                    'lv_player_id': m1.get('player_id'),
+                    'lv_name': m1.get('name'),
+                    'matched': True,
+                    'matched_by': 'split',
+                    'ff_position': None,
+                },
+                {
+                    'ff_name': p2,
+                    'ff_id': None,
+                    'lv_player_id': m2.get('player_id'),
+                    'lv_name': m2.get('name'),
+                    'matched': True,
+                    'matched_by': 'split',
+                    'ff_position': None,
+                },
+            ]
+    return None
+
+
+def _match_one_with_split(ff_name: str, lv_players: List[Dict[str, Any]],
+                          ff_position: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Match one ff entry, splitting merged player names when needed.
+
+    If the whole-name match leaves ff tokens uncovered (the matched LV
+    player's name doesn't contain all ff tokens), the entry is likely
+    two merged players — try the split.
+    """
+    def _entry(lv_player: Optional[Dict[str, Any]], matched_by: Optional[str]) -> Dict[str, Any]:
+        return {
+            'ff_name': ff_name,
+            'ff_id': None,
+            'lv_player_id': (lv_player or {}).get('player_id'),
+            'lv_name': (lv_player or {}).get('name'),
+            'matched': bool(lv_player),
+            'matched_by': matched_by,
+            'ff_position': ff_position,
+        }
+
+    lv_player = normalise_name_match(ff_name, lv_players)
+    if not lv_player:
+        parts = _try_split_merged(ff_name, lv_players)
+        if parts:
+            for e in parts:
+                e['ff_position'] = ff_position
+            return parts
+        return [_entry(None, None)]
+
+    # Coverage check: are all ff tokens present in the matched player?
+    ff_toks = set(normalise_token(t) for t in re.split(r'[\s\.\-]+', ff_name) if t)
+    matched_toks = set(
+        normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_player.get('name') or '') if t)
+    if not ff_toks - matched_toks:
+        return [_entry(lv_player, 'name')]
+
+    # Suspicious merge — try splitting into two players.
+    parts = _try_split_merged(ff_name, lv_players)
+    if parts:
+        for e in parts:
+            e['ff_position'] = ff_position
+        return parts
+    return [_entry(lv_player, 'name')]
+
+
 def build_match_cache(
     championship: str,
     match_id: str,
@@ -663,55 +747,21 @@ def build_match_cache(
     home_matched = []
     matched_player_ids = set()
     for p in home_xi:
-        lv_player = normalise_name_match(p.get('ff_name', ''), home_lv_players)
-        if lv_player:
-            home_matched.append({
-                'ff_name': p.get('ff_name'),
-                'ff_id': p.get('ff_id'),
-                'lv_player_id': lv_player.get('player_id'),
-                'lv_name': lv_player.get('name'),
-                'matched': True,
-                'matched_by': 'name',
-                'ff_position': p.get('ff_position'),
-            })
-            matched_player_ids.add(lv_player.get('player_id'))
-        else:
-            home_matched.append({
-                'ff_name': p.get('ff_name'),
-                'ff_id': p.get('ff_id'),
-                'lv_player_id': None,
-                'lv_name': None,
-                'matched': False,
-                'matched_by': None,
-                'ff_position': p.get('ff_position'),
-            })
+        for e in _match_one_with_split(p.get('ff_name', ''), home_lv_players,
+                                       p.get('ff_position')):
+            home_matched.append(e)
+            if e.get('lv_player_id'):
+                matched_player_ids.add(e.get('lv_player_id'))
 
     # Match away (separate matched set)
     away_matched = []
     matched_away_ids = set()
     for p in away_xi:
-        lv_player = normalise_name_match(p.get('ff_name', ''), away_lv_players)
-        if lv_player:
-            away_matched.append({
-                'ff_name': p.get('ff_name'),
-                'ff_id': p.get('ff_id'),
-                'lv_player_id': lv_player.get('player_id'),
-                'lv_name': lv_player.get('name'),
-                'matched': True,
-                'matched_by': 'name',
-                'ff_position': p.get('ff_position'),
-            })
-            matched_away_ids.add(lv_player.get('player_id'))
-        else:
-            away_matched.append({
-                'ff_name': p.get('ff_name'),
-                'ff_id': p.get('ff_id'),
-                'lv_player_id': None,
-                'lv_name': None,
-                'matched': False,
-                'matched_by': None,
-                'ff_position': p.get('ff_position'),
-            })
+        for e in _match_one_with_split(p.get('ff_name', ''), away_lv_players,
+                                       p.get('ff_position')):
+            away_matched.append(e)
+            if e.get('lv_player_id'):
+                matched_away_ids.add(e.get('lv_player_id'))
 
     cache = {
         'match_id': match_id,
