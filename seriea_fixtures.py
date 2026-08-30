@@ -181,10 +181,18 @@ def get_seriea_fixtures(force: bool = False) -> Dict:
     
     # Stamp known rounds from disk cache
     round_cache = _read_round_cache()
+    league_only = []
     for m in aggregated:
         mid = m.get('match_id')
-        m['round'] = round_cache.get(mid, '') if mid else ''
-    
+        label = round_cache.get(mid, '') if mid else ''
+        if mid and mid in round_cache and not label.startswith('Round '):
+            # Confirmed non-league fixture (Coppa Italia etc.) — drop it
+            continue
+        # Only league rounds; skip cup labels (Coppa Italia etc.)
+        m['round'] = label if label.startswith('Round ') else ''
+        league_only.append(m)
+    aggregated = league_only
+
     trimmed = aggregated[:MAX_FIXTURES_RETURN]
     
     payload = {
@@ -205,46 +213,64 @@ def get_seriea_fixtures(force: bool = False) -> Dict:
 
 
 def _background_resolve_rounds(fixtures: List[Dict]) -> None:
-    """Fill in the round field for matches missing it."""
+    """Fill in the round field for matches missing it.
+
+    Aug 30 2026 — fixed: /matches/details returns a dict with a
+    'tournament' key (same format as laliga_fixtures), NOT a list of
+    tournaments. Also reuse laliga_fixtures._parse_round_label so the
+    labels match the Spain format ("Round 2", "Round 3", ...).
+    """
     round_cache = _read_round_cache()
     updated = False
-    
+    try:
+        from laliga_fixtures import _parse_round_label
+    except Exception:
+        def _parse_round_label(name: str) -> str:
+            return (name or '').strip()
+
     for m in fixtures:
         mid = m.get('match_id')
         if not mid or mid in round_cache:
             continue
-        
-        # Fetch match details to get round info
+
+        # Fetch match details (dict format, like laliga_fixtures)
         url = f"https://{HOST}/api/flashscore/v2/matches/details?match_id={mid}"
-        raw = _http_get_json(url)
-        if raw is None:
+        details = _http_get_json(url)
+        if not details:
             continue
-        
-        # raw is a list of tournaments, find the match
-        match = None
-        for tournament in raw:
-            for ev in tournament.get('matches', []):
-                if ev.get('match_id') == mid:
-                    match = ev
-                    break
-            if match:
-                break
-        
-        if not match:
-            continue
-        
-        round_info = match.get('roundInfo', {})
-        round_text = round_info.get('round', '') or round_info.get('name', '')
-        
-        if round_text:
-            round_cache[mid] = round_text
+
+        tournament = (details.get('tournament') or {})
+        label = _parse_round_label(tournament.get('name') or '')
+        # Aug 30 2026 — store ALL labels: league rounds ("Round N") AND
+        # cup labels ("Coppa Italia - 1/16-finals" etc.). Cup entries are
+        # filtered out when stamping fixtures, but keeping them in the
+        # cache lets get_seriea_fixtures identify and drop cup fixtures.
+        if label:
+            round_cache[mid] = label
             updated = True
-            print(f"Serie A round resolved: {mid} -> {round_text}")
-        
+            print(f"Serie A round resolved: {mid} -> {label}")
+
         time.sleep(0.2)  # rate limit
-    
+
     if updated:
         _write_round_cache(round_cache)
+        # Aug 30 2026 — rewrite the on-disk fixtures cache with the
+        # freshly resolved rounds so the next panel fetch picks them up
+        # (same pattern as laliga_fixtures).
+        cached = _read_fixtures_cache()
+        if cached and cached.get('fixtures'):
+            kept = []
+            for m in cached['fixtures']:
+                mid = m.get('match_id')
+                if mid:
+                    lbl = round_cache.get(mid, '')
+                    if lbl and not lbl.startswith('Round '):
+                        # Confirmed cup fixture — drop it
+                        continue
+                    m['round'] = lbl if lbl.startswith('Round ') else ''
+                kept.append(m)
+            cached['fixtures'] = kept
+            _write_fixtures_cache(cached)
 
 
 if __name__ == '__main__':
