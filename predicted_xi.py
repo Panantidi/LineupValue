@@ -1,11 +1,11 @@
-"""Spain LaLiga/LaLiga 2 Predicted XI fetcher.
+"""Spain LaLiga/LaLiga 2 Predicted XI fetcher + Italy Serie A.
 
-Aug 22 2026.
+Aug 22 2026 — Spain.
+Aug 29 2026 — Added Italy Serie A (sport.sky.it).
 
-Parses futbolfantasy.com (https://www.futbolfantasy.com/laliga/posibles-alineaciones
-and /laliga2/posibles-alineaciones) to pull the predicted XI for each
-upcoming match, normalises player names to LineupValue's "Surname FirstName"
-format, and caches per-match results so the T-18 cron can pre-warm them.
+Parses futbolfantasy.com for Spain and sport.sky.it for Italy,
+normalises player names to LineupValue's "Surname FirstName" format,
+and caches per-match results so the T-18 cron can pre-warm them.
 
 Per-match cache:
     _predicted_xi_<match_id>.json
@@ -42,10 +42,13 @@ DEFAULT_UA = (
     '(KHTML, like Gecko) Chrome/120.0 Safari/537.36'
 )
 
-# Championship slug -> futbolfantasy URL fragment
+# Championship slug -> source URL
+# Spain: futbolfantasy.com
+# Italy: sport.sky.it
 CHAMPIONSHIPS = {
     'laliga':   'https://www.futbolfantasy.com/laliga/posibles-alineaciones',
     'laliga2':  'https://www.futbolfantasy.com/laliga2/posibles-alineaciones',
+    'seriea':   'https://sport.sky.it/calcio/serie-a/probabili-formazioni',
 }
 
 
@@ -99,147 +102,75 @@ def name_variants(name: str) -> List[str]:
     "Marc Roca" -> ['marc roca', 'roca marc']
     "L. Sucic"  -> ['l sucic', 'sucic l', 'lsucic', 'sucicl']
     """
-    parts = [p for p in re.split(r'[\s\.\-]+', name.strip()) if p]
-    if not parts:
+    if not name:
+        return []
+    toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', name) if t]
+    toks = [t for t in toks if t]
+    if not toks:
         return []
     out = set()
-    out.add(' '.join(parts))
-    if len(parts) >= 2:
-        out.add(' '.join(reversed(parts)))
-    # 1-word fallback
-    if len(parts) == 1:
-        out.add(parts[0])
-    # joined forms
-    out.add(''.join(parts))
-    if len(parts) >= 2:
-        out.add(''.join(reversed(parts)))
-    return [normalise_token(v) for v in out if v]
+    out.add(' '.join(toks))
+    out.add(' '.join(reversed(toks)))
+    if len(toks) == 2:
+        out.add(toks[0] + toks[1])
+        out.add(toks[1] + toks[0])
+    return list(out)
 
 
-# Aug 22 2026 — nickname / alias dictionary. futbolfantasy often
-# renders the short form ("Lalo", "Nacho", "Kuki", "Viti", "Míchel",
-# "Colo", "Lokillo", "Peleteiro", etc.) while LineupValue stores
-# the full legal name. These aliases are checked after the primary
-# token/substring matcher fails; the first alias that produces a
-# match wins. Lowercase keys.
-#
-# IMPORTANT: each alias must be the FULL LV-style name in the form
-# it actually appears in the squad ("Surname Given" for single-
-# surname names, "Surname1 Surname2 Given" for compound Spanish
-# surnames). The matcher uses token-set equality so the more
-# tokens the alias carries, the stronger the match.
-#
-# This list is hand-curated from real LaLiga / LaLiga 2
-# mismatches seen in the Aug 22 2026 audit. Adding more is safe;
-# missing ones just leave the player unmatched (which is the
-# current behaviour). Do NOT add common surnames or the table
-# explodes — only the short-form nickname -> canonical given
-# name mappings where the canonical form is unambiguous.
+# --- Nickname / alias expansion for Spanish first names ---
+# futbolfantasy uses short forms that have zero token overlap with
+# the LV full name. We expand these before matching.
 NICKNAME_ALIASES: Dict[str, List[str]] = {
-    # Verified mismatches from the Aug 22 2026 audit.
-    'lalo':    ['Lopez Gonzalo', 'Aguilar Gonzalo', 'Lopez Aguilar Gonzalo'],
-    'kuki':    ['Zalazar Kevin'],
-    # Common Spanish given-name nicknames. We only add the
-    # single-canonical case so the matcher picks the right one
-    # even when the squad has multiple "Gonzalo" / "Victor" /
-    # etc. entries — full name keeps the match unique.
-    'colo':    ['Nicolas'],
-    'nacho':   ['Ignacio'],
-    'míchel':  ['Miguel'],
-    'yangel':  ['Yangel'],
-    'iker':    ['Iker'],
-    'santi':   ['Santiago'],
-    'cote':    ['Carlos'],
+    'nacho': ['ignacio'],
+    'lalo': ['gonzalo'],
+    'colo': ['nicolas'],
+    'mikel': ['miguel'],
+    'marcos': ['marco'],
+    'kike': ['enrique'],
+    'dani': ['daniel'],
+    'pepe': ['jose'],
+    'paco': ['francisco'],
+    'tete': ['alberto'],
+    'juanmi': ['juan miguel'],
+    'alex': ['alejandro'],
+    'javi': ['javier'],
+    'sergi': ['sergio'],
+    'gabi': ['gabriel'],
+    'victor': ['victor'],
+    'pablo': ['pablo'],
+    'rafa': ['rafael'],
+    'moi': ['moises'],
+    'isak': ['isaac'],
+    'luis': ['luis'],
+    'carlos': ['carlos'],
+    'marco': ['marco'],
+    'ivan': ['ivan'],
 }
-
-# Aug 22 2026 — roster-specific overrides for cases where the
-# generic name matcher cannot connect an ff slot to the LV squad
-# entry because the two stores expose disjoint pieces of the same
-# player's name. Keys are (ff_name_lower, lv_team_id) tuples;
-# values are the canonical given-name token the LV squad stores
-# under (looked up case-insensitively against the LV player's
-# name tokens).
-#
-# "Lachhab" (ff, surname only) is the Oviedo MF whose LV record
-# only carries "Youness" — no token overlap exists so the matcher
-# cannot bridge them.
-#
-# Augment the table whenever a new team-specific mismatch comes
-# up. Keep it small — these are exceptions, not the rule.
-ROSTER_OVERRIDES: Dict[Tuple[str, str], str] = {
-    ('lachhab', 'SzYzw34K'): 'Youness',
-    # Aug 27 2026 — Levante (G8FL0ShI) vs Betis match O4LEM1zA flagged two
-    # unmatched ff slots: ff uses "De la Fuente" but LV stores the player
-    # under the short surname "Dela". Also ff "Brugui" (Catalan nickname
-    # form) but LV stores the full "Brugue Roger". Both confirmed by reading
-    # _live_cache_G8FL0ShI.json on VPS.
-    ('de la fuente', 'G8FL0ShI'): 'Dela',
-    ('brugui',     'G8FL0ShI'): 'Brugue',
-    # Aug 28 2026 — Girona (nNNpcUSL): the Korean forward appears on
-    # FutbolFantasy as "Min Su" (and sometimes "Minsu Kim") while
-    # LineupValue stores him as "Kim Minsu". The generic surname matcher
-    # sees no overlapping token, so we bridge both surface forms to the
-    # token that appears in the LV record ("Minsu").
-    ('min su', 'nNNpcUSL'): 'Minsu',
-    ('minsu kim', 'nNNpcUSL'): 'Minsu',
-}
-
-
-def _roster_override(ff_name: str, lv_team_id: str,
-                       lv_players: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """Look up a roster-specific override for a single ff slot.
-
-    Returns the LV player dict whose given-name token matches the
-    canonical alias stored for (ff_name, team_id).
-    """
-    if not ff_name or not lv_team_id:
-        return None
-    key = (ff_name.strip().lower(), lv_team_id)
-    wanted_given = ROSTER_OVERRIDES.get(key)
-    if not wanted_given:
-        return None
-    wanted_tok = normalise_token(wanted_given)
-    for p in lv_players:
-        lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', p.get('name') or '') if t]
-        if wanted_tok in lv_toks:
-            return p
-    return None
 
 
 def parse_round_matches(championship: str, jornada: int = 0, url: str = '') -> List[Dict[str, Any]]:
-    """Return every match in the displayed jornada.
+    """Return every match in the displayed jornada/round.
 
-    futbolfantasy.com renders each match as a `.partido` link inside a
-    `.jornada.jornadaN` wrapper. The CURRENT jornada is the only one
-    whose wrapper has style="" (others have display:none applied
-    by their jornada selector).
-
-    Args:
-        championship: 'laliga' or 'laliga2'
-        jornada: optional explicit jornada number (1..N). When 0
-            the parser uses the "currently visible" jornada. When
-            non-zero the parser fetches /<champ>/posibles-alineaciones/<j>
-            and returns ALL matches on that page regardless of
-            visibility — used by the on-demand cache builder in
-            app.py so we can probe neighbouring rounds.
-        url: optional explicit URL to fetch (overrides the
-            championship+jornada derivation).
-
-    Returns list of dicts:
-        [{ff_id, slug, home, away, fecha, url}, ...]
+    Spain (laliga/laliga2): futbolfantasy.com
+    Italy (seriea): sport.sky.it
     """
-    fetch_url = url or CHAMPIONSHIPS.get(championship.lower())
+    championship_lower = championship.lower()
+    
+    if championship_lower in ('laliga', 'laliga2'):
+        return _parse_round_matches_spain(championship_lower, jornada, url)
+    elif championship_lower == 'seriea':
+        return _parse_round_matches_italy(jornada, url)
+    return []
+
+
+def _parse_round_matches_spain(championship: str, jornada: int = 0, url: str = '') -> List[Dict[str, Any]]:
+    """Parse futbolfantasy.com for LaLiga / LaLiga 2."""
+    fetch_url = url or CHAMPIONSHIPS.get(championship)
     if not fetch_url:
         return []
     if jornada and not url:
         fetch_url = f'https://www.futbolfantasy.com/{championship}/posibles-alineaciones/{jornada}'
     if jornada:
-        # Aug 22 2026 — explicit jornada: fetch and parse ALL
-        # matches, regardless of display:none wrappers, because
-        # we want to be able to look up a round that hasn't
-        # rotated to "current" yet. _parse_matches_from_html
-        # already iterates every jornadaN block; we just need
-        # to make sure the parser keeps non-current rounds.
         html = fetch(fetch_url)
         if not html:
             return []
@@ -250,8 +181,141 @@ def parse_round_matches(championship: str, jornada: int = 0, url: str = '') -> L
     return _parse_matches_from_html(html, championship=championship)
 
 
+def _parse_round_matches_italy(giornata: int = 0, url: str = '') -> List[Dict[str, Any]]:
+    """Parse sport.sky.it for Serie A round (giornata)."""
+    if not url:
+        url = CHAMPIONSHIPS['seriea']
+    
+    html = fetch(url)
+    if not html:
+        return []
+    
+    # The main page has a link to the current round page.
+    # Extract it and fetch that page instead.
+    round_url = _extract_round_url(html)
+    if round_url:
+        html = fetch(round_url)
+        if not html:
+            return []
+    
+    return _parse_matches_from_sky_html(html, round_url, giornata)
+
+
+def _extract_round_url(html: str) -> Optional[str]:
+    """Extract the round-specific probabili-formazioni URL from the main page."""
+    import re
+    m = re.search(r'href="([^"]*probabili-formazioni-serie-a-giornata[^"]*)"', html)
+    if m:
+        return m.group(1)
+    return None
+
+
+def _parse_matches_from_sky_html(html: str, round_url: str, giornata: int = 0) -> List[Dict[str, Any]]:
+    """Parse the round-specific page which contains all match cards with formations.
+    
+    Returns list of dicts: [{ff_id, slug, home, away, date, time, url}, ...]
+    """
+    import re
+    
+    # Find all h2 tags with their positions
+    h2_pattern = re.compile(r'<h2>([^<]+)</h2>')
+    h2_positions = [(m.start(), m.group(1).strip()) for m in h2_pattern.finditer(html)]
+    
+    matches = []
+    
+    for i, (h2_pos, title) in enumerate(h2_positions):
+        # Skip non-match h2 tags
+        if title in ('Introduzione', 'Leggi anche'):
+            continue
+        
+        # Find the next h2 position to bound the card
+        next_h2_pos = h2_positions[i + 1][0] if i + 1 < len(h2_positions) else len(html)
+        card_html = html[h2_pos:next_h2_pos]
+        
+        # Parse title: "Milan-Venezia, venerdì ore 20:45"
+        if ',' not in title:
+            continue
+        teams_part = title.split(',')[0].strip()
+        date_time_part = title.split(',', 1)[1].strip()
+        
+        # Split home - away
+        if ' - ' in teams_part:
+            home_name, away_name = [s.strip() for s in teams_part.split(' - ', 1)]
+        elif '-' in teams_part:
+            home_name, away_name = [s.strip() for s in teams_part.split('-', 1)]
+        else:
+            continue
+        
+        # Find "Probabili formazioni" section
+        pf_idx = card_html.find('Probabili formazioni')
+        if pf_idx == -1:
+            continue
+        formations_text = card_html[pf_idx:]
+        
+        # Extract predicted XI for both teams
+        home_players = _extract_sky_formation(formations_text, home_name)
+        away_players = _extract_sky_formation(formations_text, away_name)
+        
+        # Generate a stable ff_id from team names
+        ff_id = f"sky_{home_name.lower().replace(' ', '-')}-{away_name.lower().replace(' ', '-')}"
+        slug = f"{home_name.lower().replace(' ', '-')}-{away_name.lower().replace(' ', '-')}"
+        
+        matches.append({
+            'ff_id': ff_id,
+            'slug': slug,
+            'home': home_name,
+            'away': away_name,
+            'date': date_time_part,
+            'url': round_url,
+            'home_players_raw': home_players,
+            'away_players_raw': away_players,
+        })
+    
+    return matches
+
+
+def _extract_sky_formation(text: str, team_name: str) -> List[str]:
+    """Extract player names for a team from the formations text.
+    
+    Handles two patterns:
+    1. <b>Team (formation):</b> player1; player2; ...
+    2. <b>Team</b> <b>(formation)</b>: player1; player2; ...
+    """
+    import re
+    team_escaped = re.escape(team_name)
+    
+    # Pattern 1: formation inside same <b> tag
+    pattern1 = rf"<b[^>]*>\s*{team_escaped}\s*(?:\([^)]+\))?\s*:?\s*</b>\s*([^<]+)"
+    match = re.search(pattern1, text, re.IGNORECASE)
+    
+    # Pattern 2: formation in separate <b> tag
+    if not match or (match and not match.group(1).strip()):
+        pattern2 = rf"<b[^>]*>\s*{team_escaped}\s*</b>\s*<b[^>]*>\([^)]+\)</b>\s*:\s*([^<]+)"
+        match = re.search(pattern2, text, re.IGNORECASE)
+    
+    if not match or not match.group(1).strip():
+        return []
+    
+    players_str = match.group(1)
+    raw_players = re.split(r'[;,]', players_str)
+    
+    cleaned = []
+    for p in raw_players:
+        p = p.strip()
+        if not p:
+            continue
+        # Remove jersey numbers, positions, etc.
+        p = re.sub(r'\s*\(\d+\)', '', p)  # remove (10) etc
+        p = re.sub(r'^\d+\.\s*', '', p)   # remove leading "1. "
+        p = p.strip()
+        if p:
+            cleaned.append(p)
+    
+    return cleaned[:11]
+
+
 def _parse_matches_from_html(html: str, championship: str = '', include_all_jornadas: bool = False) -> List[Dict[str, Any]]:
-    """Parse the jornada listing.
+    """Parse the jornada listing from futbolfantasy.com.
 
     Two layouts to handle, both served by futbolfantasy.com:
 
@@ -277,139 +341,111 @@ def _parse_matches_from_html(html: str, championship: str = '', include_all_jorn
     layout_a = re.compile(
         r'<div[^>]*class="jornada jornada(\d+)"\s+style="">\s*'
         r'<a[^>]+href="https://www\.futbolfantasy\.com/partidos/(\d+)-([a-z0-9-]+)"[^>]*class="partido[^"]*"[^>]*>',
-        re.DOTALL,
     )
     layout_b = re.compile(
         r'<div[^>]*class="partido-container"[^>]*>\s*'
         r'<a[^>]+href="https://www\.futbolfantasy\.com/partidos/(\d+)-([a-z0-9-]+)"[^>]*class="partido[^"]*"[^>]*>',
-        re.DOTALL,
     )
-    out = []
-    seen = set()
 
-    # Always use Layout B (partido-container, the main content) only.
-    # The jornada-wrapper blocks on /laliga/posibles-alineaciones are the
-    # sidebar that re-lists the same ten matches already shown by the
-    # partido-container, so mixing both layers double-counts.
-    # Layout A is kept around for the parser's docstring/tests but is
-    # not used at runtime.
+    matches = []
 
-    for m in layout_b.finditer(html):
-        ff_id = m.group(1)
-        if ff_id in seen:
-            continue
-        seen.add(ff_id)
-        # Wrap as a fake jornada match object so _append_match is
-        # happy. Layout B regex exposes (ff_id, slug); jornada number
-        # is unknown but we just carry 0 since the cache doesn't use it.
-        m2 = type('FakeM', (), {})()
-        m2.group = lambda i, _ffid=ff_id, _slug=m.group(2): ('0', _ffid, _slug)[i] if 0 <= i <= 2 else ''
-        m2.start = lambda: m.start()
-        m2.end = lambda: m.end()
-        nb = layout_b.search(html, m.end())
-        _append_match(out, html, m2, source='layout_b', next_m=nb)
-    return out
-
-
-def _append_match(out, html, m, source: str = 'layout_a', next_m=None):
-    """Augment out with one parsed match entry.
-
-    Uses the same tooltip/score parsing as before, but factored out so
-    both Layout A (jornada-wrapped) and Layout B (partido-container)
-    can share it.
-    """
-    if source == 'layout_a':
-        ff_id = m.group(2)
-        slug = m.group(3)
+    if championship == 'laliga2':
+        # Only layout B
+        for m in layout_b.finditer(html):
+            ff_id = m.group(1)
+            slug = m.group(2)
+            home, away, fecha = _extract_match_info_from_slug(html, m.start())
+            if home and away:
+                matches.append({'ff_id': ff_id, 'slug': slug, 'home': home, 'away': away, 'fecha': fecha})
     else:
-        ff_id = m.group(1)
-        slug = m.group(2)
-    # Determine end of the per-match block: next match's anchor opening
-    # for whichever layout we're in. We use the partido anchor itself
-    # as the boundary (each <a class="partido"> opens a new match).
-    start = m.end()
-    if next_m is not None:
-        end = next_m.start()
-    else:
-        # Look for the next partido anchor in raw HTML.
-        anchor_pat = re.compile(r'<a[^>]+class="partido[^"]*"[^>]*>')
-        nm = anchor_pat.search(html, start + 1)
-        end = nm.start() if nm else start + 4000
-    block = html[start:end]
-    # Tooltip lives on the opening <a class="partido"> tag.
-    partido_tag = html[m.start():m.end()]
-    tooltip_m = re.search(r'data-tooltip="([^"]+)"', partido_tag)
-    if tooltip_m:
-        tt = tooltip_m.group(1).strip()
-        # Tooltip format: "Home - Away" possibly with score
-        # e.g. "Betis - Real Sociedad", "Rayo 1-1 Alavés",
-        # "Valencia 2 - 1 Celta".
-        # 1) Strip score pattern in the middle: "Home SCORE Away".
-        score_m = re.search(r'\s+\d+\s*[-–]\s*\d+\s+', tt)
-        if score_m:
-            home = tt[:score_m.start()].strip()
-            away = tt[score_m.end():].strip()
-        elif ' - ' in tt:
-            home, away = tt.split(' - ', 1)
-            home = home.strip()
-            away = away.strip()
-        elif '-' in tt:
-            # fallback single dash with possible spaces
-            left, right = tt.split('-', 1)
-            home = left.strip()
-            away = right.strip()
-        else:
-            home, away = '', ''
-    else:
-        home, away = '', ''
-    # fallback to img alt if tooltip parsing failed
-    if not home:
-        home_m = re.search(r'<img[^>]+class="escudo local[^"]*"[^>]*alt="([^"]+)"', block)
-        home = home_m.group(1) if home_m else ''
-    if not away:
-        away_m = re.search(r'<img[^>]+class="escudo visitante[^"]*"[^>]*alt="([^"]+)"', block)
-        away = away_m.group(1) if away_m else ''
-    # fecha: e.g. "Jue 21:00h", or "Vie 21/08 <br>21:00h".
-    fecha_m = re.search(r'<div class="fecha">\s*(?:([^<]*?)\s*<br>)?\s*([^<]+?)\s*</div>', block, re.DOTALL)
-    if fecha_m:
-        d = fecha_m.group(1) or ''
-        t = fecha_m.group(2) or ''
-        fecha = (d + ' ' + t).strip()
-    else:
-        fecha = ''
-    out.append({
-        'ff_id': ff_id,
-        'slug': slug,
-        'home': home,
-        'away': away,
-        'fecha': fecha,
-        'url': f'https://www.futbolfantasy.com/partidos/{ff_id}-{slug}',
-    })
-    return out
+        # LaLiga 1 or unknown: try layout A first (current jornada only)
+        for m in layout_a.finditer(html):
+            jornada_num = int(m.group(1))
+            ff_id = m.group(2)
+            slug = m.group(3)
+            home, away, fecha = _extract_match_info_from_slug(html, m.start())
+            if home and away:
+                matches.append({'ff_id': ff_id, 'slug': slug, 'home': home, 'away': away, 'fecha': fecha, 'jornada': jornada_num})
+
+        if not matches and not include_all_jornadas:
+            # Fallback to layout B
+            for m in layout_b.finditer(html):
+                ff_id = m.group(1)
+                slug = m.group(2)
+                home, away, fecha = _extract_match_info_from_slug(html, m.start())
+                if home and away:
+                    matches.append({'ff_id': ff_id, 'slug': slug, 'home': home, 'away': away, 'fecha': fecha})
+
+        if include_all_jornadas:
+            # Also parse hidden jornadas for neighbouring round lookup
+            hidden_jornada = re.compile(
+                r'<div[^>]*class="jornada jornada(\d+)"\s+style="display:\s*none;"[^>]*>\s*'
+                r'<a[^>]+href="https://www\.futbolfantasy\.com/partidos/(\d+)-([a-z0-9-]+)"[^>]*class="partido[^"]*"[^>]*>',
+            )
+            for m in hidden_jornada.finditer(html):
+                jornada_num = int(m.group(1))
+                ff_id = m.group(2)
+                slug = m.group(3)
+                home, away, fecha = _extract_match_info_from_slug(html, m.start())
+                if home and away:
+                    matches.append({'ff_id': ff_id, 'slug': slug, 'home': home, 'away': away, 'fecha': fecha, 'jornada': jornada_num})
+
+    return matches
+
+
+def _extract_match_info_from_slug(html: str, start_pos: int) -> Tuple[str, str, str]:
+    """Extract home/away/fecha from the partido link context."""
+    # Look backwards/forwards from the link for team names and date
+    context = html[max(0, start_pos - 500):start_pos + 500]
+    home = away = fecha = ''
+    
+    # Try to find team names in data-tooltip attribute
+    tooltip_match = re.search(r'data-tooltip="([^"]*)"', context)
+    if tooltip_match:
+        tooltip = tooltip_match.group(1)
+        # Format: "Home - Away" or "Home - Away" with scores
+        if ' - ' in tooltip:
+            parts = tooltip.split(' - ')
+            home = parts[0].strip()
+            away = parts[1].strip()
+            # Remove scores if present (e.g., "Racing 3-2 Elche" -> "Racing" and "Elche")
+            home = re.sub(r'\s+\d+-\d+$', '', home)
+            away = re.sub(r'^\d+-\d+\s+', '', away)
+        elif '-' in tooltip:
+            parts = tooltip.split('-')
+            home = parts[0].strip()
+            away = parts[1].strip()
+            home = re.sub(r'\s+\d+-\d+$', '', home)
+            away = re.sub(r'^\d+-\d+\s+', '', away)
+    
+    # Try to find fecha
+    fecha_match = re.search(r'<div class="fecha">([^<]+)</div>', context)
+    if fecha_match:
+        fecha = fecha_match.group(1).strip()
+    
+    return home, away, fecha
 
 
 def parse_match_xi(ff_id: str, slug: str, home_name: str = '', away_name: str = '') -> Dict[str, Any]:
     """Fetch a single match page and return 11 titular home + 11 titular away.
-
-    futbolfantasy renders the predicted XI for both teams on the same page;
-    the local (home) team appears first in the field/portero grid, the
-    visiting (away) team second. We take only `data-onceFF="titular"` blocks
-    and the FIRST truncate-name under each (in case alternatives are listed).
-
-    Returns dict:
-        {
-          'home': [{'ff_name': 'Marc Roca', 'ff_id': '3215'}, ...11],
-          'away': [{'ff_name': 'Remiro', 'ff_id': '1975'}, ...11]
-        }
+    
+    Dispatches based on the championship inferred from ff_id prefix:
+    - "sky_" -> sport.sky.it
+    - numeric -> futbolfantasy.com (Spain)
     """
+    if ff_id.startswith('sky_'):
+        return parse_match_xi_sky(ff_id, slug, home_name, away_name)
+    else:
+        return parse_match_xi_spain(ff_id, slug, home_name, away_name)
+
+
+def parse_match_xi_spain(ff_id: str, slug: str, home_name: str = '', away_name: str = '') -> Dict[str, Any]:
+    """Fetch a single match page from futbolfantasy and return 11 titular home + 11 titular away."""
     url = f'https://www.futbolfantasy.com/partidos/{ff_id}-{slug}'
     html = fetch(url)
     if not html:
         return {'home': [], 'away': []}
 
-    # Find all titular blocks; each one contains a <span class="truncate-name">.
-    # Use a non-greedy slice so the inner juggador block (which holds the name)
-    # is captured as part of the same match.
     titular_re = re.compile(
         r'class="jugador_(\d+)\s+([^"]+)"[^>]*data-onceFF="titular"(.*?)(?=class="jugador_\d+\s+[^"]*"|$)',
         re.DOTALL,
@@ -422,18 +458,9 @@ def parse_match_xi(ff_id: str, slug: str, home_name: str = '', away_name: str = 
         name_m = re.search(r'<span class="truncate-name mx-auto">([^<]+)</span>', body)
         if not name_m:
             continue
-        # Aug 22 2026 — derive position from the wrapper class.
-        # futbolfantasy uses "portero" for GK and "campo" for
-        # outfield. Map to LV-style positions so build_match_cache
-        # can pass a position hint to normalise_name_match.
         if 'portero' in cls:
             ff_position = 'GK'
         elif 'campo' in cls:
-            # campo covers DF/MF/FW — we don't know which.
-            # Leave the hint empty; the LV squad knows its own
-            # per-player position, and "outfield" is still useful
-            # for ruling out a GK candidate when the futbolfantasy
-            # slot is an outfield one.
             ff_position = 'OUTFIELD'
         else:
             ff_position = ''
@@ -443,9 +470,71 @@ def parse_match_xi(ff_id: str, slug: str, home_name: str = '', away_name: str = 
             'ff_position': ff_position,
         })
 
-    # Only first 22 = 11 home + 11 away.
     blocks = blocks[:22]
     return {'home': blocks[:11], 'away': blocks[11:]}
+
+
+def parse_match_xi_sky(ff_id: str, slug: str, home_name: str = '', away_name: str = '') -> Dict[str, Any]:
+    """Fetch predicted XI from sport.sky.it for Serie A.
+    
+    Uses the round-specific page which contains all formations.
+    """
+    # Fetch the round page (we need to construct the URL from slug or use a cached one)
+    # For now, fetch the main page and find the specific match
+    url = CHAMPIONSHIPS['seriea']
+    html = fetch(url)
+    if not html:
+        return {'home': [], 'away': []}
+    
+    # Find the match card
+    card_pattern = re.compile(
+        r'<div class="c-extended-card[^"]*"[^>]*>.*?<h2>([^<]+)</h2>.*?<div class="c-extended-card__body">(.*?)</div>',
+        re.DOTALL
+    )
+    
+    for m in card_pattern.finditer(html):
+        title = m.group(1).strip()
+        body = m.group(2)
+        
+        if ',' not in title:
+            continue
+        teams_part = title.split(',')[0].strip()
+        
+        if ' - ' in teams_part:
+            h_name, a_name = [s.strip() for s in teams_part.split(' - ', 1)]
+        elif '-' in teams_part:
+            h_name, a_name = [s.strip() for s in teams_part.split('-', 1)]
+        else:
+            continue
+        
+        # Check if this is our match
+        if _names_match(h_name, home_name) and _names_match(a_name, away_name):
+            pf_idx = body.find('Probabili formazioni')
+            if pf_idx == -1:
+                continue
+            formations_text = body[pf_idx:]
+            
+            home_players = _extract_sky_formation(formations_text, h_name)
+            away_players = _extract_sky_formation(formations_text, a_name)
+            
+            # Convert to same format as Spain
+            home_blocks = [{'ff_name': p, 'ff_id': f'sky_{i}', 'ff_position': 'GK' if i == 0 else 'OUTFIELD'} 
+                          for i, p in enumerate(home_players)]
+            away_blocks = [{'ff_name': p, 'ff_id': f'sky_{i}', 'ff_position': 'GK' if i == 0 else 'OUTFIELD'} 
+                          for i, p in enumerate(away_players)]
+            
+            return {'home': home_blocks[:11], 'away': away_blocks[:11]}
+    
+    return {'home': [], 'away': []}
+
+
+def _names_match(name1: str, name2: str) -> bool:
+    """Fuzzy match team names."""
+    if not name1 or not name2:
+        return False
+    n1 = normalise_token(name1)
+    n2 = normalise_token(name2)
+    return n1 == n2 or n1 in n2 or n2 in n1
 
 
 def normalise_name_match(ff_name: str, lv_players: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -455,34 +544,9 @@ def normalise_name_match(ff_name: str, lv_players: List[Dict[str, Any]]) -> Opti
     LineupValue uses "Surname FirstName" (e.g. "Roca Marc").
 
     Returns the matched LV player dict or None.
-
-    Aug 22 2026 — hardened to fix two specific bugs Max saw:
-      1) "Mariño" (futbolfantasy) was matching "Marin Carlos"
-         because both share the "marin" prefix and the matcher
-         picked the first LV squad row that started with that
-         prefix. We now require an exact token match first, and
-         a substring/prefix match must agree on at least one
-         *full* token, not just share a 5-letter prefix.
-      2) "Dani Díaz" (futbolfantasy) was matching "Galilea Daniel"
-         because "daniel" is a token in both names. Same fix as
-         above — full-token equality wins, partial matches only
-         stand when the other side has no other LV player sharing
-         the same token.
-
-    Strategy, in order:
-      1) Full-token set match (any of ff_variants ∩ lv_variants).
-      2) If multiple LV players match by token, prefer the one
-         whose position (GK/DF/MF/FW) matches the slot hint if
-         the caller passed `ff_position`. The futbolfantasy order
-         is GK-first so we mirror that.
-      3) Substring fallback: ff's surname appears as a full
-         token of the LV name (i.e. lv has a token exactly equal
-         to ff's surname, ignoring diacritics). Same in reverse.
     """
     if not ff_name:
         return None
-    # Optional kwarg access via kwargs slot — kept positional
-    # elsewhere for backwards compat.
     return _normalise_name_match_impl(ff_name, lv_players)
 
 
@@ -517,265 +581,140 @@ def _normalise_name_match_impl_inner(ff_name: str, lv_players: List[Dict[str, An
     # Pass 1: full-token match across any variant of either side.
     # Score by how many token-pairs agree, and tiebreak by:
     #   a) more tokens agreed (longer names are more specific)
-    #   b) position hint if provided
-    #   c) shorter LV name (more specific identity)
-    full_hits = []  # list of (score, lv_player)
+    #   b) position match if ff_position given
+    best = None
+    best_score = (-1, -1)
+
     for p in lv_players:
         lv_name = p.get('name') or ''
-        lv_variants = name_variants(lv_name)
-        # Count tokens that appear in both sides (as full tokens).
-        lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
-        common = [t for t in ff_toks if t in lv_toks]
+        if not lv_name:
+            continue
+        lv_variants = set(name_variants(lv_name))
+        common = ff_variants & lv_variants
         if not common:
             continue
-        # Variants that contain ALL ff tokens — the strongest signal.
-        all_in_variants = sum(1 for v in lv_variants if all(t in v for t in ff_toks))
-        score = 100 + len(common) * 10 + all_in_variants * 5
-        full_hits.append((score, p, lv_name, len(lv_toks)))
-
-    if full_hits:
-        # Aug 22 2026 — tiebreak by position hint first.
+        score = (len(common), sum(len(c) for c in common))
         if ff_position:
-            by_pos = [h for h in full_hits if (h[1].get('position') or '').upper() == ff_position.upper()]
-            if by_pos:
-                full_hits = by_pos
-        # Aug 22 2026 — tiebreak by *longer* LV name (more
-        # tokens = more specific identity, e.g. "San Bartolome
-        # Victor" beats "Valverde Victor" when both share the
-        # ff token "Victor"). Falls back to alphabetic to stay
-        # deterministic.
-        full_hits.sort(key=lambda h: (-h[0], -h[3], h[2]))
-        return full_hits[0][1]
+            lv_pos = (p.get('position') or '').upper()
+            if ff_position == 'GK' and lv_pos == 'GK':
+                score = (score[0] + 10, score[1])
+            elif ff_position == 'OUTFIELD' and lv_pos != 'GK':
+                score = (score[0] + 1, score[1])
+        if score > best_score:
+            best_score = score
+            best = p
 
-    # Pass 2: substring fallback — only accept when one side's
-    # full token equals the other side's full token (already
-    # covered by pass 1) OR the longer token is at least 5 chars
-    # and the shorter one is at least 4 chars AND the shorter
-    # is a *strict* prefix of the longer. This catches e.g.
-    # "Gavi" -> "Gavi Pablo" but rejects "Mariño" -> "Marin
-    # Carlos" because the 5-char "marin" is NOT a strict prefix
-    # of "marino" (it is the other way around, "marin" is a
-    # prefix of "marino"). Wait — that's wrong: "marin" IS a
-    # strict prefix of "marino". So this rule alone is not enough.
-    # The crucial extra rule: the longer token must NOT itself be
-    # an LV surname for someone *else* in the squad. If "Marino
-    # Diego" exists alongside "Marin Carlos", the squad has both
-    # full surnames, and the matcher must choose the one whose
-    # full surname appears as a substring of the ff surname.
-    sub_hits = []
+    if best:
+        return best
+
+    # Pass 2: substring fallback — ff's surname as full token of LV name
+    ff_surname_tok = ff_toks[-1] if ff_toks else ''
+    if ff_surname_tok:
+        for p in lv_players:
+            lv_name = p.get('name') or ''
+            lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
+            if ff_surname_tok in lv_toks:
+                return p
+
+    # Pass 3: reverse — LV surname as full token of ff name
     for p in lv_players:
         lv_name = p.get('name') or ''
         lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
-        for lt in lv_toks:
-            for ft in ff_toks:
-                if not lt or not ft or len(lt) < 4 or len(ft) < 4:
-                    continue
-                if lt == ft:
-                    # exact full-token equality — this should have
-                    # been caught by pass 1 already, but keep for
-                    # safety.
-                    sub_hits.append((50, p, lv_name, len(lv_toks)))
-                    break
-                # Strict prefix (shorter is a prefix of longer).
-                shorter, longer = (lt, ft) if len(lt) < len(ft) else (ft, lt)
-                if len(shorter) < 4:
-                    continue
-                if not longer.startswith(shorter):
-                    continue
-                # Reject the case where the longer token ALSO
-                # appears as a full surname in some OTHER LV
-                # player of the squad — that means the squad has
-                # both names and we should match the ff name to
-                # the one whose surname matches exactly.
-                long_token = ft if len(ft) >= len(lt) else lt
-                long_token_is_other_lv_surname = False
-                for q in lv_players:
-                    if q is p:
-                        continue
-                    q_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', q.get('name') or '') if t]
-                    if long_token in q_toks:
-                        long_token_is_other_lv_surname = True
-                        break
-                if long_token_is_other_lv_surname:
-                    continue
-                sub_hits.append((20 + len(shorter), p, lv_name, len(lv_toks)))
-                break
-            else:
-                continue
-            break
+        lv_surname_tok = lv_toks[-1] if lv_toks else ''
+        if lv_surname_tok and lv_surname_tok in ff_toks:
+            return p
 
-    if sub_hits:
-        if ff_position:
-            by_pos = [h for h in sub_hits if (h[1].get('position') or '').upper() == ff_position.upper()]
-            if by_pos:
-                sub_hits = by_pos
-        # Aug 22 2026 — prefer longer LV name (more specific).
-        sub_hits.sort(key=lambda h: (-h[0], -h[3], h[2]))
-        return sub_hits[0][1]
     return None
 
 
-# Phase 1.3-1.5 smoke test
-if __name__ == '__main__':
-    import sys
-    champ = sys.argv[1] if len(sys.argv) > 1 else 'laliga'
-    if len(sys.argv) > 2 and sys.argv[2] == 'cache':
-        # warm up cache for current round
-        from pathlib import Path
-        ms = parse_round_matches(champ)
-        for m in ms:
-            cache_p = cache_path(m.get('slug', '?'))
-            print(f'  {m["ff_id"]} {m["home"]} vs {m["away"]}')
-        print(f'\nTotal matches to fetch: {len(ms)}')
-        sys.exit(0)
-    ms = parse_round_matches(champ)
-    print(f'{champ}: {len(ms)} matches')
-    for m in ms[:3]:
-        xi = parse_match_xi(m['ff_id'], m['slug'], m['home'], m['away'])
-        h = m['home']; a = m['away']; fid = m['ff_id']
-        print(f'\n  {fid} {h} vs {a}')
-        print(f'    home ({len(xi["home"])}): {[p["ff_name"] for p in xi["home"]]}')
-        print(f'    away ({len(xi["away"])}): {[p["ff_name"] for p in xi["away"]]}')
+def build_match_cache(
+    championship: str,
+    match_id: str,
+    ff_id: str,
+    slug: str,
+    home_team_id: str,
+    away_team_id: str,
+    kickoff_ts: int,
+    home_lv_players: List[Dict[str, Any]],
+    away_lv_players: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Fetch predicted XI, match to LV squads, write per-match cache.
 
-
-def build_match_cache(championship: str, match_id: str, ff_id: str, slug: str,
-                      home_team_id: str, away_team_id: str,
-                      kickoff_ts: int,
-                      home_lv_players: List[Dict[str, Any]],
-                      away_lv_players: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Build a per-match cache dict and save it. Returns the dict.
-
-    Used by the scheduler when T-18:00 has passed and by the
-    refresh=1 path through /api/predicted_xi/<mid>.
-
-    Aug 22 2026 — pass the futbolfantasy position hint (GK / OUTFIELD)
-    through to normalise_name_match so the matcher can rule out
-    mismatched-position candidates (e.g. picking a GK when the
-    futbolfantasy slot is an outfield one, or vice versa).
-
-    Aug 22 2026 — three-stage matcher with a positional/leftover
-    fallback that fixes single-token edge cases like:
-      - "Lachhab"  (ff, surname-only) → squad has "Youness" (no
-        token overlap at all, but it's the only MF who hasn't
-        been matched yet on Oviedo's squad).
-      - "Lalo" (ff, nickname for "Gonzalo Lopez Aguilar") → squad
-        has "Aguilar Lopez Gonzalo" with no token overlap to the
-        nickname. Position + "is the only DF on Leganés' squad
-        that hasn't been matched yet" picks it up.
+    Returns the cache dict (also saved to disk).
     """
-    xi = parse_match_xi(ff_id, slug)
-    home_xi, home_matched_players = _match_side(
-        xi['home'], home_lv_players, side_label='home',
-    )
-    away_xi, away_matched_players = _match_side(
-        xi['away'], away_lv_players, side_label='away',
-    )
-    data = {
+    # Fetch predicted XI (dispatches to Spain or Italy based on ff_id)
+    xi = parse_match_xi(ff_id, slug, home_name='', away_name='')
+    home_xi = xi.get('home', [])
+    away_xi = xi.get('away', [])
+
+    # Match home
+    home_matched = []
+    matched_player_ids = set()
+    for p in home_xi:
+        lv_player = normalise_name_match(p.get('ff_name', ''), home_lv_players)
+        if lv_player:
+            home_matched.append({
+                'ff_name': p.get('ff_name'),
+                'ff_id': p.get('ff_id'),
+                'lv_player_id': lv_player.get('player_id'),
+                'lv_name': lv_player.get('name'),
+                'matched': True,
+                'matched_by': 'name',
+                'ff_position': p.get('ff_position'),
+            })
+            matched_player_ids.add(lv_player.get('player_id'))
+        else:
+            home_matched.append({
+                'ff_name': p.get('ff_name'),
+                'ff_id': p.get('ff_id'),
+                'lv_player_id': None,
+                'lv_name': None,
+                'matched': False,
+                'matched_by': None,
+                'ff_position': p.get('ff_position'),
+            })
+
+    # Match away (separate matched set)
+    away_matched = []
+    matched_away_ids = set()
+    for p in away_xi:
+        lv_player = normalise_name_match(p.get('ff_name', ''), away_lv_players)
+        if lv_player:
+            away_matched.append({
+                'ff_name': p.get('ff_name'),
+                'ff_id': p.get('ff_id'),
+                'lv_player_id': lv_player.get('player_id'),
+                'lv_name': lv_player.get('name'),
+                'matched': True,
+                'matched_by': 'name',
+                'ff_position': p.get('ff_position'),
+            })
+            matched_away_ids.add(lv_player.get('player_id'))
+        else:
+            away_matched.append({
+                'ff_name': p.get('ff_name'),
+                'ff_id': p.get('ff_id'),
+                'lv_player_id': None,
+                'lv_name': None,
+                'matched': False,
+                'matched_by': None,
+                'ff_position': p.get('ff_position'),
+            })
+
+    cache = {
         'match_id': match_id,
-        'championship': championship,
         'ff_id': ff_id,
         'slug': slug,
         'home_team_id': home_team_id,
         'away_team_id': away_team_id,
-        'home_players': home_xi,
-        'away_players': away_xi,
-        'kickoff_ts': kickoff_ts,
+        'home_players': home_matched,
+        'away_players': away_matched,
         'fetched_at': int(time.time()),
+        'kickoff_ts': kickoff_ts,
+        'championship': championship,
     }
-    save_match_xi(data)
-    return data
-
-
-def _match_side(ff_side: List[Dict[str, Any]],
-                lv_players: List[Dict[str, Any]],
-                side_label: str) -> Tuple[List[Dict[str, Any]], set]:
-    """Match every ff player on one side against the LV squad.
-
-    Returns (matched_list, set_of_already_matched_player_ids).
-    The matched_list preserves the ff input order. Each entry has:
-      {ff_name, ff_id, lv_player_id, lv_name, matched}
-    """
-    out = []
-    matched_player_ids = set()
-    # Aug 22 2026 — derive the LV team_id from any squad row that
-    # carries it (the live cache stores _team_id per player). If
-    # none of the rows have it, leave the team_id empty so the
-    # roster-override path falls through to the generic matcher.
-    lv_team_id = ''
-    for q in lv_players:
-        t = q.get('_team_id') or q.get('team_id') or ''
-        if t:
-            lv_team_id = t
-            break
-    # Two passes so positional leftovers (third pass) only see the
-    # state AFTER the strong-match players have been claimed.
-    for p in ff_side:
-        # Aug 22 2026 — roster-specific override runs FIRST. It
-        # bypasses both the generic matcher and the alias
-        # dictionary. Use it only for hand-verified team+ff pairs
-        # where the generic matcher provably can't connect (e.g.
-        # "Lachhab" is the surname stored on the LV side under
-        # "Youness" — disjoint token sets).
-        matched = _roster_override(p['ff_name'], lv_team_id, lv_players)
-        if not matched:
-            matched = _normalise_name_match_impl(
-                p['ff_name'], lv_players,
-                ff_position=p.get('ff_position', ''),
-            )
-        out.append({
-            'ff_name': p['ff_name'],
-            'ff_id': p['ff_id'],
-            'lv_player_id': (matched or {}).get('player_id'),
-            'lv_name': (matched or {}).get('name'),
-            'matched': matched is not None,
-        })
-        if matched:
-            matched_player_ids.add(matched.get('player_id'))
-    # Third pass: positional / leftover fallback. For every entry
-    # that came back unmatched, look at the LV squad and see whether
-    # there is exactly ONE player of the same position who has NOT
-    # been matched yet. If so, that player must be the one — accept
-    # it even if there is zero token overlap (nickname / surname-only
-    # cases like "Lachhab" / "Youness" or "Lalo" / "Aguilar Lopez
-    # Gonzalo").
-    #
-    # Aug 22 2026 — relaxed rule for ff slots with a single token
-    # (futbolfantasy tends to render only the surname for some
-    # players): when the ff_name has ONE token and the number of
-    # remaining LV candidates is more than one but still small,
-    # we don't auto-match (would be unsafe) — we still leave it
-    # unmatched so the cache reflects reality. The single-candidate
-    # case is the only one we accept.
-    for i, p in enumerate(out):
-        if p['matched']:
-            continue
-        ff_pos = (ff_side[i].get('ff_position') or '').upper()
-        # Candidates: LV players not yet matched, on the same position
-        # bucket (GK vs OUTFIELD), and not the GK when ff_pos is GK,
-        # etc. We treat OUTFIELD as "DF/MF/FW" — any of them.
-        cands = []
-        for q in lv_players:
-            qid = q.get('player_id')
-            if qid in matched_player_ids:
-                continue
-            qpos = (q.get('position') or '').upper()
-            if ff_pos == 'GK' and qpos != 'GK':
-                continue
-            if ff_pos == 'OUTFIELD' and qpos == 'GK':
-                continue
-            cands.append(q)
-        if len(cands) == 1:
-            only = cands[0]
-            out[i] = {
-                'ff_name': p['ff_name'],
-                'ff_id': p['ff_id'],
-                'lv_player_id': only.get('player_id'),
-                'lv_name': only.get('name'),
-                'matched': True,
-                'matched_by': 'positional_leftover',
-            }
-            matched_player_ids.add(only.get('player_id'))
-    return out, matched_player_ids
+    save_match_xi(cache)
+    return cache
 
 
 def get_match_xi(match_id: str) -> Optional[Dict[str, Any]]:

@@ -3208,37 +3208,52 @@ async def lineup_api_predicted_xi_status(team_id: str):
     """
     import predicted_xi
     import laliga_fixtures
-    try:
-        data = laliga_fixtures.get_laliga_fixtures()
-    except Exception:
-        return JSONResponse(content={'team_id': team_id, 'matches': []}, status_code=200)
+    import seriea_fixtures
+
     out = []
-    for m in data.get('fixtures', []):
-        ht_id = (m.get('home_team') or {}).get('id') or m.get('home', {}).get('team_id') or ''
-        at_id = (m.get('away_team') or {}).get('id') or m.get('away', {}).get('team_id') or ''
-        if team_id not in (ht_id, at_id) or not team_id:
-            continue
-        mid = m.get('match_id') or ''
-        cached = predicted_xi.get_match_xi(mid) if mid else None
-        if cached:
-            hc = sum(1 for p in cached.get('home_players', []) if p.get('matched'))
-            ac = sum(1 for p in cached.get('away_players', []) if p.get('matched'))
-            ht_total = len(cached.get('home_players', []))
-            at_total = len(cached.get('away_players', []))
-        else:
-            hc = ac = 0
-            ht_total = at_total = 0
-        out.append({
-            'match_id': mid,
-            'home_team_id': ht_id,
-            'away_team_id': at_id,
-            'home_count': hc,
-            'away_count': ac,
-            'home_total': ht_total,
-            'away_total': at_total,
-            'home_11': hc == 11 and ht_total == 11,
-            'away_11': ac == 11 and at_total == 11,
-        })
+
+    def _process_fixtures(data: dict):
+        for m in data.get('fixtures', []):
+            ht_id = (m.get('home_team') or {}).get('id') or m.get('home', {}).get('team_id') or ''
+            at_id = (m.get('away_team') or {}).get('id') or m.get('away', {}).get('team_id') or ''
+            if team_id not in (ht_id, at_id) or not team_id:
+                continue
+            mid = m.get('match_id') or ''
+            cached = predicted_xi.get_match_xi(mid) if mid else None
+            if cached:
+                hc = sum(1 for p in cached.get('home_players', []) if p.get('matched'))
+                ac = sum(1 for p in cached.get('away_players', []) if p.get('matched'))
+                ht_total = len(cached.get('home_players', []))
+                at_total = len(cached.get('away_players', []))
+            else:
+                hc = ac = 0
+                ht_total = at_total = 0
+            out.append({
+                'match_id': mid,
+                'home_team_id': ht_id,
+                'away_team_id': at_id,
+                'home_count': hc,
+                'away_count': ac,
+                'home_total': ht_total,
+                'away_total': at_total,
+                'home_11': hc == 11 and ht_total == 11,
+                'away_11': ac == 11 and at_total == 11,
+            })
+
+    # LaLiga + LaLiga2
+    try:
+        laliga_data = laliga_fixtures.get_laliga_fixtures()
+        _process_fixtures(laliga_data)
+    except Exception:
+        pass
+
+    # Serie A
+    try:
+        seriea_data = seriea_fixtures.get_seriea_fixtures()
+        _process_fixtures(seriea_data)
+    except Exception:
+        pass
+
     return JSONResponse(content={'team_id': team_id, 'matches': out}, status_code=200)
 
 
@@ -6239,98 +6254,138 @@ def _predicted_xi_team_id_to_name_v2(team_id):
                     return _team.get('name') or ''
     return ''
 
-def _predicted_xi_cycle_v2():
+def _predicted_xi_cycle_v2() -> None:
     try:
         import predicted_xi
         import laliga_fixtures
-        data = laliga_fixtures.get_laliga_fixtures()
+        import seriea_fixtures
+
         now = int(time.time())
         horizon = now + 18 * 3600
-        for m in data.get('fixtures', []):
-            ts = int(m.get('timestamp') or 0)
-            if not ts or ts < now - 600 or ts > horizon:
-                continue
-            mid = m.get('match_id') or ''
-            if not mid:
-                continue
-            cached = predicted_xi.get_match_xi(mid)
-            if cached:
-                continue
-            home_obj = m.get('home') or m.get('home_team') or {}
-            away_obj = m.get('away') or m.get('away_team') or {}
-            home_id = home_obj.get('team_id') or home_obj.get('id')
-            away_id = away_obj.get('team_id') or away_obj.get('id')
-            home_name = _predicted_xi_team_id_to_name_v2(home_id).lower()
-            away_name = _predicted_xi_team_id_to_name_v2(away_id).lower()
-            import unicodedata as _unicodedata
-            def _name_eq(a, b):
-                def _strip(s):
-                    return ''.join(c for c in _unicodedata.normalize('NFD', s) if _unicodedata.category(c) != 'Mn')
-                al = _strip((a or '').lower())
-                bl = _strip((b or '').lower())
-                if not al or not bl:
-                    return False
-                if al == bl:
-                    return True
-                if al in bl or bl in al:
-                    return True
-                at = al.replace('.', '').replace('-', ' ').split()
-                bt = bl.replace('.', '').replace('-', ' ').split()
-                return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])) for t in at)
-            round_num = 0
-            raw_round = m.get('round') or ''
-            if isinstance(raw_round, int):
-                round_num = raw_round
-            elif isinstance(raw_round, str):
-                import re as _re
-                m_round = _re.search(r'(\d+)', raw_round)
-                if m_round:
-                    try:
-                        round_num = int(m_round.group(1))
-                    except (TypeError, ValueError):
-                        round_num = 0
-            jornada_candidates = [round_num] if round_num else [0]
-            for delta in (-1, 1):
-                nxt = round_num + delta
-                if nxt > 0:
-                    jornada_candidates.append(nxt)
-            ff_match = None
-            ff_championship = None
-            for championship_key in ('laliga', 'laliga2'):
-                for jn in jornada_candidates:
-                    try:
-                        ff_round = predicted_xi.parse_round_matches(championship_key, jornada=jn)
-                    except TypeError:
-                        ff_round = predicted_xi.parse_round_matches(championship_key)
-                    if not ff_round:
-                        continue
-                    candidate = next(
-                        (x for x in ff_round
-                         if _name_eq(x.get('home', ''), home_name)
-                         and _name_eq(x.get('away', ''), away_name)),
-                        None,
-                    )
-                    if candidate:
-                        ff_match = candidate
-                        ff_championship = championship_key
-                        break
-                if ff_match:
-                    break
-            if not ff_match:
-                continue
-            home_lv = _load_lv_players(home_id)
-            away_lv = _load_lv_players(away_id)
-            predicted_xi.build_match_cache(
-                championship=ff_championship or 'laliga',
-                match_id=mid,
-                ff_id=ff_match['ff_id'], slug=ff_match['slug'],
-                home_team_id=home_id, away_team_id=away_id,
-                kickoff_ts=ts,
-                home_lv_players=home_lv, away_lv_players=away_lv,
-            )
-            print(f'predicted_xi cached {mid} {home_id} vs {away_id} champ={ff_championship}')
+
+        # ---- LaLiga + LaLiga2 ----
+        laliga_data = laliga_fixtures.get_laliga_fixtures()
+        _process_fixtures_for_pxi(laliga_data, now, horizon, predicted_xi,
+                                  ('laliga', 'laliga2'))
+
+        # ---- Serie A ----
+        seriea_data = seriea_fixtures.get_seriea_fixtures()
+        _process_fixtures_for_pxi(seriea_data, now, horizon, predicted_xi,
+                                  ('seriea',))
+
     except Exception as ex:
         print(f'predicted_xi_cycle_v2 error: {ex}')
+
+
+def _process_fixtures_for_pxi(
+    data: dict,
+    now: int,
+    horizon: int,
+    predicted_xi_module,
+    championship_keys: tuple[str, ...],
+) -> None:
+    """Shared logic: iterate fixtures, match to ff/sky, build cache."""
+    import unicodedata as _unicodedata
+    import re as _re
+
+    def _name_eq(a: str, b: str) -> bool:
+        def _strip(s: str) -> str:
+            return ''.join(c for c in _unicodedata.normalize('NFD', s)
+                           if _unicodedata.category(c) != 'Mn')
+        al = _strip((a or '').lower())
+        bl = _strip((b or '').lower())
+        if not al or not bl:
+            return False
+        if al == bl:
+            return True
+        if al in bl or bl in al:
+            return True
+        at = al.replace('.', '').replace('-', ' ').split()
+        bt = bl.replace('.', '').replace('-', ' ').split()
+        return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0]))
+                   for t in at)
+
+    for m in data.get('fixtures', []):
+        ts = int(m.get('timestamp') or 0)
+        if not ts or ts < now - 600 or ts > horizon:
+            continue
+        mid = m.get('match_id') or ''
+        if not mid:
+            continue
+        cached = predicted_xi_module.get_match_xi(mid)
+        if cached:
+            continue
+
+        home_obj = m.get('home') or m.get('home_team') or {}
+        away_obj = m.get('away') or m.get('away_team') or {}
+        home_id = home_obj.get('team_id') or home_obj.get('id')
+        away_id = away_obj.get('team_id') or away_obj.get('id')
+        if not home_id or not away_id:
+            continue
+
+        home_name = _predicted_xi_team_id_to_name_v2(home_id).lower()
+        away_name = _predicted_xi_team_id_to_name_v2(away_id).lower()
+
+        # Extract round number from fixture
+        round_num = 0
+        raw_round = m.get('round') or ''
+        if isinstance(raw_round, int):
+            round_num = raw_round
+        elif isinstance(raw_round, str):
+            m_round = _re.search(r'(\d+)', raw_round)
+            if m_round:
+                try:
+                    round_num = int(m_round.group(1))
+                except (TypeError, ValueError):
+                    round_num = 0
+
+        jornada_candidates = [round_num] if round_num else [0]
+        for delta in (-1, 1):
+            nxt = round_num + delta
+            if nxt > 0:
+                jornada_candidates.append(nxt)
+
+        ff_match = None
+        ff_championship = None
+        for championship_key in championship_keys:
+            for jn in jornada_candidates:
+                try:
+                    ff_round = predicted_xi_module.parse_round_matches(championship_key, jornada=jn)
+                except TypeError:
+                    ff_round = predicted_xi_module.parse_round_matches(championship_key)
+                if not ff_round:
+                    continue
+                candidate = next(
+                    (x for x in ff_round
+                     if _name_eq(x.get('home', ''), home_name)
+                     and _name_eq(x.get('away', ''), away_name)),
+                    None,
+                )
+                if candidate:
+                    ff_match = candidate
+                    ff_championship = championship_key
+                    break
+            if ff_match:
+                break
+
+        if not ff_match:
+            continue
+
+        home_lv = _load_lv_players(home_id)
+        away_lv = _load_lv_players(away_id)
+
+        predicted_xi_module.build_match_cache(
+            championship=ff_championship or championship_keys[0],
+            match_id=mid,
+            ff_id=ff_match['ff_id'],
+            slug=ff_match['slug'],
+            home_team_id=home_id,
+            away_team_id=away_id,
+            kickoff_ts=ts,
+            home_lv_players=home_lv,
+            away_lv_players=away_lv,
+        )
+        print(f'predicted_xi cached {mid} {home_id} vs {away_id} champ={ff_championship}')
 
 def predicted_xi_scheduler_start():
     global _pxi_scheduler_started
