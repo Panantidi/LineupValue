@@ -618,12 +618,28 @@ def _normalise_name_match_impl_inner(ff_name: str, lv_players: List[Dict[str, An
         return best
 
     # Pass 2: substring fallback — ff's surname as full token of LV name
+    # (tokens split on / too, so "Dia/Pinamonti" -> last tok = pinamonti)
+    ff_toks_all = [t for t in re.split(r'[\s\.\-/]+', ff_name) if t]
+    ff_toks = [normalise_token(t) for t in ff_toks_all if t]
+    ff_toks = [t for t in ff_toks if t]
     ff_surname_tok = ff_toks[-1] if ff_toks else ''
     if ff_surname_tok:
         for p in lv_players:
             lv_name = p.get('name') or ''
             lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
             if ff_surname_tok in lv_toks:
+                return p
+
+    # Pass 2b (Aug 30 2026) — first-token fallback: ff's given token as a
+    # full token of the LV name. Handles LV renaming cases like
+    # ff "Floriani Mussolini" vs LV "Floriani Romano" (same player,
+    # different second name). Only fires when no other pass matched.
+    ff_first_tok = ff_toks[0] if ff_toks else ''
+    if ff_first_tok and len(ff_toks) >= 2:
+        for p in lv_players:
+            lv_name = p.get('name') or ''
+            lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
+            if ff_first_tok in lv_toks:
                 return p
 
     # Pass 3: reverse — LV surname as full token of ff name
@@ -645,7 +661,7 @@ def _try_split_merged(ff_name: str, lv_players: List[Dict[str, Any]]) -> Optiona
     token boundary; if both parts match distinct LV players, return
     two matched entries.
     """
-    toks = [t for t in re.split(r'[\s\.\-]+', ff_name) if t]
+    toks = [t for t in re.split(r'[\s\.\-/]+', ff_name) if t]
     for i in range(1, len(toks)):
         p1, p2 = ' '.join(toks[:i]), ' '.join(toks[i:])
         m1 = normalise_name_match(p1, lv_players)
