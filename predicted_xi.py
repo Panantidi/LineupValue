@@ -478,44 +478,36 @@ def parse_match_xi_sky(ff_id: str, slug: str, home_name: str = '', away_name: st
     """Fetch predicted XI from sport.sky.it for Serie A.
     
     Uses the round-specific page which contains all formations.
+    If home_name/away_name are empty, derive them from ff_id
+    (build_match_cache passes empty names — ff_id is like "sky_napoli-como").
     """
-    # Fetch the round page (we need to construct the URL from slug or use a cached one)
-    # For now, fetch the main page and find the specific match
+    if not home_name or not away_name:
+        parts = (ff_id or slug or '').replace('sky_', '').split('-')
+        if len(parts) >= 2:
+            home_name = home_name or parts[0]
+            away_name = away_name or parts[1]
+    # The main page has only a link to the round-specific page — fetch that instead
     url = CHAMPIONSHIPS['seriea']
     html = fetch(url)
     if not html:
         return {'home': [], 'away': []}
+
+    round_url = _extract_round_url(html)
+    if round_url:
+        html = fetch(round_url)
+        if not html:
+            return {'home': [], 'away': []}
     
-    # Find the match card
-    card_pattern = re.compile(
-        r'<div class="c-extended-card[^"]*"[^>]*>.*?<h2>([^<]+)</h2>.*?<div class="c-extended-card__body">(.*?)</div>',
-        re.DOTALL
-    )
+    # Reuse the reliable round-page parser (h2-positions approach)
+    all_matches = _parse_matches_from_sky_html(html, round_url or url)
     
-    for m in card_pattern.finditer(html):
-        title = m.group(1).strip()
-        body = m.group(2)
+    for m in all_matches:
+        h_name = m.get('home', '')
+        a_name = m.get('away', '')
         
-        if ',' not in title:
-            continue
-        teams_part = title.split(',')[0].strip()
-        
-        if ' - ' in teams_part:
-            h_name, a_name = [s.strip() for s in teams_part.split(' - ', 1)]
-        elif '-' in teams_part:
-            h_name, a_name = [s.strip() for s in teams_part.split('-', 1)]
-        else:
-            continue
-        
-        # Check if this is our match
         if _names_match(h_name, home_name) and _names_match(a_name, away_name):
-            pf_idx = body.find('Probabili formazioni')
-            if pf_idx == -1:
-                continue
-            formations_text = body[pf_idx:]
-            
-            home_players = _extract_sky_formation(formations_text, h_name)
-            away_players = _extract_sky_formation(formations_text, a_name)
+            home_players = m.get('home_players_raw', [])
+            away_players = m.get('away_players_raw', [])
             
             # Convert to same format as Spain
             home_blocks = [{'ff_name': p, 'ff_id': f'sky_{i}', 'ff_position': 'GK' if i == 0 else 'OUTFIELD'} 
@@ -637,13 +629,15 @@ def build_match_cache(
     kickoff_ts: int,
     home_lv_players: List[Dict[str, Any]],
     away_lv_players: List[Dict[str, Any]],
+    home_name: str = '',
+    away_name: str = '',
 ) -> Dict[str, Any]:
     """Fetch predicted XI, match to LV squads, write per-match cache.
 
     Returns the cache dict (also saved to disk).
     """
     # Fetch predicted XI (dispatches to Spain or Italy based on ff_id)
-    xi = parse_match_xi(ff_id, slug, home_name='', away_name='')
+    xi = parse_match_xi(ff_id, slug, home_name=home_name, away_name=away_name)
     home_xi = xi.get('home', [])
     away_xi = xi.get('away', [])
 

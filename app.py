@@ -3214,8 +3214,8 @@ async def lineup_api_predicted_xi_status(team_id: str):
 
     def _process_fixtures(data: dict):
         for m in data.get('fixtures', []):
-            ht_id = (m.get('home_team') or {}).get('id') or m.get('home', {}).get('team_id') or ''
-            at_id = (m.get('away_team') or {}).get('id') or m.get('away', {}).get('team_id') or ''
+            ht_id = (m.get('home_team') or {}).get('id') or m.get('home', {}).get('team_id') or m.get('home', {}).get('id') or ''
+            at_id = (m.get('away_team') or {}).get('id') or m.get('away', {}).get('team_id') or m.get('away', {}).get('id') or ''
             if team_id not in (ht_id, at_id) or not team_id:
                 continue
             mid = m.get('match_id') or ''
@@ -6384,6 +6384,8 @@ def _process_fixtures_for_pxi(
             kickoff_ts=ts,
             home_lv_players=home_lv,
             away_lv_players=away_lv,
+            home_name=ff_match.get('home', ''),
+            away_name=ff_match.get('away', ''),
         )
         print(f'predicted_xi cached {mid} {home_id} vs {away_id} champ={ff_championship}')
 
