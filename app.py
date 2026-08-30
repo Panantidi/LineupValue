@@ -1218,6 +1218,10 @@ def _is_ip_banned(ip: str) -> bool:
         # blocked every subsequent request that arrived with the same
         # placeholder for the same reason.)
         return False
+    if ip in IP_BAN_EXCEPTIONS:
+        # Aug 30 2026: admin-exempted IPs (shared VPN exit nodes) are
+        # never blanket-blocked; username bans still apply elsewhere.
+        return False
     try:
         import sqlite3 as _sq
         con = _sq.connect(DB_PATH)
@@ -1314,6 +1318,16 @@ IP_WHITELIST = {
     "37.203.37.0/24",
     "77.90.188.0/24",
     "127.0.0.1",
+}
+
+# Aug 30 2026 — IP ban exceptions: IPs exempted from the effective ban
+# set by admin decision (shared VPN exit nodes used by legitimate
+# users, e.g. NewUser). Username bans and ban-on-sight still apply —
+# a banned user logging in from an exempted IP is still blocked by
+# _is_banned() and re-bans the IP on sight; the exemption only stops
+# the blanket 403 for everyone else behind that IP.
+IP_BAN_EXCEPTIONS = {
+    "188.190.8.61",  # NewUser's VPN exit (was: brat1 ban-on-sight v11)
 }
 
 import ipaddress as _ip
