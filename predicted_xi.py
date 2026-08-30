@@ -677,8 +677,24 @@ def _try_split_merged(ff_name: str, lv_players: List[Dict[str, Any]]) -> Optiona
     return None
 
 
+def _match_by_number(number: str, lv_players: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Aug 30 2026 — number fallback: find the LV player by shirt number
+    when the name match fails. Only used when the source provides
+    shirt numbers (Serie A / Sky does not, LaLiga sources may)."""
+    if not number:
+        return None
+    num = str(number).strip()
+    if not num.isdigit():
+        return None
+    for p in lv_players:
+        if str(p.get('number') or '').strip() == num:
+            return p
+    return None
+
+
 def _match_one_with_split(ff_name: str, lv_players: List[Dict[str, Any]],
-                          ff_position: Optional[str] = None) -> List[Dict[str, Any]]:
+                          ff_position: Optional[str] = None,
+                          ff_number: str = '') -> List[Dict[str, Any]]:
     """Match one ff entry, splitting merged player names when needed.
 
     If the whole-name match leaves ff tokens uncovered (the matched LV
@@ -698,6 +714,11 @@ def _match_one_with_split(ff_name: str, lv_players: List[Dict[str, Any]],
 
     lv_player = normalise_name_match(ff_name, lv_players)
     if not lv_player:
+        # Aug 30 2026 — number fallback: when the source provides shirt
+        # numbers and the name match fails, match by number.
+        by_number = _match_by_number(ff_number, lv_players)
+        if by_number:
+            return [_entry(by_number, 'number')]
         parts = _try_split_merged(ff_name, lv_players)
         if parts:
             for e in parts:
@@ -748,7 +769,7 @@ def build_match_cache(
     matched_player_ids = set()
     for p in home_xi:
         for e in _match_one_with_split(p.get('ff_name', ''), home_lv_players,
-                                       p.get('ff_position')):
+                                       p.get('ff_position'), p.get('number', '')):
             home_matched.append(e)
             if e.get('lv_player_id'):
                 matched_player_ids.add(e.get('lv_player_id'))
@@ -758,7 +779,7 @@ def build_match_cache(
     matched_away_ids = set()
     for p in away_xi:
         for e in _match_one_with_split(p.get('ff_name', ''), away_lv_players,
-                                       p.get('ff_position')):
+                                       p.get('ff_position'), p.get('number', '')):
             away_matched.append(e)
             if e.get('lv_player_id'):
                 matched_away_ids.add(e.get('lv_player_id'))
