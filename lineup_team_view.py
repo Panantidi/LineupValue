@@ -764,14 +764,23 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             away_t = at or ""
         score_str = m.get("score", "")
 
-        # Tooltip: full tournament name + teams + score, then match stats
-        # (xG / possession / shots on-off target / corners) when available.
-        # Aug 31 2026 — stats fetched per-match from Flashscore4
-        # Get Match Statistics (api_refresh.fetch_match_stats, stored as
-        # m["stats"] = {"xg": "h / a", "poss": ..., "sot": ..., "soff": ...,
-        # "corners": ...}).
+        # Tooltip: full tournament name + blank line + "home vs away — h:a" +
+        # blank line + stat lines. Sep 1 2026 — per-user spec:
+        #   SPAIN: LaLiga2
+        #   (blank)
+        #   Celta Vigo B vs Andorra — 4:2
+        #   (blank)
+        #   xG: 2.64 — 1.98
+        #   Ball possession: 35% — 65%
+        #   Total shots: 10 — 17
+        #   Shots on Target: 8 — 5
+        #   Corner kicks: 4 — 4
+        # Values are "home — away" pairs from api_refresh.fetch_match_stats
+        # (stored as m["stats"]). Score is shown as h:a (colon separator),
+        # converted from the stored "4-2" format.
+        score_vis = score_str.replace("-", ":") if score_str else score_str
         if home_t and away_t:
-            tooltip_text = f"{comp_full}\n{home_t} {score_str} {away_t}"
+            tooltip_text = f"{comp_full}\n\n{home_t} vs {away_t} — {score_vis}"
         else:
             tooltip_text = f"{comp_full}: {score_str}" if score_str else comp_full
         mstats = m.get("stats") or {}
@@ -780,8 +789,8 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             stat_labels = [
                 ("xg", "xG"),
                 ("poss", "Ball possession"),
+                ("tshots", "Total shots"),
                 ("sot", "Shots on Target"),
-                ("soff", "Shots off Target"),
                 ("corners", "Corner kicks"),
             ]
             for key, label in stat_labels:
@@ -789,7 +798,7 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 if v:
                     stat_lines.append(f"{label}: {v}")
             if stat_lines:
-                tooltip_text += "\n" + "\n".join(stat_lines)
+                tooltip_text += "\n\n" + "\n".join(stat_lines)
         tooltip_html = html_lib.escape(tooltip_text, quote=True)
 
         # Determine match result color for selected team (new format uses m["side"])

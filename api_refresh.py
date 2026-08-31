@@ -917,8 +917,8 @@ def fetch_match_stats(match_id):
     {"match": [{name, home_team, away_team}, ...]}).
 
     Returns a compact dict with the 5 tooltip metrics or None:
-        {"xg": "2.33 / 1.44", "poss": "36% / 64%", "sot": "7 / 5",
-         "soff": "2 / 10", "corners": "4 / 4"}
+        {"xg": "2.33 — 1.44", "poss": "36% — 64%", "tshots": "10 — 17",
+         "sot": "7 — 5", "corners": "4 — 4"}
     """
     if not match_id:
         return None
@@ -939,6 +939,8 @@ def fetch_match_stats(match_id):
 
     # The upstream list repeats sections (Full-time table + extra rows);
     # the FIRST occurrence of each metric is the FT value.
+    # Sep 1 2026 — tooltip spec: xG, Ball possession, Total shots,
+    # Shots on Target, Corner kicks ("Shots off target" dropped per user).
     out = {}
     for row in rows:
         if not isinstance(row, dict):
@@ -953,14 +955,14 @@ def fetch_match_stats(match_id):
             key = "xg"
         elif name == "ball possession":
             key = "poss"
+        elif name == "total shots":
+            key = "tshots"
         elif name == "shots on target":
             key = "sot"
-        elif name == "shots off target":
-            key = "soff"
         elif name == "corner kicks":
             key = "corners"
         if key and key not in out:
-            out[key] = f"{_fmt(home)} / {_fmt(away)}"
+            out[key] = f"{_fmt(home)} — {_fmt(away)}"
     return out or None
 
 
