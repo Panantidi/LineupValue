@@ -108,6 +108,22 @@ body {
 .header-action-btn:hover {
     background: rgba(255,255,255,0.25);
 }
+/* Aug 30 2026 — Match-mode Reverse Odds: page-wide dim overlay. Sits
+   above the header, gaps and margins but BELOW the two iframes
+   (z-index 5 < .team-frame stacking? both unpainted z — the iframes
+   are later in flow, so we give the overlay z-index 5 and the frames
+   container position:relative;z-index:10; that keeps both iframes
+   (and the calculator inside opp-frame) ABOVE the page dim. The
+   in-frame dims (ro-dim on my-frame, modal backdrop in opp-frame)
+   provide the identical 0.55 gray over the frames themselves. */
+#ro-page-dim {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 5;
+    pointer-events: auto;
+}
 .header-action-btn.active {
     background: rgba(255,255,255,0.45);
     border-color: rgba(255,255,255,0.7);
@@ -124,6 +140,10 @@ body {
     gap: 30px;
     min-width: max-content;
     align-items: flex-start;
+    /* Aug 30 2026 — keep both iframes (and the Reverse Odds calculator
+       inside the opp-frame) ABOVE the #ro-page-dim overlay. */
+    position: relative;
+    z-index: 10;
 }
 .team-frame {
     flex: 0 0 auto;
@@ -989,6 +1009,12 @@ body {
              keeps its button (ltv.py:btn-predicted-11). -->
     </div>
     <span id="match-id" data-mid="{{mid}}" style="display:none"></span>
+<!-- Aug 30 2026 — page-wide dim for Match-mode Reverse Odds: covers the
+     header, gaps and margins with the same rgba(0,0,0,0.55) as the
+     in-frame dims; the two iframes stay above it (z-index 10 vs 5), so
+     the calculator card inside opp-frame remains bright. Any click on
+     it closes the calculator. -->
+<div id="ro-page-dim"></div>
     <div class="compare-header-controls">
         <button id="match-btn-add-lineups" class="header-action-btn" onclick="toggleBothFrames('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
         <button type="button" class="header-action-btn" onclick="exportMatchScreenshot()" id="btn-match-screenshot">📸 Screenshot</button>
@@ -1249,6 +1275,17 @@ body {
     function openReverseOddsInFrames() {
         var myFrame = document.getElementById('my-frame');
         var oppFrame = document.getElementById('opp-frame');
+        var pageDim = document.getElementById('ro-page-dim');
+        if (pageDim && pageDim.style.display === 'block') {
+            // Toggle closed: second click on the header button
+            _roHidePageDim();
+            try {
+                if (oppFrame && oppFrame.contentWindow) {
+                    oppFrame.contentWindow.postMessage({ type: 'closeReverseOdds' }, '*');
+                }
+            } catch (e) { /* iframe may not be ready */ }
+            return;
+        }
         try {
             if (oppFrame && oppFrame.contentWindow) {
                 oppFrame.contentWindow.postMessage({ type: 'openReverseOdds' }, '*');
@@ -1259,8 +1296,30 @@ body {
                 myFrame.contentWindow.postMessage({ type: 'setReverseOddsDim', on: true }, '*');
             }
         } catch (e) { /* iframe may not be ready */ }
+        if (pageDim) pageDim.style.display = 'block';
     }
     window.openReverseOddsInFrames = openReverseOddsInFrames;
+    // A click on the page dim (header/gaps/margins area outside both
+    // iframes) closes the calculator — same click-outside UX as Team
+    // mode.
+    (function () {
+        var pd = document.getElementById('ro-page-dim');
+        if (pd) {
+            pd.addEventListener('click', function () {
+                _roHidePageDim();
+                var oppFrame = document.getElementById('opp-frame');
+                try {
+                    if (oppFrame && oppFrame.contentWindow) {
+                        oppFrame.contentWindow.postMessage({ type: 'closeReverseOdds' }, '*');
+                    }
+                } catch (e) { /* noop */ }
+            });
+        }
+    })();
+    function _roHidePageDim() {
+        var pd = document.getElementById('ro-page-dim');
+        if (pd) pd.style.display = 'none';
+    }
     // Clear the gray highlight on the left frame when the modal closes;
     // a click anywhere in the dimmed frame closes the modal too (same
     // click-outside UX as Team mode).
@@ -1269,6 +1328,7 @@ body {
             var d = ev.data;
             if (!d || typeof d !== 'object') return;
             if (d.type === 'reverseOddsClosed') {
+                _roHidePageDim();
                 var myFrame = document.getElementById('my-frame');
                 if (myFrame && myFrame.contentWindow) {
                     myFrame.contentWindow.postMessage({ type: 'setReverseOddsDim', on: false }, '*');
