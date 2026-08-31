@@ -1906,7 +1906,29 @@ def _save_team_version(team_id: str, data: dict, data_hash: str | None = None, c
         "SELECT id, version, data_hash FROM team_data_versions WHERE team_id=? AND is_current=1 ORDER BY version DESC LIMIT 1",
         (team_id,),
     ).fetchone()
-    if current and current[2] == data_hash:
+    # Aug 31 2026 — hash dedup fix: the subset hash does NOT cover every
+    # payload field (match "stats" tooltips are excluded from
+    # _team_version_subset by design). When the subset hash matches but
+    # the payloads differ, the OLD data_json must be replaced with the
+    # fresh one WITHOUT bumping the version (identical subset = no visible
+    # change for version consumers, but the stored payload must not stay
+    # staler than the freshly fetched cache).
+    if current and current[2] == data_hash and not checked_only:
+        try:
+            old = json.loads(
+                con.execute("SELECT data_json FROM team_data_versions WHERE id=?", (current[0],)).fetchone()[0]
+            )
+        except Exception:
+            old = None
+        same_payload = (old == data)
+        if not same_payload:
+            con.execute(
+                "UPDATE team_data_versions SET data_json=?, data_hash=?, last_checked_at=? WHERE id=?",
+                (json.dumps(data, ensure_ascii=False), data_hash, now, current[0]),
+            )
+            con.commit()
+            con.close()
+            return {"created": True, "version": current[1], "updated_payload": True, "checked_at": now}
         con.execute("UPDATE team_data_versions SET last_checked_at=? WHERE id=?", (now, current[0]))
         con.commit()
         con.close()
