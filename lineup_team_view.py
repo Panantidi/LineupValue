@@ -1716,11 +1716,15 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             line-height: 1.25;
             text-transform: none;
             letter-spacing: 0;
-            /* Aug 31 2026 — tooltip now carries match stats (5 lines);
-               nowrap would make it ~40ch wide — allow wrapping instead. */
+            /* Aug 31 2026 — tooltip now carries match stats (5 lines).
+               Sep 1 2026 — left-aligned, and the match line
+               ("Home vs Away — 4:2") must NEVER wrap: width:max-content
+               sizes the box to the longest line so pre-line wrapping
+               never kicks in (max-width is a tiny-screen safety net). */
             white-space: pre-line;
-            min-width: 150px;
-            text-align: center;
+            width: max-content;
+            max-width: min(420px, calc(100vw - 16px));
+            text-align: left;
             box-shadow: 0 4px 12px rgba(0,0,0,0.22);
             opacity: 0;
             visibility: hidden;
