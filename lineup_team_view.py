@@ -764,11 +764,32 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             away_t = at or ""
         score_str = m.get("score", "")
 
-        # Tooltip: full tournament name + teams + score
+        # Tooltip: full tournament name + teams + score, then match stats
+        # (xG / possession / shots on-off target / corners) when available.
+        # Aug 31 2026 — stats fetched per-match from Flashscore4
+        # Get Match Statistics (api_refresh.fetch_match_stats, stored as
+        # m["stats"] = {"xg": "h / a", "poss": ..., "sot": ..., "soff": ...,
+        # "corners": ...}).
         if home_t and away_t:
             tooltip_text = f"{comp_full}\n{home_t} {score_str} {away_t}"
         else:
             tooltip_text = f"{comp_full}: {score_str}" if score_str else comp_full
+        mstats = m.get("stats") or {}
+        if mstats:
+            stat_lines = []
+            stat_labels = [
+                ("xg", "xG"),
+                ("poss", "Ball possession"),
+                ("sot", "Shots on Target"),
+                ("soff", "Shots off Target"),
+                ("corners", "Corner kicks"),
+            ]
+            for key, label in stat_labels:
+                v = mstats.get(key)
+                if v:
+                    stat_lines.append(f"{label}: {v}")
+            if stat_lines:
+                tooltip_text += "\n" + "\n".join(stat_lines)
         tooltip_html = html_lib.escape(tooltip_text, quote=True)
 
         # Determine match result color for selected team (new format uses m["side"])
@@ -1686,7 +1707,11 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
             line-height: 1.25;
             text-transform: none;
             letter-spacing: 0;
-            white-space: nowrap;
+            /* Aug 31 2026 — tooltip now carries match stats (5 lines);
+               nowrap would make it ~40ch wide — allow wrapping instead. */
+            white-space: pre-line;
+            min-width: 150px;
+            text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.22);
             opacity: 0;
             visibility: hidden;

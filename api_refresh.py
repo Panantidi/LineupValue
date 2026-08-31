@@ -908,6 +908,62 @@ def refresh_fixtures(team_id, force=False):
     return out
 
 
+def fetch_match_stats(match_id):
+    """Flashscore4 "Get Match Statistics" (Aug 31 2026).
+
+    GET /api/flashscore/v2/matches/match/stats?match_id=<id>
+    (endpoint verified live: /matches/statistics does NOT exist, the
+    working path is /matches/match/stats; response is
+    {"match": [{name, home_team, away_team}, ...]}).
+
+    Returns a compact dict with the 5 tooltip metrics or None:
+        {"xg": "2.33 / 1.44", "poss": "36% / 64%", "sot": "7 / 5",
+         "soff": "2 / 10", "corners": "4 / 4"}
+    """
+    if not match_id:
+        return None
+    try:
+        data = _fetch_json(
+            f"https://{HOST}/api/flashscore/v2/matches/match/stats?match_id={match_id}"
+        )
+    except Exception:
+        return None
+    rows = (data or {}).get("match")
+    if not isinstance(rows, list):
+        return None
+
+    def _fmt(v):
+        if isinstance(v, float):
+            return f"{v:.2f}".rstrip("0").rstrip(".")
+        return str(v)
+
+    # The upstream list repeats sections (Full-time table + extra rows);
+    # the FIRST occurrence of each metric is the FT value.
+    out = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        name = (row.get("name") or "").lower()
+        home = row.get("home_team")
+        away = row.get("away_team")
+        if home is None or away is None:
+            continue
+        key = None
+        if name.startswith("expected goals"):
+            key = "xg"
+        elif name == "ball possession":
+            key = "poss"
+        elif name == "shots on target":
+            key = "sot"
+        elif name == "shots off target":
+            key = "soff"
+        elif name == "corner kicks":
+            key = "corners"
+        if key and key not in out:
+            out[key] = f"{_fmt(home)} / {_fmt(away)}"
+    return out or None
+
+
 def refresh_results(team_id, force=False):
     """Fetch /teams/results and return list of last 3 matches (with lineups).
 
@@ -1024,6 +1080,19 @@ def refresh_results(team_id, force=False):
             "score": score,
             "side": side,
         })
+
+        # Aug 31 2026 — per-match stats (xG, possession, shots, corners)
+        # from Flashscore4 "Get Match Statistics" (GET /matches/match/stats),
+        # attached AFTER the append so it lands on THIS row, not the
+        # previous one (the pre-append `matches[-1]` bound to the prior
+        # match — 0-0 rows silently lost their stats).
+        try:
+            if score and (m.get("match_status") or {}).get("is_finished", True) is not False:
+                st = fetch_match_stats(mid)
+                if st:
+                    matches[-1]["stats"] = st
+        except Exception:
+            pass
     return matches
 
 
