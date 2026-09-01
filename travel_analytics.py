@@ -110,18 +110,39 @@ def _nominatim(query):
 
 
 def _geocode_stadium(stadium, city, country):
-    """Two-stage geocoding: with country first, fallback without.
+    """Multi-stage geocoding (Sep 2 2026 — extended after Dalian miss).
+
+    Stage 1: "{stadium}, {city}, {country}"   — exact, best
+    Stage 2: "{stadium}, {city}"              — no country
+    Stage 3: "{stadium} {country}"            — no city (city names often
+              differ: "K'un City" vs "Dalian", transliteration variants)
+    Stage 4: "stadium {city} {country}"       — generic venue search in
+              the city; rescues non-English OSM names (e.g. Chinese
+              "大连梭鱼湾足球场" IS findable as "Dalian football stadium")
+    Stage 5: "{city}, {country}"              — city centroid last resort
+              (a real distance, just less precise)
 
     Returns (lat, lon) or None (-> "Stadium not found").
     """
-    if not stadium:
-        return None
     if stadium and city and country:
         c = _nominatim(f"{stadium}, {city}, {country}")
         if c:
             return c
     if stadium and city:
-        return _nominatim(f"{stadium}, {city}")
+        c = _nominatim(f"{stadium}, {city}")
+        if c:
+            return c
+    if stadium and country:
+        c = _nominatim(f"{stadium} {country}")
+        if c:
+            return c
+    if stadium and city:
+        q = f"stadium {city}" + (f" {country}" if country else "")
+        c = _nominatim(q)
+        if c:
+            return c
+    if city:
+        return _nominatim(f"{city}, {country}" if country else city)
     return _nominatim(stadium) if stadium else None
 
 
