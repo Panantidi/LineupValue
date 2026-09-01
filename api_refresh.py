@@ -218,6 +218,15 @@ def _get_team_info(team_id):
          one last fallback: use team_id as slug (works for the
          ~5% of teams missing from leagues_data.json).
       5. If everything fails, return None (caller bails out).
+
+    Sep 2 2026 (bugfix): step 3 rejected 'lask' for LASK (correct
+    Flashscore slug is 'lask-linz'), and step 4's name-based patterns
+    can't produce 'lask-linz' either (they only transform the name
+    itself) -> refresh_team returned False -> HTTP 502. Now when the
+    leagues_data slug is stale, we ALSO try '{slug}-linz' style
+    dash-variants and, most importantly, search the DISCOVERED slug
+    back into leagues_data.json so the real (country, champ) pair
+    is kept. If leagues_data lacks the team, ('?', '?', slug) is used.
     """
     if team_id in _slug_cache:
         return _slug_cache[team_id]
@@ -227,11 +236,13 @@ def _get_team_info(team_id):
     except Exception:
         return None
     candidate = None
+    stored_slug = ""
     for country, champs in ld.items():
         for champ, teams in champs.items():
             for t in teams:
                 if t.get("id") == team_id:
                     candidate = (country, champ, t.get("slug") or "")
+                    stored_slug = t.get("slug") or ""
                     break
             if candidate:
                 break
@@ -246,11 +257,36 @@ def _get_team_info(team_id):
         # Slug present but stale. Don't trust it.
         if slug:
             print(f'[slug] stale slug {slug!r} for {team_id} ({country}/{champ}); trying fallback')
-    # Last-resort: try team_id as slug
-    fallback = _try_discover_slug(team_id)
-    if fallback:
-        # We don't know country/champ but we have a working slug.
-        info = ('?', '?', fallback)
+    # Last-resort: discover the working slug by brute force.
+    discovered = _try_discover_slug(team_id)
+    if not discovered and stored_slug:
+        # Sep 2 2026: '{slug}-<suffix>' variants — Flashscore sometimes
+        # disambiguates same-named teams ('lask' -> 'lask-linz',
+        # 'dinamo' -> 'dinamo-zagreb'). Try appending common city
+        # suffixes derived from the team name; also try swapping the
+        # stored slug with a '-fc' / '-fk' suffix.
+        for suffix in ("-linz", "-fc", "-fk", "-sc", "-cf"):
+            cand = f"{stored_slug}{suffix}"
+            if _verify_slug_via_api(team_id, cand):
+                discovered = cand
+                print(f"[slug] recovered {team_id} via suffix variant {cand!r}")
+                break
+    if discovered:
+        # Re-find country/champ in leagues_data by id (independent of slug);
+        # if absent, unknown markers.
+        info = None
+        for country, champs in ld.items():
+            for champ, teams in champs.items():
+                for t in teams:
+                    if t.get("id") == team_id:
+                        info = (country, champ, discovered)
+                        break
+                if info:
+                    break
+            if info:
+                break
+        if not info:
+            info = ("?", "?", discovered)
         _slug_cache[team_id] = info
         return info
     _slug_cache[team_id] = None
