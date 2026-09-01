@@ -287,7 +287,7 @@ def _safe_num(value, default=0.0, cast=float):
         return cast(default)
 
 
-def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
+def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HTMLResponse:
     """Render team squad page"""
     DATA_DIR = "/home/openclaw/.openclaw/workspace"
     
@@ -442,6 +442,23 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
         stadium_display = f"({stadium_city})"
     else:
         stadium_display = "–"
+
+    # Sep 1 2026 — 🚌 travel-analytics button: shown ONLY in Match mode
+    # (embed=1) next to the Stadium block, and ONLY for the AWAY team
+    # iframe (Match mode renders each team in its own iframe; the parent
+    # compare page passes away_id via ?travel_opp=<away_team_id> so the
+    # iframe knows its opponent). Home iframes and standalone Team mode
+    # pages get no button. Clicking fetches
+    # /lineup_ai/api/travel?home_id=<this>&away_id=<opp> and opens a modal.
+    travel_btn_html = ""
+    if embed and _travel_opp:
+        travel_btn_html = (
+            '<button type="button" id="travel-btn" '
+            'style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;'
+            'padding:2px 8px;font-size:14px;cursor:pointer;line-height:1.4;" '
+            'title="Travel analytics: stadium distance, difficulty, time zones" '
+            'onclick="openTravelModal()">🚌</button>'
+        )
     
     # Normalize player field names (Flashscore API: matches_played, goals, assists, yellow_cards, red_cards, minutes_played)
     for p in players:
@@ -2268,7 +2285,10 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
                 <!-- Coach (left) + Stadium (right) below main table, auto-width, aligned to table edges -->
                 <div id="coach-stadium-bar" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;">
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_display_html}</div>
-                    <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
+                    <div style="display:inline-flex;align-items:center;gap:8px;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                        {travel_btn_html}
+                        <span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}
+                    </div>
                 </div>
             </div>
 
@@ -6104,6 +6124,29 @@ def render_team_view(team_id: str, embed: str = "") -> HTMLResponse:
 }})();
 </script>
 
+<!-- Sep 1 2026 — Travel analytics modal (🚌 button next to Stadium) -->
+<div id="travel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:white;border-radius:12px;padding:20px 24px;min-width:300px;max-width:440px;box-shadow:0 8px 30px rgba(0,0,0,0.25);font-family:inherit;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="font-size:15px;font-weight:700;color:#333;">🚌 Travel Analytics</div>
+            <button type="button" onclick="document.getElementById('travel-modal').style.display='none'" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#888;line-height:1;">✕</button>
+        </div>
+        <div id="travel-modal-body" style="font-size:14px;color:#333;line-height:1.7;white-space:pre-line;">Loading…</div>
+    </div>
+</div>
+<script>
+function openTravelModal() {{
+    var m = document.getElementById('travel-modal');
+    var body = document.getElementById('travel-modal-body');
+    m.style.display = 'flex';
+    body.textContent = 'Loading…';
+    fetch('/lineup_ai/api/travel?home_id={team_id}&away_id={_travel_opp}')
+        .then(function(r) {{ return r.json(); }})
+        .then(function(d) {{ body.textContent = d.text || 'Stadium not found'; }})
+        .catch(function() {{ body.textContent = 'Stadium not found'; }});
+}}
+window.openTravelModal = openTravelModal;
+</script>
 
 </body>
 </html>"""

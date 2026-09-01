@@ -4574,7 +4574,7 @@ async def team_get_alias(team_id: str, embed: str = ""):
 
 
 @app.get("/lineup_ai/{team_id}")
-async def lineup_team(team_id: str, embed: str = ""):
+async def lineup_team(team_id: str, embed: str = "", travel_opp: str = ""):
     try:
         prepare_team_data_version(team_id)
     except Exception:
@@ -4582,10 +4582,29 @@ async def lineup_team(team_id: str, embed: str = ""):
     # Aug 9 2026: prevent browser caching the rendered HTML — the inline JS
     # changes often (cache invalidation issues in the sidebar) and a stale
     # cached HTML can break fetchTweets / Loading error.
-    resp = render_team_view(team_id, embed)
+    resp = render_team_view(team_id, embed, _travel_opp=travel_opp)
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
     return resp
+
+
+@app.get("/lineup_ai/api/travel")
+async def lineup_api_travel(home_id: str = "", away_id: str = ""):
+    """Travel analytics between two teams' stadiums (Sep 1 2026).
+
+    Geocodes both stadiums via Nominatim (cached), computes geodesic
+    distance, Difficulty, Travel Index and Time Zone Difference.
+    Always 200 with {"text": ...} — the modal shows text verbatim.
+    """
+    if not home_id or not away_id:
+        return JSONResponse(content={"text": "Stadium not found"})
+    try:
+        from travel_analytics import compute_travel
+        r = await asyncio.to_thread(compute_travel, home_id, away_id)
+        return JSONResponse(content={"text": r.get("text") or "Stadium not found"})
+    except Exception as e:
+        print(f"[travel] error: {e}")
+        return JSONResponse(content={"text": "Stadium not found"})
 
 
 
