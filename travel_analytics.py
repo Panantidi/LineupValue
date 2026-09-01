@@ -160,12 +160,12 @@ def _tz_offset_hours(tz_name):
 
 
 def difficulty_label(km):
-    """New scale (Sep 2 2026): 0-350 Low / 351-550 Normal / 551-800 High / 801+ Extreme."""
+    """New scale (Sep 2 2026): 0-350 Low / 351-550 Normal / 551-1000 High / 1000+ Extreme."""
     if km <= 350:
         return "🟢 Low"
     if km <= 550:
         return "🟡 Normal"
-    if km <= 800:
+    if km <= 1000:
         return "🟠 High"
     return "🔴 Extreme"
 
