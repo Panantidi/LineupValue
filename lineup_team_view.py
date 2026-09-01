@@ -2282,12 +2282,14 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;"><span id="transfer-out-goals">0</span><span style="font-size:14px;color:#999;"> / <span id="transfer-out-goals-pct">0</span>%</span></span><br><span style="color:#888;font-size:11px;">Total Goals</span></div>
                     <div style="flex:1;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;text-align:center;"><span style="font-weight:bold;color:#dc3545;font-size:20px;"><span id="transfer-out-assists">0</span><span style="font-size:14px;color:#999;"> / <span id="transfer-out-assists-pct">0</span>%</span></span><br><span style="color:#888;font-size:11px;">Total Assists</span></div>
                 </div>
-                <!-- Coach (left) + Stadium (right) below main table, auto-width, aligned to table edges -->
+                <!-- Coach (left) + [🚌 separate button] + Stadium (right) below main table.
+                     Sep 1 2026 — 🚌 moved OUT of the white Stadium card: it is a
+                     standalone sibling so the stadium block keeps its clean look. -->
                 <div id="coach-stadium-bar" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;">
                     <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Coach:</span> {coach_display_html}</div>
-                    <div style="display:inline-flex;align-items:center;gap:8px;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;">
+                    <div style="display:inline-flex;align-items:center;gap:8px;">
                         {travel_btn_html}
-                        <span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}
+                        <div style="display:inline-block;background:white;padding:10px 16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);font-size:15px;color:#333;"><span style="color:#667eea;font-weight:600;">Stadium:</span> {stadium_display}</div>
                     </div>
                 </div>
             </div>
@@ -6124,27 +6126,64 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 }})();
 </script>
 
-<!-- Sep 1 2026 — Travel analytics modal (🚌 button next to Stadium) -->
-<div id="travel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
-    <div style="background:white;border-radius:12px;padding:20px 24px;min-width:300px;max-width:440px;box-shadow:0 8px 30px rgba(0,0,0,0.25);font-family:inherit;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <div style="font-size:15px;font-weight:700;color:#333;">🚌 Travel Analytics</div>
-            <button type="button" onclick="document.getElementById('travel-modal').style.display='none'" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#888;line-height:1;">✕</button>
-        </div>
-        <div id="travel-modal-body" style="font-size:14px;color:#333;line-height:1.7;white-space:pre-line;">Loading…</div>
+<!-- Sep 1 2026 — Travel analytics popover (🚌 button next to Stadium).
+     NOT a full-screen overlay: a small anchored card near the button,
+     so the away table stays visible and untouched. -->
+<div id="travel-pop" style="display:none;position:absolute;z-index:10000;background:white;border:1px solid #d5d9e8;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.18);padding:12px 16px;min-width:230px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;">
+        <div style="font-size:13px;font-weight:700;color:#333;">🚌 Travel Analytics</div>
+        <button type="button" onclick="closeTravelPop()" style="background:transparent;border:none;font-size:15px;cursor:pointer;color:#888;line-height:1;padding:0 2px;">✕</button>
     </div>
+    <div id="travel-pop-body" style="font-size:13px;color:#333;line-height:1.65;white-space:pre-line;">Loading…</div>
 </div>
 <script>
 function openTravelModal() {{
-    var m = document.getElementById('travel-modal');
-    var body = document.getElementById('travel-modal-body');
-    m.style.display = 'flex';
+    var btn = document.getElementById('travel-btn');
+    var pop = document.getElementById('travel-pop');
+    var body = document.getElementById('travel-pop-body');
+    if (pop.style.display !== 'none') {{ closeTravelPop(); return; }}
+    // Anchor the popover just ABOVE the 🚌 button, right-aligned to it
+    var r = btn.getBoundingClientRect();
+    pop.style.visibility = 'hidden';
+    pop.style.display = 'block';
     body.textContent = 'Loading…';
     fetch('/lineup_ai/api/travel?home_id={team_id}&away_id={_travel_opp}')
         .then(function(r) {{ return r.json(); }})
-        .then(function(d) {{ body.textContent = d.text || 'Stadium not found'; }})
-        .catch(function() {{ body.textContent = 'Stadium not found'; }});
+        .then(function(d) {{
+            body.textContent = d.text || 'Stadium not found';
+            // size known now — position above the button
+            var pw = pop.offsetWidth, ph = pop.offsetHeight;
+            var left = r.right - pw;
+            if (left < 4) left = 4;
+            var top = r.top - ph - 10;
+            if (top < 4) top = r.bottom + 10;
+            // document.body offsetParent: page scrolls, use absolute page coords
+            var sx = window.scrollX || 0, sy = window.scrollY || 0;
+            pop.style.left = (left + sx) + 'px';
+            pop.style.top = (top + sy) + 'px';
+            pop.style.visibility = 'visible';
+        }})
+        .catch(function() {{
+            body.textContent = 'Stadium not found';
+            pop.style.visibility = 'visible';
+        }});
+    // click-outside closes
+    setTimeout(function() {{
+        document.addEventListener('click', _travelOutsideHandler, {{ once: true }});
+    }}, 0);
 }}
+function closeTravelPop() {{
+    var pop = document.getElementById('travel-pop');
+    if (pop) pop.style.display = 'none';
+}}
+function _travelOutsideHandler(e) {{
+    var pop = document.getElementById('travel-pop');
+    var btn = document.getElementById('travel-btn');
+    if (!pop || pop.style.display === 'none') return;
+    if (pop.contains(e.target) || (btn && btn.contains(e.target))) return;
+    closeTravelPop();
+}}
+document.addEventListener('click', _travelOutsideHandler);
 window.openTravelModal = openTravelModal;
 </script>
 
