@@ -6177,13 +6177,33 @@ function closeTravelPop() {{
     if (pop) pop.style.display = 'none';
 }}
 function _travelOutsideHandler(e) {{
+    // Clicks anywhere on the PAGE must close the popover — including
+    // clicks in the parent Match page and in the sibling (home) iframe,
+    // which never reach this iframe's document. Those are covered by
+    // the window-blur listener + the explicit sibling-close below.
+    _closeSiblingTravelPop();
     var pop = document.getElementById('travel-pop');
     var btn = document.getElementById('travel-btn');
     if (!pop || pop.style.display === 'none') return;
     if (pop.contains(e.target) || (btn && btn.contains(e.target))) return;
     closeTravelPop();
 }}
+function _closeSiblingTravelPop() {{
+    try {{
+        var w = window.parent;
+        if (!w || w === window) return;
+        var frames = w.document.querySelectorAll('iframe.team-frame');
+        for (var i = 0; i < frames.length; i++) {{
+            var win = frames[i].contentWindow;
+            if (win && win !== window && win.closeTravelPop) win.closeTravelPop();
+        }}
+    }} catch (err) {{}}
+}}
 document.addEventListener('click', _travelOutsideHandler);
+window.addEventListener('blur', function() {{
+    // Focus moved outside this iframe (parent page or the other iframe)
+    closeTravelPop();
+}});
 window.openTravelModal = openTravelModal;
 </script>
 

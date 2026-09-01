@@ -3148,5 +3148,32 @@ document.addEventListener('click', function(ev) {
 })();
 </script>
 
+<!-- Sep 1 2026 — close the travel popover in BOTH team iframes when the
+     user clicks anywhere on the parent Match page (header, gaps, saved
+     panel, sidebar...). Clicks inside the opp iframe are handled by its
+     own document handler; clicks in the sibling iframe close via that
+     iframe's sibling-close; parent clicks are forwarded here. -->
+<script>
+(function() {
+    function closeFrameTravelPops() {
+        var frames = document.querySelectorAll('iframe.team-frame');
+        frames.forEach(function(f) {
+            try {
+                var w = f.contentWindow;
+                if (w && w.closeTravelPop) w.closeTravelPop();
+            } catch (e) {}
+        });
+    }
+    document.addEventListener('click', function(e) {
+        // Ignore clicks on the iframes themselves — those are handled
+        // inside the frames (own handler / sibling-close).
+        if (e.target.closest && e.target.closest('iframe.team-frame')) return;
+        closeFrameTravelPops();
+    }, true);
+    // Focus leaving the parent page entirely (e.g. into devtools) is fine;
+    // but a click on the parent chrome (scrollbar etc.) still bubbles here.
+})();
+</script>
+
 </body>
 </html>
