@@ -160,35 +160,62 @@ def _tz_offset_hours(tz_name):
 
 
 def difficulty_label(km):
-    """0-300 Low / 300-500 Normal / 500-1500 High / 1500+ Extreme."""
-    if km < 300:
+    """New scale (Sep 2 2026): 0-350 Low / 351-550 Normal / 551-800 High / 801+ Extreme."""
+    if km <= 350:
         return "🟢 Low"
-    if km < 500:
+    if km <= 550:
         return "🟡 Normal"
-    if km < 1500:
+    if km <= 800:
         return "🟠 High"
     return "🔴 Extreme"
 
 
-def travel_index(km):
-    """Piecewise-linear index: 100km~5, 500km~25, 1500km~65, 2000km+~85.
+# Distance Score bands (Sep 2 2026): (km_min, km_max, score_min, score_max).
+# Linear interpolation inside the band, rounded to int. 5001+ km -> 80.
+DISTANCE_BANDS = [
+    (0, 100, 0, 5),
+    (101, 300, 6, 15),
+    (301, 500, 16, 25),
+    (501, 750, 26, 35),
+    (751, 1000, 36, 45),
+    (1001, 1250, 46, 55),
+    (1251, 1500, 56, 65),
+    (1501, 2000, 66, 70),
+    (2001, 3000, 71, 74),
+    (3001, 4000, 75, 77),
+    (4001, 5000, 78, 79),
+    (5001, None, 80, 80),  # None = open-ended
+]
 
-    Anchors: (0,0) (100,5) (500,25) (1500,65) (2000,85); above 2000 km
-    the 85-at-2000 anchor continues with the 1500-2000 slope (4/100 km),
-    capped at 100.
-    """
-    anchors = [(0, 0.0), (100, 5.0), (500, 25.0), (1500, 65.0), (2000, 85.0)]
-    if km <= 0:
-        return 0
-    for (x1, y1), (x2, y2) in zip(anchors, anchors[1:]):
-        if km <= x2:
-            idx = y1 + (km - x1) * (y2 - y1) / (x2 - x1)
-            return int(round(idx))
-    # Beyond 2000 km: continue the last slope, cap at 100
-    x1, y1 = anchors[-2]
-    x2, y2 = anchors[-1]
-    slope = (y2 - y1) / (x2 - x1)  # 20 / 500 = 0.04 per km
-    return min(100, int(round(y2 + (km - x2) * slope)))
+
+def calculate_distance_score(km):
+    """Distance Score per band table with linear interpolation."""
+    for lo, hi, slo, shi in DISTANCE_BANDS:
+        if hi is None or km <= hi:
+            if km < lo:
+                continue
+            if hi is None:
+                return shi
+            if shi == slo:
+                return slo
+            val = slo + (km - lo) / (hi - lo) * (shi - slo)
+            return int(round(val))
+    return 80
+
+
+def calculate_timezone_score(hours):
+    """Time Zone Score: 0->0 1->2 2->4 3->6 4->8 5->10 6->12 7->15 8+->20."""
+    if hours is None:
+        return None
+    h = int(hours)
+    if h >= 8:
+        return 20
+    return {0: 0, 1: 2, 2: 4, 3: 6, 4: 8, 5: 10, 6: 12, 7: 15}.get(h, 0)
+
+
+def calculate_travel_index(km, tz_hours=None):
+    """Travel Index = Distance Score + Time Zone Score (max 100)."""
+    return calculate_distance_score(km) + (calculate_timezone_score(tz_hours) or 0)
 
 
 def travel_index_emoji(idx):
@@ -199,16 +226,6 @@ def travel_index_emoji(idx):
     if idx <= 75:
         return "🟠 High"
     return "🔴 Extreme"
-
-
-def tz_bonus(hours):
-    """0->0, 1->+2 ... 6->+12, 7+->+15."""
-    if hours is None:
-        return None
-    h = int(hours)
-    if h >= 7:
-        return 15
-    return {0: 0, 1: 2, 2: 4, 3: 6, 4: 8, 5: 10, 6: 12}.get(h, 15)
 
 
 def compute_travel(home_team_id, away_team_id):
@@ -257,9 +274,9 @@ def compute_travel(home_team_id, away_team_id):
     lines = [
         f"Distance — {km} km",
         f"Difficulty — {difficulty_label(km)}",
-        f"Travel Index — {travel_index(km)}/100",
     ]
 
+    # TZ diff FIRST (it feeds the new Travel Index = dist_score + tz_score)
     tz_diff = None
     try:
         h_tz = _timezone_at(h_coord[0], h_coord[1])
@@ -271,6 +288,8 @@ def compute_travel(home_team_id, away_team_id):
     except Exception:
         tz_diff = None
     result["tz_diff"] = tz_diff
+    # Sep 2 2026 — Travel Index = Distance Score + Time Zone Score (max 100)
+    lines.append(f"Travel Index — {calculate_travel_index(km, tz_diff)}/100")
     if tz_diff is None:
         lines.append("Time Zone Difference — N/A")
     else:
