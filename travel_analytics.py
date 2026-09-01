@@ -110,17 +110,20 @@ def _nominatim(query):
 
 
 def _geocode_stadium(stadium, city, country):
-    """Multi-stage geocoding (Sep 2 2026 — extended after Dalian miss).
+    """Multi-stage geocoding (reordered Sep 2 2026 after Khabarovsk bug).
 
     Stage 1: "{stadium}, {city}, {country}"   — exact, best
     Stage 2: "{stadium}, {city}"              — no country
-    Stage 3: "{stadium} {country}"            — no city (city names often
-              differ: "K'un City" vs "Dalian", transliteration variants)
-    Stage 4: "stadium {city} {country}"       — generic venue search in
-              the city; rescues non-English OSM names (e.g. Chinese
-              "大连梭鱼湾足球场" IS findable as "Dalian football stadium")
+    Stage 3: "stadium {city} {country}"       — city-SCOPED generic venue
+              search; rescues non-English OSM names (Chinese stadiums
+              findable only this way) AND ambiguous Russian names
+              ("Stadion imeni V.I. Lenina" exists in MANY cities!)
+    Stage 4: "{stadium} {country}"            — no city. DANGEROUS for
+              ambiguous names, therefore LAST stadium-name attempt
+              ("Stadion imeni V.I. Lenina Russia" once geocoded to a
+              completely different Lenina stadium in Tula oblast,
+              5900 km away from Khabarovsk).
     Stage 5: "{city}, {country}"              — city centroid last resort
-              (a real distance, just less precise)
 
     Returns (lat, lon) or None (-> "Stadium not found").
     """
@@ -132,13 +135,13 @@ def _geocode_stadium(stadium, city, country):
         c = _nominatim(f"{stadium}, {city}")
         if c:
             return c
-    if stadium and country:
-        c = _nominatim(f"{stadium} {country}")
-        if c:
-            return c
-    if stadium and city:
+    if city:
         q = f"stadium {city}" + (f" {country}" if country else "")
         c = _nominatim(q)
+        if c:
+            return c
+    if stadium and country:
+        c = _nominatim(f"{stadium} {country}")
         if c:
             return c
     if city:
