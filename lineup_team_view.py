@@ -6142,15 +6142,26 @@ function openTravelModal() {{
     var pop = document.getElementById('travel-pop');
     var body = document.getElementById('travel-pop-body');
     if (pop.style.display !== 'none') {{ closeTravelPop(); return; }}
-    // Anchor the popover just ABOVE the 🚌 button, right-aligned to it
+    // IMMEDIATE feedback (Sep 2 2026): show the popover right away with
+    // "⏳ Loading…" — geocoding can take up to ~6 Nominatim calls with
+    // sleep(1), the old code kept the popover hidden (visibility:hidden)
+    // until the fetch resolved, so the button felt dead for 4-8 seconds.
+    // Approximate placement below the button; repositioned precisely
+    // above it once the content size is known.
     var r = btn.getBoundingClientRect();
-    pop.style.visibility = 'hidden';
+    var sx = window.scrollX || 0, sy = window.scrollY || 0;
     pop.style.display = 'block';
-    body.textContent = 'Loading…';
+    pop.style.left = (Math.max(4, r.right - 230) + sx) + 'px';
+    pop.style.top = (r.bottom + 10 + sy) + 'px';
+    body.textContent = '⏳ Loading…';
+    btn.style.background = '#eef2ff';
+    btn.style.opacity = '0.85';
     fetch('/lineup_ai/api/travel?home_id={team_id}&away_id={_travel_opp}')
         .then(function(r) {{ return r.json(); }})
         .then(function(d) {{
             body.textContent = d.text || 'Stadium not found';
+            btn.style.background = '';
+            btn.style.opacity = '';
             // size known now — position above the button
             var pw = pop.offsetWidth, ph = pop.offsetHeight;
             var left = r.right - pw;
@@ -6158,14 +6169,13 @@ function openTravelModal() {{
             var top = r.top - ph - 10;
             if (top < 4) top = r.bottom + 10;
             // document.body offsetParent: page scrolls, use absolute page coords
-            var sx = window.scrollX || 0, sy = window.scrollY || 0;
             pop.style.left = (left + sx) + 'px';
             pop.style.top = (top + sy) + 'px';
-            pop.style.visibility = 'visible';
         }})
         .catch(function() {{
             body.textContent = 'Stadium not found';
-            pop.style.visibility = 'visible';
+            btn.style.background = '';
+            btn.style.opacity = '';
         }});
     // click-outside closes
     setTimeout(function() {{
