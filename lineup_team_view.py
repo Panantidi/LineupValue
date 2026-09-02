@@ -6141,27 +6141,31 @@ function openTravelModal() {{
     var btn = document.getElementById('travel-btn');
     var pop = document.getElementById('travel-pop');
     var body = document.getElementById('travel-pop-body');
-    if (pop.style.display !== 'none') {{ closeTravelPop(); return; }}
-    // IMMEDIATE feedback (Sep 2 2026): show the popover right away with
-    // "⏳ Loading…" — geocoding can take up to ~6 Nominatim calls with
-    // sleep(1), the old code kept the popover hidden (visibility:hidden)
-    // until the fetch resolved, so the button felt dead for 4-8 seconds.
-    // Approximate placement below the button; repositioned precisely
-    // above it once the content size is known.
+    // FULL block during Loading (Sep 2 2026): the whole card shows with
+    // "⏳ Loading…" centered inside — NOT a thin strip. Fixed loading
+    // size (240x130) so the user sees the full card immediately; once
+    // the data arrives the card auto-sizes to the real content and is
+    // repositioned above the button.
     var r = btn.getBoundingClientRect();
     var sx = window.scrollX || 0, sy = window.scrollY || 0;
-    pop.style.display = 'block';
-    pop.style.left = (Math.max(4, r.right - 230) + sx) + 'px';
+    pop.style.width = '240px';
+    pop.style.height = '130px';
+    pop.style.display = 'flex';
+    pop.style.alignItems = 'center';
+    pop.style.justifyContent = 'center';
+    pop.style.left = (Math.max(4, r.right - 240) + sx) + 'px';
     pop.style.top = (r.bottom + 10 + sy) + 'px';
     body.textContent = '⏳ Loading…';
-    btn.style.background = '#eef2ff';
-    btn.style.opacity = '0.85';
     fetch('/lineup_ai/api/travel?home_id={team_id}&away_id={_travel_opp}')
         .then(function(r) {{ return r.json(); }})
         .then(function(d) {{
             body.textContent = d.text || 'Stadium not found';
-            btn.style.background = '';
-            btn.style.opacity = '';
+            // release the loading size — auto-size to the real content
+            pop.style.width = '';
+            pop.style.height = '';
+            pop.style.display = 'block';
+            pop.style.alignItems = '';
+            pop.style.justifyContent = '';
             // size known now — position above the button
             var pw = pop.offsetWidth, ph = pop.offsetHeight;
             var left = r.right - pw;
@@ -6174,8 +6178,11 @@ function openTravelModal() {{
         }})
         .catch(function() {{
             body.textContent = 'Stadium not found';
-            btn.style.background = '';
-            btn.style.opacity = '';
+            pop.style.width = '';
+            pop.style.height = '';
+            pop.style.display = 'block';
+            pop.style.alignItems = '';
+            pop.style.justifyContent = '';
         }});
     // click-outside closes
     setTimeout(function() {{
