@@ -6130,13 +6130,39 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
      NOT a full-screen overlay: a small anchored card near the button,
      so the away table stays visible and untouched. -->
 <div id="travel-pop" style="display:none;position:absolute;z-index:10000;background:white;border:1px solid #d5d9e8;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.18);padding:12px 16px;min-width:230px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;">
+    <div id="travel-pop-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;">
         <div style="font-size:13px;font-weight:700;color:#333;">🚌 Travel Analytics</div>
         <button type="button" onclick="closeTravelPop()" style="background:transparent;border:none;font-size:15px;cursor:pointer;color:#888;line-height:1;padding:0 2px;">✕</button>
     </div>
     <div id="travel-pop-body" style="font-size:13px;color:#333;line-height:1.65;white-space:pre-line;">Loading…</div>
 </div>
 <script>
+/* Sep 3 2026 — during Loading the card shows ONLY the word
+   "Loading…" centered (header ✕ hidden); once data arrives the header
+   ✕ and the analytics lines appear. */
+function travelLoadingMode() {{
+    var h = document.getElementById('travel-pop-header');
+    var b = document.getElementById('travel-pop-body');
+    var pop = document.getElementById('travel-pop');
+    if (h) h.style.display = 'none';
+    pop.style.display = 'flex';
+    pop.style.alignItems = 'center';
+    pop.style.justifyContent = 'center';
+    b.style.fontSize = '15px';
+    b.style.fontWeight = '700';
+    b.textContent = 'Loading…';
+}}
+function travelDataMode() {{
+    var h = document.getElementById('travel-pop-header');
+    var b = document.getElementById('travel-pop-body');
+    var pop = document.getElementById('travel-pop');
+    if (h) h.style.display = 'flex';
+    pop.style.display = 'block';
+    pop.style.alignItems = '';
+    pop.style.justifyContent = '';
+    b.style.fontSize = '13px';
+    b.style.fontWeight = '';
+}}
 function openTravelModal() {{
     var btn = document.getElementById('travel-btn');
     var pop = document.getElementById('travel-pop');
@@ -6150,9 +6176,6 @@ function openTravelModal() {{
     var sx = window.scrollX || 0, sy = window.scrollY || 0;
     pop.style.width = '240px';
     pop.style.height = '130px';
-    pop.style.display = 'flex';
-    pop.style.alignItems = 'center';
-    pop.style.justifyContent = 'center';
     pop.style.left = (Math.max(4, r.right - 240) + sx) + 'px';
     // Anchor ABOVE the button during Loading: below the 🚌 there is no
     // room in the iframe (button sits near the bottom of the document),
@@ -6162,7 +6185,8 @@ function openTravelModal() {{
     var topLoading = r.top - 130 - 10;  // 130 = loading card height
     if (topLoading < 4) topLoading = r.bottom + 10;
     pop.style.top = (topLoading + sy) + 'px';
-    body.textContent = '⏳ Loading…';
+    // ONLY the word "Loading…" centered in the card (header ✕ hidden)
+    travelLoadingMode();
     fetch('/lineup_ai/api/travel?home_id={team_id}&away_id={_travel_opp}')
         .then(function(r) {{ return r.json(); }})
         .then(function(d) {{
@@ -6170,9 +6194,8 @@ function openTravelModal() {{
             // release the loading size — auto-size to the real content
             pop.style.width = '';
             pop.style.height = '';
-            pop.style.display = 'block';
-            pop.style.alignItems = '';
-            pop.style.justifyContent = '';
+            // header ✕ + analytics lines appear
+            travelDataMode();
             // size known now — position above the button
             var pw = pop.offsetWidth, ph = pop.offsetHeight;
             var left = r.right - pw;
@@ -6187,9 +6210,7 @@ function openTravelModal() {{
             body.textContent = 'Stadium not found';
             pop.style.width = '';
             pop.style.height = '';
-            pop.style.display = 'block';
-            pop.style.alignItems = '';
-            pop.style.justifyContent = '';
+            travelDataMode();
         }});
     // click-outside closes
     setTimeout(function() {{
