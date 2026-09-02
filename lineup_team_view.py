@@ -6154,7 +6154,14 @@ function openTravelModal() {{
     pop.style.alignItems = 'center';
     pop.style.justifyContent = 'center';
     pop.style.left = (Math.max(4, r.right - 240) + sx) + 'px';
-    pop.style.top = (r.bottom + 10 + sy) + 'px';
+    // Anchor ABOVE the button during Loading: below the 🚌 there is no
+    // room in the iframe (button sits near the bottom of the document),
+    // so the 130px card was cut off by the iframe edge and the user saw
+    // only a sliver of the border. Above the button is the table — full
+    // block visible immediately.
+    var topLoading = r.top - 130 - 10;  // 130 = loading card height
+    if (topLoading < 4) topLoading = r.bottom + 10;
+    pop.style.top = (topLoading + sy) + 'px';
     body.textContent = '⏳ Loading…';
     fetch('/lineup_ai/api/travel?home_id={team_id}&away_id={_travel_opp}')
         .then(function(r) {{ return r.json(); }})
