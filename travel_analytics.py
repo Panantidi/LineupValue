@@ -428,8 +428,8 @@ def compute_travel(home_team_id, away_team_id):
     try:
         from geopy.distance import geodesic
         km = int(round(geodesic(h_coord, a_coord).km))
-        # Sep 3 2026 — add 30% of the distance to the distance itself
-        km = int(round(km * 1.30))
+        # Sep 3 2026 — add 27% of the distance to the distance itself
+        km = int(round(km * 1.27))
     except Exception:
         km = None
     if km is None:
