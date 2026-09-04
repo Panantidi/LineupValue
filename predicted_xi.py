@@ -633,6 +633,10 @@ def _normalise_name_match_impl_inner(ff_name: str, lv_players: List[Dict[str, An
             lv_toks = [normalise_token(t) for t in re.split(r'[\s\.\-]+', lv_name) if t]
             if ff_surname_tok in lv_toks:
                 return p
+            if len(ff_surname_tok) >= 5 and any(t.startswith(ff_surname_tok) for t in lv_toks):
+                return p
+            if len(ff_surname_tok) >= 4 and ff_surname_tok >= 'valde' and any(t.startswith(ff_surname_tok) for t in lv_toks if len(t) >= 8):
+                return p
 
     # Pass 2b (Aug 30 2026) — first-token fallback: ff's given token as a
     # full token of the LV name. Handles LV renaming cases like
