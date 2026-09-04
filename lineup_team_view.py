@@ -2887,7 +2887,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 const teamCount = data.team_count || 0;
                 const fetchedAt = data.fetched_at ? new Date(data.fetched_at * 1000) : null;
                 const fetchedStr = fetchedAt ? pad2(fetchedAt.getDate()) + '.' + pad2(fetchedAt.getMonth() + 1) + ' ' + pad2(fetchedAt.getHours()) + ':' + pad2(fetchedAt.getMinutes()) : '?';
-                footer.textContent = 'Aggregated from ' + teamCount + ' LaLiga teams · cached ' + fetchedStr;
+                footer.textContent = ''
             }}
         }}
         function _escapeText(s) {{
