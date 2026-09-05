@@ -6221,6 +6221,7 @@ def scheduler_start():
                 # futbolfantasy uses the full form ("Real Oviedo").
                 def _name_eq(a, b):
                     import unicodedata
+                    import predicted_xi
                     def _strip_accents(s):
                         return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
                     al = _strip_accents((a or '').lower())
@@ -6229,6 +6230,12 @@ def scheduler_start():
                         return False
                     if al == bl:
                         return True
+                    # Team aliases: flashscore 'gijon' vs futbolfantasy 'sporting'
+                    for key, aliases in getattr(predicted_xi, 'TEAM_ALIASES', {}).items():
+                        if al == key and bl in aliases:
+                            return True
+                        if bl == key and al in aliases:
+                            return True
                     if al in bl or bl in al:
                         return True
                     at = al.replace('.', '').replace('-', ' ').split()

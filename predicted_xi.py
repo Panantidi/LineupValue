@@ -149,6 +149,35 @@ NICKNAME_ALIASES: Dict[str, List[str]] = {
 }
 
 
+# Team name aliases: flashscore vs futbolfantasy name variations
+TEAM_ALIASES: Dict[str, List[str]] = {
+    'gijon': ['sporting', 'sporting gijon', 'real sporting', 'real sporting de gijon'],
+    'sporting': ['gijon', 'sporting gijon'],
+    'tenerife': ['tenerife'],
+    'racing': ['racing santander', 'racing de santander'],
+    'santander': ['racing santander', 'racing de santander'],
+    'villarreal b': ['villarreal b', 'villarreal cf b'],
+    'castellon': ['castellon', 'cd castellon'],
+    'albacete': ['albacete', 'albacete balompie'],
+    'huesca': ['huesca', 'sd huesca'],
+    'mirandes': ['mirandes', 'cd mirandes'],
+    'zaragoza': ['zaragoza', 'real zaragoza'],
+    'oviedo': ['oviedo', 'real oviedo'],
+    'elche': ['elche', 'elche cf'],
+    'levante': ['levante', 'levante ud'],
+    'burgos': ['burgos', 'burgos cf'],
+    'leganes': ['leganes', 'cd leganes'],
+    'eibar': ['eibar', 'sd eibar'],
+    'ferrol': ['ferrol', 'racing ferrol'],
+    'cartagena': ['cartagena', 'fc cartagena'],
+    'cordoba': ['cordoba', 'cordoba cf'],
+    'malaga': ['malaga', 'malaga cf'],
+    'andorra': ['andorra', 'fc andorra'],
+    'amorebieta': ['amorebieta', 'sd amorebieta'],
+    'alcorcon': ['alcorcon', 'adr alcorcon'],
+}
+
+
 def parse_round_matches(championship: str, jornada: int = 0, url: str = '') -> List[Dict[str, Any]]:
     """Return every match in the displayed jornada/round.
 
