@@ -2509,6 +2509,8 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             if (host) {{
                 if (host.style.display === 'none' || !host.style.display) {{
                     host.style.display = 'block';
+                    const _sxiHost = document.getElementById('startingxi-panel-host');
+                    if (_sxiHost && _sxiHost.style.display !== 'none') toggleStartingXI();
                     await loadTestRotowireMatches();
                 }} else {{
                     host.style.display = 'none';
@@ -2529,6 +2531,10 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             host.style.display = willShow ? 'block' : 'none';
             const tbtn = document.getElementById('btn-starting-xi');
             if (tbtn) tbtn.classList.toggle('active', willShow);
+            if (willShow) {{
+                const other = document.getElementById('test-rotowire-panel-host');
+                if (other && other.style.display !== 'none') testRotowireFRAN();
+            }}
             const ts = document.getElementById('tweets-sidebar');
             if (ts) ts.classList.toggle('hidden', willShow);
         }}
