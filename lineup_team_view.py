@@ -1999,7 +1999,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()">🔼 Expand Details</button>
             <button type="button" id="btn-reverse-odds" class="header-action-btn" onclick="toggleReverseOdds()">🔄 Reverse Odds</button>
             <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()">🔮 Predicted XI</button>
-            <button type="button" id="btn-test-rotowire" class="header-action-btn" onclick="testRotowireFRAN()" title="Fetch rotowire FRAN Predicted Lineup and match P-XI checkboxes">Test</button>
+            <button type="button" id="btn-test-rotowire" class="header-action-btn" onclick="testRotowireFRAN()" >Test</button>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
@@ -2148,7 +2148,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         <div id="predicted11-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>
     </div>
 
-<div id="test-rotowire-panel-host" style="display:none;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">            <div style="font-size:15px;font-weight:700;color:#e8eef7;">🧪 Rotowire FRAN Test</div>            <button type="button" onclick="toggleTestRotowire()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">✕</button>        </div>        <div id="test-rotowire-body"></div>        <div id="test-rotowire-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>    </div>
+<div id="test-rotowire-panel-host" style="display:none;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">            <div onclick="toggleTestLeague()" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">France - Ligue 1</div>            <button type="button" onclick="toggleTestRotowire()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">✕</button>        </div>        <div id="test-rotowire-body" style="display:none;"></div>        <div id="test-rotowire-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>    </div>
     <div id="bulk-lineup-panel-host" style="display:none;margin-bottom:12px;">
             <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
@@ -2518,11 +2518,26 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         window.testRotowireFRAN = testRotowireFRAN;
         window.toggleTestRotowire = testRotowireFRAN;
 
+        // Sep 6 2026 — dropdown: load matches ONLY when the
+        // France - Ligue 1 dropdown is opened (not on panel open).
+        async function toggleTestLeague() {{
+            const list = document.getElementById('test-rotowire-body');
+            if (!list) return;
+            const willShow = list.style.display === 'none';
+            list.style.display = willShow ? 'block' : 'none';
+            if (willShow && !list.innerHTML) {{
+                await loadTestRotowireMatches();
+            }}
+        }}
+        window.toggleTestLeague = toggleTestLeague;
+
         // Sep 6 2026 — listen for rotowire-fran-apply message from
         // the compare page (Match mode) and auto-apply rotowire lineups.
         window.addEventListener('message', async function(e) {{
             if (!e.data || e.data.type !== 'rotowire-fran-apply') return;
             try {{
+                const _modeSel = document.getElementById('bulk-lineup-mode');
+                if (_modeSel) _modeSel.value = 'start';
                 const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID), {{ cache: 'no-store' }});
                 const d = await r.json();
                 if (!d || d.match_found === false || d.error) return;
@@ -2630,9 +2645,37 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 
             body.innerHTML = html;
             if (footer) {{
-                footer.textContent = 'Source: rotowire.com/soccer/lineups.php?league=FRAN | within 18h';
+                footer.textContent = '';
             }}
         }}
+
+        // Sep 6 2026 — countdown ticks + auto-remove matches that
+        // started more than 2 minutes ago (Test panel).
+        function refreshTestCountdowns() {{
+            const now = Math.floor(Date.now() / 1000);
+            const spans = document.querySelectorAll('#test-rotowire-body .test-countdown');
+            spans.forEach(function (el) {{
+                const ts = parseInt(el.getAttribute('data-ts') || '0', 10);
+                if (!ts) return;
+                const delta = ts - now;
+                if (delta <= -120) {{
+                    // Match started >= 2 min ago — remove the card
+                    const card = el.closest('[data-kickoff]');
+                    if (card && card.parentNode) card.parentNode.removeChild(card);
+                    return;
+                }}
+                const days = Math.floor(delta / 86400);
+                const hours = Math.floor((delta % 86400) / 3600);
+                const minutes = Math.floor((delta % 3600) / 60);
+                let body;
+                if (delta <= 0) body = '0m';
+                else if (days > 0) body = days + 'd ' + hours + 'h';
+                else if (hours > 0) body = hours + 'h ' + (minutes < 10 ? '0' : '') + minutes + 'm';
+                else body = minutes + 'm';
+                el.textContent = '🕒 ' + body;
+            }});
+        }}
+        setInterval(refreshTestCountdowns, 30);
 
         function applyTestRotowirePXI() {{
             const d = window._testRotowireData;
