@@ -3693,19 +3693,7 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
             "error": "lineup not posted",
         })
 
-    # Check it's a Predicted Lineup (not Confirmed)
-    if "Confirmed Lineup" in lineup_html:
-        return JSONResponse({
-            "match_found": True,
-            "home_team": home_name,
-            "away_team": away_name,
-            "kickoff_ts": kickoff_ts,
-            "players": [],
-            "not_found": [],
-            "error": "confirmed lineup (not predicted)",
-        })
-
-    if "Predicted Lineup" not in lineup_html:
+    if "Predicted Lineup" not in lineup_html and "Confirmed Lineup" not in lineup_html:
         return JSONResponse({
             "match_found": True,
             "home_team": home_name,
