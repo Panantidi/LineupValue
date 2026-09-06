@@ -1999,6 +1999,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()">🔼 Expand Details</button>
             <button type="button" id="btn-reverse-odds" class="header-action-btn" onclick="toggleReverseOdds()">🔄 Reverse Odds</button>
             <button type="button" id="btn-predicted-11" class="header-action-btn" onclick="togglePredicted11()">🔮 Predicted XI</button>
+            <button type="button" id="btn-test-rotowire" class="header-action-btn" onclick="testRotowireFRAN()" title="Fetch rotowire FRAN Predicted Lineup and match P-XI checkboxes">Test</button>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
@@ -2499,6 +2500,88 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         // Aug 22 2026 — expose so the Match-mode header button
         // (compare_template.html) can trigger it via postMessage.
         window.togglePredicted11 = togglePredicted11;
+
+        // Sep 6 2026 — Test button: fetch rotowire FRAN Predicted Lineup
+        // and match P-XI checkboxes + statuses.
+        async function testRotowireFRAN() {{
+            const btn = document.getElementById('btn-test-rotowire');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '⏳ Testing...';
+            btn.disabled = true;
+            try {{
+                const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID), {{ cache: 'no-store' }});
+                const d = await r.json();
+                if (d.error) {{
+                    alert('Test: ' + d.error);
+                    return;
+                }}
+                if (!d.match_found) {{
+                    alert('Test: ' + (d.error || 'Match not found'));
+                    return;
+                }}
+
+                // Open the bulk-lineup panel so the textarea is visible
+                try {{
+                    const host = document.getElementById('bulk-lineup-panel-host');
+                    if (host && host.style.display === 'none') host.style.display = 'block';
+                }} catch (e) {{}}
+
+                // 1. Check P-XI checkboxes for matched players
+                let checked = 0;
+                const nfLines = [];
+                for (const p of (d.players || [])) {{
+                    if (!p.lv_name) continue;
+                    const cbs = document.querySelectorAll('input.xi-checkbox');
+                    for (const cb of cbs) {{
+                        const rowName = (cb.value || '').toLowerCase().trim();
+                        const targetName = (p.lv_name || '').toLowerCase().trim();
+                        if (rowName === targetName) {{
+                            if (!cb.checked) {{
+                                cb.checked = true;
+                                cb.dispatchEvent(new Event('change', {{bubbles: true}}));
+                            }}
+                            checked++;
+                            // Set status for OUT / QUES
+                            if (p.status === 'Injury' || p.status === 'Doubt') {{
+                                const row = cb.closest('tr');
+                                if (row) {{
+                                    const sel = row.querySelector('select.status-select');
+                                    if (sel) {{
+                                        sel.value = p.status;
+                                        sel.dispatchEvent(new Event('change', {{bubbles: true}}));
+                                    }}
+                                }}
+                            }}
+                            break;
+                        }}
+                    }}
+                }}
+
+                // 2. Show not-found players in textarea (red bold)
+                const ta = document.getElementById('bulk-lineup-text');
+                if (ta) {{
+                    let nfHtml = '';
+                    for (const nf of (d.not_found || [])) {{
+                        nfHtml += '<div style="color:#dc3545;font-weight:700;">' +
+                            nf.pos + ' - ' + nf.name + ' - NOT FOUND</div>';
+                    }}
+                    if (nfHtml) {{
+                        ta.innerHTML = nfHtml + ta.innerHTML;
+                    }}
+                }}
+
+                const nfCount = (d.not_found || []).length;
+                alert('Test OK: ' + d.home_team + ' vs ' + d.away_team +
+                      '\nMatched: ' + checked + ' players' +
+                      '\nNot found: ' + nfCount + ' players');
+            }} catch (e) {{
+                alert('Test error: ' + e.message);
+            }} finally {{
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }}
+        }}
+        window.testRotowireFRAN = testRotowireFRAN;
 
         async function loadPredicted11() {{
             const body = document.getElementById('predicted11-body');

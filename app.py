@@ -3257,6 +3257,249 @@ def _load_lv_players(team_id: str) -> list:
     return d.get('players') or d.get('squad') or []
 
 
+@app.get("/lineup_ai/api/test_rotowire_fran/{team_id}")
+async def test_rotowire_fran(team_id: str):
+    """Sep 6 2026 — Test button: match rotowire FRAN Predicted Lineup with LV squad.
+
+    Fetches https://www.rotowire.com/soccer/lineups.php?league=FRAN,
+    finds the matchup for team_id, and matches players with the LV squad.
+    Only processes matches within 18h of kickoff. Only Predicted Lineups
+    (not Confirmed, not "not posted yet").
+
+    Returns:
+        match_found: bool
+        home_team / away_team: str
+        kickoff_ts: int (epoch UTC)
+        players: [{pos, name, lv_id, lv_name, status}] (max 11)
+        not_found: [{pos, name}]
+        error: str (if any)
+    """
+    import re as _re
+    import time as _time
+    import urllib.request as _urllib_request
+    import sqlite3 as _sqlite3
+    from rotowire_fixtures import _parse_et_time, _name_eq
+
+    now = int(_time.time())
+
+    HORIZON = 18 * 3600
+
+    # --- Fetch rotowire FRAN page (with 60s in-memory cache) ---
+    cache_key = "_test_rotowire_fran_html"
+    html = getattr(test_rotowire_fran, cache_key, None)
+    cached_at = getattr(test_rotowire_fran, cache_key + "_ts", 0)
+    if html and now - cached_at < 60:
+        pass
+    else:
+        try:
+            req = _urllib_request.Request(
+                "https://www.rotowire.com/soccer/lineups.php?league=FRAN",
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            html = _urllib_request.urlopen(req, timeout=30).read().decode("utf-8", errors="replace")
+            setattr(test_rotowire_fran, cache_key, html)
+            setattr(test_rotowire_fran, cache_key + "_ts", now)
+        except Exception as e:
+            return JSONResponse({"error": f"rotowire fetch failed: {e}"}, status_code=500)
+
+    # --- Get LV team name ---
+    lv_team_name = _predicted_xi_team_id_to_name_v2(team_id)
+    if not lv_team_name:
+        return JSONResponse({"error": f"team {team_id} not found"}, status_code=404)
+
+    # --- Parse rotowire matchups ---
+    blocks = _re.split(r'<div class="lineup is-soccer">', html)[1:]
+    target_block = None
+    target_side = None
+    home_name = ""
+    away_name = ""
+    kickoff_ts = 0
+
+    for block in blocks:
+        time_m = _re.search(r'<div class="lineup__time"><b>([^<]+)</b>&nbsp;\s*([^<]+)</div>', block)
+        if not time_m:
+            continue
+        home_m = _re.search(r'<div class="lineup__mteam is-home">([^<]+)<span', block)
+        away_m = _re.search(r'<div class="lineup__mteam is-visit">([^<]+)<span', block)
+        if not home_m or not away_m:
+            continue
+
+        rh = home_m.group(1).strip()
+        ra = away_m.group(1).strip()
+
+        # Check if LV team matches either side
+        side = None
+        if _name_eq(lv_team_name, rh):
+            side = "home"
+        elif _name_eq(lv_team_name, ra):
+            side = "away"
+        if not side:
+            continue
+
+        ts = _parse_et_time(time_m.group(1), time_m.group(2))
+
+        # Only matches within 18h
+        if ts > now + HORIZON or ts < now - 3600:
+            continue
+
+        target_block = block
+        target_side = side
+        home_name = rh
+        away_name = ra
+        kickoff_ts = ts
+        break
+
+    if not target_block:
+        return JSONResponse({
+            "match_found": False,
+            "error": "No upcoming Ligue 1 match found for this team on rotowire within 18h",
+        })
+
+    # --- Check if lineup is posted ---
+    side_class = "is-home" if target_side == "home" else "is-visit"
+    list_m = _re.search(
+        r'<ul class="lineup__list ' + side_class + r'">(.*?)</ul>',
+        target_block, _re.S)
+    if not list_m:
+        return JSONResponse({
+            "match_found": True,
+            "home_team": home_name,
+            "away_team": away_name,
+            "kickoff_ts": kickoff_ts,
+            "players": [],
+            "not_found": [],
+            "error": "lineup not posted",
+        })
+
+    lineup_html = list_m.group(1)
+
+    # Check "not been posted yet"
+    if "has not been posted yet" in lineup_html:
+        return JSONResponse({
+            "match_found": True,
+            "home_team": home_name,
+            "away_team": away_name,
+            "kickoff_ts": kickoff_ts,
+            "players": [],
+            "not_found": [],
+            "error": "lineup not posted",
+        })
+
+    # Check it's a Predicted Lineup (not Confirmed)
+    if "Confirmed Lineup" in lineup_html:
+        return JSONResponse({
+            "match_found": True,
+            "home_team": home_name,
+            "away_team": away_name,
+            "kickoff_ts": kickoff_ts,
+            "players": [],
+            "not_found": [],
+            "error": "confirmed lineup (not predicted)",
+        })
+
+    if "Predicted Lineup" not in lineup_html:
+        return JSONResponse({
+            "match_found": True,
+            "home_team": home_name,
+            "away_team": away_name,
+            "kickoff_ts": kickoff_ts,
+            "players": [],
+            "not_found": [],
+            "error": "not a predicted lineup",
+        })
+
+    # --- Parse players ---
+    players_raw = []
+    for pm in _re.finditer(
+            r'<li class="lineup__player">\s*<div class="lineup__pos[^"]*">([^<]*)</div>\s*'
+            r'<a title="([^"]+)"[^>]*>([^<]+)</a>\s*'
+            r'(?:<span class="lineup__inj">(\w+)</span>)?',
+            lineup_html):
+        pos, full_name, short_name, inj = pm.groups()
+        players_raw.append({
+            "pos": pos.strip(),
+            "name": full_name.strip(),
+            "short_name": short_name.strip(),
+            "inj": inj.strip() if inj else "",
+        })
+
+    if not players_raw:
+        return JSONResponse({
+            "match_found": True,
+            "home_team": home_name,
+            "away_team": away_name,
+            "kickoff_ts": kickoff_ts,
+            "players": [],
+            "not_found": [],
+            "error": "no players parsed",
+        })
+
+    # Cap at 11 players
+    players_raw = players_raw[:11]
+
+    # --- Load LV squad cache ---
+    cache_file = f"/home/openclaw/.openclaw/workspace/_live_cache_{team_id}.json"
+    lv_players = []
+    try:
+        with open(cache_file, "r") as f:
+            lv_data = json.load(f)
+        lv_players = lv_data.get("players") or []
+    except Exception:
+        pass
+
+    if not lv_players:
+        # Try fetch from API
+        try:
+            api_url = f"http://127.0.0.1:8099/lineup_ai/api/fetch/{team_id}"
+            areq = _urllib_request.Request(api_url)
+            adata = json.loads(_urllib_request.urlopen(areq, timeout=60).read())
+            lv_players = adata.get("players") or []
+        except Exception:
+            pass
+
+    # --- Match players with LV squad ---
+    import predicted_xi as _pxi
+
+    players = []
+    not_found = []
+
+    for p in players_raw:
+        matched = None
+        if lv_players:
+            m = _pxi.normalise_name_match(p["name"], lv_players)
+            if m:
+                matched = m
+
+        if matched:
+            status = ""
+            if p["inj"] == "OUT":
+                status = "Injury"
+            elif p["inj"] == "QUES":
+                status = "Doubt"
+
+            players.append({
+                "pos": p["pos"],
+                "name": p["name"],
+                "lv_id": matched.get("player_id", ""),
+                "lv_name": matched.get("name", ""),
+                "status": status,
+            })
+        else:
+            not_found.append({
+                "pos": p["pos"],
+                "name": p["name"],
+            })
+
+    return JSONResponse({
+        "match_found": True,
+        "home_team": home_name,
+        "away_team": away_name,
+        "kickoff_ts": kickoff_ts,
+        "players": players,
+        "not_found": not_found,
+        "error": None,
+    })
+
+
 @app.get("/lineup_ai/api/predicted_xi_status/{team_id}")
 async def lineup_api_predicted_xi_status(team_id: str):
     """Aug 22 2026 — aggregate predicted XI counts for the active round.
@@ -7840,6 +8083,17 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
         "ORDER BY al.id DESC LIMIT ? OFFSET ?",
         params + [page_size, offset]
     ).fetchall()
+
+    # Pre-fetch last activity for each user
+    last_activity = {}
+    for u in users:
+        uname = u[1]
+        row = con.execute(
+            "SELECT timestamp FROM access_log WHERE username=? ORDER BY id DESC LIMIT 1",
+            (uname,)
+        ).fetchone()
+        last_activity[uname] = _fmt_msk(row[0]) if row else "–"
+
     con.close()
 
     n_active = sum(1 for u in users if u[3])
@@ -7864,10 +8118,13 @@ def _render_admin(msg: str = "", page: int = 1, page_size: int = 50,
         toggle = "Deactivate" if active else "Activate"
         del_btn = "" if uname == "admin" else f'<form method="POST" action="/admin/del/{uid}"><button class="c rd" onclick="return confirm(\'Delete {uname}?\')">Delete</button></form>'
 
+        last_act = last_activity.get(uname, "–")
+
         rows += f"""<tr>
 <td>{uid}</td><td><b>{uname}</b></td><td>{pwd_cell}</td>
 <td>{role}</td><td>{status}</td>
 <td>{_fmt_msk(created)}</td><td>{_fmt_msk(last)}</td>
+<td>{last_act}</td>
 <td>
 <form method="POST" action="/admin/tog/{uid}"><button class="c yw">{toggle}</button></form>
 <form method="POST" action="/admin/rst/{uid}"><button class="c bl">New Password</button></form>
@@ -7975,7 +8232,7 @@ form{{display:inline}}button,.c{{display:inline-block;padding:4px 10px;border:no
 <div class="gbox">
 <form method="POST" action="/admin/gen"><input type="text" name="username" placeholder="Login (blank = auto)"><button class="c gn">Generate Login &amp; Password</button></form>
 </div>
-<table><thead><tr><th>ID</th><th>Login</th><th>Password</th><th>Role</th><th>Status</th><th>Created</th><th>Last Login</th><th>Actions</th></tr></thead>
+<table><thead><tr><th>ID</th><th>Login</th><th>Password</th><th>Role</th><th>Status</th><th>Created</th><th>Last Login</th><th>Last Activity</th><th>Actions</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
 <div class="cd"><h2 style="display:flex;justify-content:space-between;align-items:center;">
   <span>Recent Activity ({total_logs}{(' — showing newest 300 of ' + str(total_hits) + ' events') if dropped else ''})</span>
