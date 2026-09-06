@@ -3553,6 +3553,120 @@ async def test_rotowire_matches(league_key: str):
     return JSONResponse({"matches": matches})
 
 
+@app.get("/lineup_ai/api/starting_xi_matches/{league_key}")
+async def starting_xi_matches(league_key: str):
+    """Sep 6 2026 — Starting XI panel: CONFIRMED matches starting within 1h15m."""
+    import re as _re
+    import time as _time
+    import urllib.request as _urllib_request
+    from rotowire_fixtures import _name_eq, _parse_et_time
+
+    cfg = ROTOWIRE_TEST_LEAGUES.get(league_key)
+    if not cfg:
+        return JSONResponse({"matches": [], "error": f"unknown league: {league_key}"}, status_code=404)
+
+    now = int(_time.time())
+    cache = getattr(starting_xi_matches, "_cache", None)
+    if cache and cache[0] == league_key and now - cache[1] < 60:
+        html = cache[2]
+    else:
+        req = _urllib_request.Request(cfg["url"], headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        with _urllib_request.urlopen(req, timeout=30) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+        starting_xi_matches._cache = (league_key, now, html)
+
+    blocks = html.split('<div class="lineup is-soccer">')[1:]
+    HORIZON = 75 * 60
+
+    try:
+        with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+            leagues = json.load(f)
+    except Exception:
+        leagues = {}
+    lv_teams = []
+    if cfg["country"] in leagues and isinstance(leagues[cfg["country"]], dict):
+        lv_teams = leagues[cfg["country"]].get(cfg["league"], [])
+
+    def find_lv_team(rotowire_name):
+        for t in lv_teams:
+            if _name_eq(t.get("name", ""), rotowire_name):
+                return t
+        return None
+
+    matches = []
+    for block in blocks:
+        time_m = _re.search(
+            r'<div class="lineup__time"><b>([^<]+)</b>&nbsp;\s*([^<]+)</div>', block)
+        home_m = _re.search(r'<div class="lineup__mteam is-home">([^<]+)<span', block)
+        away_m = _re.search(r'<div class="lineup__mteam is-visit">([^<]+)<span', block)
+        if not (time_m and home_m and away_m):
+            continue
+        ts = _parse_et_time(time_m.group(1), time_m.group(2))
+        if ts > now + HORIZON or ts < now - 120:
+            continue
+
+        import html as _html_unesc
+        rh = _html_unesc.unescape(home_m.group(1).strip())
+        ra = _html_unesc.unescape(away_m.group(1).strip())
+        is_confirmed = "Confirmed Lineup" in block
+        if not is_confirmed:
+            continue
+
+        home_lv = find_lv_team(rh)
+        away_lv = find_lv_team(ra)
+
+        lv_time = ""
+        try:
+            _hcache = os.path.join(
+                "/home/openclaw/.openclaw/workspace",
+                "_live_cache_" + (home_lv or {}).get("id", "") + ".json")
+            if os.path.exists(_hcache):
+                with open(_hcache, "r", encoding="utf-8") as f:
+                    _td = json.load(f)
+                for _fx in _td.get("fixtures") or []:
+                    _aw = _fx.get("away_team", {})
+                    _aw_name = (_aw.get("name", "") if isinstance(_aw, dict) else str(_aw or "")).lower()
+                    if ra.lower() in _aw_name or _aw_name in ra.lower():
+                        _d = _fx.get("date", "")
+                        _t = _fx.get("time", "")
+                        _dm = re.match(r"(\d{1,2})/(\d{2})", _d)
+                        if _dm:
+                            lv_time = f"{int(_dm.group(1)):02d}.{int(_dm.group(2)):02d}" + (f" {_t}" if _t else "")
+                        break
+        except Exception:
+            pass
+
+        _ph, _pt_h, _pam, _pt_a = 0, 0, 0, 0
+        try:
+            _hc, _ = _rotowire_block_counts(block, (home_lv or {}).get("id", ""))
+            _ph, _pt_h = _hc
+        except Exception:
+            pass
+        try:
+            _, _ac2 = _rotowire_block_counts(block, (away_lv or {}).get("id", ""))
+            _pam, _pt_a = _ac2
+        except Exception:
+            pass
+
+        matches.append({
+            "home_team": rh,
+            "away_team": ra,
+            "home_id": (home_lv or {}).get("id", ""),
+            "away_id": (away_lv or {}).get("id", ""),
+            "home_matched": home_lv is not None,
+            "away_matched": away_lv is not None,
+            "kickoff_ts": ts,
+            "lv_time": lv_time,
+            "pxi_home_matched": _ph, "pxi_home_total": _pt_h,
+            "pxi_away_matched": _pam, "pxi_away_total": _pt_a,
+            "lineup_posted": True,
+            "is_confirmed": True,
+        })
+
+    return JSONResponse({"matches": matches})
+
+
 def cached_key(cache, key, now, ttl):
     return cache and cache[0] == key and now - cache[1] < ttl
 
