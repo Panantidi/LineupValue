@@ -2664,6 +2664,20 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID) + '?league=' + encodeURIComponent(_rwLg), {{ cache: 'no-store' }});
                 const d = await r.json();
                 if (!d || d.match_found === false || d.error) return;
+                // Resize the bulk-lineup textarea to show exactly 11 rows
+                // after a lineup match so no scrolling is needed.
+                function _rwFitTextarea() {{
+                    var el = document.getElementById('bulk-lineup-text');
+                    if (!el) return;
+                    var cs = window.getComputedStyle(el);
+                    var lh = parseFloat(cs.lineHeight);
+                    if (!lh || isNaN(lh)) lh = 16;
+                    var pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+                    if (isNaN(pad)) pad = 16;
+                    var h = Math.ceil(lh * 11 + pad + 2);
+                    el.style.height = h + 'px';
+                    el.style.minHeight = h + 'px';
+                }}
                 async function _rwApply(players) {{
                     const _mSelEl = document.getElementById('bulk-lineup-mode');
                     const _cbCls = (_mSelEl && _mSelEl.value === 'start') ? 'input.starting-checkbox' : 'input.xi-checkbox';
@@ -2713,6 +2727,7 @@ if (notFound.length > 0) {{
                         ta.innerHTML = nfHtml + ta.innerHTML;
                     }}
                 }}
+                _rwFitTextarea();
             }} catch (err) {{ /* silent */ }}
         }});
 
