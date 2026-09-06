@@ -2600,7 +2600,8 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 let openMatchBtn = '';
                 if (m.home_id && m.away_id) {{
                     const openHref = '/lineup_ai/compare/' + encodeURIComponent(m.home_id) +
-                        '?home_id=' + encodeURIComponent(m.home_id) +
+                        '?mid=' + encodeURIComponent('rw-' + m.home_id + '-' + m.away_id) +
+                        '&home_id=' + encodeURIComponent(m.home_id) +
                         '&away_id=' + encodeURIComponent(m.away_id) +
                         '&home_name=' + encodeURIComponent(m.home_team) +
                         '&away_name=' + encodeURIComponent(m.away_team) +
