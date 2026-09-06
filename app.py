@@ -3257,6 +3257,47 @@ def _load_lv_players(team_id: str) -> list:
     return d.get('players') or d.get('squad') or []
 
 
+def _rotowire_block_counts(block, lv_team_id):
+    """Sep 6 2026 — count matched rotowire XI players vs LV squad (one side)."""
+    import re as _re
+    try:
+        from predicted_xi import normalise_name_match
+    except Exception:
+        return 0, 0
+    lv_players = []
+    try:
+        with open(f"/home/openclaw/.openclaw/workspace/_live_cache_{lv_team_id}.json", "r") as f:
+            lv_players = json.load(f).get("players") or []
+    except Exception:
+        return 0, 0
+    counts = {}
+    for side_class in ("is-home", "is-visit"):
+        list_m = _re.search(
+            r'<ul class="lineup__list ' + side_class + r'">(.*?)</ul>',
+            block, _re.S)
+        if not list_m:
+            counts[side_class] = (0, 0)
+            continue
+        lineup_html = list_m.group(1)
+        if "has not been posted yet" in lineup_html:
+            counts[side_class] = (0, 0)
+            continue
+        players_raw = []
+        for pm in _re.finditer(
+                r'<li class="lineup__player">\s*<div class="lineup__pos[^"]*">([^<]*)</div>\s*'
+                r'<a title="([^"]+)"[^>]*>([^<]+)</a>\s*'
+                r'(?:<span class="lineup__inj">(\w+)</span>)?',
+                lineup_html):
+            players_raw.append(pm.group(2).strip())
+        players_raw = players_raw[:11]
+        matched = 0
+        for name in players_raw:
+            if lv_players and normalise_name_match(name, lv_players):
+                matched += 1
+        counts[side_class] = (matched, len(players_raw))
+    return counts.get("is-home", (0, 0)), counts.get("is-visit", (0, 0))
+
+
 @app.get("/lineup_ai/api/test_rotowire_fran_matches")
 async def test_rotowire_fran_matches():
     """Returns ALL upcoming Ligue 1 matches from rotowire FRAN within 18h,
@@ -3351,6 +3392,19 @@ async def test_rotowire_fran_matches():
         not_posted = "lineup has not been posted yet" in block.lower()
         is_confirmed = "Confirmed Lineup" in block
 
+        # Sep 6 2026 — pxi counts vs LV squads
+        _ph, _pt_h, _pam, _pt_a = 0, 0, 0, 0
+        try:
+            _hc, _ = _rotowire_block_counts(block, (home_lv or {}).get("id", ""))
+            _ph, _pt_h = _hc
+        except Exception:
+            pass
+        try:
+            _, _ac2 = _rotowire_block_counts(block, (away_lv or {}).get("id", ""))
+            _pam, _pt_a = _ac2
+        except Exception:
+            pass
+
         matches.append({
             "home_team": rh,
             "away_team": ra,
@@ -3360,6 +3414,8 @@ async def test_rotowire_fran_matches():
             "away_matched": away_lv is not None,
             "kickoff_ts": ts,
             "lv_time": lv_time,
+            "pxi_home_matched": _ph, "pxi_home_total": _pt_h,
+            "pxi_away_matched": _pam, "pxi_away_total": _pt_a,
             "lineup_posted": not not_posted and not is_confirmed,
             "is_confirmed": is_confirmed,
         })
