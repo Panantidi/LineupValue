@@ -5392,6 +5392,14 @@ if (notFound.length > 0) {{
                 }});
                 championshipSelect.disabled = false;
                 onNavChampionshipChange();
+                // Sep 7 2026: auto-populate the next-5-matches dropdown for
+                // the current team right after load (e.g. the reload kicked
+                // off by the ♻️ Refresh button) so the match select is
+                // active without re-selecting the team first.
+                if (typeof window.onNavTeamChange === 'function') {{
+                    const _tSel = document.getElementById('nav-team');
+                    if (_tSel && _tSel.value) window.onNavTeamChange();
+                }}
             }};
 
             window.onNavChampionshipChange = function() {{
