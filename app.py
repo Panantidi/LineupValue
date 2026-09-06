@@ -3257,7 +3257,93 @@ def _load_lv_players(team_id: str) -> list:
     return d.get('players') or d.get('squad') or []
 
 
+@app.get("/lineup_ai/api/test_rotowire_fran_matches")
+async def test_rotowire_fran_matches():
+    """Returns ALL upcoming Ligue 1 matches from rotowire FRAN within 18h,
+    with LV team_ids matched, for the Test panel match list."""
+    import re as _re
+    import urllib.request as _urllib_request
+    import time as _time
+    from rotowire_fixtures import _name_eq, _parse_et_time
+
+    # --- Fetch and cache rotowire page (60s) ---
+    _cache_key = "test_rotowire_fran_matches"
+    now = int(_time.time())
+    cached = getattr(test_rotowire_fran_matches, "_cache", None)
+    html = None
+    if cached and now - cached[0] < 60:
+        html = cached[1]
+    else:
+        url = "https://www.rotowire.com/soccer/lineups.php?league=FRAN"
+        req = _urllib_request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        })
+        with _urllib_request.urlopen(req, timeout=30) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+        test_rotowire_fran_matches._cache = (now, html)
+
+    blocks = html.split('<div class="lineup is-soccer">')[1:]
+    HORIZON = 18 * 3600
+
+    # Load LV Ligue 1 teams for matching
+    try:
+        with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+            leagues = json.load(f)
+    except Exception:
+        leagues = {}
+    lv_l1_teams = []
+    for _country, _ldict in leagues.items():
+        if "France" in _country:
+            for _lname, _teams in _ldict.items():
+                if "Ligue 1" in _lname:
+                    lv_l1_teams = _teams
+                    break
+
+    def find_lv_team(rotowire_name):
+        for t in lv_l1_teams:
+            if _name_eq(t.get("name", ""), rotowire_name):
+                return t
+        return None
+
+    matches = []
+    for block in blocks:
+        time_m = _re.search(
+            r'<div class="lineup__time"><b>([^<]+)</b>&nbsp;\s*([^<]+)</div>', block)
+        home_m = _re.search(r'<div class="lineup__mteam is-home">([^<]+)<span', block)
+        away_m = _re.search(r'<div class="lineup__mteam is-visit">([^<]+)<span', block)
+        if not (time_m and home_m and away_m):
+            continue
+        ts = _parse_et_time(time_m.group(1), time_m.group(2))
+        if ts > now + HORIZON or ts < now - 3600:
+            continue
+
+        rh = home_m.group(1).strip()
+        ra = away_m.group(1).strip()
+
+        home_lv = find_lv_team(rh)
+        away_lv = find_lv_team(ra)
+
+        # Check if predicted lineup is posted
+        not_posted = "lineup has not been posted yet" in block.lower()
+        is_confirmed = "Confirmed Lineup" in block
+
+        matches.append({
+            "home_team": rh,
+            "away_team": ra,
+            "home_id": (home_lv or {}).get("id", ""),
+            "away_id": (away_lv or {}).get("id", ""),
+            "home_matched": home_lv is not None,
+            "away_matched": away_lv is not None,
+            "kickoff_ts": ts,
+            "lineup_posted": not not_posted and not is_confirmed,
+            "is_confirmed": is_confirmed,
+        })
+
+    return JSONResponse({"matches": matches})
+
+
 @app.get("/lineup_ai/api/test_rotowire_fran/{team_id}")
+
 async def test_rotowire_fran(team_id: str):
     """Sep 6 2026 — Test button: match rotowire FRAN Predicted Lineup with LV squad.
 

@@ -2781,6 +2781,30 @@ document.addEventListener('DOMContentLoaded', function() {
         _refreshTeamsAndReload(homeId, awayId, mid);
     } catch (e) { /* silent */ }
 });
+
+// Sep 6 2026 — rotowire_fran=1: postMessage every iframe to
+// apply rotowire FRAN predicted lineups (Test button flow).
+(function() {
+    try {
+        var p = new URLSearchParams(window.location.search);
+        if (p.get('rotowire_fran') !== '1') return;
+        var sent = 0;
+        function tick(attempt) {
+            var frames = document.querySelectorAll('iframe.team-frame');
+            if (frames.length < 2 && attempt < 30) {
+                setTimeout(function() { tick(attempt + 1); }, 500);
+                return;
+            }
+            for (var i = 0; i < frames.length; i++) {
+                try { frames[i].contentWindow.postMessage({type: 'rotowire-fran-apply'}, '*'); } catch (e) {}
+            }
+            sent++;
+            // Retry once more after iframes fully load
+            if (sent < 2) setTimeout(function() { tick(30); }, 5000);
+        }
+        setTimeout(function() { tick(0); }, 2500);
+    } catch (e) { /* silent */ }
+})();
 </script>
 
 
