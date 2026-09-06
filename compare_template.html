@@ -2795,8 +2795,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(function() { tick(attempt + 1); }, 500);
                 return;
             }
+            var _lg = p.get('rw_league') || 'fran';
             for (var i = 0; i < frames.length; i++) {
-                try { frames[i].contentWindow.postMessage({type: 'rotowire-fran-apply'}, '*'); } catch (e) {}
+                try { frames[i].contentWindow.postMessage({type: 'rotowire-fran-apply', league: _lg}, '*'); } catch (e) {}
             }
             sent++;
             // Retry once more after iframes fully load
