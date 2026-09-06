@@ -2520,6 +2520,106 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 
         // Sep 6 2026 — dropdown: load matches ONLY when the
         // France - Ligue 1 dropdown is opened (not on panel open).
+
+        // Sep 6 2026 — Starting XI panel (Confirmed lineups within 1h15m)
+        function toggleStartingXI() {{
+            const host = document.getElementById('startingxi-panel-host');
+            if (!host) return;
+            const willShow = host.style.display === 'none';
+            host.style.display = willShow ? 'block' : 'none';
+            const tbtn = document.getElementById('btn-starting-xi');
+            if (tbtn) tbtn.classList.toggle('active', willShow);
+            const ts = document.getElementById('tweets-sidebar');
+            if (ts) ts.classList.toggle('hidden', willShow);
+        }}
+        window.toggleStartingXI = toggleStartingXI;
+
+        async function toggleStartingXILeague(leagueKey) {{
+            const list = document.getElementById('startingxi-' + leagueKey + '-list');
+            if (!list) return;
+            const willShow = list.style.display === 'none';
+            list.style.display = willShow ? 'block' : 'none';
+            if (willShow && !list.innerHTML) {{
+                await loadStartingXIMatches(leagueKey);
+            }}
+        }}
+        window.toggleStartingXILeague = toggleStartingXILeague;
+
+        async function loadStartingXIMatches(leagueKey) {{
+            const body = document.getElementById('startingxi-' + leagueKey + '-list');
+            if (!body) return;
+            body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">Loading...</div>';
+            try {{
+                const r = await fetch('/lineup_ai/api/starting_xi_matches/' + leagueKey, {{ cache: 'no-store' }});
+                const d = await r.json();
+                renderStartingXIMatches(d, leagueKey);
+            }} catch (e) {{
+                body.innerHTML = '<div style="color:#dc3545;font-size:14px;">Failed to load matches.</div>';
+            }}
+        }}
+
+        function renderStartingXIMatches(d, leagueKey) {{
+            const body = document.getElementById('startingxi-' + leagueKey + '-list');
+            if (!body) return;
+
+            const matches = (d && d.matches) || [];
+            if (matches.length === 0) {{
+                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No confirmed matches within 1h 15m</div>';
+                return;
+            }}
+            let html = '';
+            for (const m of matches) {{
+                if (!m.home_id && !m.away_id) {{
+                    html += '<div style="padding:6px 10px;margin-bottom:8px;background:#172033;border-radius:6px;border:1px solid #1f2b40;font-size:14px;color:#e8eef7;">No LV match. ' + m.home_team + ' / ' + m.away_team + '</div>';
+                    continue;
+                }}
+                const kickStr = m.lv_time || '';
+                let openMatchBtn = '';
+                if (m.home_id && m.away_id) {{
+                    const openHref = '/lineup_ai/compare/' + m.home_id +
+                        '?mid=' + encodeURIComponent('sx-' + m.home_id + '-' + m.away_id) +
+                        '&home_id=' + encodeURIComponent(m.home_id) +
+                        '&away_id=' + encodeURIComponent(m.away_id) +
+                        '&home_name=' + encodeURIComponent(m.home_team) +
+                        '&away_name=' + encodeURIComponent(m.away_team) +
+                        '&rotowire_fran=1' +
+                        '&rw_league=' + leagueKey +
+                        '&kickoff_ts=' + (m.kickoff_ts || 0);
+                    openMatchBtn = '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;text-decoration:none;border:1px solid #60a5fa;padding:4px 10px;border-radius:5px;white-space:nowrap;">▶ Open Match</a>';
+                }}
+                const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
+                const pxiAwayFull = (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
+                const pxiAwayPartial = (m.pxi_away_matched > 0 && !pxiAwayFull);
+                const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
+                html += '<div style="display:grid;grid-template-columns:60px 88px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
+                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;width:60px;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
+                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;width:88px;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
+                html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
+                if (pxiHomeFull) {{
+                    html += '<span title="11/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                }} else if (pxiHomePartial) {{
+                    html += '<span title="' + (m.pxi_home_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                }} else {{
+                    html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
+                }}
+                html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + m.home_team + '</span>';
+                html += '<span style="color:#64748b;font-size:12px;flex-shrink:0;">vs</span>';
+                html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + m.away_team + '</span>';
+                if (pxiAwayFull) {{
+                    html += '<span title="11/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                }} else if (pxiAwayPartial) {{
+                    html += '<span title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                }}
+                html += '<span style="font-size:10px;font-weight:600;color:#f87171;white-space:nowrap;">' + m.pxi_home_matched + '/' + m.pxi_home_total + ' · ' + m.pxi_away_matched + '/' + m.pxi_away_total + '</span>';
+                html += '<span style="font-size:10px;font-weight:600;color:#f87171;white-space:nowrap;">Confirmed</span>';
+                html += '</div>';
+                html += '<span style="grid-column:4;justify-self:end;">' + openMatchBtn + '</span>';
+                html += '</div>';
+            }}
+            body.innerHTML = html;
+            if (typeof refreshTestCountdowns === 'function') refreshTestCountdowns();
+        }}
+
         async function toggleTestLeague(leagueKey) {{
             const list = document.getElementById('test-league-' + leagueKey + '-list');
             if (!list) return;
