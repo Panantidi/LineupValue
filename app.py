@@ -3349,9 +3349,20 @@ async def test_rotowire_fran(team_id: str):
         break
 
     if not target_block:
+        # Build a helpful message showing which teams DO have matches
+        avail = []
+        for block in blocks:
+            time_m = _re.search(r'<div class="lineup__time"><b>([^<]+)</b>&nbsp;\s*([^<]+)</div>', block)
+            home_m = _re.search(r'<div class="lineup__mteam is-home">([^<]+)<span', block)
+            away_m = _re.search(r'<div class="lineup__mteam is-visit">([^<]+)<span', block)
+            if time_m and home_m and away_m:
+                ts = _parse_et_time(time_m.group(1), time_m.group(2))
+                if now <= ts <= now + HORIZON:
+                    avail.append(f"{home_m.group(1).strip()} vs {away_m.group(1).strip()}")
+        avail_str = "; ".join(avail) if avail else "none"
         return JSONResponse({
             "match_found": False,
-            "error": "No upcoming Ligue 1 match found for this team on rotowire within 18h",
+            "error": f"No Ligue 1 match for {lv_team_name} on rotowire within 18h. Today: {avail_str}",
         })
 
     # --- Check if lineup is posted ---
