@@ -2482,10 +2482,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             // Aug 22 2026 — Max asked: when 🔮 Predicted XI is open the
             // tweets sidebar disappears (it's a wide block that crowds the
             // fixtures list). The CSS already supports .tweets-sidebar.hidden.
-            const sidebar = document.getElementById('tweets-sidebar');
-            if (sidebar) {{
-                sidebar.classList.toggle('hidden', willShow);
-            }}
+
             if (willShow && !_predicted11Loaded) {{
                 loadPredicted11();
             }}
@@ -2539,8 +2536,6 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 const other = document.getElementById('test-rotowire-panel-host');
                 if (other && other.style.display !== 'none') testRotowireFRAN();
             }}
-            const ts = document.getElementById('tweets-sidebar');
-            if (ts) ts.classList.toggle('hidden', willShow);
         }}
         window.toggleStartingXI = toggleStartingXI;
 
