@@ -2509,11 +2509,15 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             if (host) {{
                 if (host.style.display === 'none' || !host.style.display) {{
                     host.style.display = 'block';
+                    const _tbtn = document.getElementById('btn-test-rotowire');
+                    if (_tbtn) _tbtn.classList.add('active');
                     const _sxiHost = document.getElementById('startingxi-panel-host');
                     if (_sxiHost && _sxiHost.style.display !== 'none') toggleStartingXI();
                     await loadTestRotowireMatches();
                 }} else {{
                     host.style.display = 'none';
+                    const _tbtn2 = document.getElementById('btn-test-rotowire');
+                    if (_tbtn2) _tbtn2.classList.remove('active');
                 }}
             }}
         }}
