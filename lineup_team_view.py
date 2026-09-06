@@ -2148,7 +2148,8 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         <div id="predicted11-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>
     </div>
 
-<div id="bulk-lineup-panel-host" style="display:none;margin-bottom:12px;">
+<div id="test-rotowire-panel-host" style="display:none;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">            <div style="font-size:15px;font-weight:700;color:#e8eef7;">🧪 Rotowire FRAN Test</div>            <button type="button" onclick="toggleTestRotowire()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">✕</button>        </div>        <div id="test-rotowire-body"></div>        <div id="test-rotowire-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>    </div>
+    <div id="bulk-lineup-panel-host" style="display:none;margin-bottom:12px;">
             <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
                 <div class="bulk-lineup-row">
@@ -2504,82 +2505,160 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         // Sep 6 2026 — Test button: fetch rotowire FRAN Predicted Lineup
         // and match P-XI checkboxes + statuses.
         async function testRotowireFRAN() {{
-            const btn = document.getElementById('btn-test-rotowire');
-            const oldHtml = btn.innerHTML;
-            btn.innerHTML = '⏳ Testing...';
-            btn.disabled = true;
-            try {{
-                const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID), {{ cache: 'no-store' }});
-                const d = await r.json();
-                if (d.error) {{
-                    alert('Test: ' + d.error);
-                    return;
+            const host = document.getElementById('test-rotowire-panel-host');
+            if (host) {{
+                if (host.style.display === 'none' || !host.style.display) {{
+                    host.style.display = 'block';
+                    await loadTestRotowireData();
+                }} else {{
+                    host.style.display = 'none';
                 }}
-                if (!d.match_found) {{
-                    alert('Test: ' + (d.error || 'Match not found'));
-                    return;
-                }}
-
-                // Open the bulk-lineup panel so the textarea is visible
-                try {{
-                    const host = document.getElementById('bulk-lineup-panel-host');
-                    if (host && host.style.display === 'none') host.style.display = 'block';
-                }} catch (e) {{}}
-
-                // 1. Check P-XI checkboxes for matched players
-                let checked = 0;
-                const nfLines = [];
-                for (const p of (d.players || [])) {{
-                    if (!p.lv_name) continue;
-                    const cbs = document.querySelectorAll('input.xi-checkbox');
-                    for (const cb of cbs) {{
-                        const rowName = (cb.value || '').toLowerCase().trim();
-                        const targetName = (p.lv_name || '').toLowerCase().trim();
-                        if (rowName === targetName) {{
-                            if (!cb.checked) {{
-                                cb.checked = true;
-                                cb.dispatchEvent(new Event('change', {{bubbles: true}}));
-                            }}
-                            checked++;
-                            // Set status for OUT / QUES
-                            if (p.status === 'Injury' || p.status === 'Doubt') {{
-                                const row = cb.closest('tr');
-                                if (row) {{
-                                    const sel = row.querySelector('select.status-select');
-                                    if (sel) {{
-                                        sel.value = p.status;
-                                        sel.dispatchEvent(new Event('change', {{bubbles: true}}));
-                                    }}
-                                }}
-                            }}
-                            break;
-                        }}
-                    }}
-                }}
-
-                // 2. Show not-found players in textarea (red bold)
-                const ta = document.getElementById('bulk-lineup-text');
-                if (ta) {{
-                    let nfHtml = '';
-                    for (const nf of (d.not_found || [])) {{
-                        nfHtml += '<div style="color:#dc3545;font-weight:700;">' +
-                            nf.pos + ' - ' + nf.name + ' - NOT FOUND</div>';
-                    }}
-                    if (nfHtml) {{
-                        ta.innerHTML = nfHtml + ta.innerHTML;
-                    }}
-                }}
-
-                const nfCount = (d.not_found || []).length;
-                alert('Test OK: ' + d.home_team + ' vs ' + d.away_team + ' | Matched: ' + checked + ' | Not found: ' + nfCount);
-            }} catch (e) {{
-                alert('Test error: ' + e.message);
-            }} finally {{
-                btn.innerHTML = oldHtml;
-                btn.disabled = false;
             }}
         }}
         window.testRotowireFRAN = testRotowireFRAN;
+        window.toggleTestRotowire = testRotowireFRAN;
+
+        async function loadTestRotowireData() {{
+            const body = document.getElementById('test-rotowire-body');
+            const footer = document.getElementById('test-rotowire-footer');
+            if (!body) return;
+            body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">Loading rotowire FRAN...</div>';
+            try {{
+                const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID), {{ cache: 'no-store' }});
+                const d = await r.json();
+                renderTestRotowire(d);
+                window._testRotowireData = d;
+            }} catch (e) {{
+                body.innerHTML = '<div style="color:#f87171;font-size:14px;">Error: ' + e.message + '</div>';
+            }}
+        }}
+
+        function renderTestRotowire(d) {{
+            const body = document.getElementById('test-rotowire-body');
+            const footer = document.getElementById('test-rotowire-footer');
+            if (!body) return;
+
+            if (!d || d.match_found === false) {{
+                body.innerHTML = '<div style="color:#f87171;font-size:14px;padding:8px 0;">' + (d && d.error ? d.error : 'Match not found') + '</div>';
+                if (footer) footer.textContent = '';
+                return;
+            }}
+            if (d.error) {{
+                body.innerHTML = '<div style="color:#f87171;font-size:14px;padding:8px 0;">' + d.error + '</div>';
+                if (footer) footer.textContent = '';
+                return;
+            }}
+
+            const kick = new Date((d.kickoff_ts || 0) * 1000);
+            const kickStr = kick.toLocaleDateString('en-GB', {{day:'2-digit',month:'short'}}) + ' ' + kick.toLocaleTimeString('en-GB', {{hour:'2-digit',minute:'2-digit'}});
+
+            let html = '';
+
+            // Match header card
+            html += '<div style="background:#1a2538;border-radius:8px;padding:12px 14px;margin-bottom:10px;border-left:4px solid #667eea;">';
+            html += '<div style="font-size:16px;font-weight:700;color:#e8eef7;margin-bottom:4px;">' + d.home_team + ' <span style="color:#64748b;font-size:13px;">vs</span> ' + d.away_team + '</div>';
+            html += '<div style="font-size:12px;color:#94a3b8;">' + kickStr + ' | Predicted Lineup</div>';
+            html += '</div>';
+
+            // Players grid
+            const players = d.players || [];
+            const notFound = d.not_found || [];
+
+            if (players.length > 0) {{
+                html += '<div style="font-size:12px;font-weight:700;color:#4ade80;margin-bottom:6px;">MATCHED (' + players.length + ')</div>';
+                html += '<div style="display:grid;grid-template-columns:1fr;gap:2px;margin-bottom:12px;">';
+                for (const p of players) {{
+                    let statusBadge = '';
+                    if (p.status === 'Injury') {{
+                        statusBadge = ' <span style="color:#f87171;font-size:11px;font-weight:700;">❌ Injury</span>';
+                    }} else if (p.status === 'Doubt') {{
+                        statusBadge = ' <span style="color:#fbbf24;font-size:11px;font-weight:700;">❓ Doubt</span>';
+                    }}
+                    html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:#1a2538;border-radius:4px;">';
+                    html += '<span style="color:#64748b;font-size:11px;font-weight:700;min-width:35px;">' + p.pos + '</span>';
+                    html += '<span style="color:#4ade80;font-size:13px;">' + p.name + '</span>';
+                    html += '<span style="color:#64748b;font-size:11px;margin-left:4px;">→ ' + p.lv_name + '</span>';
+                    html += statusBadge;
+                    html += '</div>';
+                }}
+                html += '</div>';
+            }}
+
+            if (notFound.length > 0) {{
+                html += '<div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:6px;">NOT FOUND (' + notFound.length + ')</div>';
+                html += '<div style="display:grid;grid-template-columns:1fr;gap:2px;margin-bottom:12px;">';
+                for (const nf of notFound) {{
+                    html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:#1a2538;border-radius:4px;">';
+                    html += '<span style="color:#64748b;font-size:11px;font-weight:700;min-width:35px;">' + nf.pos + '</span>';
+                    html += '<span style="color:#f87171;font-size:13px;font-weight:700;">' + nf.name + '</span>';
+                    html += '<span style="color:#64748b;font-size:11px;margin-left:4px;">- NOT FOUND</span>';
+                    html += '</div>';
+                }}
+                html += '</div>';
+            }}
+
+            // Apply button
+            html += '<div style="margin-top:10px;">';
+            html += '<button type="button" onclick="applyTestRotowirePXI()" style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;">Apply P-XI (' + players.length + ')</button>';
+            html += '</div>';
+
+            body.innerHTML = html;
+
+            if (footer) {{
+                footer.textContent = 'Source: rotowire.com/soccer/lineups.php?league=FRAN';
+            }}
+        }}
+
+        function applyTestRotowirePXI() {{
+            const d = window._testRotowireData;
+            if (!d) return;
+            const players = d.players || [];
+            const notFound = d.not_found || [];
+            let checked = 0;
+            let nfCount = 0;
+
+            for (const p of players) {{
+                if (!p.lv_name) continue;
+                const cbs = document.querySelectorAll('input.xi-checkbox');
+                for (const cb of cbs) {{
+                    const rowName = (cb.value || '').toLowerCase().trim();
+                    const targetName = (p.lv_name || '').toLowerCase().trim();
+                    if (rowName === targetName) {{
+                        if (!cb.checked) {{
+                            cb.checked = true;
+                            cb.dispatchEvent(new Event('change', {{bubbles: true}}));
+                        }}
+                        checked++;
+                        if (p.status === 'Injury' || p.status === 'Doubt') {{
+                            const row = cb.closest('tr');
+                            if (row) {{
+                                const sel = row.querySelector('select.status-select');
+                                if (sel) {{
+                                    sel.value = p.status;
+                                    sel.dispatchEvent(new Event('change', {{bubbles: true}}));
+                                }}
+                            }}
+                        }}
+                        break;
+                    }}
+                }}
+            }}
+
+            // Show NOT FOUND players in textarea
+            if (notFound.length > 0) {{
+                const ta = document.getElementById('bulk-lineup-text');
+                if (ta) {{
+                    let nfHtml = '';
+                    for (const nf of notFound) {{
+                        nfHtml += '<div style="color:#dc3545;font-weight:700;">' + nf.pos + ' - ' + nf.name + ' - NOT FOUND</div>';
+                    }}
+                    ta.innerHTML = nfHtml + ta.innerHTML;
+                }}
+            }}
+
+            alert('Applied: ' + checked + ' P-XI checkboxes | ' + notFound.length + ' not found');
+        }}
+        window.applyTestRotowirePXI = applyTestRotowirePXI;
 
         async function loadPredicted11() {{
             const body = document.getElementById('predicted11-body');
