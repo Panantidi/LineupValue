@@ -3487,7 +3487,7 @@ async def test_rotowire_matches(league_key: str):
         if not (time_m and home_m and away_m):
             continue
         ts = _parse_et_time(time_m.group(1), time_m.group(2))
-        if ts > now + HORIZON or ts < now - 3600:
+        if ts > now + HORIZON or ts < now - 120:
             continue
 
         import html as _html_unesc
