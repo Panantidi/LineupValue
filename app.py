@@ -3581,7 +3581,7 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
     HORIZON = 18 * 3600
 
     # --- Fetch rotowire FRAN page (with 60s in-memory cache) ---
-    cache_key = "_test_rotowire_fran_html"
+    cache_key = "_test_rotowire_fran_html_" + league
     html = getattr(test_rotowire_fran, cache_key, None)
     cached_at = getattr(test_rotowire_fran, cache_key + "_ts", 0)
     if html and now - cached_at < 60:
