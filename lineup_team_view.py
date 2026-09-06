@@ -1668,6 +1668,8 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             width: auto !important;
             min-width: 0 !important;
             padding: 8px 14px !important;
+            text-align: center !important;
+            flex-shrink: 0;
         }}
         .vision-lineup-row {{
             display: flex;
@@ -1684,7 +1686,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             padding: 6px 8px;
             background: #f8f9fc;
         }}
-        .vision-lineup-status {{ font-size: 12px; font-weight: 700; }}
+        .vision-lineup-status {{ font-size: 12px; font-weight: 700; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }}
         /* File-name emoji (💤 / 🆗) is larger than the text status */
         #vision-file-name {{ font-size: 20px; line-height: 1; }}
         .bulk-lineup-report {{
