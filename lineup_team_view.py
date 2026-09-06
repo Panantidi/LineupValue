@@ -2571,9 +2571,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 }}
 
                 const nfCount = (d.not_found || []).length;
-                alert('Test OK: ' + d.home_team + ' vs ' + d.away_team +
-                      '\nMatched: ' + checked + ' players' +
-                      '\nNot found: ' + nfCount + ' players');
+                alert('Test OK: ' + d.home_team + ' vs ' + d.away_team + ' | Matched: ' + checked + ' | Not found: ' + nfCount);
             }} catch (e) {{
                 alert('Test error: ' + e.message);
             }} finally {{
