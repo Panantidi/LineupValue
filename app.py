@@ -3669,7 +3669,14 @@ def cached_key(cache, key, now, ttl):
     return cache and cache[0] == key and now - cache[1] < ttl
 
 # Sep 6 2026 — cache of Predicted lineups so Starting XI apply can fill P-XI
-ROTOWIRE_PREDICTED_CACHE = {}
+# (persisted to disk so it survives uvicorn restarts)
+import json as _json_pxi
+ROTOWIRE_PREDICTED_CACHE_FILE = "/home/openclaw/FormAlert/rotowire_predicted_cache.json"
+try:
+    with open(ROTOWIRE_PREDICTED_CACHE_FILE, "r") as _f_pxi:
+        ROTOWIRE_PREDICTED_CACHE = _json_pxi.load(_f_pxi)
+except Exception:
+    ROTOWIRE_PREDICTED_CACHE = {}
 
 
 @app.get("/lineup_ai/api/test_rotowire_fran/{team_id}")
@@ -3908,6 +3915,11 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
     _cache_key = league + "|" + home_name + "|" + away_name
     if "Predicted Lineup" in lineup_html:
         ROTOWIRE_PREDICTED_CACHE[_cache_key] = players
+        try:
+            with open(ROTOWIRE_PREDICTED_CACHE_FILE, "w") as _f_pxi:
+                _json_pxi.dump(ROTOWIRE_PREDICTED_CACHE, _f_pxi)
+        except Exception:
+            pass
     predicted_players = ROTOWIRE_PREDICTED_CACHE.get(_cache_key, [])
 
     return JSONResponse({
