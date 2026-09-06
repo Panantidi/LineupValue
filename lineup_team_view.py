@@ -2722,7 +2722,7 @@ if (notFound.length > 0) {{
                         for (const nf of notFound) {{
                             const _marker = nf.pos + ' - ' + nf.name + ' - NOT FOUND';
                             if (ta.innerHTML.indexOf(_marker) !== -1) continue;
-                            nfHtml += '<div style="color:#dc3545;font-weight:700;">' + _marker + '</div>';
+                            nfHtml += '<div style="color:#dc3545;font-weight:700;text-align:right;">' + _marker + '</div>';
                         }}
                         ta.innerHTML = nfHtml + ta.innerHTML;
                     }}
@@ -3980,8 +3980,8 @@ if (notFound.length > 0) {{
                 .sort((a, b) => a.kind - b.kind || a.i - b.i)
                 .map(x => x.t);
             const html = sorted.map(t => {{
-                if (nfSet.has(t)) return '<div style="color:#dc3545;font-weight:700;">' + esc(t) + ' — NOT FOUND</div>';
-                if (ambSet.has(t)) return '<div style="color:#f59e0b;font-weight:700;">' + esc(t) + ' — AMBIGUOUS</div>';
+                if (nfSet.has(t)) return '<div style="color:#dc3545;font-weight:700;text-align:right;">' + esc(t) + ' — NOT FOUND</div>';
+                if (ambSet.has(t)) return '<div style="color:#f59e0b;font-weight:700;text-align:right;">' + esc(t) + ' — AMBIGUOUS</div>';
                 return '<div>' + esc(t) + '</div>';
             }}).join('');
             el.innerHTML = html;
@@ -3990,7 +3990,7 @@ if (notFound.length > 0) {{
                 try {{
                     if (_pxiNotFoundList && _pxiNotFoundList.length) {{
                 var esc2 = (s) => String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    var nfHtml = _pxiNotFoundList.map(function(p) {{ return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;">' + esc2(p.ff_name) + ' — NOT FOUND</div>'; }}).join('');
+                    var nfHtml = _pxiNotFoundList.map(function(p) {{ return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;text-align:right;">' + esc2(p.ff_name) + ' — NOT FOUND</div>'; }}).join('');
                         el.innerHTML = nfHtml + el.innerHTML;
                     }}
                 }} catch (e) {{}}
@@ -4554,7 +4554,7 @@ if (notFound.length > 0) {{
                 }}
                 _pxiNotFoundList = nf;
                 el.innerHTML = nf.map(function(p) {{
-                    return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;">' + esc(p.ff_name) + ' — NOT FOUND</div>';
+                    return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;text-align:right;">' + esc(p.ff_name) + ' — NOT FOUND</div>';
                 }}).join('');
                 // Auto-open the bulk-lineup panel so the user sees the
                 // unmatched names without clicking 👥 Add Lineups first.
