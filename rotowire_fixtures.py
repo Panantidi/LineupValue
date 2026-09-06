@@ -17,6 +17,7 @@ import time
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from typing import Dict, List, Any, Optional
 
 # Use the same RapidAPI credentials as LaLiga / Serie A
@@ -32,7 +33,7 @@ DEFAULT_UA = (
 )
 
 # ET (Eastern Time) = UTC-5 — fixed offset, no timezonefinder needed.
-ET = timezone(timedelta(hours=-5))
+ET = ZoneInfo("America/New_York")  # Sep 6 2026 — DST-aware (EDT in summer, EST in winter)
 
 # league key -> {'name': panel display name, 'url': full URL}
 ROTOWIRE_LEAGUES = {

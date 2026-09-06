@@ -2610,7 +2610,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             let html = '';
             for (const m of matches) {{
                 const kick = new Date((m.kickoff_ts || 0) * 1000);
-                const kickStr = kick.toLocaleDateString('en-GB', {{day:'2-digit',month:'short'}}) + ' ' + kick.toLocaleTimeString('en-GB', {{hour:'2-digit',minute:'2-digit'}});
+                const kickStr = m.lv_time || kick.toLocaleDateString('en-GB', {{day:'2-digit',month:'short'}}) + ' ' + kick.toLocaleTimeString('en-GB', {{hour:'2-digit',minute:'2-digit'}});
 
                 let openMatchBtn = '';
                 if (m.home_id && m.away_id) {{

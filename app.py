@@ -3323,6 +3323,30 @@ async def test_rotowire_fran_matches():
         home_lv = find_lv_team(rh)
         away_lv = find_lv_team(ra)
 
+        # Sep 6 2026 — lv_time: exact fixture time from the LV team
+        # cache (same source as nav-match-group) so the Test panel
+        # shows the same time the user sees in the match dropdown.
+        lv_time = ""
+        try:
+            _hcache = os.path.join(
+                "/home/openclaw/.openclaw/workspace",
+                "_live_cache_" + (home_lv or {}).get("id", "") + ".json")
+            if os.path.exists(_hcache):
+                with open(_hcache, "r", encoding="utf-8") as f:
+                    _td = json.load(f)
+                for _fx in _td.get("fixtures") or []:
+                    _aw = _fx.get("away_team", {})
+                    _aw_name = (_aw.get("name", "") if isinstance(_aw, dict) else str(_aw or "")).lower()
+                    if ra.lower() in _aw_name or _aw_name in ra.lower():
+                        _d = _fx.get("date", "")
+                        _t = _fx.get("time", "")
+                        _dm = re.match(r"(\d{1,2})/(\d{2})", _d)
+                        if _dm:
+                            lv_time = f"{int(_dm.group(1)):02d}.{int(_dm.group(2)):02d}" + (f" {_t}" if _t else "")
+                        break
+        except Exception:
+            pass
+
         # Check if predicted lineup is posted
         not_posted = "lineup has not been posted yet" in block.lower()
         is_confirmed = "Confirmed Lineup" in block
@@ -3335,6 +3359,7 @@ async def test_rotowire_fran_matches():
             "home_matched": home_lv is not None,
             "away_matched": away_lv is not None,
             "kickoff_ts": ts,
+            "lv_time": lv_time,
             "lineup_posted": not not_posted and not is_confirmed,
             "is_confirmed": is_confirmed,
         })
