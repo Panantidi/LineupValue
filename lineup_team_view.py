@@ -2213,10 +2213,10 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     <div style="display:flex;align-items:center;gap:12px;">
                         <button type="button" id="update-data-btn" class="header-action-btn" onclick="updateData()" title="Fetch latest updates">♻️ Refresh</button>
                         <span id="update-counter" style="color:rgba(255,255,255,0.85);font-size:13px;font-weight:500;min-width:60px;"></span>
-                        <select id="tournament-select" onchange="onTournamentChange(this.value)" title="Filter by tournament" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
+                        <select id="tournament-select" onchange="onTournamentChange(this.value)" title="Filter by tournament" style="padding:5px 12px 7px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;">
                             <option value="" style="color:#333;">Loading…</option>
                         </select>
-                        <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:6px 12px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;width:160px;">
+                        <select id="squad-mode-select" onchange="onSquadModeChange(this.value)" style="padding:5px 12px 7px;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:14px;background:rgba(255,255,255,0.15);color:white;cursor:pointer;font-weight:600;width:160px;">
                             <option value="Squad" style="color:#333;">All Squad</option>
                             <option value="Missing Players" style="color:#333;">Missing Players</option>
                             <option value="Doubtful Players" style="color:#333;">Doubtful Players</option>
