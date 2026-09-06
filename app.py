@@ -3490,8 +3490,9 @@ async def test_rotowire_matches(league_key: str):
         if ts > now + HORIZON or ts < now - 3600:
             continue
 
-        rh = home_m.group(1).strip()
-        ra = away_m.group(1).strip()
+        import html as _html_unesc
+        rh = _html_unesc.unescape(home_m.group(1).strip())
+        ra = _html_unesc.unescape(away_m.group(1).strip())
         home_lv = find_lv_team(rh)
         away_lv = find_lv_team(ra)
 
@@ -3619,8 +3620,9 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
         if not home_m or not away_m:
             continue
 
-        rh = home_m.group(1).strip()
-        ra = away_m.group(1).strip()
+        import html as _html_unesc
+        rh = _html_unesc.unescape(home_m.group(1).strip())
+        ra = _html_unesc.unescape(away_m.group(1).strip())
 
         # Check if LV team matches either side
         side = None
