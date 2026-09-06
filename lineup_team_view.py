@@ -2727,7 +2727,7 @@ if (notFound.length > 0) {{
 
             const matches = (d && d.matches) || [];
             if (matches.length === 0) {{
-                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming matches within 18h</div>';
+                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming matches</div>';
                 if (footer) footer.textContent = '';
                 return;
             }}
