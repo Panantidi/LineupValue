@@ -2574,7 +2574,9 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     if (ta) {{
                         let nfHtml = '';
                         for (const nf of notFound) {{
-                            nfHtml += '<div style="color:#dc3545;font-weight:700;">' + nf.pos + ' - ' + nf.name + ' - NOT FOUND</div>';
+                            const _marker = nf.pos + ' - ' + nf.name + ' - NOT FOUND';
+                            if (ta.innerHTML.indexOf(_marker) !== -1) continue;
+                            nfHtml += '<div style="color:#dc3545;font-weight:700;">' + _marker + '</div>';
                         }}
                         ta.innerHTML = nfHtml + ta.innerHTML;
                     }}
