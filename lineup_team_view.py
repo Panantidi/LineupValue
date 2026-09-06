@@ -2603,7 +2603,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 
             const matches = (d && d.matches) || [];
             if (matches.length === 0) {{
-                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming Ligue 1 matches within 18h.</div>';
+                body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">No upcoming matches within 18h</div>';
                 if (footer) footer.textContent = '';
                 return;
             }}
