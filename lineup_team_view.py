@@ -1998,7 +1998,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             <button type="button" id="btn-faq" class="header-action-btn" onclick="toggleFaq()">❓ FAQ</button>
             <button type="button" id="btn-collapse-details" class="header-action-btn" onclick="toggleDetailsCollapsed()">🔼 Expand Details</button>
             <button type="button" id="btn-reverse-odds" class="header-action-btn" onclick="toggleReverseOdds()">🔄 Reverse Odds</button>
-            <button type="button" id="btn-test-rotowire" class="header-action-btn" onclick="testRotowireFRAN()" >Test</button>
+            <button type="button" id="btn-test-rotowire" class="header-action-btn" onclick="testRotowireFRAN()" >🎯 Predicted XI</button>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
