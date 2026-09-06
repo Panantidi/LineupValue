@@ -4086,6 +4086,18 @@ if (notFound.length > 0) {{
             applyBulkLineupFromTokens(tokens, mode);
         }}
 
+        function _fitBulkTextarea11() {{
+            var el = document.getElementById('bulk-lineup-text');
+            if (!el) return;
+            var cs = window.getComputedStyle(el);
+            var lh = parseFloat(cs.lineHeight);
+            if (!lh || isNaN(lh)) lh = 16;
+            var pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+            if (isNaN(pad)) pad = 16;
+            var h = Math.ceil(lh * 11 + pad + 2);
+            el.style.height = h + 'px';
+            el.style.minHeight = h + 'px';
+        }}
         function clearBulkLineup() {{
             const textEl = document.getElementById('bulk-lineup-text');
             if (textEl) textEl.innerHTML = '';
@@ -4286,6 +4298,7 @@ if (notFound.length > 0) {{
                     }});
                     bulkRenderEditable(names, notFound, ambiguous);
                 }}
+                _fitBulkTextarea11();
                 if (statusEl) {{
                     statusEl.style.color = result.found ? '#17843f' : '#dc3545';
                     if (currentMode2 === 'squad') {{
