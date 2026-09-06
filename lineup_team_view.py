@@ -2637,39 +2637,46 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             if (!e.data || e.data.type !== 'rotowire-fran-apply') return;
             try {{
                 const _modeSel = document.getElementById('bulk-lineup-mode');
-                if (_modeSel) _modeSel.value = 'start';
                 const _rwLg = (e.data && e.data.league) || 'fran';
                 const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID) + '?league=' + encodeURIComponent(_rwLg), {{ cache: 'no-store' }});
                 const d = await r.json();
                 if (!d || d.match_found === false || d.error) return;
-                const players = d.players || [];
-                const notFound = d.not_found || [];
-                for (const p of players) {{
-                    if (!p.lv_name) continue;
-                    const cbs = document.querySelectorAll('input.xi-checkbox');
-                    for (const cb of cbs) {{
-                        const rowName = (cb.value || '').toLowerCase().trim();
-                        const targetName = (p.lv_name || '').toLowerCase().trim();
-                        if (rowName === targetName) {{
-                            if (!cb.checked) {{
-                                cb.checked = true;
-                                cb.dispatchEvent(new Event('change', {{bubbles: true}}));
-                            }}
-                            if (p.status === 'Injury' || p.status === 'Doubt') {{
-                                const row = cb.closest('tr');
-                                if (row) {{
-                                    const sel = row.querySelector('select.status-select');
-                                    if (sel) {{
-                                        sel.value = p.status;
-                                        sel.dispatchEvent(new Event('change', {{bubbles: true}}));
+                async function _rwApply(players) {{
+                    for (const p of players) {{
+                        if (!p.lv_name) continue;
+                        const cbs = document.querySelectorAll('input.xi-checkbox');
+                        for (const cb of cbs) {{
+                            const rowName = (cb.value || '').toLowerCase().trim();
+                            const targetName = (p.lv_name || '').toLowerCase().trim();
+                            if (rowName === targetName) {{
+                                if (!cb.checked) {{
+                                    cb.checked = true;
+                                    cb.dispatchEvent(new Event('change', {{bubbles: true}}));
+                                }}
+                                if (p.status === 'Injury' || p.status === 'Doubt') {{
+                                    const row = cb.closest('tr');
+                                    if (row) {{
+                                        const sel = row.querySelector('select.status-select');
+                                        if (sel) {{
+                                            sel.value = p.status;
+                                            sel.dispatchEvent(new Event('change', {{bubbles: true}}));
+                                        }}
                                     }}
                                 }}
+                                break;
                             }}
-                            break;
                         }}
                     }}
                 }}
-                if (notFound.length > 0) {{
+                if (d.predicted_players && d.predicted_players.length > 0) {{
+                    if (_modeSel) _modeSel.value = 'possible';
+                    await _rwApply(d.predicted_players);
+                }}
+                if (_modeSel) _modeSel.value = 'start';
+                await _rwApply(d.players);
+                const players = d.players || [];
+                const notFound = d.not_found || [];
+if (notFound.length > 0) {{
                     const ta = document.getElementById('bulk-lineup-text');
                     if (ta) {{
                         let nfHtml = '';

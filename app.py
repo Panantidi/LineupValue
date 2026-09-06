@@ -3670,8 +3670,11 @@ async def starting_xi_matches(league_key: str):
 def cached_key(cache, key, now, ttl):
     return cache and cache[0] == key and now - cache[1] < ttl
 
-@app.get("/lineup_ai/api/test_rotowire_fran/{team_id}")
+# Sep 6 2026 — cache of Predicted lineups so Starting XI apply can fill P-XI
+ROTOWIRE_PREDICTED_CACHE = {}
 
+
+@app.get("/lineup_ai/api/test_rotowire_fran/{team_id}")
 async def test_rotowire_fran(team_id: str, league: str = "fran"):
     """Sep 6 2026 — Test button: match rotowire FRAN Predicted Lineup with LV squad.
 
@@ -3903,6 +3906,12 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
                 "name": p["name"],
             })
 
+    # Sep 6 2026 — cache Predicted lineups; expose cached prediction alongside Confirmed
+    _cache_key = league + "|" + home_name + "|" + away_name
+    if "Predicted Lineup" in lineup_html:
+        ROTOWIRE_PREDICTED_CACHE[_cache_key] = players
+    predicted_players = ROTOWIRE_PREDICTED_CACHE.get(_cache_key, [])
+
     return JSONResponse({
         "match_found": True,
         "home_team": home_name,
@@ -3910,6 +3919,7 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
         "kickoff_ts": kickoff_ts,
         "players": players,
         "not_found": not_found,
+        "predicted_players": predicted_players,
         "error": None,
     })
 
