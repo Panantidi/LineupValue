@@ -3519,6 +3519,9 @@ async def test_rotowire_matches(league_key: str):
 
         not_posted = "lineup has not been posted yet" in block.lower()
         is_confirmed = "Confirmed Lineup" in block
+        if is_confirmed:
+            # Sep 6 2026 — Test panel shows Predicted lineups only
+            continue
 
         _ph, _pt_h, _pam, _pt_a = 0, 0, 0, 0
         try:
