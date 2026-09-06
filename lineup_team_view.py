@@ -2629,17 +2629,16 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 }}
 
                 const lineupBadge = m.lineup_posted
-                    ? '<span style="color:#4ade80;font-size:10px;font-weight:600;">Predicted</span>'
-                    : (m.is_confirmed ? '<span style="color:#60a5fa;font-size:10px;font-weight:600;">Confirmed</span>' : '<span style="color:#94a3b8;font-size:10px;">Not posted</span>');
+                    ? '<span style="color:#60a5fa;font-size:10px;font-weight:600;">Predicted</span>'
+                    : (m.is_confirmed ? '<span style="color:#f87171;font-size:10px;font-weight:600;">Confirmed</span>' : '<span style="color:#94a3b8;font-size:10px;">Not posted</span>');
 
                 html += '<div style="background:#1a2538;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;">';
-                html += '<div>';
-                html += '<div style="font-size:14px;font-weight:700;color:#e8eef7;">' + m.home_team + ' <span style="color:#64748b;font-size:12px;">vs</span> ' + m.away_team + '</div>';
-                html += '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">' + kickStr + ' | ' + lineupBadge + '</div>';
-                html += '</div>';
-                html += '<div style="display:flex;align-items:center;gap:8px;">';
+                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="font-size:13px;color:#94a3b8;font-weight:600;white-space:nowrap;"></span>';
+                html += '<span style="font-size:12px;color:#cbd5e1;font-weight:600;white-space:nowrap;">' + kickStr + '</span>';
+                html += '<span style="font-size:14px;font-weight:700;color:#e8eef7;white-space:nowrap;">✓ ' + m.home_team + ' <span style="color:#64748b;font-size:12px;">vs</span> ' + m.away_team + ' ✓</span>';
+                html += '<span style="font-size:10px;">' + lineupBadge + '</span>';
+                html += '<span style="flex:1;"></span>';
                 html += openMatchBtn;
-                html += '</div>';
                 html += '</div>';
             }}
 
