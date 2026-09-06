@@ -2595,20 +2595,24 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;width:60px;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
                 html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;width:88px;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
                 html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
-                if (pxiHomeFull) {{
-                    html += '<span title="11/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
-                }} else if (pxiHomePartial) {{
-                    html += '<span title="' + (m.pxi_home_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
-                }} else {{
-                    html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
+                if (m.is_confirmed) {{
+                    if (pxiHomeFull) {{
+                        html += '<span title="' + m.pxi_home_matched + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#dc3545;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                    }} else if (pxiHomePartial) {{
+                        html += '<span title="' + (m.pxi_home_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#dc3545;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                    }} else {{
+                        html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
+                    }}
                 }}
                 html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + m.home_team + '</span>';
                 html += '<span style="color:#64748b;font-size:12px;flex-shrink:0;">vs</span>';
                 html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + m.away_team + '</span>';
-                if (pxiAwayFull) {{
-                    html += '<span title="11/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
-                }} else if (pxiAwayPartial) {{
-                    html += '<span title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                if (m.is_confirmed) {{
+                    if (pxiAwayFull) {{
+                        html += '<span title="' + m.pxi_away_matched + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#dc3545;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                    }} else if (pxiAwayPartial) {{
+                        html += '<span title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#dc3545;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                    }}
                 }}
                 html += '<span style="font-size:10px;font-weight:600;color:#f87171;white-space:nowrap;">' + m.pxi_home_matched + '/' + m.pxi_home_total + ' · ' + m.pxi_away_matched + '/' + m.pxi_away_total + '</span>';
                 if (m.is_confirmed) {{
