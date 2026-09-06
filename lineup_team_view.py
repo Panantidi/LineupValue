@@ -2650,9 +2650,11 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 const d = await r.json();
                 if (!d || d.match_found === false || d.error) return;
                 async function _rwApply(players) {{
+                    const _mSelEl = document.getElementById('bulk-lineup-mode');
+                    const _cbCls = (_mSelEl && _mSelEl.value === 'start') ? 'input.starting-checkbox' : 'input.xi-checkbox';
                     for (const p of players) {{
                         if (!p.lv_name) continue;
-                        const cbs = document.querySelectorAll('input.xi-checkbox');
+                        const cbs = document.querySelectorAll(_cbCls);
                         for (const cb of cbs) {{
                             const rowName = (cb.value || '').toLowerCase().trim();
                             const targetName = (p.lv_name || '').toLowerCase().trim();
