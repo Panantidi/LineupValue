@@ -2611,9 +2611,13 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     html += '<span title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
                 }}
                 html += '<span style="font-size:10px;font-weight:600;color:#f87171;white-space:nowrap;">' + m.pxi_home_matched + '/' + m.pxi_home_total + ' · ' + m.pxi_away_matched + '/' + m.pxi_away_total + '</span>';
-                html += '<span style="font-size:10px;font-weight:600;color:#f87171;white-space:nowrap;">Confirmed</span>';
+                if (m.is_confirmed) {{
+                    html += '<span style="font-size:10px;font-weight:600;color:#f87171;white-space:nowrap;">Confirmed</span>';
+                }} else {{
+                    html += '<span style="font-size:10px;font-weight:600;color:#94a3b8;white-space:nowrap;">Not confirmed</span>';
+                }}
                 html += '</div>';
-                html += '<span style="grid-column:4;justify-self:end;">' + openMatchBtn + '</span>';
+                html += '<span style="grid-column:4;justify-self:end;display:flex;gap:6px;">' + openMatchBtn + '<button type="button" onclick="loadStartingXIMatches(\'' + leagueKey + '\')" style="font-size:11px;color:#e8eef7;background:#1f2b40;border:1px solid #3b5270;padding:4px 10px;border-radius:5px;white-space:nowrap;cursor:pointer;" title="Check Confirmed">🔄 Check</button></span>';
                 html += '</div>';
             }}
             body.innerHTML = html;

@@ -3610,8 +3610,6 @@ async def starting_xi_matches(league_key: str):
         rh = _html_unesc.unescape(home_m.group(1).strip())
         ra = _html_unesc.unescape(away_m.group(1).strip())
         is_confirmed = "Confirmed Lineup" in block
-        if not is_confirmed:
-            continue
 
         home_lv = find_lv_team(rh)
         away_lv = find_lv_team(ra)
