@@ -3633,6 +3633,15 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 return '<div>' + esc(t) + '</div>';
             }}).join('');
             el.innerHTML = html;
+
+                // Restore the pxi NOT FOUND list wiped by squad fetch
+                try {{
+                    if (_pxiNotFoundList && _pxiNotFoundList.length) {{
+                var esc2 = (s) => String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    var nfHtml = _pxiNotFoundList.map(function(p) {{ return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;">' + esc2(p.ff_name) + ' — NOT FOUND</div>'; }}).join('');
+                        el.innerHTML = nfHtml + el.innerHTML;
+                    }}
+                }} catch (e) {{}}
         }}
 
         function bulkRenderReport(total, found, notFound, ambiguous) {{
@@ -4178,6 +4187,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     if (el.querySelector && el.querySelector('[data-pxi-nf="1"]')) el.innerHTML = '';
                     return;
                 }}
+                _pxiNotFoundList = nf;
                 el.innerHTML = nf.map(function(p) {{
                     return '<div data-pxi-nf="1" style="color:#dc3545;font-weight:700;">' + esc(p.ff_name) + ' — NOT FOUND</div>';
                 }}).join('');
