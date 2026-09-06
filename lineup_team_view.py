@@ -2634,13 +2634,33 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     ? '<span style="color:#60a5fa;font-size:10px;font-weight:600;">Predicted</span>'
                     : (m.is_confirmed ? '<span style="color:#f87171;font-size:10px;font-weight:600;">Confirmed</span>' : '<span style="color:#94a3b8;font-size:10px;">Not posted</span>');
 
-                html += '<div style="background:#1a2538;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;">';
-                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="font-size:13px;color:#94a3b8;font-weight:600;white-space:nowrap;"></span>';
-                html += '<span style="font-size:12px;color:#cbd5e1;font-weight:600;white-space:nowrap;">' + kickStr + '</span>';
-                html += '<span style="font-size:14px;font-weight:700;color:#e8eef7;white-space:nowrap;">✓ ' + m.home_team + ' <span style="color:#64748b;font-size:12px;">vs</span> ' + m.away_team + ' ✓</span>';
-                html += '<span style="font-size:10px;">' + lineupBadge + '</span>';
-                html += '<span style="flex:1;"></span>';
-                html += openMatchBtn;
+                html += '<div style="display:grid;grid-template-columns:60px 88px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
+                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;width:60px;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
+                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;width:88px;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
+                html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
+                const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
+                const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
+                const pxiAwayFull = (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
+                const pxiAwayPartial = (m.pxi_away_matched > 0 && !pxiAwayFull);
+                if (pxiHomeFull) {{
+                    html += '<span class="p11-check" title="11/11 Predicted XI matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                }} else if (pxiHomePartial) {{
+                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_home_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                }} else {{
+                    html += '<span style="display:inline-block;width:18px;flex-shrink:0;"></span>';
+                }}
+                html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + m.home_team + '</span>';
+                html += '<span style="color:#64748b;font-size:12px;flex-shrink:0;">vs</span>';
+                html += '<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + m.away_team + '</span>';
+                if (pxiAwayFull) {{
+                    html += '<span class="p11-check" title="11/11 Predicted XI matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
+                }} else if (pxiAwayPartial) {{
+                    html += '<span class="p11-check p11-check-partial" title="' + (m.pxi_away_matched || 0) + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#60a5fa;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;opacity:0.55;"></span>';
+                }}
+                html += '<span style="font-size:10px;font-weight:600;color:' + (m.is_confirmed ? '#f87171' : '#60a5fa') + ';white-space:nowrap;">' + m.pxi_home_matched + '/' + m.pxi_home_total + ' · ' + m.pxi_away_matched + '/' + m.pxi_away_total + '</span>';
+                html += lineupBadge;
+                html += '</div>';
+                html += '<span style="grid-column:4;justify-self:end;">' + openMatchBtn + '</span>';
                 html += '</div>';
             }}
 
@@ -2654,7 +2674,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         // started more than 2 minutes ago (Test panel).
         function refreshTestCountdowns() {{
             const now = Math.floor(Date.now() / 1000);
-            const spans = document.querySelectorAll('#test-rotowire-body .test-countdown');
+            const spans = document.querySelectorAll('.test-countdown');
             spans.forEach(function (el) {{
                 const ts = parseInt(el.getAttribute('data-ts') || '0', 10);
                 if (!ts) return;
