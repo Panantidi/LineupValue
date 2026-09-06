@@ -3257,6 +3257,17 @@ def _load_lv_players(team_id: str) -> list:
     return d.get('players') or d.get('squad') or []
 
 
+# Sep 6 2026 — Test panel: rotowire leagues config (league_key -> URL + LV league).
+ROTOWIRE_TEST_LEAGUES = {
+    "fran": {"url": "https://www.rotowire.com/soccer/lineups.php?league=FRAN", "country": "France", "league": "Ligue 1"},
+    "bund": {"url": "https://www.rotowire.com/soccer/lineups.php?league=BUND", "country": "Germany", "league": "Bundesliga"},
+    "epl": {"url": "https://www.rotowire.com/soccer/lineups.php", "country": "England", "league": "Premier League"},
+    "liga": {"url": "https://www.rotowire.com/soccer/lineups.php?league=LIGA", "country": "Spain", "league": "LaLiga"},
+    "seri": {"url": "https://www.rotowire.com/soccer/lineups.php?league=SERI", "country": "Italy", "league": "Serie A"},
+    "mls": {"url": "https://www.rotowire.com/soccer/lineups.php?league=MLS", "country": "USA", "league": "MLS"},
+}
+
+
 def _rotowire_block_counts(block, lv_team_id):
     """Sep 6 2026 — count matched rotowire XI players vs LV squad (one side)."""
     import re as _re
@@ -3423,9 +3434,127 @@ async def test_rotowire_fran_matches():
     return JSONResponse({"matches": matches})
 
 
+
+
+@app.get("/lineup_ai/api/test_rotowire_matches/{league_key}")
+async def test_rotowire_matches(league_key: str):
+    """Sep 6 2026 — Test panel: matches for any rotowire league (18h window)."""
+    import re as _re
+    import time as _time
+    import urllib.request as _urllib_request
+    from rotowire_fixtures import _name_eq, _parse_et_time
+
+    cfg = ROTOWIRE_TEST_LEAGUES.get(league_key)
+    if not cfg:
+        return JSONResponse({"matches": [], "error": f"unknown league: {league_key}"}, status_code=404)
+
+    now = int(_time.time())
+    cache = getattr(test_rotowire_matches, "_cache", None)
+    html = None
+    if cached_key(cache, league_key, now, 60):
+        html = cache[2]
+    else:
+        req = _urllib_request.Request(cfg["url"], headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
+        with _urllib_request.urlopen(req, timeout=30) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+        test_rotowire_matches._cache = (league_key, now, html)
+
+    blocks = html.split('<div class="lineup is-soccer">')[1:]
+    HORIZON = 18 * 3600
+
+    try:
+        with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+            leagues = json.load(f)
+    except Exception:
+        leagues = {}
+    lv_teams = []
+    if cfg["country"] in leagues and isinstance(leagues[cfg["country"]], dict):
+        lv_teams = leagues[cfg["country"]].get(cfg["league"], [])
+
+    def find_lv_team(rotowire_name):
+        for t in lv_teams:
+            if _name_eq(t.get("name", ""), rotowire_name):
+                return t
+        return None
+
+    matches = []
+    for block in blocks:
+        time_m = _re.search(
+            r'<div class="lineup__time"><b>([^<]+)</b>&nbsp;\s*([^<]+)</div>', block)
+        home_m = _re.search(r'<div class="lineup__mteam is-home">([^<]+)<span', block)
+        away_m = _re.search(r'<div class="lineup__mteam is-visit">([^<]+)<span', block)
+        if not (time_m and home_m and away_m):
+            continue
+        ts = _parse_et_time(time_m.group(1), time_m.group(2))
+        if ts > now + HORIZON or ts < now - 3600:
+            continue
+
+        rh = home_m.group(1).strip()
+        ra = away_m.group(1).strip()
+        home_lv = find_lv_team(rh)
+        away_lv = find_lv_team(ra)
+
+        lv_time = ""
+        try:
+            _hcache = os.path.join(
+                "/home/openclaw/.openclaw/workspace",
+                "_live_cache_" + (home_lv or {}).get("id", "") + ".json")
+            if os.path.exists(_hcache):
+                with open(_hcache, "r", encoding="utf-8") as f:
+                    _td = json.load(f)
+                for _fx in _td.get("fixtures") or []:
+                    _aw = _fx.get("away_team", {})
+                    _aw_name = (_aw.get("name", "") if isinstance(_aw, dict) else str(_aw or "")).lower()
+                    if ra.lower() in _aw_name or _aw_name in ra.lower():
+                        _d = _fx.get("date", "")
+                        _t = _fx.get("time", "")
+                        _dm = re.match(r"(\d{1,2})/(\d{2})", _d)
+                        if _dm:
+                            lv_time = f"{int(_dm.group(1)):02d}.{int(_dm.group(2)):02d}" + (f" {_t}" if _t else "")
+                        break
+        except Exception:
+            pass
+
+        not_posted = "lineup has not been posted yet" in block.lower()
+        is_confirmed = "Confirmed Lineup" in block
+
+        _ph, _pt_h, _pam, _pt_a = 0, 0, 0, 0
+        try:
+            _hc, _ = _rotowire_block_counts(block, (home_lv or {}).get("id", ""))
+            _ph, _pt_h = _hc
+        except Exception:
+            pass
+        try:
+            _, _ac2 = _rotowire_block_counts(block, (away_lv or {}).get("id", ""))
+            _pam, _pt_a = _ac2
+        except Exception:
+            pass
+
+        matches.append({
+            "home_team": rh,
+            "away_team": ra,
+            "home_id": (home_lv or {}).get("id", ""),
+            "away_id": (away_lv or {}).get("id", ""),
+            "home_matched": home_lv is not None,
+            "away_matched": away_lv is not None,
+            "kickoff_ts": ts,
+            "lv_time": lv_time,
+            "pxi_home_matched": _ph, "pxi_home_total": _pt_h,
+            "pxi_away_matched": _pam, "pxi_away_total": _pt_a,
+            "lineup_posted": not not_posted and not is_confirmed,
+            "is_confirmed": is_confirmed,
+        })
+
+    return JSONResponse({"matches": matches})
+
+
+def cached_key(cache, key, now, ttl):
+    return cache and cache[0] == key and now - cache[1] < ttl
+
 @app.get("/lineup_ai/api/test_rotowire_fran/{team_id}")
 
-async def test_rotowire_fran(team_id: str):
+async def test_rotowire_fran(team_id: str, league: str = "fran"):
     """Sep 6 2026 — Test button: match rotowire FRAN Predicted Lineup with LV squad.
 
     Fetches https://www.rotowire.com/soccer/lineups.php?league=FRAN,
@@ -3460,7 +3589,7 @@ async def test_rotowire_fran(team_id: str):
     else:
         try:
             req = _urllib_request.Request(
-                "https://www.rotowire.com/soccer/lineups.php?league=FRAN",
+                ROTOWIRE_TEST_LEAGUES.get(league, ROTOWIRE_TEST_LEAGUES["fran"])["url"],
                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
             html = _urllib_request.urlopen(req, timeout=30).read().decode("utf-8", errors="replace")
             setattr(test_rotowire_fran, cache_key, html)

@@ -2148,7 +2148,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         <div id="predicted11-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>
     </div>
 
-<div id="test-rotowire-panel-host" style="display:none;width:1320px;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">            <div onclick="toggleTestLeague()" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">France - Ligue 1</div>            <button type="button" onclick="toggleTestRotowire()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">✕</button>        </div>        <div id="test-rotowire-body" style="display:none;"></div>        <div id="test-rotowire-footer" style="margin-top:10px;font-size:11px;color:#64748b;text-align:right;"></div>    </div>
+<div id="test-rotowire-panel-host" style="display:none;width:1320px;margin-bottom:12px;background:#0f1623;border-radius:10px;padding:14px 18px;box-shadow:0 4px 14px rgba(0,0,0,0.25);color:#e8eef7;">        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">            <button type="button" onclick="toggleTestRotowire()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:4px;" title="Close">✕</button>        </div>        <div style="margin-bottom:8px;"><div onclick="toggleTestLeague('fran')" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">France - Ligue 1</div><div id="test-league-fran-list" style="display:none;"></div></div>        <div style="margin-bottom:8px;"><div onclick="toggleTestLeague('bund')" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">Germany - Bundesliga 1</div><div id="test-league-bund-list" style="display:none;"></div></div>        <div style="margin-bottom:8px;"><div onclick="toggleTestLeague('epl')" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">England - Premier League</div><div id="test-league-epl-list" style="display:none;"></div></div>        <div style="margin-bottom:8px;"><div onclick="toggleTestLeague('liga')" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">Spain - La Liga</div><div id="test-league-liga-list" style="display:none;"></div></div>        <div style="margin-bottom:8px;"><div onclick="toggleTestLeague('seri')" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">Italy - Serie A</div><div id="test-league-seri-list" style="display:none;"></div></div>        <div style="margin-bottom:8px;"><div onclick="toggleTestLeague('mls')" style="font-size:15px;font-weight:700;color:#e8eef7;cursor:pointer;">USA - MLS</div><div id="test-league-mls-list" style="display:none;"></div></div>    </div>
     <div id="bulk-lineup-panel-host" style="display:none;margin-bottom:12px;">
             <div class="bulk-lineup-panel">
             <div class="bulk-lineup-controls">
@@ -2520,13 +2520,13 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 
         // Sep 6 2026 — dropdown: load matches ONLY when the
         // France - Ligue 1 dropdown is opened (not on panel open).
-        async function toggleTestLeague() {{
-            const list = document.getElementById('test-rotowire-body');
+        async function toggleTestLeague(leagueKey) {{
+            const list = document.getElementById('test-league-' + leagueKey + '-list');
             if (!list) return;
             const willShow = list.style.display === 'none';
             list.style.display = willShow ? 'block' : 'none';
             if (willShow && !list.innerHTML) {{
-                await loadTestRotowireMatches();
+                await loadTestRotowireMatches(leagueKey);
             }}
         }}
         window.toggleTestLeague = toggleTestLeague;
@@ -2538,7 +2538,8 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             try {{
                 const _modeSel = document.getElementById('bulk-lineup-mode');
                 if (_modeSel) _modeSel.value = 'start';
-                const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID), {{ cache: 'no-store' }});
+                const _rwLg = (e.data && e.data.league) || 'fran';
+                const r = await fetch('/lineup_ai/api/test_rotowire_fran/' + encodeURIComponent(TEAM_ID) + '?league=' + encodeURIComponent(_rwLg), {{ cache: 'no-store' }});
                 const d = await r.json();
                 if (!d || d.match_found === false || d.error) return;
                 const players = d.players || [];
@@ -2581,22 +2582,22 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             }} catch (err) {{ /* silent */ }}
         }});
 
-        async function loadTestRotowireMatches() {{
-            const body = document.getElementById('test-rotowire-body');
+        async function loadTestRotowireMatches(leagueKey) {{
+            const body = document.getElementById('test-league-' + leagueKey + '-list');
             const footer = document.getElementById('test-rotowire-footer');
             if (!body) return;
-            body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">Loading rotowire FRAN matches...</div>';
+            body.innerHTML = '<div style="color:#94a3b8;font-size:14px;">Loading...</div>';
             try {{
-                const r = await fetch('/lineup_ai/api/test_rotowire_fran_matches', {{ cache: 'no-store' }});
+                const r = await fetch('/lineup_ai/api/test_rotowire_matches/' + leagueKey, {{ cache: 'no-store' }});
                 const d = await r.json();
-                renderTestRotowireMatches(d);
+                renderTestRotowireMatches(d, leagueKey);
             }} catch (e) {{
                 body.innerHTML = '<div style="color:#f87171;font-size:14px;">Error: ' + e.message + '</div>';
             }}
         }}
 
-        function renderTestRotowireMatches(d) {{
-            const body = document.getElementById('test-rotowire-body');
+        function renderTestRotowireMatches(d, leagueKey) {{
+            const body = document.getElementById('test-league-' + leagueKey + '-list');
             const footer = document.getElementById('test-rotowire-footer');
             if (!body) return;
 
@@ -2621,6 +2622,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                         '&home_name=' + encodeURIComponent(m.home_team) +
                         '&away_name=' + encodeURIComponent(m.away_team) +
                         '&rotowire_fran=1' +
+                        '&rw_league=' + leagueKey +
                         '&kickoff_ts=' + (m.kickoff_ts || 0);
                     openMatchBtn = '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;justify-self:end;" title="Open this match in Match mode with rotowire lineups applied">▶ Open Match</a>';
                 }} else {{
