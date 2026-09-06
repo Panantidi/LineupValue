@@ -6270,10 +6270,11 @@ if (notFound.length > 0) {{
         var nav = document.getElementById('team-nav-sidebar');
         if (!nav || !SIDEBAR) return;
         var r = nav.getBoundingClientRect();
-        // Push sidebar 24px below header edge (visually clear of the header).
-        var topPx = r.top + window.scrollY + 24;
-        SIDEBAR.style.top = topPx + 'px';
-        // Fixed height set by CSS: 790px max-height.
+        // .tweets-sidebar is position:fixed, so top must be VIEWPORT-relative.
+        // Do NOT add window.scrollY here — that made the sidebar drift down
+        // while scrolling (scrollY offset kept growing). Align its top edge
+        // exactly with the team-nav-sidebar top edge.
+        SIDEBAR.style.top = r.top + 'px';
     }}
 
     syncHeight();
