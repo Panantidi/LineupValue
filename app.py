@@ -3938,6 +3938,9 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
         "players": players,
         "not_found": not_found,
         "predicted_players": predicted_players,
+        # Sep 7 2026: true only when rotowire shows the CONFIRMED lineup —
+        # the Starting XI (sx-) flow must NOT paint S-XI from a Predicted one.
+        "is_confirmed": "Confirmed Lineup" in lineup_html,
         "error": None,
     })
 

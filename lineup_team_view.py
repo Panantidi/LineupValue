@@ -2717,13 +2717,17 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     if (_modeSel) _modeSel.value = 'possible';
                     await _rwApply(d.predicted_players || []);
                 }} else {{
-                    // Starting XI: apply both P-XI (from cache) + S-XI
+                    // Starting XI: apply both P-XI (from cache) + S-XI.
+                    // S-XI only when the lineup is actually CONFIRMED —
+                    // never paint S-XI from a Predicted lineup.
                     if (d.predicted_players && d.predicted_players.length > 0) {{
                         if (_modeSel) _modeSel.value = 'possible';
                         await _rwApply(d.predicted_players);
                     }}
-                    if (_modeSel) _modeSel.value = 'start';
-                    await _rwApply(d.players);
+                    if (d.is_confirmed) {{
+                        if (_modeSel) _modeSel.value = 'start';
+                        await _rwApply(d.players);
+                    }}
                 }}
                 const players = d.players || [];
                 const notFound = d.not_found || [];
