@@ -3919,8 +3919,11 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
                 "name": p["name"],
             })
 
-    # Sep 6 2026 — cache Predicted lineups; expose cached prediction alongside Confirmed
-    _cache_key = league + "|" + home_name + "|" + away_name
+    # Sep 7 2026 — per-side predicted cache: each team frame gets ITS OWN
+    # side's predicted XI (the legacy single key held one side only, so the
+    # other side's P-XI went missing in the Starting XI dual view).
+    _side_tag = "home" if target_side == "home" else "away"
+    _cache_key = league + "|" + home_name + "|" + away_name + "|" + _side_tag
     if "Predicted Lineup" in lineup_html:
         ROTOWIRE_PREDICTED_CACHE[_cache_key] = players
         try:
@@ -3928,7 +3931,12 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
                 _json_pxi.dump(ROTOWIRE_PREDICTED_CACHE, _f_pxi)
         except Exception:
             pass
-    predicted_players = ROTOWIRE_PREDICTED_CACHE.get(_cache_key, [])
+    predicted_players = ROTOWIRE_PREDICTED_CACHE.get(_cache_key) or []
+    if not predicted_players and players:
+        # No cached prediction for this side (lineup went straight to
+        # Confirmed, or cache lost) — fall back to the current parse so
+        # the P-XI column still shows the predicted XI.
+        predicted_players = players
 
     return JSONResponse({
         "match_found": True,
