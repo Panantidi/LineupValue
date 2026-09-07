@@ -3662,6 +3662,13 @@ async def starting_xi_matches(league_key: str):
         except Exception:
             pass
 
+# Sep 7 2026 — per-side Confirmed flags: rotowire marks each side's
+        # list with lineup__status is-confirmed independently.
+        _sh = _re.search(r'<ul class="lineup__list is-home">(.*?)</ul>', block, _re.S)
+        _sv = _re.search(r'<ul class="lineup__list is-visit">(.*?)</ul>', block, _re.S)
+        sxi_home_confirmed = bool(_sh and "Confirmed Lineup" in _sh.group(1))
+        sxi_away_confirmed = bool(_sv and "Confirmed Lineup" in _sv.group(1))
+
         matches.append({
             "home_team": rh,
             "away_team": ra,
