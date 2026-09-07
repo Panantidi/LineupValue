@@ -2609,8 +2609,8 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 const pxiAwayPartial = (m.pxi_away_matched > 0 && !pxiAwayFull);
                 const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
                 html += '<div style="display:grid;grid-template-columns:60px 88px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
-                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;width:60px;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
-                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;width:88px;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
+                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;min-width:60px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
+                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;min-width:88px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
                 html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
                 if (m.is_confirmed) {{
                     if (pxiHomeFull) {{
@@ -2709,12 +2709,22 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                         }}
                     }}
                 }}
-                if (d.predicted_players && d.predicted_players.length > 0) {{
+                // Sep 7 2026: Predicted XI (mid=rw-*) opens compare with rotowire_fran=1
+                // We must apply ONLY P-XI (predicted), NOT S-XI (confirmed).
+                // Check if this is a Predicted XI match by inspecting the URL/params.
+                const _isPredicted = (location.search || '').includes('mid=rw-');
+                if (_isPredicted) {{
                     if (_modeSel) _modeSel.value = 'possible';
-                    await _rwApply(d.predicted_players);
+                    await _rwApply(d.predicted_players || []);
+                }} else {{
+                    // Starting XI: apply both P-XI (from cache) + S-XI
+                    if (d.predicted_players && d.predicted_players.length > 0) {{
+                        if (_modeSel) _modeSel.value = 'possible';
+                        await _rwApply(d.predicted_players);
+                    }}
+                    if (_modeSel) _modeSel.value = 'start';
+                    await _rwApply(d.players);
                 }}
-                if (_modeSel) _modeSel.value = 'start';
-                await _rwApply(d.players);
                 const players = d.players || [];
                 const notFound = d.not_found || [];
 if (notFound.length > 0) {{
@@ -2786,8 +2796,8 @@ if (notFound.length > 0) {{
                     : (m.is_confirmed ? '<span style="color:#f87171;font-size:10px;font-weight:600;">Confirmed</span>' : '<span style="color:#94a3b8;font-size:10px;">Not posted</span>');
 
                 html += '<div style="display:grid;grid-template-columns:60px 88px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
-                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;width:60px;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
-                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;width:88px;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
+                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;min-width:60px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
+                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;min-width:88px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
                 html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
                 const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
                 const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
@@ -2965,7 +2975,7 @@ if (notFound.length > 0) {{
                 // 4=Open Match (auto, justified end).
                 let html = '<div style="display:grid;grid-template-columns:60px 88px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
                 if (countdownHtml) html += countdownHtml;
-                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;width:88px;font-variant-numeric:tabular-nums;justify-self:start;">' + time + '</span>';
+                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;min-width:88px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;">' + time + '</span>';
                 html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
                 const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
                 const pxiAwayFull = (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
