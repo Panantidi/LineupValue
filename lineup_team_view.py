@@ -2712,7 +2712,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 // Sep 7 2026: Predicted XI (mid=rw-*) opens compare with rotowire_fran=1
                 // We must apply ONLY P-XI (predicted), NOT S-XI (confirmed).
                 // Check if this is a Predicted XI match by inspecting the URL/params.
-                const _isPredicted = (location.search || '').includes('mid=rw-');
+                const _isPredicted = (e.data && e.data.predicted_only) || false;
                 if (_isPredicted) {{
                     if (_modeSel) _modeSel.value = 'possible';
                     await _rwApply(d.predicted_players || []);
