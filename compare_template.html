@@ -2803,6 +2803,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Retry once more after iframes fully load
             if (sent < 2) setTimeout(function() { tick(30); }, 5000);
         }
+        // Sep 7 2026: the Starting XI panel's Check button bumps the
+        // rw-sxi-refresh localStorage key; re-post the apply message so an
+        // already-open compare page picks up a newly-Confirmed S-XI.
+        window.addEventListener('storage', function(ev) {
+            if (ev.key === 'rw-sxi-refresh') {
+                try { tick(30); } catch (e) {}
+            }
+        });
+        window.addEventListener('rw-sxi-refresh', function() {
+            try { tick(30); } catch (e) {}
+        });
         setTimeout(function() { tick(0); }, 2500);
     } catch (e) { /* silent */ }
 })();

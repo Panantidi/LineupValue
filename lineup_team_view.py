@@ -2570,6 +2570,9 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 const r = await fetch('/lineup_ai/api/starting_xi_matches/' + leagueKey, {{ cache: 'no-store' }});
                 const d = await r.json();
                 renderStartingXIMatches(d, leagueKey);
+                // Sep 7 2026: notify any open compare page (other tab) so it
+                // re-applies S-XI right after Check.
+                try {{ localStorage.setItem('rw-sxi-refresh', String(Date.now())); }} catch (e) {{}}
             }} catch (e) {{
                 body.innerHTML = '<div style="color:#dc3545;font-size:14px;">Failed to load matches.</div>';
             }}
