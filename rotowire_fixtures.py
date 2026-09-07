@@ -66,8 +66,18 @@ def _name_eq(a: str, b: str) -> bool:
         return True
     at = al.replace('.', '').replace('-', ' ').split()
     bt = bl.replace('.', '').replace('-', ' ').split()
-    return any(t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0]))
-               for t in at)
+    # Sep 7 2026: tightened fuzzy rule — a single shared token only counts
+    # when it is >=5 chars ("bayern"~"bayern"), so "Real Madrid" no longer
+    # matches "Real Sociedad" (shared short token "real" len 4).
+    hits = 0
+    best_len = 0
+    for t in at:
+        if t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])):
+            hits += 1
+            best_len = max(best_len, len(t))
+    if hits >= 2:
+        return True
+    return hits >= 1 and best_len >= 5
 
 
 def fetch_page(league_key: str, max_age: int = PAGE_TTL) -> Optional[str]:
