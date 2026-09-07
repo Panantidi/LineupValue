@@ -2641,10 +2641,10 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     html += '<span style="font-size:10px;font-weight:600;color:#94a3b8;white-space:nowrap;">Not confirmed</span>';
                 }}
                 html += '</div>';
-                var _sxiHomeOk = (m.is_confirmed && m.pxi_home_total > 0 && m.pxi_home_matched === m.pxi_home_total);
-                var _sxiAwayOk = (m.is_confirmed && m.pxi_away_total > 0 && m.pxi_away_matched === m.pxi_away_total);
-                var _sxiHomePart = (m.is_confirmed && m.pxi_home_matched > 0 && m.pxi_home_matched < m.pxi_home_total);
-                var _sxiAwayPart = (m.is_confirmed && m.pxi_away_matched > 0 && m.pxi_away_matched < m.pxi_away_total);
+                var _sxiHomeOk = (m.sxi_home_confirmed && m.pxi_home_total > 0 && m.pxi_home_matched === m.pxi_home_total);
+                var _sxiAwayOk = (m.sxi_away_confirmed && m.pxi_away_total > 0 && m.pxi_away_matched === m.pxi_away_total);
+                var _sxiHomePart = (m.sxi_home_confirmed && m.pxi_home_matched > 0 && m.pxi_home_matched < m.pxi_home_total);
+                var _sxiAwayPart = (m.sxi_away_confirmed && m.pxi_away_matched > 0 && m.pxi_away_matched < m.pxi_away_total);
                 var _sxiBadges = '<span style="display:flex;gap:2px;align-items:center;">'
                     + (_sxiHomeOk ? '<span style="font-size:12px;" title="S-XI ' + m.pxi_home_matched + '/' + m.pxi_home_total + ' (Home)">✅</span>' : (_sxiHomePart ? '<span style="font-size:12px;opacity:0.45;" title="S-XI ' + m.pxi_home_matched + '/' + m.pxi_home_total + ' (Home)">✅</span>' : ''))
                     + (_sxiAwayOk ? '<span style="font-size:12px;" title="S-XI ' + m.pxi_away_matched + '/' + m.pxi_away_total + ' (Away)">✅</span>' : (_sxiAwayPart ? '<span style="font-size:12px;opacity:0.45;" title="S-XI ' + m.pxi_away_matched + '/' + m.pxi_away_total + ' (Away)">✅</span>' : ''))
