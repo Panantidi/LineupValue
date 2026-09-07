@@ -3299,7 +3299,15 @@ def _rotowire_block_counts(block, lv_team_id):
                 r'<a title="([^"]+)"[^>]*>([^<]+)</a>\s*'
                 r'(?:<span class="lineup__inj">(\w+)</span>)?',
                 lineup_html):
-            players_raw.append(pm.group(2).strip())
+            _t = pm.group(2).strip()
+        # Sep 7 2026: unescape rotowire names (&amp;, &nbsp; etc) so the
+        # counts match the actual apply endpoint (11/11 vs 3/11).
+        try:
+            import html as _html_mod
+            _t = _html_mod.unescape(_t)
+        except Exception:
+            pass
+        players_raw.append(_t)
         players_raw = players_raw[:11]
         matched = 0
         for name in players_raw:
