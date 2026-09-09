@@ -3568,6 +3568,24 @@ async def test_rotowire_matches(league_key: str):
     return JSONResponse({"matches": matches})
 
 
+@app.get("/lineup_ai/api/team_id_by_name/{league}")
+async def team_id_by_name(league: str, name: str):
+    # Sep 7 2026: name -> LV id resolver used by compare page when the URL
+    # has a stale home_id (e.g. NY Red Bulls frame opened for a NYCFC match).
+    try:
+        with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as f:
+            leagues = json.load(f)
+    except Exception:
+        leagues = {}
+    target = (name or "").strip().lower()
+    for _country, _ldict in leagues.items():
+        for _lname, _teams in _ldict.items():
+            for t in _teams:
+                if (t.get("name", "") or "").strip().lower() == target:
+                    return {"id": t.get("id", ""), "name": t.get("name", "")}
+    return {"id": "", "name": name}
+
+
 @app.get("/lineup_ai/api/starting_xi_matches/{league_key}")
 async def starting_xi_matches(league_key: str):
     """Sep 6 2026 — Starting XI panel: CONFIRMED matches starting within 1h15m."""
