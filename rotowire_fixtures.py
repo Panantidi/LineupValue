@@ -66,9 +66,10 @@ def _name_eq(a: str, b: str) -> bool:
         return True
     at = al.replace('.', '').replace('-', ' ').split()
     bt = bl.replace('.', '').replace('-', ' ').split()
-    # Sep 7 2026: tightened fuzzy rule — a single shared token only counts
-    # when it is >=5 chars ("bayern"~"bayern"), so "Real Madrid" no longer
-    # matches "Real Sociedad" (shared short token "real" len 4).
+    # Sep 7 2026: tightened fuzzy rule — require the shared tokens to
+    # be long enough ("real" len 4 no longer collides "Real Madrid" with
+    # "Real Sociedad", and "New York" doesn't collide "New York City FC"
+    # with "New York Red Bulls" — only NYC now).
     hits = 0
     best_len = 0
     for t in at:
@@ -76,7 +77,12 @@ def _name_eq(a: str, b: str) -> bool:
             hits += 1
             best_len = max(best_len, len(t))
     if hits >= 2:
-        return True
+        # Two shared tokens — they must be unique (not "new" + "york" the
+        # same in both), otherwise it's still ambiguous.
+        shared = [t for t in at if t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0]))]
+        if len(set(shared)) >= 2 and all(len(t) >= 3 for t in shared):
+            return True
+        return False
     return hits >= 1 and best_len >= 5
 
 
