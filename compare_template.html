@@ -2803,6 +2803,24 @@ document.addEventListener('DOMContentLoaded', function() {
             // Retry once more after iframes fully load
             if (sent < 2) setTimeout(function() { tick(30); }, 5000);
         }
+        // Sep 7 2026: when the URL has a stale home_id (frame shows a
+        // different team than the match), bounce to the correct one.
+        (function() {
+            var _hi = p.get('home_id') || '', _hn = p.get('home_name') || '';
+            var _ai = p.get('away_id') || '', _an = p.get('away_name') || '';
+            if (!_hi || !_hn) return;
+            try {
+                fetch('/lineup_ai/api/team_id_by_name/liga?name=' + encodeURIComponent(_hn))
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d && d.id && d.id !== _hi) {
+                            var u = new URL(location.href);
+                            u.searchParams.set('home_id', d.id);
+                            location.replace(u.toString());
+                        }
+                    }).catch(function(){});
+            } catch (e) {}
+        })();
         // Sep 7 2026: the Starting XI panel's Check button bumps the
         // rw-sxi-refresh localStorage key; re-post the apply message so an
         // already-open compare page picks up a newly-Confirmed S-XI.
