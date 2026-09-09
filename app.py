@@ -3578,11 +3578,29 @@ async def team_id_by_name(league: str, name: str):
     except Exception:
         leagues = {}
     target = (name or "").strip().lower()
+    # 1) exact match (case-insensitive)
     for _country, _ldict in leagues.items():
         for _lname, _teams in _ldict.items():
             for t in _teams:
                 if (t.get("name", "") or "").strip().lower() == target:
                     return {"id": t.get("id", ""), "name": t.get("name", "")}
+    # 2) fuzzy: rotowire "New York City FC" -> LV "New York City"
+    target_tokens = [t for t in target.replace('.', ' ').replace('-', ' ').split() if t and len(t) >= 3]
+    best = None
+    best_score = 0
+    for _country, _ldict in leagues.items():
+        for _lname, _teams in _ldict.items():
+            if league and league.lower() not in _lname.lower() and league.lower() not in _country.lower():
+                continue
+            for t in _teams:
+                tname = (t.get("name", "") or "").strip().lower()
+                t_tokens = [x for x in tname.replace('.', ' ').replace('-', ' ').split() if x and len(x) >= 3]
+                score = sum(1 for tk in target_tokens if tk in tname)
+                if score > best_score and score >= 2 and len(t_tokens) <= len(target_tokens) + 1:
+                    best = t
+                    best_score = score
+    if best:
+        return {"id": best.get("id", ""), "name": best.get("name", "")}
     return {"id": "", "name": name}
 
 
