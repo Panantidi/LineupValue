@@ -62,28 +62,84 @@ def _name_eq(a: str, b: str) -> bool:
         return False
     if al == bl:
         return True
+    # Skip the substring rule for very short common suffixes
+    # ("united", "city", "fc", "cf") — they cause false positives
+    # like "Atlanta United" matching "DC United" via the shared "united".
+    _NO_SUBSTRING = {'united', 'city', 'fc', 'cf', 'sc', 'afc', 'ac', 'fk', 'bk', 'if', 'la', 'de', 'el', 'dc'}
     if al in bl or bl in al:
-        return True
+        # If the "longer" name has only one short token difference
+        # and the common bit is a small word like "united", reject.
+        longer = al if len(al) > len(bl) else bl
+        shorter = bl if longer == al else al
+        if longer != shorter and any(w in _NO_SUBSTRING for w in longer.split() if len(w) <= 6):
+            # fall through
+            pass
+        else:
+            return True
     at = al.replace('.', '').replace('-', ' ').split()
     bt = bl.replace('.', '').replace('-', ' ').split()
-    # Sep 7 2026: tightened fuzzy rule — require the shared tokens to
-    # be long enough ("real" len 4 no longer collides "Real Madrid" with
-    # "Real Sociedad", and "New York" doesn't collide "New York City FC"
-    # with "New York Red Bulls" — only NYC now).
-    hits = 0
-    best_len = 0
+    # Sep 7 2026: tightened fuzzy rule — for ≥2 shared tokens, both sides
+    # must have a unique distinguishing token. "New York City FC" shares
+    # {"new", "york"} with "New York Red Bulls" but each side has a unique
+    # token (city/red/bulls/fc) — accept only when the unique non-shared
+    # tokens on each side overlap (e.g. "city" appears in both NYC FC
+    # variants, and "fc" matches the LV name suffix). Otherwise reject.
+    shared = []
     for t in at:
         if t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0])):
-            hits += 1
-            best_len = max(best_len, len(t))
-    if hits >= 2:
-        # Two shared tokens — they must be unique (not "new" + "york" the
-        # same in both), otherwise it's still ambiguous.
-        shared = [t for t in at if t and (t in bt or bt[0].startswith(t) or t.startswith(bt[0]))]
-        if len(set(shared)) >= 2 and all(len(t) >= 3 for t in shared):
+            shared.append(t)
+    unique_a = [t for t in at if t and t not in shared]
+    unique_b = [t for t in bt if t and t not in shared]
+    # If at least one of the unique tokens on either side appears on the
+    # other side (e.g. "city" in NYC FC vs "city" in NYC), accept.
+    cross = 0
+    for u in unique_a:
+        for v in unique_b:
+            if u == v or u in v or v in u:
+                cross += 1
+                break
+    if len(set(shared)) >= 2 and cross >= 1:
+        return True
+    if len(set(shared)) >= 1 and cross >= 1 and len(at) == len(bt):
+        return True
+    # Abbrev-suffix rule: when both sides' unique tokens are ALL common
+    # abbreviations/word-order suffixes, the names are equivalent.
+    # Catches "LA FC" vs "Los Angeles FC" (fc+club, both abbrev),
+    # "Inter Miami CF" vs "Inter Miami" (cf+empty, both abbrev),
+    # "D.C. United" vs "DC United" (dc+empty, both abbrev).
+    # Rejects "New York City FC" vs "New York Red Bulls" because
+    # unique_b = ['red','bulls'] — neither is in ABBREV.
+    _ABBREV = {
+        'fc', 'cf', 'sc', 'afc', 'city', 'town', 'club',
+        'rovers', 'wanderers', 'athletic', 'olympic', 'real', 'sporting',
+        'ac', 'fk', 'bk', 'if', 'la', 'de', 'el', 'dc', 'football',
+    }
+    # Both-sides-abbrev (no shared common word + different city)
+    a_is_abbrev = (not unique_a) or all(t in _ABBREV for t in unique_a)
+    b_is_abbrev = (not unique_b) or all(t in _ABBREV for t in unique_b)
+    if a_is_abbrev and b_is_abbrev:
+        # If the only shared token is a common abbrev like "united",
+        # require both sides to have a unique NON-abbrev token (a real
+        # distinguishing word) — otherwise "Atlanta United" and
+        # "DC United" would falsely match. But allow short city codes
+        # like "DC" to anchor the other side (e.g. "DC United" vs
+        # "D.C. United").
+        if len(set(shared)) == 1 and any(s in {'united', 'city', 'fc', 'cf'} for s in shared):
+            # Need a non-abbrev distinguishing token on at least one side
+            non_abbrev_a = [t for t in unique_a if t not in _ABBREV and len(t) >= 3]
+            non_abbrev_b = [t for t in unique_b if t not in _ABBREV and len(t) >= 3]
+            if non_abbrev_a and non_abbrev_b:
+                return True
+            # If only one side has a non-abbrev token (the other is just
+            # an abbrev), we can't disambiguate — reject.
+        else:
             return True
-        return False
-    return hits >= 1 and best_len >= 5
+    if len(set(shared)) == 1:
+        # "united" alone is too generic (Atlanta United == DC United).
+        if shared[0] in {'united', 'city', 'fc', 'cf', 'sc', 'afc'}:
+            return False
+        return max(len(t) for t in shared) >= 5
+    return False
 
 
 def fetch_page(league_key: str, max_age: int = PAGE_TTL) -> Optional[str]:
