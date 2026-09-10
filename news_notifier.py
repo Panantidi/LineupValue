@@ -70,6 +70,105 @@ def log(msg):
         pass
 
 
+def strip_cta(text):
+    """Remove marketing/CTA boilerplate like:
+        'Visit Rotowire.com for more analysis on this update.'
+        'Read more at ESPN.com for the full story.'
+        'Continue reading on BleacherReport.com for more coverage.'
+        'For the full report, click here.'
+        '.com for more analysis on this update.'   (after URL strip)
+
+    Strategy: process per-sentence (split on . ! ? followed by
+    whitespace or end), drop sentences that look like CTAs, rejoin.
+    The "what is a CTA?" check is a set of regex patterns.
+    """
+    if not text:
+        return ""
+
+    # Step 1: split into sentences. Period+optional closing-quote +
+    # whitespace + uppercase OR end-of-string. Use a capture group
+    # around the delimiter so re.split keeps it in the output — we'll
+    # reassemble and the whitespace is preserved.
+    parts = re.split(r"([.!?]['\"\)\]]*\s+)(?=[A-Z])|([.!?]['\"\)\]]*$)", text)
+    # parts is alternating [chunk, delim-or-None, ...]. We want to
+    # rebuild the text by keeping non-empty delimiters and the chunks.
+    sentences = []
+    buf = ""
+    for p in parts:
+        if p is None:
+            if buf.strip():
+                sentences.append(buf.strip())
+            buf = ""
+            continue
+        buf += p
+    if buf.strip():
+        sentences.append(buf.strip())
+
+    # Step 2: define CTA detectors
+    def is_cta(s):
+        s_stripped = s.strip()
+        if not s_stripped:
+            return False
+        # Verb + optional URL token + analysis-type word
+        # Examples: "Visit Rotowire.com for more analysis",
+        # "Read more on ESPN.com for the full story",
+        # "Visit for more analysis" (URL stripped), "Click here for more".
+        if re.search(
+            r"\b(?:Visit|Read|Click|See|Check\s+out|Continue\s+reading|Find\s+out|Get|"
+            r"Learn|Subscribe|Sign\s+up)\b"
+            r"(?:\s+\S+?){0,4}?\s+"
+            r"(?:for|on|at|with)\s+"
+            r"(?:\S+\s+){0,4}?"
+            r"(?:analysis|coverage|story|stories|updates?|news|details?|info(?:rmation)?|article|here)\b",
+            s_stripped, re.IGNORECASE,
+        ):
+            return True
+        # "for the full story" / "for more coverage" / "read more at" /
+        # "continue reading on" etc., bare forms
+        if re.search(
+            r"\b(?:for\s+(?:more|the\s+full|the\s+rest|additional|complete)\s+"
+            r"(?:analysis|coverage|story|stories|updates?|news|details?|info(?:rmation)?|article)"
+            r"|continue\s+reading\s+(?:on|at)|read\s+more\s+(?:at|on|here)|"
+            r"see\s+more\s+(?:at|on|here)|learn\s+more\s+(?:at|on|here)|"
+            r"click\s+here|for\s+more\s+on\s+this|for\s+the\s+latest)\b",
+            s_stripped, re.IGNORECASE,
+        ):
+            return True
+        # Bare "Visit.com" / "Read on X" leftover (after URL strip)
+        if re.search(
+            r"\b(?:Visit|Read|Click|See|Check|Find|Get|Continue|More|Learn)\.?\s*com\b",
+            s_stripped, re.IGNORECASE,
+        ):
+            return True
+        # Bare ".com for more analysis" / ".com read more"
+        if re.search(r"\.com\b.*?(?:for\s+more|read\s+more|continue)", s_stripped, re.IGNORECASE):
+            return True
+        return False
+
+    # Step 3: keep non-CTA sentences
+    kept = [s for s in sentences if not is_cta(s)]
+
+    # Step 4: rejoin. Use a single space to ensure clean separation
+    # (handles cases where the regex split ate a space, or where the
+    # sentence end had no whitespace).
+    out = " ".join(s for s in kept if s).strip()
+    # Cleanup: collapse runs of whitespace, then collapse the
+    # period+space+period produced when a CTA sentence is dropped
+    # between two kept sentences (e.g. "A. B. Visit X. C." -> "A. C.").
+    # Step 4: rejoin. Use a single space to ensure clean separation
+    # (handles cases where the regex split ate a space, or where the
+    # sentence end had no whitespace).
+    out = " ".join(s for s in kept if s).strip()
+    # Cleanup: collapse runs of whitespace, then collapse the
+    # period+space+period produced when a CTA sentence is dropped
+    # between two kept sentences (e.g. "A. B. Visit X. C." -> "A. C.").
+    out = re.sub(r"\s+\.", ".", out)   # " ." -> "."
+    out = re.sub(r'([\'\"\)\]])\s+\.', r"\1.", out)  # " ." -> "." after quote
+    out = re.sub(r"\.{2,}", ".", out)  # ".." -> "."
+    out = re.sub(r"\s{2,}", " ", out)
+    return out
+
+
 def strip_rotowire(text):
     """Remove every mention of Rotowire and any rotowire.com URLs.
 
@@ -174,9 +273,19 @@ def fetch_feed(url):
             except Exception:
                 pub_ts = 0
 
-        # Strip rotowire mentions from everything
+        # Strip rotowire mentions + any CTA/boilerplate ("Visit X for
+        # more", "Read on Y", etc.) from title and body. Title is short
+        # and unlikely to have CTAs but we still run the strip for
+        # safety. Body uses strip_cta which is designed for trailing
+        # boilerplate sentences.
+        title = clean_html(title_el.text or "") if title_el is not None else ""
+        link = (link_el.text or "").strip() if link_el is not None else ""
+        body = clean_html(desc_el.text or "") if desc_el is not None else ""
+        pub_raw = (pub_el.text or "").strip() if pub_el is not None else ""
+
         title = strip_rotowire(title)
-        body = strip_rotowire(body)
+        title = strip_cta(title)
+        body = strip_cta(strip_rotowire(body))
         link = strip_rotowire(link)
 
         if not guid:
@@ -360,11 +469,15 @@ def process():
 
 def main():
     log(f"news_notifier started (interval={INTERVAL_SEC}s, feed={FEED_URL})")
+    cycle_count = 0
     while True:
         try:
             n = process()
-            if n:
-                log(f"cycle: sent {n} news item(s)")
+            cycle_count += 1
+            # Heartbeat every 5 cycles (~5 min) so we can confirm the
+            # loop is alive even when there's no news to send.
+            if cycle_count % 5 == 0 or n:
+                log(f"cycle {cycle_count}: sent {n} news item(s)")
         except Exception as e:
             log(f"CYCLE ERROR: {e}")
         time.sleep(INTERVAL_SEC)

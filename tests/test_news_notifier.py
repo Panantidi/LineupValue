@@ -53,6 +53,29 @@ check("clean with tags",      n.clean_html("<p>hello</p> <b>world</b>"),
 check("clean with entities",  n.clean_html("&amp; &lt; &gt;"), "& < >")
 check("clean multi-space",    n.clean_html("a   b\n\nc"), "a b c")
 
+# --- strip_cta (boilerplate) ---
+check("cta: visit.com for more",
+      n.strip_cta('Coach said "injury is minor." Visit.com for more analysis on this update.'),
+      'Coach said "injury is minor.".')
+check("cta: read more at",
+      n.strip_cta('Coach said "fit." Read more at ESPN.com for the full story.'),
+      'Coach said "fit.".')
+check("cta: continue reading",
+      n.strip_cta('He scored twice. Continue reading on BBC.com for more coverage.'),
+      'He scored twice.')
+check("cta: for the full report",
+      n.strip_cta('Injury update. For the full report, click here.'),
+      'Injury update.')
+check("cta: no cta to strip",
+      n.strip_cta('Coach said "all good."'),
+      'Coach said "all good."')
+check("cta: trailing whitespace",
+      n.strip_cta('"He is fit."    '),
+      '"He is fit."')
+check("cta: visit rotowire.com",
+      n.strip_cta('Coach said. Visit rotowire.com for more analysis on this update.'),
+      'Coach said.')
+
 # --- truncate ---
 check("truncate short",       n.truncate("hello", 100), "hello")
 check("truncate at sentence", n.truncate("Hello. World. Done.", 14), "Hello. World.…")
