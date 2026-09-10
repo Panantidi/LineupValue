@@ -324,29 +324,22 @@ def save_state(state):
 def build_message(item):
     """Format one news item as a Telegram message.
 
-    Layout (per Max, Sep 10 2026 — no Rotowire mention anywhere):
+    Layout (per Max, Sep 11 2026 — no Rotowire mention, no third-party
+    links anywhere — only the actual news content):
         📰 Player: Status update
-        ⸻
+
         First 700 chars of the body, sentences preserved.
-        <link to full article>
     """
     title = truncate(item.get("title", ""), MAX_TITLE) or "Update"
     body = truncate(item.get("body", ""), MAX_BODY)
-    link = item.get("link", "").strip()
-    if link and not link.startswith(("http://", "https://")):
-        link = "https://" + link
 
     parts = []
     parts.append(f"📰 {title}")
     if body:
         parts.append("")
         parts.append(body)
-    if link:
-        # Build safe URL: keep rotowire.com out of visible text by
-        # shortening to host + last path segment.
-        short = _shorten_url(link)
-        parts.append("")
-        parts.append(f"🔗 {short}")
+    # No link line — third-party URLs are not shown in the channel
+    # (per Max, Sep 11 2026). The message contains only the news.
 
     msg = "\n".join(parts).strip()
     # Final safety net — strip any remaining rotowire mention
@@ -356,7 +349,9 @@ def build_message(item):
 
 def _shorten_url(url):
     """Return a short, human-readable form of a URL that does NOT
-    contain 'rotowire' in any form.
+    contain 'rotowire' in any form. Kept for potential future use
+    but no longer called by build_message (Sep 11 2026 — links
+    dropped from channel output entirely).
 
     Example:
         https://www.rotowire.com/soccer/player/cody-gakpo-26727

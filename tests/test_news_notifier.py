@@ -104,10 +104,10 @@ msg = n.build_message(item)
 check_contains("msg has title",       msg, "Cody Gakpo")
 check_contains("msg has 📰",          msg, "📰")
 check_contains("msg has body",        msg, "Gakpo")
-check_contains("msg has link",        msg, "cody-gakpo-26727")
-check_not_contains("msg no Rotowire",  msg, "rotowire")
-check_not_contains("msg no ROTOWIRE",  msg, "ROTOWIRE")
-check_not_contains("msg no Rotowire2", msg, "Rotowire")
+check_not_contains("msg NO link",     msg, "cody-gakpo-26727")
+check_not_contains("msg NO 🔗 line",  msg, "🔗")
+check_not_contains("msg NO player/",  msg, "player/")
+check_not_contains("msg no rotowire", msg, "rotowire")
 
 # Item with rotowire in body
 item2 = {
@@ -174,7 +174,7 @@ FAKE_ITEMS.append({"guid": "g5", "title": "Newer", "link": "https://x.com/e",
 SENT_CALLS.clear()
 N.process()
 check("third run sent 1",  len(SENT_CALLS), 1)
-check("third run message", SENT_CALLS[0], "📰 Newer\ne\n🔗 e")
+check("third run message", SENT_CALLS[0], "📰 Newer\ne")
 
 # --- backfill rule: items older than BACKFILL_HOURS skipped but marked seen ---
 # Reset state, use items with past pub_ts
