@@ -186,14 +186,16 @@ def build_message(league_cfg: dict, m: dict, side: str) -> str:
 
     # Hyperlink the match name (parse_mode=HTML) so the entire
     # "Manchester United - Sabah FK" becomes a clickable link.
-    # ✅ markers stay as plain text on either side.
+    # ✅ markers stay as plain text on either side. Spaces around the link
+    # keep the ✅ from rendering flush against the last character of
+    # "Sabah FK" in Telegram's monospaced HTML rendering.
     match_link = f'<a href="{url}">{home_team} - {away_team}</a>'
 
     return (
         f"🏁 Starting XI\n"
         f"{country} - {league_name}\n"
         f"Date - {lv_time}\n"
-        f"{marker_left} {match_link}{marker_right}"
+        f"{marker_left} {match_link} {marker_right}"
     )
 
 

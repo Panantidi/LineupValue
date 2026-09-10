@@ -45,7 +45,7 @@ m_away = dict(m_full)
 m_away["sxi_home_confirmed"] = False
 m_away["sxi_away_confirmed"] = True
 text = n.build_message(cfg, m_away, "away")
-check("away-only ends with </a>✅",     text.rstrip().endswith("</a>✅"), True)
+check("away-only ends with </a> ✅",     text.rstrip().endswith("</a> ✅"), True)
 
 # both
 m_both = dict(m_full)
@@ -53,7 +53,7 @@ m_both["sxi_home_confirmed"] = True
 m_both["sxi_away_confirmed"] = True
 text = n.build_message(cfg, m_both, "both")
 check("both starts with ✅ <a",        text.startswith("🏁 Starting XI\nEurope - Champions League\nDate - 10.09 (21:00)\n✅ <a "), True)
-check("both ends with </a>✅",         text.rstrip().endswith("</a>✅"), True)
+check("both ends with </a> ✅",         text.rstrip().endswith("</a> ✅"), True)
 
 # URL contains all required params
 url = n.make_url("ppjDR086", "fNGcxbyr", "Manchester United", "Sabah FK", "ucl", 1789066800)
@@ -140,9 +140,9 @@ check("both-now: 1 notification sent",  sent3, 1)
 check("both-now: state away_sent=True", state["ucl-A1-B1"]["away_sent"], True)
 check("both-now: side=both",            state["ucl-A1-B1"]["last_sent_side"], "both")
 check("both-now: 2 calls to send",      len(calls), 1)
-# Format: "✅ <a href=...>Team A - Team B</a>✅" — leading ✅ on home, trailing ✅ on the </a>
+# Format: "✅ <a href=...>Team A - Team B</a> ✅" — leading ✅ on home, trailing ✅ on the </a>
 check("both-now: leading ✅",            "✅ <a " in calls[0], True)
-check("both-now: trailing ✅ after </a>", calls[0].rstrip().endswith("</a>✅"), True)
+check("both-now: trailing ✅ after </a> (with space)", calls[0].rstrip().endswith("</a> ✅"), True)
 
 # Skip already-kicked-off matches
 def stub_fetch3(lk):
