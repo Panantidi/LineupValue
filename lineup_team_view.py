@@ -931,6 +931,9 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 <head>
     <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="manifest" href="/static/site.webmanifest">
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#043fb6">
+    <meta name="format-detection" content="telephone=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -1922,6 +1925,232 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         .player-number-circle.favorite {{
             background: #28a745 !important;
             color: white;
+        }}
+
+        /* ============================================================ */
+        /* MOBILE RESPONSIVE — Sep 10 2026                              */
+        /* Additive CSS: only applies at <1024px viewport widths.      */
+        /* Desktop layout (>1024px) is unchanged.                      */
+        /* ============================================================ */
+
+        /* Smooth touch + no tap highlight on buttons (mobile Safari/Chrome) */
+        .header-action-btn,
+        .tab,
+        button {{
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }}
+
+        /* ----- TABLET (768..1024px) ----- */
+        @media (max-width: 1024px) {{
+            .header {{
+                padding: 12px 16px !important;
+                gap: 12px !important;
+            }}
+            .header h1 {{
+                font-size: 20px !important;
+            }}
+            .header-tabs {{
+                gap: 4px !important;
+            }}
+            .tab,
+            .header-action-btn {{
+                padding: 6px 10px !important;
+                font-size: 12px !important;
+            }}
+            .container {{
+                padding: 0 16px 16px 16px !important;
+            }}
+        }}
+
+        /* ----- PHONES (<768px) ----- */
+        @media (max-width: 768px) {{
+            /* Body: prevent horizontal scroll at root level */
+            html, body {{
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }}
+
+            /* Header: title row stays inline (h1 + emblem), button rows
+               become horizontally scrollable. Buttons are flex children
+               of a single flex row inside .header, which we make
+               overflow-x: auto on phones. */
+            .header {{
+                flex-direction: column !important;
+                align-items: stretch !important;
+                padding: 10px 12px !important;
+                gap: 6px !important;
+            }}
+            .header h1 {{
+                font-size: 17px !important;
+                white-space: normal !important;
+                word-break: break-word !important;
+                line-height: 1.2 !important;
+            }}
+            .team-title {{
+                gap: 8px !important;
+                flex-shrink: 0 !important;
+            }}
+            .team-emblem,
+            .team-emblem-fallback {{
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 14px !important;
+            }}
+
+            /* Button rows: horizontally scrollable, no wrap.
+               Hide scrollbar visually but keep functional (mobile pattern). */
+            .header-tabs,
+            .header > div[style*="display:flex"] {{
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                gap: 6px !important;
+                width: 100% !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;  /* Firefox */
+                padding-bottom: 2px !important;     /* room for scrollbar */
+            }}
+            .header-tabs::-webkit-scrollbar,
+            .header > div[style*="display:flex"]::-webkit-scrollbar {{
+                display: none !important;          /* Chrome/Safari */
+            }}
+            .tab,
+            .header-action-btn {{
+                padding: 8px 10px !important;
+                font-size: 12px !important;
+                min-height: 36px !important;
+                flex: 0 0 auto !important;
+            }}
+
+            /* Container: tighter padding */
+            .container {{
+                padding: 0 8px 12px 8px !important;
+            }}
+
+            /* Main layout: stack side-by-side panels vertically */
+            .main-layout {{
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                width: 100% !important;
+            }}
+
+            /* Main table: scroll horizontally, keep player name column visible.
+               Many squad tables have 20+ columns; on 375px wide screen they
+               overflow. Wrap in scroll container with sticky first column. */
+            .table-container,
+            .main-table {{
+                width: 100% !important;
+                max-width: 100vw !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                display: block !important;
+            }}
+            .main-table {{
+                font-size: 12px !important;
+                border-collapse: collapse !important;
+            }}
+            .main-table th,
+            .main-table td {{
+                padding: 6px 4px !important;
+                white-space: nowrap !important;
+                font-size: 12px !important;
+            }}
+            /* Sticky first column = player number */
+            .main-table th:first-child,
+            .main-table td:first-child {{
+                position: sticky !important;
+                left: 0 !important;
+                background: #f5f5f5 !important;
+                z-index: 2 !important;
+            }}
+            /* Sticky second column = player name (so it's always visible while
+               scrolling right to see the rest of the row) */
+            .main-table th:nth-child(2),
+            .main-table td:nth-child(2) {{
+                position: sticky !important;
+                left: 36px !important;
+                background: #f5f5f5 !important;
+                z-index: 1 !important;
+                max-width: 140px !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }}
+
+            /* Squad/Compare/Bulk/Builder panels: full width on mobile.
+               They have hardcoded widths (700px, 930px, 980px, 1400px)
+               that overflow the viewport. */
+            .bulk-lineup-panel,
+            .comparison-table-host,
+            .builder-lineup-host,
+            .squad-overview-host,
+            [id$="-panel-host"],
+            [id$="-host"] {{
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                box-sizing: border-box !important;
+            }}
+            [id$="-panel-host"] > div,
+            [id$="-host"] > div {{
+                max-width: 100% !important;
+            }}
+
+            /* Sidebars: collapse, show as bottom drawer or hide */
+            .my-squads-sidebar,
+            .tweets-sidebar,
+            .team-nav-sidebar {{
+                width: 100% !important;
+                max-width: 100% !important;
+                position: static !important;
+                margin-top: 12px !important;
+            }}
+            .tweets-sidebar.hidden {{
+                display: none !important;
+            }}
+
+            /* Status select, checkboxes: bigger touch targets (44px iOS guideline) */
+            .status-select,
+            select,
+            input[type="checkbox"],
+            input[type="radio"] {{
+                min-height: 32px !important;
+                min-width: 32px !important;
+                font-size: 14px !important;
+            }}
+            .squad-checkbox,
+            .xi-checkbox,
+            .starting-checkbox,
+            .pxi-checkbox,
+            .sxi-checkbox {{
+                width: 18px !important;
+                height: 18px !important;
+                cursor: pointer !important;
+            }}
+
+            /* Buttons: minimum 44x44 touch target */
+            button {{
+                min-height: 36px !important;
+            }}
+
+            /* Modal/popover: full-screen on mobile */
+            [style*="position:fixed"][style*="z-index"] {{
+                max-width: 100vw !important;
+                max-height: 100vh !important;
+            }}
+
+            /* Stat cells: smaller text in table */
+            .main-table td {{
+                font-size: 11px !important;
+            }}
+        }}
+
+        /* ----- VERY SMALL PHONES (<380px, iPhone SE 1st gen) ----- */
+        @media (max-width: 380px) {{
+            .header h1 {{ font-size: 16px !important; }}
+            .tab, .header-action-btn {{ font-size: 11px !important; padding: 6px 8px !important; }}
+            .container {{ padding: 0 4px 8px 4px !important; }}
         }}
     </style>
 
