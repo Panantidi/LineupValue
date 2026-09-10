@@ -3264,6 +3264,7 @@ ROTOWIRE_TEST_LEAGUES = {
     "epl": {"url": "https://www.rotowire.com/soccer/lineups.php", "country": "England", "league": "Premier League"},
     "liga": {"url": "https://www.rotowire.com/soccer/lineups.php?league=LIGA", "country": "Spain", "league": "LaLiga"},
     "seri": {"url": "https://www.rotowire.com/soccer/lineups.php?league=SERI", "country": "Italy", "league": "Serie A"},
+    "ucl": {"url": "https://www.rotowire.com/soccer/lineups.php?league=UCL", "country": "Europe", "league": "Champions League"},
     "mls": {"url": "https://www.rotowire.com/soccer/lineups.php?league=MLS", "country": "USA", "league": "MLS"},
 }
 
@@ -3386,12 +3387,16 @@ async def test_rotowire_fran_matches():
         # Sep 6 2026 — lv_time: exact fixture time from the LV team
         # cache (same source as nav-match-group) so the Test panel
         # shows the same time the user sees in the match dropdown.
+        # Sep 7 2026 — always show kickoff time in the panel. Prefer LV
+        # fixture date when home_lv is resolved; otherwise format the
+        # kickoff_ts as "DD.MM HH:MM" in UTC so the user always sees a
+        # visible time even when the LV cache is missing the match.
         lv_time = ""
         try:
             _hcache = os.path.join(
                 "/home/openclaw/.openclaw/workspace",
                 "_live_cache_" + (home_lv or {}).get("id", "") + ".json")
-            if os.path.exists(_hcache):
+            if home_lv and os.path.exists(_hcache):
                 with open(_hcache, "r", encoding="utf-8") as f:
                     _td = json.load(f)
                 for _fx in _td.get("fixtures") or []:
@@ -3403,9 +3408,17 @@ async def test_rotowire_fran_matches():
                         _dm = re.match(r"(\d{1,2})/(\d{2})", _d)
                         if _dm:
                             lv_time = f"{int(_dm.group(1)):02d}.{int(_dm.group(2)):02d}" + (f" {_t}" if _t else "")
-                        break
+                            break
+            if not lv_time and ts:
+                # Fallback: format kickoff_ts (UTC) as DD.MM HH:MM
+                import datetime as _dt
+                _dtv = _dt.datetime.utcfromtimestamp(ts)
+                lv_time = _dtv.strftime("%d.%m %H:%M")
         except Exception:
-            pass
+            if ts:
+                import datetime as _dt
+                _dtv = _dt.datetime.utcfromtimestamp(ts)
+                lv_time = _dtv.strftime("%d.%m %H:%M")
 
         # Check if predicted lineup is posted
         not_posted = "lineup has not been posted yet" in block.lower()

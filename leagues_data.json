@@ -12593,5 +12593,495 @@
         "image_path": "https://static.flashscore.com/res/image/data/CrYMZZ7k-Eua5PHRE.png"
       }
     ]
+  },
+  "Europe": {
+    "Champions League": [
+      {
+        "id": "OOXnKGbO",
+        "name": "Aarhus (Den)",
+        "slug": "aarhus",
+        "image_path": "https://static.flashscore.com/res/image/data/fsNkF78k-fgTHqrqh.png"
+      },
+      {
+        "id": "ANpZncAM",
+        "name": "AEK",
+        "slug": "aek",
+        "image_path": "https://static.flashscore.com/res/image/data/ph8YRKne-6iRkbdOB.png"
+      },
+      {
+        "id": "xlT9cL89",
+        "name": "Ararat-Armenia (Arm)",
+        "slug": "ararat-armenia",
+        "image_path": "https://static.flashscore.com/res/image/data/dChrIeT0-ry3gAnfr.png"
+      },
+      {
+        "id": "hA1Zm19f",
+        "name": "Arsenal",
+        "slug": "arsenal",
+        "image_path": "https://static.flashscore.com/res/image/data/0n1ffK6k-vcNAdtF9.png"
+      },
+      {
+        "id": "zVqqL0ma",
+        "name": "AS Roma",
+        "slug": "as-roma",
+        "image_path": "https://static.flashscore.com/res/image/data/j31Z1pne-GtNb9h2q.png"
+      },
+      {
+        "id": "W00wmLO0",
+        "name": "Aston Villa",
+        "slug": "aston-villa",
+        "image_path": "https://static.flashscore.com/res/image/data/UHchCEVH-jwz95gs0.png"
+      },
+      {
+        "id": "jaarqpLQ",
+        "name": "Atl. Madrid",
+        "slug": "atl-madrid",
+        "image_path": "https://static.flashscore.com/res/image/data/Kv2QSkhT-GhHiNvXF.png"
+      },
+      {
+        "id": "SKbpVP5K",
+        "name": "Barcelona",
+        "slug": "barcelona",
+        "image_path": "https://static.flashscore.com/res/image/data/jZ8dSYS0-fcDVLdrL.png"
+      },
+      {
+        "id": "nVp0wiqd",
+        "name": "Bayern",
+        "slug": "bayern",
+        "image_path": "https://static.flashscore.com/res/image/data/lWGBVoA6-SvLFaVNH.png"
+      },
+      {
+        "id": "vJbTeCGP",
+        "name": "Betis",
+        "slug": "betis",
+        "image_path": "https://static.flashscore.com/res/image/data/YV7lpDU0-zkU5wiAr.png"
+      },
+      {
+        "id": "O4ORhR6N",
+        "name": "Bissen (Lux)",
+        "slug": "bissen",
+        "image_path": "https://static.flashscore.com/res/image/data/b5BJuGBN-xp9MKGr2.png"
+      },
+      {
+        "id": "S0WZMUNG",
+        "name": "Bodo/Glimt",
+        "slug": "bodo-glimt",
+        "image_path": "https://static.flashscore.com/res/image/data/CCIKVSlC-G4RlYr20.png"
+      },
+      {
+        "id": "pWGUPhrD",
+        "name": "Borac Banja Luka (Bih)",
+        "slug": "borac-banja-luka",
+        "image_path": "https://static.flashscore.com/res/image/data/dIPVGf96-pYGu6ZOp.png"
+      },
+      {
+        "id": "SpbURe4O",
+        "name": "Celje (Slo)",
+        "slug": "celje",
+        "image_path": "https://static.flashscore.com/res/image/data/dzJvOb96-juuH5vx4.png"
+      },
+      {
+        "id": "QFKRRD8M",
+        "name": "Celtic (Sco)",
+        "slug": "celtic",
+        "image_path": "https://static.flashscore.com/res/image/data/boc068VH-Y1XXO0Va.png"
+      },
+      {
+        "id": "rgTHIK74",
+        "name": "Club Brugge",
+        "slug": "club-brugge",
+        "image_path": "https://static.flashscore.com/res/image/data/I31uMN7k-44lq3LsP.png"
+      },
+      {
+        "id": "ttyLthOA",
+        "name": "Como",
+        "slug": "como",
+        "image_path": "https://static.flashscore.com/res/image/data/4pxypIS0-hpmw8K1h.png"
+      },
+      {
+        "id": "8G5ufQTg",
+        "name": "Din. Zagreb (Cro)",
+        "slug": "din-zagreb",
+        "image_path": "https://static.flashscore.com/res/image/data/61ZybnhT-GU4hlIMk.png"
+      },
+      {
+        "id": "nP1i5US1",
+        "name": "Dortmund",
+        "slug": "dortmund",
+        "image_path": "https://static.flashscore.com/res/image/data/xSfDCO76-WrjrBuU2.png"
+      },
+      {
+        "id": "bwWOjXUP",
+        "name": "Drita (Kos)",
+        "slug": "drita",
+        "image_path": "https://static.flashscore.com/res/image/data/CGGpODme-xYt3Tt4D.png"
+      },
+      {
+        "id": "CjYs7BO9",
+        "name": "Egnatia (Alb)",
+        "slug": "kf-egnatia",
+        "image_path": "https://static.flashscore.com/res/image/data/CzPXaD96-byNKiB8E.png"
+      },
+      {
+        "id": "S2NmScGp",
+        "name": "FC Porto",
+        "slug": "fc-porto",
+        "image_path": "https://static.flashscore.com/res/image/data/A5i3omUH-Kth3Rz1C.png"
+      },
+      {
+        "id": "MsbmracL",
+        "name": "Fenerbahce (Tur)",
+        "slug": "fenerbahce",
+        "image_path": "https://static.flashscore.com/res/image/data/drRgiLlC-llnQ8REs.png"
+      },
+      {
+        "id": "8zjySeoN",
+        "name": "Feyenoord",
+        "slug": "feyenoord",
+        "image_path": "https://static.flashscore.com/res/image/data/Ag6J0jT0-Wz6bfhxO.png"
+      },
+      {
+        "id": "zLFV5ykn",
+        "name": "Flora (Est)",
+        "slug": "flora",
+        "image_path": "https://static.flashscore.com/res/image/data/W4S8NRhT-jes3ohYg.png"
+      },
+      {
+        "id": "hKIRewt8",
+        "name": "Floriana (Mlt)",
+        "slug": "floriana",
+        "image_path": "https://static.flashscore.com/res/image/data/rakm49Pq-xGkXZymr.png"
+      },
+      {
+        "id": "riaqqurF",
+        "name": "Galatasaray",
+        "slug": "galatasaray",
+        "image_path": "https://static.flashscore.com/res/image/data/SpvcRk96-dEXkR0Wq.png"
+      },
+      {
+        "id": "2LH3Ywq4",
+        "name": "Gornik Zabrze (Pol)",
+        "slug": "gornik-zabrze",
+        "image_path": "https://static.flashscore.com/res/image/data/G8TX8HAN-jJkcLdlk.png"
+      },
+      {
+        "id": "4WnsYev9",
+        "name": "Győr (Hun)",
+        "slug": "gyor",
+        "image_path": "https://static.flashscore.com/res/image/data/KGUSGeDN-E54OB8CP.png"
+      },
+      {
+        "id": "EXAD1YZP",
+        "name": "H. Beer Sheva (Isr)",
+        "slug": "h-beer-sheva",
+        "image_path": "https://static.flashscore.com/res/image/data/MH6GxSQq-A3ON3kaq.png"
+      },
+      {
+        "id": "0rGrwwNc",
+        "name": "Hearts (Sco)",
+        "slug": "hearts",
+        "image_path": "https://static.flashscore.com/res/image/data/lOCLY2A6-Ae0zHiFc.png"
+      },
+      {
+        "id": "dhfRkskl",
+        "name": "Iberia 1999 (Geo)",
+        "slug": "iberia-1999",
+        "image_path": "https://static.flashscore.com/res/image/data/trWFt7CN-hK31pCkr.png"
+      },
+      {
+        "id": "Iw7eKK25",
+        "name": "Inter",
+        "slug": "inter",
+        "image_path": "https://static.flashscore.com/res/image/data/fLNbBiQq-O8c8nWOb.png"
+      },
+      {
+        "id": "4CambolL",
+        "name": "Inter Escaldes (And)",
+        "slug": "inter-escaldes",
+        "image_path": "https://static.flashscore.com/res/image/data/8MfXV6R0-8nCMN5pD.png"
+      },
+      {
+        "id": "CrO7xXpJ",
+        "name": "Kairat Almaty (Kaz)",
+        "slug": "kairat-almaty",
+        "image_path": "https://static.flashscore.com/res/image/data/29cAf06k-rwQpsSWo.png"
+      },
+      {
+        "id": "0p17kQla",
+        "name": "Kauno Zalgiris (Ltu)",
+        "slug": "fk-kauno-zalgiris",
+        "image_path": "https://static.flashscore.com/res/image/data/WWSvU6ne-hjhLeNs8.png"
+      },
+      {
+        "id": "j9PptHXf",
+        "name": "Klaksvik (Fai)",
+        "slug": "klaksvik",
+        "image_path": "https://static.flashscore.com/res/image/data/IibqWZoe-GnA0fkqU.png"
+      },
+      {
+        "id": "nLBbqJDS",
+        "name": "KuPS (Fin)",
+        "slug": "kups",
+        "image_path": "https://static.flashscore.com/res/image/data/SpqXiv96-tE5VOoRI.png"
+      },
+      {
+        "id": "44wiLnI5",
+        "name": "Larne (Nir)",
+        "slug": "larne",
+        "image_path": "https://static.flashscore.com/res/image/data/jsdDsCBN-6DWdsjIR.png"
+      },
+      {
+        "id": "MipWYeKQ",
+        "name": "LASK",
+        "slug": "lask-linz",
+        "image_path": "https://static.flashscore.com/res/image/data/hpJBhRlC-CbaUQRYa.png"
+      },
+      {
+        "id": "OpNH7Ouf",
+        "name": "Lech (Pol)",
+        "slug": "lech",
+        "image_path": "https://static.flashscore.com/res/image/data/naukdF86-lCvEmFL0.png"
+      },
+      {
+        "id": "IBmris38",
+        "name": "Lens",
+        "slug": "lens",
+        "image_path": "https://static.flashscore.com/res/image/data/tAec9KQq-rTEFAmVL.png"
+      },
+      {
+        "id": "E5OOzgs4",
+        "name": "Levski (Bul)",
+        "slug": "levski",
+        "image_path": "https://static.flashscore.com/res/image/data/hOa8FKR0-UDAXdtF7.png"
+      },
+      {
+        "id": "pfDZL71o",
+        "name": "Lille",
+        "slug": "lille",
+        "image_path": "https://static.flashscore.com/res/image/data/Q34pXImC-UDticXKP.png"
+      },
+      {
+        "id": "bHbMply6",
+        "name": "Lincoln (Gib)",
+        "slug": "lincoln-red-imps",
+        "image_path": "https://static.flashscore.com/res/image/data/KliWwmjC-86hNCjlr.png"
+      },
+      {
+        "id": "lId4TMwf",
+        "name": "Liverpool",
+        "slug": "liverpool",
+        "image_path": "https://static.flashscore.com/res/image/data/nBClzyne-KCp4zq5F.png"
+      },
+      {
+        "id": "2akflumR",
+        "name": "Lyon (Fra)",
+        "slug": "lyon",
+        "image_path": "https://static.flashscore.com/res/image/data/bkuX6RS0-GU4hlIMk.png"
+      },
+      {
+        "id": "Wtn9Stg0",
+        "name": "Man City",
+        "slug": "manchester-city",
+        "image_path": "https://static.flashscore.com/res/image/data/0vgscFU0-lQuhqN8N.png"
+      },
+      {
+        "id": "ppjDR086",
+        "name": "Man Utd",
+        "slug": "manchester-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/GhGV3qjT-h2pPXz3k.png"
+      },
+      {
+        "id": "S0XtXM1E",
+        "name": "Mjallby (Swe)",
+        "slug": "mjallby",
+        "image_path": "https://static.flashscore.com/res/image/data/0zroGF76-nBrEseHA.png"
+      },
+      {
+        "id": "UkzXzc1n",
+        "name": "ML Vitebsk (Blr)",
+        "slug": "ml-vitebsk",
+        "image_path": "https://static.flashscore.com/res/image/data/88mqblXH-CxpGCHnq.png"
+      },
+      {
+        "id": "69Dxbc61",
+        "name": "Napoli",
+        "slug": "napoli",
+        "image_path": "https://static.flashscore.com/res/image/data/tSuMfRjT-Stb48WaO.png"
+      },
+      {
+        "id": "nRluRF0T",
+        "name": "Nijmegen (Ned)",
+        "slug": "nijmegen",
+        "image_path": "https://static.flashscore.com/res/image/data/C8FCtESq-4vob7cTR.png"
+      },
+      {
+        "id": "hnzvnHPS",
+        "name": "Olympiacos (Gre)",
+        "slug": "olympiacos",
+        "image_path": "https://static.flashscore.com/res/image/data/Ik1Usole-lzmp9FUJ.png"
+      },
+      {
+        "id": "GSLWiAPe",
+        "name": "Omonia (Cyp)",
+        "slug": "omonia",
+        "image_path": "https://static.flashscore.com/res/image/data/63i3lcSq-8GeT5Kmk.png"
+      },
+      {
+        "id": "b5j3Rktc",
+        "name": "Petrocub (Mda)",
+        "slug": "petrocub-hincesti",
+        "image_path": "https://static.flashscore.com/res/image/data/za3EFVVH-MuoReFC1.png"
+      },
+      {
+        "id": "CjhkPw0k",
+        "name": "PSG",
+        "slug": "psg",
+        "image_path": "https://static.flashscore.com/res/image/data/fJgGn26k-A7UDDuOO.png"
+      },
+      {
+        "id": "M9UEHJWi",
+        "name": "PSV",
+        "slug": "psv",
+        "image_path": "https://static.flashscore.com/res/image/data/fefX7RQq-j5zA1baQ.png"
+      },
+      {
+        "id": "KbS1suSm",
+        "name": "RB Leipzig",
+        "slug": "rb-leipzig",
+        "image_path": "https://static.flashscore.com/res/image/data/fNS5fTmC-WvvSE8Dm.png"
+      },
+      {
+        "id": "W8mj7MDD",
+        "name": "Real Madrid",
+        "slug": "real-madrid",
+        "image_path": "https://static.flashscore.com/res/image/data/CGPhnpne-ttfpEDUq.png"
+      },
+      {
+        "id": "ncRzHK14",
+        "name": "Red Star (Srb)",
+        "slug": "red-star",
+        "image_path": "https://static.flashscore.com/res/image/data/SCYnmQR0-MyLh3sBh.png"
+      },
+      {
+        "id": "l2DXxTjh",
+        "name": "Riga FC (Lat)",
+        "slug": "riga-fc",
+        "image_path": "https://static.flashscore.com/res/image/data/WnBBFtRq-EmoyoZps.png"
+      },
+      {
+        "id": "fNGcxbyr",
+        "name": "Sabah Baku",
+        "slug": "sabah-baku",
+        "image_path": "https://static.flashscore.com/res/image/data/h6OfmXR0-O8TAkqbq.png"
+      },
+      {
+        "id": "4ENWX2OA",
+        "name": "Shakhtar",
+        "slug": "shakhtar",
+        "image_path": "https://static.flashscore.com/res/image/data/fLOld9A6-YmCZKGcR.png"
+      },
+      {
+        "id": "KIN6lmnH",
+        "name": "Shamrock Rovers (Irl)",
+        "slug": "shamrock-rovers",
+        "image_path": "https://static.flashscore.com/res/image/data/YcskvLWH-vub6KOEE.png"
+      },
+      {
+        "id": "viXGgnyB",
+        "name": "Slavia Prague",
+        "slug": "slavia-prague",
+        "image_path": "https://static.flashscore.com/res/image/data/nsu4mohT-8nl9JmVC.png"
+      },
+      {
+        "id": "QRaWdwQf",
+        "name": "Slovan Bratislava",
+        "slug": "slovan-bratislava",
+        "image_path": "https://static.flashscore.com/res/image/data/481Rm5jC-pEAU6ugI.png"
+      },
+      {
+        "id": "6qA358jH",
+        "name": "Sparta Prague (Cze)",
+        "slug": "sparta-prague",
+        "image_path": "https://static.flashscore.com/res/image/data/6eqSK8oe-lWOFh0RD.png"
+      },
+      {
+        "id": "tljXuHBC",
+        "name": "Sporting",
+        "slug": "sporting",
+        "image_path": "https://static.flashscore.com/res/image/data/jy2lEHBN-4ddK8rOq.png"
+      },
+      {
+        "id": "zsktjfsD",
+        "name": "Sturm Graz (Aut)",
+        "slug": "sturm",
+        "image_path": "https://static.flashscore.com/res/image/data/GO2WcKme-ATNrh1YR.png"
+      },
+      {
+        "id": "nJQmYp1B",
+        "name": "Stuttgart",
+        "slug": "stuttgart",
+        "image_path": "https://static.flashscore.com/res/image/data/fgQWGn86-f1Z3XxZa.png"
+      },
+      {
+        "id": "Uw7E96rU",
+        "name": "Sutjeska (Mne)",
+        "slug": "sutjeska",
+        "image_path": "https://static.flashscore.com/res/image/data/M9JSpLle-zVJMgvaS.png"
+      },
+      {
+        "id": "4WElAd9p",
+        "name": "Thun (Sui)",
+        "slug": "thun",
+        "image_path": "https://static.flashscore.com/res/image/data/h6IND07k-xbUiUE46.png"
+      },
+      {
+        "id": "lGMtZWUH",
+        "name": "TNS (Wal)",
+        "slug": "tns",
+        "image_path": "https://static.flashscore.com/res/image/data/vodmkvVH-zcb1Gz6r.png"
+      },
+      {
+        "id": "Yq1P1sCB",
+        "name": "Tre Fiori (San)",
+        "slug": "tre-fiori",
+        "image_path": "https://static.flashscore.com/res/image/data/SKV6X3Pq-4nHGwTWE.png"
+      },
+      {
+        "id": "407h8Ird",
+        "name": "Union SG (Bel)",
+        "slug": "royale-union-sg",
+        "image_path": "https://static.flashscore.com/res/image/data/fkZqVUUH-KrZtIamS.png"
+      },
+      {
+        "id": "bsd9fGaK",
+        "name": "Univ. Craiova (Rou)",
+        "slug": "univ-craiova",
+        "image_path": "https://static.flashscore.com/res/image/data/nyNLzxUH-CKjtpaMt.png"
+      },
+      {
+        "id": "4IQgZaVs",
+        "name": "Vardar (Mkd)",
+        "slug": "vardar",
+        "image_path": "https://static.flashscore.com/res/image/data/Ywat41A6-86OeMIIr.png"
+      },
+      {
+        "id": "bXAgOWwb",
+        "name": "Viking",
+        "slug": "viking",
+        "image_path": "https://static.flashscore.com/res/image/data/UPxLwWoe-xvniPjZd.png"
+      },
+      {
+        "id": "hdKpCN4d",
+        "name": "Vikingur Reykjavik (Ice)",
+        "slug": "vikingur-reykjavik",
+        "image_path": "https://static.flashscore.com/res/image/data/QsV2lrBN-ATBUwpjA.png"
+      },
+      {
+        "id": "lUatW5jE",
+        "name": "Villarreal",
+        "slug": "villarreal",
+        "image_path": "https://static.flashscore.com/res/image/data/EBxZSOjT-GSuwY3p9.png"
+      }
+    ]
   }
 }
