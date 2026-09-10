@@ -3799,6 +3799,15 @@ async def starting_xi_matches(league_key: str):
                         break
         except Exception:
             pass
+        # Sep 10 2026 — UTC fallback so the panel always shows date+time,
+        # even for teams without a _live_cache_*.json (e.g. Man Utd vs Sabah FK).
+        if not lv_time and ts:
+            try:
+                import datetime as _dt_sxi
+                _dtv = _dt_sxi.datetime.utcfromtimestamp(ts)
+                lv_time = _dtv.strftime("%d.%m %H:%M")
+            except Exception:
+                pass
 
         _ph, _pt_h, _pam, _pt_a = 0, 0, 0, 0
         try:

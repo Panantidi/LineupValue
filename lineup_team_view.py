@@ -2613,10 +2613,13 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 const pxiAwayFull = (m.pxi_away_matched === 11 && m.pxi_away_total === 11);
                 const pxiAwayPartial = (m.pxi_away_matched > 0 && !pxiAwayFull);
                 const pxiHomePartial = (m.pxi_home_matched > 0 && !pxiHomeFull);
-                html += '<div style="display:grid;grid-template-columns:60px 88px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
-                html += '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '" style="grid-column:1;font-size:12px;color:#94a3b8;min-width:60px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;"></span>';
-                html += '<span style="grid-column:2;font-size:12px;color:#94a3b8;min-width:88px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;">' + kickStr + '</span>';
-                html += '<div style="grid-column:3;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
+                // Sep 10 2026 — 3-col grid: inline countdown + lv_time as "🕒 57m 10.09 21:00"
+                html += '<div style="display:grid;grid-template-columns:160px 1fr auto;align-items:center;column-gap:12px;padding:6px 10px;background:#172033;border-radius:6px;border:1px solid #1f2b40;">';
+                html += '<span style="grid-column:1;font-size:12px;color:#94a3b8;min-width:160px;white-space:nowrap;font-variant-numeric:tabular-nums;justify-self:start;display:flex;gap:6px;align-items:center;">'
+                    + '<span class="test-countdown" data-ts="' + (m.kickoff_ts || 0) + '"></span>'
+                    + '<span>' + kickStr + '</span>'
+                    + '</span>';
+                html += '<div style="grid-column:2;display:flex;align-items:center;gap:8px;font-size:14px;color:#e8eef7;min-width:0;">';
                 if (m.is_confirmed) {{
                     if (pxiHomeFull) {{
                         html += '<span title="' + m.pxi_home_matched + '/11 matched" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#dc3545;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;">✓</span>';
@@ -2651,7 +2654,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     + (_sxiHomeOk ? '<span style="font-size:12px;" title="S-XI ' + m.pxi_home_matched + '/' + m.pxi_home_total + ' (Home)">✅</span>' : (_sxiHomePart ? '<span style="font-size:12px;opacity:0.45;" title="S-XI ' + m.pxi_home_matched + '/' + m.pxi_home_total + ' (Home)">✅</span>' : ''))
                     + (_sxiAwayOk ? '<span style="font-size:12px;" title="S-XI ' + m.pxi_away_matched + '/' + m.pxi_away_total + ' (Away)">✅</span>' : (_sxiAwayPart ? '<span style="font-size:12px;opacity:0.45;" title="S-XI ' + m.pxi_away_matched + '/' + m.pxi_away_total + ' (Away)">✅</span>' : ''))
                     + '</span>';
-                html += '<span style="grid-column:4;justify-self:end;display:flex;gap:6px;">' + _sxiBadges + '<button type="button" onclick="loadStartingXIMatches(&#39;' + leagueKey + '&#39;)" style="font-size:11px;color:#e8eef7;background:#1f2b40;border:1px solid #3b5270;padding:4px 10px;border-radius:5px;white-space:nowrap;cursor:pointer;" title="Check Confirmed">🔄 Check</button>' + openMatchBtn + '</span>';
+                html += '<span style="grid-column:3;justify-self:end;display:flex;gap:6px;">' + _sxiBadges + '<button type="button" onclick="loadStartingXIMatches(&#39;' + leagueKey + '&#39;)" style="font-size:11px;color:#e8eef7;background:#1f2b40;border:1px solid #3b5270;padding:4px 10px;border-radius:5px;white-space:nowrap;cursor:pointer;" title="Check Confirmed">🔄 Check</button>' + openMatchBtn + '</span>';
                 html += '</div>';
             }}
             body.innerHTML = html;
