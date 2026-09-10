@@ -98,6 +98,23 @@ def _name_eq(a: str, b: str) -> bool:
             if u == v or u in v or v in u:
                 cross += 1
                 break
+    # Sep 10 2026 — prefix cross: shared token (>=3 chars) is a prefix of a
+    # unique token (>=5 chars) on the other side. Catches "Man Utd" vs
+    # "Manchester United" (shared="man" prefix of "manchester") WITHOUT
+    # breaking guards because the *unique* token is constrained to be a
+    # proper word (>=5 chars), not an abbreviation like "fc"/"city" which
+    # would risk "DC" prefixing "DC United" matching "Atlanta United".
+    for s in shared:
+        if len(s) < 3 or s in {'united', 'city', 'fc', 'cf', 'sc', 'afc'}:
+            continue
+        for u in unique_b:
+            if len(u) >= 5 and u.startswith(s):
+                cross += 1
+                break
+        for v in unique_a:
+            if len(v) >= 5 and v.startswith(s):
+                cross += 1
+                break
     if len(set(shared)) >= 2 and cross >= 1:
         return True
     if len(set(shared)) >= 1 and cross >= 1 and len(at) == len(bt):
@@ -140,6 +157,73 @@ def _name_eq(a: str, b: str) -> bool:
             return False
         return max(len(t) for t in shared) >= 5
     return False
+
+
+def _match_score(lv_name: str, rotowire_name: str) -> int:
+    """Sep 10 2026 — score how well LV name matches rotowire name.
+
+    Higher = better match. Used by find_lv_team to pick the best candidate
+    when multiple LV teams pass _name_eq for the same rotowire name
+    (e.g. "Manchester United" should resolve to LV "Man Utd" not
+    LV "Man City").
+
+    Scoring:
+    - Exact match: 10000
+    - Shared full tokens: +10 * len(token) per token
+    - Cognate abbreviation pairs (manchester<->man, united<->utd,
+      athletic<->ath, tottenham<->spurs, etc.): +10 * max(len)
+    - Generic-only shared tokens (real, united, fc, cf, sc, afc,
+      city, town, athletic, olympic, rovers, wanderers, sporting):
+      -50 per token so Real Madrid vs Real Sociedad (only "real" shared)
+      becomes negative and is rejected.
+    """
+    import unicodedata
+    def _strip(s):
+        return ''.join(c for c in unicodedata.normalize("NFD", s)
+                       if unicodedata.category(c) != "Mn")
+    al = _strip((lv_name or "").lower()).strip()
+    bl = _strip((rotowire_name or "").lower()).strip()
+    if not al or not bl:
+        return 0
+    if al == bl:
+        return 10000
+    at = al.replace(".", "").replace("-", " ").split()
+    bt = bl.replace(".", "").replace("-", " ").split()
+    # Cognate pairs (symmetric) — common club suffix/prefix abbreviations.
+    _COGNATE = {
+        frozenset(("manchester", "man")),
+        frozenset(("united", "utd")),
+        frozenset(("united", "untd")),
+        frozenset(("athletic", "ath")),
+        frozenset(("olympic", "oly")),
+        frozenset(("wanderers", "wands")),
+        frozenset(("rovers", "rovs")),
+        frozenset(("sporting", "sport")),
+        frozenset(("city", "mc")),
+        frozenset(("liverpool", "liv")),
+        frozenset(("tottenham", "spurs")),
+        frozenset(("internazionale", "inter")),
+        frozenset(("rangers", "ran")),
+        frozenset(("celtic", "celt")),
+        frozenset(("real betis", "betis")),
+    }
+    _GENERIC = {
+        "real", "united", "city", "fc", "cf", "sc", "afc",
+        "athletic", "olympic", "wanderers", "rovers", "sporting",
+        "county", "town",
+    }
+    score = 0
+    for t in at:
+        if t in bt:
+            score += (-50 if t in _GENERIC else 10 * len(t))
+    for t in bt:
+        if t in at and t not in _GENERIC:
+            score += 10 * len(t)
+    for a in at:
+        for b in bt:
+            if frozenset((a, b)) in _COGNATE:
+                score += 10 * max(len(a), len(b))
+    return score
 
 
 def fetch_page(league_key: str, max_age: int = PAGE_TTL) -> Optional[str]:

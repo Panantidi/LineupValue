@@ -35,6 +35,13 @@ CASES = [
     ('Charlotte FC', 'Charlotte', True, 'abbrev city'),
     ('Charlotte FC', 'DC United', False, 'no real match'),
     ('New York City FC', 'Charlotte FC', False, 'cross-team false positive guard'),
+
+    # Sep 10 2026 — Man Utd guards (UCL use case).
+    # _name_eq may match both via prefix-cross, but _match_score picks the right one.
+    ('Manchester United', 'Man Utd', True, 'UCL: Manchester United -> Man Utd'),
+    ('Manchester United', 'Man City', True, '_name_eq also matches Man City (select via _match_score)'),
+    ('Man Utd', 'Man City', False, 'different clubs'),
+    ('Man City', 'Manchester City', True, 'Manchester City -> Man City'),
 ]
 
 fails = 0

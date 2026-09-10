@@ -3361,10 +3361,24 @@ async def test_rotowire_fran_matches():
                     break
 
     def find_lv_team(rotowire_name):
+        # Sep 10 2026 — score-based selection. Exact name match wins.
+        # Otherwise collect all _name_eq candidates and pick the highest
+        # _match_score. Resolves "Manchester United" -> "Man Utd" (160)
+        # rather than "Man City" (100).
+        from rotowire_fixtures import _match_score
+        rname = (rotowire_name or "").strip()
         for t in lv_l1_teams:
-            if _name_eq(t.get("name", ""), rotowire_name):
+            if (t.get("name", "") or "").strip().lower() == rname.lower():
                 return t
-        return None
+        best = None
+        best_score = 0
+        for t in lv_l1_teams:
+            if _name_eq(t.get("name", ""), rname):
+                s = _match_score(t.get("name", ""), rname)
+                if s > best_score:
+                    best = t
+                    best_score = s
+        return best
 
     matches = []
     for block in blocks:
@@ -3501,10 +3515,24 @@ async def test_rotowire_matches(league_key: str):
         lv_teams = leagues[cfg["country"]].get(cfg["league"], [])
 
     def find_lv_team(rotowire_name):
+        # Sep 10 2026 — score-based selection. Exact name match wins.
+        # Otherwise collect all _name_eq candidates and pick the highest
+        # _match_score. Resolves "Manchester United" -> "Man Utd" (160)
+        # rather than "Man City" (100).
+        from rotowire_fixtures import _match_score
+        rname = (rotowire_name or "").strip()
         for t in lv_teams:
-            if _name_eq(t.get("name", ""), rotowire_name):
+            if (t.get("name", "") or "").strip().lower() == rname.lower():
                 return t
-        return None
+        best = None
+        best_score = 0
+        for t in lv_teams:
+            if _name_eq(t.get("name", ""), rname):
+                s = _match_score(t.get("name", ""), rname)
+                if s > best_score:
+                    best = t
+                    best_score = s
+        return best
 
     matches = []
     for block in blocks:
@@ -3541,9 +3569,15 @@ async def test_rotowire_matches(league_key: str):
                         _dm = re.match(r"(\d{1,2})/(\d{2})", _d)
                         if _dm:
                             lv_time = f"{int(_dm.group(1)):02d}.{int(_dm.group(2)):02d}" + (f" {_t}" if _t else "")
-                        break
+                            break
+            if not lv_time and ts:
+                # Sep 10 2026 — UTC fallback (always show kickoff time).
+                import datetime as _dt
+                lv_time = _dt.datetime.utcfromtimestamp(ts).strftime("%d.%m %H:%M")
         except Exception:
-            pass
+            if ts:
+                import datetime as _dt
+                lv_time = _dt.datetime.utcfromtimestamp(ts).strftime("%d.%m %H:%M")
 
         not_posted = "lineup has not been posted yet" in block.lower()
         is_confirmed = "Confirmed Lineup" in block
@@ -3653,10 +3687,24 @@ async def starting_xi_matches(league_key: str):
         lv_teams = leagues[cfg["country"]].get(cfg["league"], [])
 
     def find_lv_team(rotowire_name):
+        # Sep 10 2026 — score-based selection. Exact name match wins.
+        # Otherwise collect all _name_eq candidates and pick the highest
+        # _match_score. Resolves "Manchester United" -> "Man Utd" (160)
+        # rather than "Man City" (100).
+        from rotowire_fixtures import _match_score
+        rname = (rotowire_name or "").strip()
         for t in lv_teams:
-            if _name_eq(t.get("name", ""), rotowire_name):
+            if (t.get("name", "") or "").strip().lower() == rname.lower():
                 return t
-        return None
+        best = None
+        best_score = 0
+        for t in lv_teams:
+            if _name_eq(t.get("name", ""), rname):
+                s = _match_score(t.get("name", ""), rname)
+                if s > best_score:
+                    best = t
+                    best_score = s
+        return best
 
     matches = []
     for block in blocks:
