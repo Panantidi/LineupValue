@@ -160,7 +160,7 @@ def _name_eq(a: str, b: str) -> bool:
 
 
 def _match_score(lv_name: str, rotowire_name: str) -> int:
-    """Sep 10 2026 — score how well LV name matches rotowire name.
+    """Sep 10 2026 (fix #2): score how well LV name matches rotowire name. Tokenizes on '/' so Bodo/Glimt matches Glimt.
 
     Higher = better match. Used by find_lv_team to pick the best candidate
     when multiple LV teams pass _name_eq for the same rotowire name
@@ -187,8 +187,8 @@ def _match_score(lv_name: str, rotowire_name: str) -> int:
         return 0
     if al == bl:
         return 10000
-    at = al.replace(".", "").replace("-", " ").split()
-    bt = bl.replace(".", "").replace("-", " ").split()
+    at = al.replace(".", "").replace("-", " ").replace("/", " ").split()
+    bt = bl.replace(".", "").replace("-", " ").replace("/", " ").split()
     # Cognate pairs (symmetric) — common club suffix/prefix abbreviations.
     _COGNATE = {
         frozenset(("manchester", "man")),

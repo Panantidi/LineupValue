@@ -3371,7 +3371,9 @@ async def test_rotowire_fran_matches():
             if (t.get("name", "") or "").strip().lower() == rname.lower():
                 return t
         best = None
-        best_score = 0
+        # Sep 10 2026 (fix #2): start at -1 so any _name_eq=True
+        # candidate wins even if _match_score=0.
+        best_score = -1
         for t in lv_l1_teams:
             if _name_eq(t.get("name", ""), rname):
                 s = _match_score(t.get("name", ""), rname)
@@ -3525,7 +3527,9 @@ async def test_rotowire_matches(league_key: str):
             if (t.get("name", "") or "").strip().lower() == rname.lower():
                 return t
         best = None
-        best_score = 0
+        # Sep 10 2026 (fix #2): start at -1 so any _name_eq=True
+        # candidate wins even if _match_score=0.
+        best_score = -1
         for t in lv_teams:
             if _name_eq(t.get("name", ""), rname):
                 s = _match_score(t.get("name", ""), rname)
@@ -3697,7 +3701,9 @@ async def starting_xi_matches(league_key: str):
             if (t.get("name", "") or "").strip().lower() == rname.lower():
                 return t
         best = None
-        best_score = 0
+        # Sep 10 2026 (fix #2): start at -1 so any _name_eq=True
+        # candidate wins even if _match_score=0.
+        best_score = -1
         for t in lv_teams:
             if _name_eq(t.get("name", ""), rname):
                 s = _match_score(t.get("name", ""), rname)
