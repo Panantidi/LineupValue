@@ -34,25 +34,26 @@ cfg = n.LEAGUES["ucl"]
 # home-only
 text = n.build_message(cfg, m_full, "home")
 check("home-only has ✅ at start",  text.startswith("🏁 Starting XI\nEurope - Champions League\nDate - 10.09 (21:00)\n✅"), True)
-check("home-only has no trailing ✅", "✅" not in text.split("(http")[1] or text.endswith(")") and "0)" in text, True)
-check("home-only contains URL",     "https://x11radar.ru/lineup_ai/compare/ppjDR086" in text, True)
-check("home-only has %20 (not +)",  "Manchester%20United" in text, True)
-check("home-only has Sabah%20FK",   "Sabah%20FK" in text, True)
+check("home-only contains <a href",  '<a href="' in text, True)
+check("home-only link has match name", '>Manchester United - Sabah FK</a>' in text, True)
+check("home-only no bare URL",         'http://' not in text.replace('<a href="https://x11radar.ru', '').replace('">', ''), True)
+check("home-only URL encoded in href", 'home_name=Manchester%20United' in text, True)
+check("home-only has Sabah%20FK",      'away_name=Sabah%20FK' in text, True)
 
 # away-only
 m_away = dict(m_full)
 m_away["sxi_home_confirmed"] = False
 m_away["sxi_away_confirmed"] = True
 text = n.build_message(cfg, m_away, "away")
-check("away-only has trailing ✅",  text.rstrip().endswith(")✅"), True)
+check("away-only ends with </a>✅",     text.rstrip().endswith("</a>✅"), True)
 
 # both
 m_both = dict(m_full)
 m_both["sxi_home_confirmed"] = True
 m_both["sxi_away_confirmed"] = True
 text = n.build_message(cfg, m_both, "both")
-check("both has leading ✅",        "\n✅ Manchester" in text, True)
-check("both has trailing ✅",       text.rstrip().endswith(")✅"), True)
+check("both starts with ✅ <a",        text.startswith("🏁 Starting XI\nEurope - Champions League\nDate - 10.09 (21:00)\n✅ <a "), True)
+check("both ends with </a>✅",         text.rstrip().endswith("</a>✅"), True)
 
 # URL contains all required params
 url = n.make_url("ppjDR086", "fNGcxbyr", "Manchester United", "Sabah FK", "ucl", 1789066800)
@@ -139,9 +140,9 @@ check("both-now: 1 notification sent",  sent3, 1)
 check("both-now: state away_sent=True", state["ucl-A1-B1"]["away_sent"], True)
 check("both-now: side=both",            state["ucl-A1-B1"]["last_sent_side"], "both")
 check("both-now: 2 calls to send",      len(calls), 1)
-# Format: "✅ Team A - Team B (url)✅" — leading ✅ on home, trailing ✅ on the closing paren
-check("both-now: leading ✅",            "✅ Team A" in calls[0], True)
-check("both-now: trailing ✅ after url", calls[0].rstrip().endswith(")✅"), True)
+# Format: "✅ <a href=...>Team A - Team B</a>✅" — leading ✅ on home, trailing ✅ on the </a>
+check("both-now: leading ✅",            "✅ <a " in calls[0], True)
+check("both-now: trailing ✅ after </a>", calls[0].rstrip().endswith("</a>✅"), True)
 
 # Skip already-kicked-off matches
 def stub_fetch3(lk):
