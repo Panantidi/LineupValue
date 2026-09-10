@@ -3414,13 +3414,21 @@ async def test_rotowire_fran_matches():
             if not lv_time and ts:
                 # Fallback: format kickoff_ts (UTC) as DD.MM HH:MM
                 import datetime as _dt
-                _dtv = _dt.datetime.utcfromtimestamp(ts)
-                lv_time = _dtv.strftime("%d.%m %H:%M")
+                try:
+                    _cest = _dt.datetime.fromtimestamp(ts, tz=_dt.datetime.now().astimezone().tzinfo)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
+                except Exception:
+                    _cest = _dt.datetime.fromtimestamp(ts)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
         except Exception:
             if ts:
                 import datetime as _dt
-                _dtv = _dt.datetime.utcfromtimestamp(ts)
-                lv_time = _dtv.strftime("%d.%m %H:%M")
+                try:
+                    _cest = _dt.datetime.fromtimestamp(ts, tz=_dt.datetime.now().astimezone().tzinfo)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
+                except Exception:
+                    _cest = _dt.datetime.fromtimestamp(ts)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
 
         # Check if predicted lineup is posted
         not_posted = "lineup has not been posted yet" in block.lower()
@@ -3549,11 +3557,21 @@ async def test_rotowire_matches(league_key: str):
             if not lv_time and ts:
                 # Sep 10 2026 — UTC fallback (always show kickoff time).
                 import datetime as _dt
-                lv_time = _dt.datetime.utcfromtimestamp(ts).strftime("%d.%m %H:%M")
+                try:
+                    _cest = _dt.datetime.fromtimestamp(ts, tz=_dt.datetime.now().astimezone().tzinfo)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
+                except Exception:
+                    _cest = _dt.datetime.fromtimestamp(ts)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
         except Exception:
             if ts:
                 import datetime as _dt
-                lv_time = _dt.datetime.utcfromtimestamp(ts).strftime("%d.%m %H:%M")
+                try:
+                    _cest = _dt.datetime.fromtimestamp(ts, tz=_dt.datetime.now().astimezone().tzinfo)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
+                except Exception:
+                    _cest = _dt.datetime.fromtimestamp(ts)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
 
         not_posted = "lineup has not been posted yet" in block.lower()
         is_confirmed = "Confirmed Lineup" in block
@@ -3804,8 +3822,12 @@ async def starting_xi_matches(league_key: str):
         if not lv_time and ts:
             try:
                 import datetime as _dt_sxi
-                _dtv = _dt_sxi.datetime.utcfromtimestamp(ts)
-                lv_time = _dtv.strftime("%d.%m %H:%M")
+                try:
+                    _cest = _dt_sxi.datetime.fromtimestamp(ts, tz=_dt_sxi.datetime.now().astimezone().tzinfo)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
+                except Exception:
+                    _cest = _dt_sxi.datetime.fromtimestamp(ts)
+                    lv_time = _cest.strftime("%d.%m %H:%M")
             except Exception:
                 pass
 
