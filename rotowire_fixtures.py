@@ -607,3 +607,87 @@ def _champ_team_names(league_key) -> set:
     except Exception:
         pass
     return names
+
+
+# --- Universal team-name alias layer (Sep 10 2026) ---
+# Wraps alias-table lookup + _name_eq/_match_score fallback in one function
+# so app.py can call a single entry point from find_lv_team. Auto-saves
+# successful fuzzy matches to data/team_name_aliases.json.
+try:
+    import team_aliases
+except ImportError:
+    team_aliases = None
+
+
+def resolve_lv_team_by_alias(rotowire_name: str, lv_teams: list,
+                              auto_learn: bool = True):
+    """Resolve rotowire_name -> LV team dict.
+
+    Returns a dict with keys: id, name, league (and matched_via) or None.
+
+    Strategy:
+      1. ALIAS TABLE — exact normalized lookup via team_aliases.
+         Deterministic; Bodo/Glimt -> "Glimt" works without fuzzy.
+      2. FUZZY FALLBACK — _name_eq filter, then pick highest _match_score.
+         If auto_learn=True, save the rotowire_name to the team's
+         rotowire_seen list so next time hits the fast alias path.
+    """
+    from rotowire_fixtures import _name_eq, _match_score
+    rname = (rotowire_name or "").strip()
+    if not rname or not lv_teams:
+        return None
+
+    # 1) Alias table (deterministic)
+    if team_aliases is not None:
+        meta = team_aliases.resolve_with_meta(rname)
+        if meta:
+            team_id = meta["id"]
+            for t in lv_teams:
+                if t.get("id") == team_id:
+                    return {
+                        "id": team_id,
+                        "name": meta.get("name") or t.get("name", ""),
+                        "league": meta.get("league") or "",
+                        "matched_via": "alias",
+                    }
+
+    # 2) Exact name match
+    for t in lv_teams:
+        if (t.get("name", "") or "").strip().lower() == rname.lower():
+            tid = t.get("id", "")
+            if auto_learn and team_aliases is not None:
+                _existing = team_aliases.get_all().get(tid, {}) or {}
+                team_aliases.learn_rotowire_name(
+                    tid, rname, lv_name=t.get("name", ""),
+                    lv_league=t.get("_league_path") or _existing.get("league", ""))
+            return {
+                "id": tid,
+                "name": t.get("name", ""),
+                "league": t.get("_league_path") or (team_aliases.get_all().get(tid, {}) or {}).get("league", ""),
+                "matched_via": "exact",
+            }
+
+    # 3) Fuzzy fallback
+    best = None
+    best_score = -1
+    for t in lv_teams:
+        if _name_eq(t.get("name", ""), rname):
+            s = _match_score(t.get("name", ""), rname)
+            if s > best_score:
+                best = t
+                best_score = s
+    if best:
+        if auto_learn and team_aliases is not None:
+            team_aliases.learn_rotowire_name(
+                best.get("id", ""), rname,
+                lv_name=best.get("name", ""),
+                lv_league=best.get("_league_path", ""))
+        _btid = best.get("id", "")
+        return {
+            "id": _btid,
+            "name": best.get("name", ""),
+            "league": best.get("_league_path") or (team_aliases.get_all().get(_btid, {}) or {}).get("league", ""),
+            "matched_via": "fuzzy",
+        }
+    return None
+

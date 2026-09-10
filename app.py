@@ -3361,26 +3361,12 @@ async def test_rotowire_fran_matches():
                     break
 
     def find_lv_team(rotowire_name):
-        # Sep 10 2026 — score-based selection. Exact name match wins.
-        # Otherwise collect all _name_eq candidates and pick the highest
-        # _match_score. Resolves "Manchester United" -> "Man Utd" (160)
-        # rather than "Man City" (100).
-        from rotowire_fixtures import _match_score
-        rname = (rotowire_name or "").strip()
-        for t in lv_l1_teams:
-            if (t.get("name", "") or "").strip().lower() == rname.lower():
-                return t
-        best = None
-        # Sep 10 2026 (fix #2): start at -1 so any _name_eq=True
-        # candidate wins even if _match_score=0.
-        best_score = -1
-        for t in lv_l1_teams:
-            if _name_eq(t.get("name", ""), rname):
-                s = _match_score(t.get("name", ""), rname)
-                if s > best_score:
-                    best = t
-                    best_score = s
-        return best
+        # Sep 10 2026 — universal alias layer. resolve_lv_team_by_alias
+        # checks the team_name_aliases.json table first (deterministic),
+        # then falls back to _name_eq+_match_score, auto-learning successful
+        # fuzzy matches so next time hits the fast alias path.
+        from rotowire_fixtures import resolve_lv_team_by_alias
+        return resolve_lv_team_by_alias(rotowire_name, lv_l1_teams)
 
     matches = []
     for block in blocks:
@@ -3517,26 +3503,12 @@ async def test_rotowire_matches(league_key: str):
         lv_teams = leagues[cfg["country"]].get(cfg["league"], [])
 
     def find_lv_team(rotowire_name):
-        # Sep 10 2026 — score-based selection. Exact name match wins.
-        # Otherwise collect all _name_eq candidates and pick the highest
-        # _match_score. Resolves "Manchester United" -> "Man Utd" (160)
-        # rather than "Man City" (100).
-        from rotowire_fixtures import _match_score
-        rname = (rotowire_name or "").strip()
-        for t in lv_teams:
-            if (t.get("name", "") or "").strip().lower() == rname.lower():
-                return t
-        best = None
-        # Sep 10 2026 (fix #2): start at -1 so any _name_eq=True
-        # candidate wins even if _match_score=0.
-        best_score = -1
-        for t in lv_teams:
-            if _name_eq(t.get("name", ""), rname):
-                s = _match_score(t.get("name", ""), rname)
-                if s > best_score:
-                    best = t
-                    best_score = s
-        return best
+        # Sep 10 2026 — universal alias layer. resolve_lv_team_by_alias
+        # checks the team_name_aliases.json table first (deterministic),
+        # then falls back to _name_eq+_match_score, auto-learning successful
+        # fuzzy matches so next time hits the fast alias path.
+        from rotowire_fixtures import resolve_lv_team_by_alias
+        return resolve_lv_team_by_alias(rotowire_name, lv_teams)
 
     matches = []
     for block in blocks:
@@ -3628,7 +3600,23 @@ async def team_id_by_name(league: str, name: str):
             leagues = json.load(f)
     except Exception:
         leagues = {}
-    target = (name or "").strip().lower()
+    target = (name or "").strip()
+    # 0) alias table lookup (Sep 10 2026) — DETERMINISTIC, no fuzzy
+    try:
+        import team_aliases as _ta
+        _ameta = _ta.resolve_with_meta(target)
+        if _ameta:
+            _aid = _ameta["id"]
+            for _country, _ldict in leagues.items():
+                for _lname, _teams in _ldict.items():
+                    if league and league.lower() not in _lname.lower() and league.lower() not in _country.lower():
+                        continue
+                    for t in _teams:
+                        if t.get("id") == _aid:
+                            return {"id": _aid, "name": t.get("name", _ameta["name"])}
+    except Exception:
+        pass
+    target = target.lower()
     # 1) exact match (case-insensitive)
     for _country, _ldict in leagues.items():
         for _lname, _teams in _ldict.items():
@@ -3653,6 +3641,79 @@ async def team_id_by_name(league: str, name: str):
     if best:
         return {"id": best.get("id", ""), "name": best.get("name", "")}
     return {"id": "", "name": name}
+
+
+# --- Universal team-name alias layer endpoints (Sep 10 2026) ---
+# Read/write data/team_name_aliases.json for managing rotowire<->LV name mappings.
+@app.get("/lineup_ai/api/team_aliases")
+async def team_aliases_list(league: str = "", search: str = "", limit: int = 200):
+    """List all team aliases, optionally filtered by league substring or name search."""
+    import team_aliases as _ta
+    data = _ta.get_all()
+    items = []
+    for tid, entry in data.items():
+        if league and league.lower() not in (entry.get("league", "") or "").lower():
+            continue
+        haystack = " ".join([entry.get("name", ""), " ".join(entry.get("aliases", [])),
+                             " ".join(entry.get("rotowire_seen", []))]).lower()
+        if search and search.lower() not in haystack:
+            continue
+        items.append({
+            "id": tid,
+            "name": entry.get("name", ""),
+            "league": entry.get("league", ""),
+            "aliases": entry.get("aliases", []),
+            "rotowire_seen": entry.get("rotowire_seen", []),
+        })
+    items.sort(key=lambda x: (x["league"], x["name"]))
+    return {"items": items[:limit], "total": len(items), "stats": _ta.stats()}
+
+
+@app.get("/lineup_ai/api/team_aliases/stats")
+async def team_aliases_stats():
+    import team_aliases as _ta
+    return _ta.stats()
+
+
+@app.get("/lineup_ai/api/team_aliases/resolve/{name}")
+async def team_aliases_resolve(name: str):
+    """Resolve a single external name (debugging helper)."""
+    import team_aliases as _ta
+    meta = _ta.resolve_with_meta(name)
+    if not meta:
+        return {"name": name, "resolved": False}
+    return {"name": name, "resolved": True, **meta}
+
+
+@app.post("/lineup_ai/api/team_aliases")
+async def team_aliases_add(body: dict = Body(...)):
+    """Add an alias. Body: {"lv_id": "...", "alias": "...", "category": "alias|rotowire_seen", "name": "...", "league": "..."}"""
+    import team_aliases as _ta
+    lv_id = (body.get("lv_id") or body.get("id") or "").strip()
+    alias = (body.get("alias") or "").strip()
+    category = body.get("category", "alias")
+    name = (body.get("name") or "").strip()
+    league = (body.get("league") or "").strip()
+    if not lv_id or not alias:
+        raise HTTPException(status_code=400, detail="lv_id and alias are required")
+    if category not in ("alias", "rotowire_seen"):
+        raise HTTPException(status_code=400, detail="category must be 'alias' or 'rotowire_seen'")
+    entry = _ta.add_alias(lv_id, alias, lv_name=name, lv_league=league, category=category)
+    return {"ok": True, "entry": entry, "stats": _ta.stats()}
+
+
+@app.delete("/lineup_ai/api/team_aliases/{lv_id}/{alias}")
+async def team_aliases_remove(lv_id: str, alias: str, category: str = "alias"):
+    import team_aliases as _ta
+    removed = _ta.remove_alias(lv_id, alias, category=category)
+    return {"ok": removed, "stats": _ta.stats()}
+
+
+@app.delete("/lineup_ai/api/team_aliases/{lv_id}")
+async def team_aliases_remove_team(lv_id: str):
+    import team_aliases as _ta
+    removed = _ta.remove_team(lv_id)
+    return {"ok": removed, "stats": _ta.stats()}
 
 
 @app.get("/lineup_ai/api/starting_xi_matches/{league_key}")
@@ -3691,26 +3752,12 @@ async def starting_xi_matches(league_key: str):
         lv_teams = leagues[cfg["country"]].get(cfg["league"], [])
 
     def find_lv_team(rotowire_name):
-        # Sep 10 2026 — score-based selection. Exact name match wins.
-        # Otherwise collect all _name_eq candidates and pick the highest
-        # _match_score. Resolves "Manchester United" -> "Man Utd" (160)
-        # rather than "Man City" (100).
-        from rotowire_fixtures import _match_score
-        rname = (rotowire_name or "").strip()
-        for t in lv_teams:
-            if (t.get("name", "") or "").strip().lower() == rname.lower():
-                return t
-        best = None
-        # Sep 10 2026 (fix #2): start at -1 so any _name_eq=True
-        # candidate wins even if _match_score=0.
-        best_score = -1
-        for t in lv_teams:
-            if _name_eq(t.get("name", ""), rname):
-                s = _match_score(t.get("name", ""), rname)
-                if s > best_score:
-                    best = t
-                    best_score = s
-        return best
+        # Sep 10 2026 — universal alias layer. resolve_lv_team_by_alias
+        # checks the team_name_aliases.json table first (deterministic),
+        # then falls back to _name_eq+_match_score, auto-learning successful
+        # fuzzy matches so next time hits the fast alias path.
+        from rotowire_fixtures import resolve_lv_team_by_alias
+        return resolve_lv_team_by_alias(rotowire_name, lv_teams)
 
     matches = []
     for block in blocks:
