@@ -1256,58 +1256,10 @@
   "England": {
     "Premier League": [
       {
-        "id": "j3Azpf5d",
-        "name": "Wolves",
-        "slug": "wolves",
-        "image_path": "https://static.flashscore.com/res/image/data/E7TgUZkl-ABWS7fBq.png"
-      },
-      {
         "id": "hA1Zm19f",
         "name": "Arsenal",
         "slug": "arsenal",
         "image_path": "https://static.flashscore.com/res/image/data/pfchdCg5-vcNAdtF9.png"
-      },
-      {
-        "id": "p6ahwuwJ",
-        "name": "Newcastle",
-        "slug": "newcastle-utd",
-        "image_path": "https://static.flashscore.com/res/image/data/fojwJwZA-2Vnc5VQf.png"
-      },
-      {
-        "id": "xYe7DwID",
-        "name": "Brentford",
-        "slug": "brentford",
-        "image_path": "https://static.flashscore.com/res/image/data/bBj3NWfM-r9Mudk7j.png"
-      },
-      {
-        "id": "OtpNdwrc",
-        "name": "Bournemouth",
-        "slug": "bournemouth",
-        "image_path": "https://static.flashscore.com/res/image/data/2Pb55xWg-2XyrBA7b.png"
-      },
-      {
-        "id": "4fGZN2oK",
-        "name": "Chelsea",
-        "slug": "chelsea",
-        "image_path": "https://static.flashscore.com/res/image/data/GMmvDEdM-vcRg8e0j.png"
-      },
-      {
-        "id": "KluSTr9s",
-        "name": "Everton",
-        "slug": "everton",
-        "image_path": "https://static.flashscore.com/res/image/data/EwJqZUZA-bRmKmISE.png"
-      },
-      {
-        "id": "tUxUbLR2",
-        "name": "Leeds",
-        "slug": "leeds",
-        "image_path": "https://static.flashscore.com/res/image/data/rsvCPOh5-MTp25XgE.png"
-      },
-      {
-        "id": "UDg08Ohm",
-        "name": "Tottenham",
-        "slug": "tottenham",
-        "image_path": "https://static.flashscore.com/res/image/data/ARC62UAr-Ig5FKJZ5.png"
       },
       {
         "id": "Wtn9Stg0",
@@ -1316,16 +1268,22 @@
         "image_path": "https://static.flashscore.com/res/image/data/UXcqj7HG-lQuhqN8N.png"
       },
       {
-        "id": "Cxq57r8g",
-        "name": "West Ham",
-        "slug": "west-ham",
-        "image_path": "https://static.flashscore.com/res/image/data/Qo3RdMjl-Q9DJHs4l.png"
+        "id": "lId4TMwf",
+        "name": "Liverpool",
+        "slug": "liverpool",
+        "image_path": "https://static.flashscore.com/res/image/data/Gr0cGteM-KCp4zq5F.png"
       },
       {
-        "id": "AovF1Mia",
-        "name": "Crystal Palace",
-        "slug": "crystal-palace",
-        "image_path": "https://static.flashscore.com/res/image/data/AFNlsDzS-drybTCiH.png"
+        "id": "4fGZN2oK",
+        "name": "Chelsea",
+        "slug": "chelsea",
+        "image_path": "https://static.flashscore.com/res/image/data/GMmvDEdM-vcRg8e0j.png"
+      },
+      {
+        "id": "p6ahwuwJ",
+        "name": "Newcastle United",
+        "slug": "newcastle-utd",
+        "image_path": "https://static.flashscore.com/res/image/data/fojwJwZA-2Vnc5VQf.png"
       },
       {
         "id": "WSzc94ws",
@@ -1334,28 +1292,40 @@
         "image_path": "https://static.flashscore.com/res/image/data/ln86XXjl-0d34NJCO.png"
       },
       {
+        "id": "UDg08Ohm",
+        "name": "Tottenham Hotspur",
+        "slug": "tottenham",
+        "image_path": "https://static.flashscore.com/res/image/data/ARC62UAr-Ig5FKJZ5.png"
+      },
+      {
+        "id": "AovF1Mia",
+        "name": "Crystal Palace",
+        "slug": "crystal-palace",
+        "image_path": "https://static.flashscore.com/res/image/data/AFNlsDzS-drybTCiH.png"
+      },
+      {
         "id": "2XrRecc3",
-        "name": "Brighton",
+        "name": "Brighton & Hove Albion",
         "slug": "brighton",
         "image_path": "https://static.flashscore.com/res/image/data/40juIezB-b92lfEJC.png"
       },
       {
-        "id": "69ZiU2Om",
-        "name": "Fulham",
-        "slug": "fulham",
-        "image_path": "https://static.flashscore.com/res/image/data/naaAVOzB-ImMEe0UF.png"
-      },
-      {
         "id": "UsushcZr",
-        "name": "Nottingham",
+        "name": "Nottingham Forest",
         "slug": "nottingham",
         "image_path": "https://static.flashscore.com/res/image/data/GCLLkTzB-ImKwLTtA.png"
       },
       {
-        "id": "ppjDR086",
-        "name": "Manchester Utd",
-        "slug": "manchester-united",
-        "image_path": "https://static.flashscore.com/res/image/data/nwSRlyWg-h2pPXz3k.png"
+        "id": "OtpNdwrc",
+        "name": "AFC Bournemouth",
+        "slug": "bournemouth",
+        "image_path": "https://static.flashscore.com/res/image/data/2Pb55xWg-2XyrBA7b.png"
+      },
+      {
+        "id": "KluSTr9s",
+        "name": "Everton",
+        "slug": "everton",
+        "image_path": "https://static.flashscore.com/res/image/data/EwJqZUZA-bRmKmISE.png"
       },
       {
         "id": "W00wmLO0",
@@ -1364,16 +1334,46 @@
         "image_path": "https://static.flashscore.com/res/image/data/QsnteKXg-jwz95gs0.png"
       },
       {
-        "id": "z3dmTMMO",
-        "name": "Burnley",
-        "slug": "burnley",
-        "image_path": "https://static.flashscore.com/res/image/data/UaPJjYBr-6PhTI7J6.png"
+        "id": "xYe7DwID",
+        "name": "Brentford",
+        "slug": "brentford",
+        "image_path": "https://static.flashscore.com/res/image/data/bBj3NWfM-r9Mudk7j.png"
       },
       {
-        "id": "lId4TMwf",
-        "name": "Liverpool",
-        "slug": "liverpool",
-        "image_path": "https://static.flashscore.com/res/image/data/Gr0cGteM-KCp4zq5F.png"
+        "id": "69ZiU2Om",
+        "name": "Fulham",
+        "slug": "fulham",
+        "image_path": "https://static.flashscore.com/res/image/data/naaAVOzB-ImMEe0UF.png"
+      },
+      {
+        "id": "tUxUbLR2",
+        "name": "Leeds United",
+        "slug": "leeds",
+        "image_path": "https://static.flashscore.com/res/image/data/rsvCPOh5-MTp25XgE.png"
+      },
+      {
+        "id": "ppjDR086",
+        "name": "Manchester United",
+        "slug": "manchester-united",
+        "image_path": "https://static.flashscore.com/res/image/data/nwSRlyWg-h2pPXz3k.png"
+      },
+      {
+        "id": "GOvB22xg",
+        "name": "Coventry City",
+        "slug": "coventry",
+        "image_path": "https://static.flashscore.com/res/image/data/jt7sQZfl-EVomMG4o.png"
+      },
+      {
+        "id": "S66R0t75",
+        "name": "Hull City",
+        "slug": "hull-city",
+        "image_path": "https://static.flashscore.com/res/image/data/GQ4S2gTL-86lnAaq9.png"
+      },
+      {
+        "id": "thqhB2MB",
+        "name": "Ipswich Town",
+        "slug": "ipswich",
+        "image_path": "https://static.flashscore.com/res/image/data/tZULNJfl-Qmnf8wEL.png"
       }
     ],
     "Championship": [
@@ -2281,9 +2281,15 @@
       },
       {
         "id": "nP1i5US1",
-        "name": "Dortmund",
-        "slug": "dortmund",
+        "name": "Borussia Dortmund",
+        "slug": "borussia-dortmund",
         "image_path": "https://static.flashscore.com/res/image/data/Yiq1eU9r-WrjrBuU2.png"
+      },
+      {
+        "id": "4jcj2zMd",
+        "name": "Bayer Leverkusen",
+        "slug": "bayer-leverkusen",
+        "image_path": "https://static.flashscore.com/res/image/data/OWpaDOYA-WrjrBuU2.png"
       },
       {
         "id": "KbS1suSm",
@@ -2293,27 +2299,9 @@
       },
       {
         "id": "nJQmYp1B",
-        "name": "Stuttgart",
+        "name": "VfB Stuttgart",
         "slug": "vfb-stuttgart",
         "image_path": "https://static.flashscore.com/res/image/data/x0YB6veM-f1Z3XxZa.png"
-      },
-      {
-        "id": "hQAtP9Sl",
-        "name": "Hoffenheim",
-        "slug": "hoffenheim",
-        "image_path": "https://static.flashscore.com/res/image/data/I3cMF7f5-n7lWn9DL.png"
-      },
-      {
-        "id": "4jcj2zMd",
-        "name": "Bayer Leverkusen",
-        "slug": "bayer-leverkusen",
-        "image_path": "https://static.flashscore.com/res/image/data/OWpaDOYA-WrjrBuU2.png"
-      },
-      {
-        "id": "fiEQZ7C7",
-        "name": "Freiburg",
-        "slug": "freiburg",
-        "image_path": "https://static.flashscore.com/res/image/data/ttZErLg5-86lnAaq9.png"
       },
       {
         "id": "8vndvXTk",
@@ -2323,37 +2311,37 @@
       },
       {
         "id": "fTVNku3I",
-        "name": "Augsburg",
+        "name": "FC Augsburg",
         "slug": "augsburg",
         "image_path": "https://static.flashscore.com/res/image/data/6ZUvwjgl-Qmnf8wEL.png"
       },
       {
-        "id": "EuakNmc1",
-        "name": "Mainz",
-        "slug": "mainz",
-        "image_path": "https://static.flashscore.com/res/image/data/nwmyWZVg-EoYxhN5r.png"
-      },
-      {
-        "id": "pzHW4oaE",
-        "name": "Union Berlin",
-        "slug": "union-berlin",
-        "image_path": "https://static.flashscore.com/res/image/data/dI26KXzB-ncmj9JbF.png"
-      },
-      {
         "id": "88HSzjDr",
-        "name": "B. Monchengladbach",
+        "name": "Borussia Monchengladbach",
         "slug": "b-monchengladbach",
         "image_path": "https://static.flashscore.com/res/image/data/rDRx1VXg-84sATBUR.png"
       },
       {
-        "id": "v9k3aY5F",
-        "name": "Hamburger SV",
-        "slug": "hamburger",
-        "image_path": "https://static.flashscore.com/res/image/data/vy7iqCwS-86lnAaq9.png"
+        "id": "hQAtP9Sl",
+        "name": "TSG 1899 Hoffenheim",
+        "slug": "hoffenheim",
+        "image_path": "https://static.flashscore.com/res/image/data/I3cMF7f5-n7lWn9DL.png"
+      },
+      {
+        "id": "fiEQZ7C7",
+        "name": "SC Freiburg",
+        "slug": "freiburg",
+        "image_path": "https://static.flashscore.com/res/image/data/ttZErLg5-86lnAaq9.png"
+      },
+      {
+        "id": "EuakNmc1",
+        "name": "FSV Mainz 05",
+        "slug": "mainz",
+        "image_path": "https://static.flashscore.com/res/image/data/nwmyWZVg-EoYxhN5r.png"
       },
       {
         "id": "WG9pOTse",
-        "name": "FC Koln",
+        "name": "1. FC Koln",
         "slug": "1-fc-koln",
         "image_path": "https://static.flashscore.com/res/image/data/8hxnRHEa-86lnAaq9.png"
       },
@@ -2364,22 +2352,34 @@
         "image_path": "https://static.flashscore.com/res/image/data/lEp5rDFG-EVomMG4o.png"
       },
       {
-        "id": "nwkTahLL",
-        "name": "Wolfsburg",
-        "slug": "wolfsburg",
-        "image_path": "https://static.flashscore.com/res/image/data/Uyo9vAxS-SSSLeFGl.png"
+        "id": "v9k3aY5F",
+        "name": "Hamburger SV",
+        "slug": "hamburger",
+        "image_path": "https://static.flashscore.com/res/image/data/vy7iqCwS-86lnAaq9.png"
       },
       {
-        "id": "KWixEVWi",
-        "name": "Heidenheim",
-        "slug": "heidenheim",
-        "image_path": "https://static.flashscore.com/res/image/data/pEIoHCil-bNiAN2lt.png"
+        "id": "pzHW4oaE",
+        "name": "Union Berlin",
+        "slug": "union-berlin",
+        "image_path": "https://static.flashscore.com/res/image/data/dI26KXzB-ncmj9JbF.png"
       },
       {
-        "id": "ILyJuN3g",
-        "name": "St. Pauli",
-        "slug": "st-pauli",
-        "image_path": "https://static.flashscore.com/res/image/data/QZX02wCr-lrmFNGea.png"
+        "id": "G2Op923t",
+        "name": "SC Paderborn",
+        "slug": "Paderborn",
+        "image_path": "https://static.flashscore.com/res/image/data/6ufhxjSq-Qmnf8wEL.png"
+      },
+      {
+        "id": "0Ija0Ej9",
+        "name": "FC Schalke 04",
+        "slug": "Schalke",
+        "image_path": "https://static.flashscore.com/res/image/data/jy0u6bgT-I7p2Damb.png"
+      },
+      {
+        "id": "6in2Eknb",
+        "name": "SV Elversberg",
+        "slug": "Elversberg",
+        "image_path": "https://static.flashscore.com/res/image/data/lbqNa1le-QsgNMFNg.png"
       }
     ],
     "2. Bundesliga": [

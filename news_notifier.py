@@ -324,22 +324,49 @@ def save_state(state):
 def build_message(item):
     """Format one news item as a Telegram message.
 
-    Layout (per Max, Sep 11 2026 — no Rotowire mention, no third-party
-    links anywhere — only the actual news content):
-        📰 Player: Status update
+    Layout (per Max, Sep 11 2026):
+        <b>{emoji} {title}</b>
 
-        First 700 chars of the body, sentences preserved.
+        {body}
+
+        {home_team} - {away_team} ({compare_url})   [if next match found]
+
+    Title is bolded via HTML <b></b>. The "next match" line is
+    appended only if the title contains a player name that resolves
+    to a team with an upcoming fixture.
     """
+    import news_player_index as _npi
     title = truncate(item.get("title", ""), MAX_TITLE) or "Update"
     body = truncate(item.get("body", ""), MAX_BODY)
 
     parts = []
-    parts.append(f"📰 {title}")
+    # Bold title with ⚠️ emoji per Max's spec
+    parts.append(f"⚠️ <b>{title}</b>")
     if body:
         parts.append("")
         parts.append(body)
-    # No link line — third-party URLs are not shown in the channel
-    # (per Max, Sep 11 2026). The message contains only the news.
+
+    # Try to find player + next match
+    player_name = _npi.extract_player_from_title(item.get("title", ""))
+    match_line = ""
+    if player_name:
+        team = _npi.find_player_team(player_name)
+        if team:
+            next_match = _npi.get_next_match(team["team_id"])
+            if next_match:
+                home = next_match.get("home", "")
+                away = next_match.get("away", "")
+                home_id = next_match.get("home_id", "")
+                away_id = next_match.get("away_id", "")
+                match_id = next_match.get("match_id", "")
+                url = _npi.make_compare_url(
+                    home_id, away_id, home, away, match_id)
+                # Show full URL in parens per Max's spec
+                match_line = f"{home} - {away} ({url})"
+
+    if match_line:
+        parts.append("")
+        parts.append(match_line)
 
     msg = "\n".join(parts).strip()
     # Final safety net — strip any remaining rotowire mention

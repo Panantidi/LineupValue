@@ -102,8 +102,12 @@ item = {
 }
 msg = n.build_message(item)
 check_contains("msg has title",       msg, "Cody Gakpo")
-check_contains("msg has 📰",          msg, "📰")
-check_contains("msg has body",        msg, "Gakpo")
+check_contains("msg has bold title",  msg, "<b>Cody Gakpo")
+check_contains("msg has ⚠️",          msg, "⚠️")
+check_contains("msg has body",        msg, "Gakpo (adductor)")
+check_contains("msg has next match",  msg, "Liverpool - Fulham")
+check_contains("msg has compare url", msg, "x11radar.ru/lineup_ai/compare")
+check_contains("msg has match id",    msg, "mid=YRWOt1od")
 check_not_contains("msg NO link",     msg, "cody-gakpo-26727")
 check_not_contains("msg NO 🔗 line",  msg, "🔗")
 check_not_contains("msg NO player/",  msg, "player/")
@@ -123,6 +127,8 @@ check_not_contains("msg2 no rotowire", msg2, "rotowire")
 check_not_contains("msg2 no Rotowire", msg2, "Rotowire")
 check_not_contains("msg2 no ROTOWIRE", msg2, "ROTOWIRE")
 check_not_contains("msg2 no rotoWire", msg2, "rotoWire")
+# Title has no extractable player name, so no match line
+check_not_contains("msg2 no match line", msg2, "x11radar.ru")
 
 # Item with rotowire in title
 item3 = {
@@ -136,6 +142,25 @@ item3 = {
 msg3 = n.build_message(item3)
 check_contains("msg3 has Player",    msg3, "Player")
 check_not_contains("msg3 no rotowire", msg3, "rotowire")
+
+# --- player_index integration ---
+import news_player_index as npi
+npi._player_index = None
+npi._team_index = None
+npi._index_built_at = 0
+npi._load_index(force_reload=True)
+check("index players",         len(npi._player_index) > 1000, True)
+check("index teams",           len(npi._team_index) > 100, True)
+check("index Gakpo resolves",  npi.find_player_team("Cody Gakpo") is not None, True)
+check("extract Gakpo from title",
+      npi.extract_player_from_title("Cody Gakpo: Uncertain for Fulham clash"),
+      "Cody Gakpo")
+check("extract no name (no colon)",
+      npi.extract_player_from_title("Breaking news today"),
+      "")
+check("compare URL format",
+      "x11radar.ru/lineup_ai/compare/" in npi.make_compare_url("h1", "a1", "Home", "Away", "m1"),
+      True)
 
 # --- process() backfill / dedup (stubbed fetch + send) ---
 # Monkey-patch
@@ -174,7 +199,7 @@ FAKE_ITEMS.append({"guid": "g5", "title": "Newer", "link": "https://x.com/e",
 SENT_CALLS.clear()
 N.process()
 check("third run sent 1",  len(SENT_CALLS), 1)
-check("third run message", SENT_CALLS[0], "📰 Newer\ne")
+check("third run message", SENT_CALLS[0], "⚠️ <b>Newer</b>\ne")
 
 # --- backfill rule: items older than BACKFILL_HOURS skipped but marked seen ---
 # Reset state, use items with past pub_ts

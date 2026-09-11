@@ -1,4 +1,13 @@
 {
+  "0Ija0Ej9": {
+    "aliases": [
+      "FC Schalke 04",
+      "Schalke"
+    ],
+    "league": "Germany > Bundesliga",
+    "name": "FC Schalke 04",
+    "rotowire_seen": []
+  },
   "0M9xNN8N": {
     "aliases": [],
     "league": "Italy > Serie A",
@@ -169,6 +178,15 @@
     "name": "FC Volendam",
     "rotowire_seen": []
   },
+  "6in2Eknb": {
+    "aliases": [
+      "SV Elversberg",
+      "Elversberg"
+    ],
+    "league": "Germany > Bundesliga",
+    "name": "SV Elversberg",
+    "rotowire_seen": []
+  },
   "6qA358jH": {
     "aliases": [
       "Sparta Prague",
@@ -183,7 +201,9 @@
     "aliases": [],
     "league": "Germany > Bundesliga",
     "name": "B. Monchengladbach",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "Mönchengladbach"
+    ]
   },
   "8C9JjMXu": {
     "aliases": [],
@@ -269,6 +289,14 @@
     "name": "Le Havre",
     "rotowire_seen": []
   },
+  "CQeaytrD": {
+    "aliases": [],
+    "league": "",
+    "name": "Valencia",
+    "rotowire_seen": [
+      "Valencia"
+    ]
+  },
   "CS0fFFd8": {
     "aliases": [],
     "league": "Portugal > Liga Portugal",
@@ -309,12 +337,6 @@
     "name": "Kairat Almaty (Kaz)",
     "rotowire_seen": []
   },
-  "Cxq57r8g": {
-    "aliases": [],
-    "league": "England > Premier League",
-    "name": "West Ham",
-    "rotowire_seen": []
-  },
   "E5OOzgs4": {
     "aliases": [],
     "league": "Europe > Champions League",
@@ -333,6 +355,14 @@
     "name": "Le Mans",
     "rotowire_seen": []
   },
+  "ETdxjU8a": {
+    "aliases": [],
+    "league": "",
+    "name": "Osasuna",
+    "rotowire_seen": [
+      "Osasuna"
+    ]
+  },
   "EXAD1YZP": {
     "aliases": [
       "H. Beer Sheva",
@@ -347,6 +377,17 @@
     "aliases": [],
     "league": "Germany > Bundesliga",
     "name": "Mainz",
+    "rotowire_seen": [
+      "FSV Mainz 05"
+    ]
+  },
+  "G2Op923t": {
+    "aliases": [
+      "SC Paderborn",
+      "Paderborn"
+    ],
+    "league": "Germany > Bundesliga",
+    "name": "SC Paderborn",
     "rotowire_seen": []
   },
   "G8LlPCOi": {
@@ -359,6 +400,14 @@
     "aliases": [],
     "league": "Italy > Serie A",
     "name": "Lecce",
+    "rotowire_seen": []
+  },
+  "GOvB22xg": {
+    "aliases": [
+      "Coventry City"
+    ],
+    "league": "England > Premier League",
+    "name": "Coventry City",
     "rotowire_seen": []
   },
   "GSLWiAPe": {
@@ -383,12 +432,6 @@
     "aliases": [],
     "league": "Norway > Eliteserien",
     "name": "Kristiansund",
-    "rotowire_seen": []
-  },
-  "ILyJuN3g": {
-    "aliases": [],
-    "league": "Germany > Bundesliga",
-    "name": "St. Pauli",
     "rotowire_seen": []
   },
   "IXyr4UxA": {
@@ -440,12 +483,6 @@
     "name": "Sparta Rotterdam",
     "rotowire_seen": []
   },
-  "KWixEVWi": {
-    "aliases": [],
-    "league": "Germany > Bundesliga",
-    "name": "Heidenheim",
-    "rotowire_seen": []
-  },
   "KYcp5BgH": {
     "aliases": [],
     "league": "Norway > Eliteserien",
@@ -454,9 +491,10 @@
   },
   "KbS1suSm": {
     "aliases": [
+      "RB Leipzig",
       "RasenBallsport Leipzig"
     ],
-    "league": "Europe > Champions League",
+    "league": "Germany > Bundesliga",
     "name": "RB Leipzig",
     "rotowire_seen": []
   },
@@ -554,7 +592,9 @@
     "aliases": [],
     "league": "England > Premier League",
     "name": "Bournemouth",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "AFC Bournemouth"
+    ]
   },
   "Q3A3IbXH": {
     "aliases": [],
@@ -590,6 +630,14 @@
     "name": "Celtic (Sco)",
     "rotowire_seen": []
   },
+  "QFfPdh1J": {
+    "aliases": [],
+    "league": "",
+    "name": "Espanyol",
+    "rotowire_seen": [
+      "Espanyol"
+    ]
+  },
   "QRaWdwQf": {
     "aliases": [
       "Slovan"
@@ -621,6 +669,14 @@
     ],
     "league": "Europe > Champions League",
     "name": "FC Porto",
+    "rotowire_seen": []
+  },
+  "S66R0t75": {
+    "aliases": [
+      "Hull City"
+    ],
+    "league": "England > Premier League",
+    "name": "Hull City",
     "rotowire_seen": []
   },
   "SAlF91iL": {
@@ -686,7 +742,9 @@
     "aliases": [],
     "league": "England > Premier League",
     "name": "Nottingham",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "Nottingham Forest"
+    ]
   },
   "Uw7E96rU": {
     "aliases": [],
@@ -696,9 +754,10 @@
   },
   "W00wmLO0": {
     "aliases": [
+      "Aston Villa",
       "Villa"
     ],
-    "league": "Europe > Champions League",
+    "league": "England > Premier League",
     "name": "Aston Villa",
     "rotowire_seen": []
   },
@@ -725,10 +784,11 @@
   },
   "Wtn9Stg0": {
     "aliases": [
+      "Man City",
       "Manchester City"
     ],
-    "league": "Europe > Champions League",
-    "name": "Man City",
+    "league": "England > Premier League",
+    "name": "Manchester City",
     "rotowire_seen": []
   },
   "YH8HX5iP": {
@@ -852,13 +912,17 @@
     "aliases": [],
     "league": "Germany > Bundesliga",
     "name": "Augsburg",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "FC Augsburg"
+    ]
   },
   "fiEQZ7C7": {
     "aliases": [],
     "league": "Germany > Bundesliga",
     "name": "Freiburg",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "SC Freiburg"
+    ]
   },
   "fsfAHubD": {
     "aliases": [],
@@ -866,11 +930,20 @@
     "name": "Troyes",
     "rotowire_seen": []
   },
+  "h8oAv4Ts": {
+    "aliases": [],
+    "league": "",
+    "name": "Sevilla",
+    "rotowire_seen": [
+      "Sevilla"
+    ]
+  },
   "hA1Zm19f": {
     "aliases": [
+      "Arsenal",
       "Arsenal FC"
     ],
-    "league": "Europe > Champions League",
+    "league": "England > Premier League",
     "name": "Arsenal",
     "rotowire_seen": []
   },
@@ -890,7 +963,9 @@
     "aliases": [],
     "league": "Germany > Bundesliga",
     "name": "Hoffenheim",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "1899 Hoffenheim"
+    ]
   },
   "hdKpCN4d": {
     "aliases": [],
@@ -921,11 +996,13 @@
     "name": "Estoril",
     "rotowire_seen": []
   },
-  "j3Azpf5d": {
+  "hxt57t2q": {
     "aliases": [],
-    "league": "England > Premier League",
-    "name": "Wolves",
-    "rotowire_seen": []
+    "league": "",
+    "name": "Alaves",
+    "rotowire_seen": [
+      "Deportivo Alaves"
+    ]
   },
   "j9PptHXf": {
     "aliases": [],
@@ -969,10 +1046,11 @@
   },
   "lId4TMwf": {
     "aliases": [
-      "Liverpool FC",
-      "LFC"
+      "LFC",
+      "Liverpool",
+      "Liverpool FC"
     ],
-    "league": "Europe > Champions League",
+    "league": "England > Premier League",
     "name": "Liverpool",
     "rotowire_seen": []
   },
@@ -995,8 +1073,8 @@
     "aliases": [
       "VfB Stuttgart"
     ],
-    "league": "Europe > Champions League",
-    "name": "Stuttgart",
+    "league": "Germany > Bundesliga",
+    "name": "VfB Stuttgart",
     "rotowire_seen": []
   },
   "nLBbqJDS": {
@@ -1019,11 +1097,12 @@
   },
   "nP1i5US1": {
     "aliases": [
+      "BVB",
       "Borussia Dortmund",
-      "BVB"
+      "Dortmund"
     ],
-    "league": "Europe > Champions League",
-    "name": "Dortmund",
+    "league": "Germany > Bundesliga",
+    "name": "Borussia Dortmund",
     "rotowire_seen": []
   },
   "nP6UzIU1": {
@@ -1041,12 +1120,21 @@
   "nVp0wiqd": {
     "aliases": [
       "Bayern Munich",
+      "FC Bayern",
       "FC Bayern München",
-      "FC Bayern"
+      "Bayern"
     ],
-    "league": "Europe > Champions League",
-    "name": "Bayern",
+    "league": "Germany > Bundesliga",
+    "name": "Bayern Munich",
     "rotowire_seen": []
+  },
+  "nVpEwOrl": {
+    "aliases": [],
+    "league": "",
+    "name": "Racing Santander",
+    "rotowire_seen": [
+      "Racing Santander"
+    ]
   },
   "ncRzHK14": {
     "aliases": [
@@ -1057,12 +1145,6 @@
     ],
     "league": "Europe > Champions League",
     "name": "Red Star (Srb)",
-    "rotowire_seen": []
-  },
-  "nwkTahLL": {
-    "aliases": [],
-    "league": "Germany > Bundesliga",
-    "name": "Wolfsburg",
     "rotowire_seen": []
   },
   "nyrL8gfh": {
@@ -1124,12 +1206,13 @@
   },
   "ppjDR086": {
     "aliases": [
+      "MUFC",
+      "Man Utd",
       "Manchester United",
-      "Manchester Utd",
-      "MUFC"
+      "Manchester Utd"
     ],
-    "league": "Europe > Champions League",
-    "name": "Man Utd",
+    "league": "England > Premier League",
+    "name": "Manchester United",
     "rotowire_seen": []
   },
   "pzHW4oaE": {
@@ -1179,6 +1262,14 @@
     "aliases": [],
     "league": "England > Premier League",
     "name": "Leeds",
+    "rotowire_seen": []
+  },
+  "thqhB2MB": {
+    "aliases": [
+      "Ipswich Town"
+    ],
+    "league": "England > Premier League",
+    "name": "Ipswich Town",
     "rotowire_seen": []
   },
   "tljXuHBC": {
@@ -1238,12 +1329,6 @@
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Ararat-Armenia (Arm)",
-    "rotowire_seen": []
-  },
-  "z3dmTMMO": {
-    "aliases": [],
-    "league": "England > Premier League",
-    "name": "Burnley",
     "rotowire_seen": []
   },
   "zBkyuyRI": {
