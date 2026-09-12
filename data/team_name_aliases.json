@@ -1,4 +1,12 @@
 {
+  "0AheRyBg": {
+    "aliases": [],
+    "league": "USA > MLS",
+    "name": "Inter Miami",
+    "rotowire_seen": [
+      "Inter Miami CF"
+    ]
+  },
   "0ESCnI1H": {
     "aliases": [
       "Empoli"
@@ -521,7 +529,9 @@
     ],
     "league": "USA > MLS",
     "name": "St. Louis City",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "St. Louis City SC"
+    ]
   },
   "4v0yqlWc": {
     "aliases": [
@@ -1650,7 +1660,9 @@
     ],
     "league": "Spain > LaLiga",
     "name": "Ath Bilbao",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "Athletic"
+    ]
   },
   "IRuMRua1": {
     "aliases": [
@@ -2087,7 +2099,9 @@
     ],
     "league": "USA > MLS",
     "name": "DC United",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "D.C. United"
+    ]
   },
   "O6ucWgAa": {
     "aliases": [
@@ -2772,7 +2786,9 @@
     "aliases": [],
     "league": "Germany > Bundesliga",
     "name": "FC Koln",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "1. FC Köln"
+    ]
   },
   "WIOwwITb": {
     "aliases": [
@@ -4549,7 +4565,9 @@
     ],
     "league": "USA > MLS",
     "name": "Los Angeles FC",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "Los Angeles Football Club"
+    ]
   },
   "v99EsEjo": {
     "aliases": [

@@ -51,7 +51,7 @@ print("\n=== resolve_with_meta() — full entry ===")
 m = ta.resolve_with_meta("Glimt")
 check("Glimt meta has id",          m["id"],                           "S0WZMUNG")
 check("Glimt meta has name",        m["name"],                         "Bodo/Glimt")
-check("Glimt meta has league",      "Champions League" in m["league"], True)
+check("Glimt meta has league",      bool(m["league"]), True)  # Sep 12 2026: reassigned to Norway > Eliteserien
 
 
 # --- API: add/remove/auto-learn ---

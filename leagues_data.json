@@ -4525,6 +4525,12 @@
         "name": "CF Montreal",
         "slug": "cf-montreal",
         "image_path": "https://static.flashscore.com/res/image/data/6Ve48IyS-APghxIAJ.png"
+      },
+      {
+        "id": "0AheRyBg",
+        "name": "Inter Miami",
+        "slug": "inter-miami",
+        "image_path": ""
       }
     ]
   },
