@@ -3955,10 +3955,30 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
         ra = _html_unesc.unescape(away_m.group(1).strip())
 
         # Check if LV team matches either side
+        # Sep 12 2026 - alias-aware: use the universal team-name
+        # mapping layer (resolve_lv_team_by_alias) instead of raw
+        # _name_eq, so rotowire names like "1. FC Koln", "Athletic",
+        # "D.C. United", "Inter Miami CF" match their LV team.
+        try:
+            from rotowire_fixtures import resolve_lv_team_by_alias as _rlv_alias
+        except Exception:
+            _rlv_alias = None
+        _probe_teams = [{"id": team_id, "name": lv_team_name}]
+
+        def _lv_side_matches(_rw_name):
+            if _rlv_alias is not None:
+                try:
+                    _r = _rlv_alias(_rw_name, _probe_teams, auto_learn=False)
+                    if _r and _r.get("id") == team_id:
+                        return True
+                except Exception:
+                    pass
+            return _name_eq(lv_team_name, _rw_name)
+
         side = None
-        if _name_eq(lv_team_name, rh):
+        if _lv_side_matches(rh):
             side = "home"
-        elif _name_eq(lv_team_name, ra):
+        elif _lv_side_matches(ra):
             side = "away"
         if not side:
             continue
