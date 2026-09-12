@@ -1,4 +1,12 @@
 {
+  "0ESCnI1H": {
+    "aliases": [
+      "Empoli"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Empoli",
+    "rotowire_seen": []
+  },
   "0Ija0Ej9": {
     "aliases": [
       "FC Schalke 04",
@@ -14,10 +22,58 @@
     "name": "Bologna",
     "rotowire_seen": []
   },
+  "0MHmoCY0": {
+    "aliases": [
+      "Al Ahli SC"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Ahli SC",
+    "rotowire_seen": []
+  },
+  "0MJlDkrA": {
+    "aliases": [
+      "Goztepe"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Goztepe",
+    "rotowire_seen": []
+  },
   "0OEHEprs": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Paris FC",
+    "rotowire_seen": []
+  },
+  "0SwtclaU": {
+    "aliases": [
+      "Cruzeiro"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Cruzeiro",
+    "rotowire_seen": []
+  },
+  "0YgpqHGj": {
+    "aliases": [
+      "SC Farense"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "SC Farense",
+    "rotowire_seen": []
+  },
+  "0dHZReql": {
+    "aliases": [
+      "Central Cordoba"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Central Cordoba",
+    "rotowire_seen": []
+  },
+  "0f7GpAMu": {
+    "aliases": [
+      "Mlada Boleslav"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Mlada Boleslav",
     "rotowire_seen": []
   },
   "0p17kQla": {
@@ -26,14 +82,30 @@
     "name": "Kauno Zalgiris (Ltu)",
     "rotowire_seen": []
   },
+  "0pOdQOCg": {
+    "aliases": [
+      "Rodez"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Rodez",
+    "rotowire_seen": []
+  },
   "0rGrwwNc": {
     "aliases": [
-      "Hearts",
       "Heart of Midlothian",
+      "Hearts",
       "Hearts FC"
     ],
-    "league": "Europe > Champions League",
-    "name": "Hearts (Sco)",
+    "league": "Scotland > Premiership",
+    "name": "Hearts",
+    "rotowire_seen": []
+  },
+  "0vne21BK": {
+    "aliases": [
+      "Corum"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Corum",
     "rotowire_seen": []
   },
   "25HpQh9o": {
@@ -42,16 +114,82 @@
     "name": "Tromso",
     "rotowire_seen": []
   },
+  "25dB6Eto": {
+    "aliases": [
+      "Annecy"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Annecy",
+    "rotowire_seen": []
+  },
+  "25tIqYiJ": {
+    "aliases": [
+      "Malaga"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Malaga",
+    "rotowire_seen": []
+  },
+  "276zKCgt": {
+    "aliases": [
+      "Eyupspor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Eyupspor",
+    "rotowire_seen": []
+  },
+  "2H5uhNyO": {
+    "aliases": [
+      "Otelul"
+    ],
+    "league": "Romania > Superliga",
+    "name": "Otelul",
+    "rotowire_seen": []
+  },
+  "2J6mntb0": {
+    "aliases": [
+      "Jong Utrecht"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Jong Utrecht",
+    "rotowire_seen": []
+  },
+  "2LA0e86b": {
+    "aliases": [
+      "Plzen"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Plzen",
+    "rotowire_seen": []
+  },
   "2LH3Ywq4": {
-    "aliases": [],
-    "league": "Europe > Champions League",
-    "name": "Gornik Zabrze (Pol)",
+    "aliases": [
+      "Gornik Zabrze"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Gornik Zabrze",
+    "rotowire_seen": []
+  },
+  "2NTiQXjI": {
+    "aliases": [
+      "Daejeon"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Daejeon",
     "rotowire_seen": []
   },
   "2PIvr8o4": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Monaco",
+    "rotowire_seen": []
+  },
+  "2RABlYFn": {
+    "aliases": [
+      "Vasco"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Vasco",
     "rotowire_seen": []
   },
   "2RxOow1i": {
@@ -69,27 +207,156 @@
   "2akflumR": {
     "aliases": [
       "Lyon",
-      "Olympique Lyonnais",
-      "OL"
+      "OL",
+      "Olympique Lyonnais"
     ],
-    "league": "Europe > Champions League",
-    "name": "Lyon (Fra)",
+    "league": "France > Ligue 1",
+    "name": "Lyon",
+    "rotowire_seen": []
+  },
+  "2e7mzLut": {
+    "aliases": [
+      "Panetolikos"
+    ],
+    "league": "Greece > Super League",
+    "name": "Panetolikos",
+    "rotowire_seen": []
+  },
+  "2gUHsxs4": {
+    "aliases": [
+      "Kryvbas"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Kryvbas",
+    "rotowire_seen": []
+  },
+  "2gUwEtrE": {
+    "aliases": [
+      "Padova"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Padova",
+    "rotowire_seen": []
+  },
+  "2i0B6Zul": {
+    "aliases": [
+      "Remo"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Remo",
+    "rotowire_seen": []
+  },
+  "2i4sdl32": {
+    "aliases": [
+      "Houston Dynamo"
+    ],
+    "league": "USA > MLS",
+    "name": "Houston Dynamo",
+    "rotowire_seen": []
+  },
+  "2iZ4q0z6": {
+    "aliases": [
+      "Dep. Riestra"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Dep. Riestra",
+    "rotowire_seen": []
+  },
+  "2kM6ufaS": {
+    "aliases": [
+      "Red Star"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Red Star",
+    "rotowire_seen": []
+  },
+  "2m6zvQp5": {
+    "aliases": [
+      "LNZ Cherkasy"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "LNZ Cherkasy",
+    "rotowire_seen": []
+  },
+  "2w5qgpq0": {
+    "aliases": [
+      "Hajduk Split"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Hajduk Split",
+    "rotowire_seen": []
+  },
+  "2wZHnGDH": {
+    "aliases": [
+      "Nordsjaelland"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Nordsjaelland",
+    "rotowire_seen": []
+  },
+  "2wZp8NAh": {
+    "aliases": [
+      "Juarez"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Juarez",
+    "rotowire_seen": []
+  },
+  "2y0u8Wrq": {
+    "aliases": [
+      "Hertha Berlin"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Hertha Berlin",
     "rotowire_seen": []
   },
   "407h8Ird": {
     "aliases": [
+      "Royale Union SG",
+      "Royale Union Saint-Gilloise",
       "Union SG",
-      "Union Saint-Gilloise",
-      "Royale Union Saint-Gilloise"
+      "Union Saint-Gilloise"
     ],
-    "league": "Europe > Champions League",
-    "name": "Union SG (Bel)",
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Royale Union SG",
+    "rotowire_seen": []
+  },
+  "40amSqFn": {
+    "aliases": [
+      "Oss"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Oss",
+    "rotowire_seen": []
+  },
+  "42ectuVa": {
+    "aliases": [
+      "Sonderjyske"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Sonderjyske",
+    "rotowire_seen": []
+  },
+  "448T3rTI": {
+    "aliases": [
+      "Osijek"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Osijek",
     "rotowire_seen": []
   },
   "44wiLnI5": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Larne (Nir)",
+    "rotowire_seen": []
+  },
+  "46PfJ545": {
+    "aliases": [
+      "Iraklis 1908"
+    ],
+    "league": "Greece > Super League",
+    "name": "Iraklis 1908",
     "rotowire_seen": []
   },
   "4CambolL": {
@@ -100,11 +367,11 @@
   },
   "4ENWX2OA": {
     "aliases": [
-      "Shakhtar Donetsk",
-      "Shakhtar Donestsk"
+      "Shakhtar Donestsk",
+      "Shakhtar Donetsk"
     ],
-    "league": "Europe > Champions League",
-    "name": "Shakhtar",
+    "league": "Ukraine > Premier League",
+    "name": "Shakhtar Donetsk",
     "rotowire_seen": []
   },
   "4ETLrR7n": {
@@ -113,19 +380,59 @@
     "name": "Nacional",
     "rotowire_seen": []
   },
+  "4GtbI4Q1": {
+    "aliases": [
+      "FC Dallas"
+    ],
+    "league": "USA > MLS",
+    "name": "FC Dallas",
+    "rotowire_seen": []
+  },
   "4IQgZaVs": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Vardar (Mkd)",
     "rotowire_seen": []
   },
+  "4IzxgrNP": {
+    "aliases": [
+      "Den Bosch"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Den Bosch",
+    "rotowire_seen": []
+  },
+  "4KfIhq7B": {
+    "aliases": [
+      "CFR Cluj"
+    ],
+    "league": "Romania > Superliga",
+    "name": "CFR Cluj",
+    "rotowire_seen": []
+  },
+  "4Kh5hPE1": {
+    "aliases": [
+      "Djurgarden"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Djurgarden",
+    "rotowire_seen": []
+  },
+  "4QmJ2LNc": {
+    "aliases": [
+      "Rosario Central"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Rosario Central",
+    "rotowire_seen": []
+  },
   "4WElAd9p": {
     "aliases": [
-      "Thun",
-      "FC Thun"
+      "FC Thun",
+      "Thun"
     ],
-    "league": "Europe > Champions League",
-    "name": "Thun (Sui)",
+    "league": "Switzerland > Super League",
+    "name": "Thun",
     "rotowire_seen": []
   },
   "4WnsYev9": {
@@ -140,10 +447,50 @@
     "name": "Monza",
     "rotowire_seen": []
   },
+  "4bp6yRjU": {
+    "aliases": [
+      "Liberec"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Liberec",
+    "rotowire_seen": []
+  },
+  "4d5TT6i5": {
+    "aliases": [
+      "Brno"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Brno",
+    "rotowire_seen": []
+  },
+  "4dCl8IE5": {
+    "aliases": [
+      "Silkeborg"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Silkeborg",
+    "rotowire_seen": []
+  },
   "4fGZN2oK": {
     "aliases": [],
     "league": "England > Premier League",
     "name": "Chelsea",
+    "rotowire_seen": []
+  },
+  "4h6TMt23": {
+    "aliases": [
+      "Yokohama F. Marinos"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Yokohama F. Marinos",
+    "rotowire_seen": []
+  },
+  "4jDQxrbf": {
+    "aliases": [
+      "Mallorca"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Mallorca",
     "rotowire_seen": []
   },
   "4jcj2zMd": {
@@ -152,11 +499,92 @@
     "name": "Bayer Leverkusen",
     "rotowire_seen": []
   },
+  "4jl02tPF": {
+    "aliases": [
+      "Elche"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Elche",
+    "rotowire_seen": []
+  },
+  "4nNKlKo9": {
+    "aliases": [
+      "Kashima Antlers"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Kashima Antlers",
+    "rotowire_seen": []
+  },
+  "4r4sKQud": {
+    "aliases": [
+      "St. Louis City"
+    ],
+    "league": "USA > MLS",
+    "name": "St. Louis City",
+    "rotowire_seen": []
+  },
+  "4v0yqlWc": {
+    "aliases": [
+      "Metz"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Metz",
+    "rotowire_seen": []
+  },
+  "4vN7O8j0": {
+    "aliases": [
+      "Kalamata"
+    ],
+    "league": "Greece > Super League",
+    "name": "Kalamata",
+    "rotowire_seen": []
+  },
+  "63WsD2ei": {
+    "aliases": [
+      "Holstein Kiel"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Holstein Kiel",
+    "rotowire_seen": []
+  },
+  "655zEcZJ": {
+    "aliases": [
+      "A. Lustenau"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "A. Lustenau",
+    "rotowire_seen": []
+  },
+  "65I2MLv6": {
+    "aliases": [
+      "FC Arges"
+    ],
+    "league": "Romania > Superliga",
+    "name": "FC Arges",
+    "rotowire_seen": []
+  },
+  "67R5vKqt": {
+    "aliases": [
+      "Brondby"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Brondby",
+    "rotowire_seen": []
+  },
+  "698tGI9q": {
+    "aliases": [
+      "Vissel Kobe"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Vissel Kobe",
+    "rotowire_seen": []
+  },
   "69Dxbc61": {
     "aliases": [
+      "Napoli",
       "SSC Napoli"
     ],
-    "league": "Europe > Champions League",
+    "league": "Italy > Serie A",
     "name": "Napoli",
     "rotowire_seen": []
   },
@@ -166,16 +594,106 @@
     "name": "Fulham",
     "rotowire_seen": []
   },
+  "69w4Rb2d": {
+    "aliases": [
+      "Gijon"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Gijon",
+    "rotowire_seen": []
+  },
+  "6BeXoaup": {
+    "aliases": [
+      "Nagoya Grampus"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Nagoya Grampus",
+    "rotowire_seen": []
+  },
   "6DxlaxHN": {
     "aliases": [],
     "league": "Italy > Serie A",
     "name": "Parma",
     "rotowire_seen": []
   },
+  "6FDqshzF": {
+    "aliases": [
+      "Nurnberg"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Nurnberg",
+    "rotowire_seen": []
+  },
+  "6FRTNZ8p": {
+    "aliases": [
+      "Roda"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Roda",
+    "rotowire_seen": []
+  },
+  "6JxGelZC": {
+    "aliases": [
+      "Rudes"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Rudes",
+    "rotowire_seen": []
+  },
+  "6NOhR4cm": {
+    "aliases": [
+      "Pau FC"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Pau FC",
+    "rotowire_seen": []
+  },
+  "6P5S63Ah": {
+    "aliases": [
+      "Seattle Sounders"
+    ],
+    "league": "USA > MLS",
+    "name": "Seattle Sounders",
+    "rotowire_seen": []
+  },
   "6VbkuOqa": {
-    "aliases": [],
-    "league": "Netherlands > Eredivisie",
+    "aliases": [
+      "FC Volendam"
+    ],
+    "league": "Netherlands > Eerste Divisie",
     "name": "FC Volendam",
+    "rotowire_seen": []
+  },
+  "6c17idcf": {
+    "aliases": [
+      "Ried"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Ried",
+    "rotowire_seen": []
+  },
+  "6ecm9Xlr": {
+    "aliases": [
+      "Portimonense"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Portimonense",
+    "rotowire_seen": []
+  },
+  "6g44VD52": {
+    "aliases": [
+      "Cottbus"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Cottbus",
+    "rotowire_seen": []
+  },
+  "6gMiRHVj": {
+    "aliases": [
+      "Newells Old Boys"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Newells Old Boys",
     "rotowire_seen": []
   },
   "6in2Eknb": {
@@ -187,14 +705,54 @@
     "name": "SV Elversberg",
     "rotowire_seen": []
   },
+  "6oCa40nb": {
+    "aliases": [
+      "Grasshoppers"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Grasshoppers",
+    "rotowire_seen": []
+  },
   "6qA358jH": {
     "aliases": [
+      "AC Sparta Prague",
       "Sparta Prague",
-      "Sparta Praha",
-      "AC Sparta Prague"
+      "Sparta Praha"
     ],
-    "league": "Europe > Champions League",
-    "name": "Sparta Prague (Cze)",
+    "league": "Czech Republic > Chance Liga",
+    "name": "Sparta Prague",
+    "rotowire_seen": []
+  },
+  "6u3qag0G": {
+    "aliases": [
+      "Willem II"
+    ],
+    "league": "Netherlands > Eredivisie",
+    "name": "Willem II",
+    "rotowire_seen": []
+  },
+  "6yaBf8yd": {
+    "aliases": [
+      "Corvinul"
+    ],
+    "league": "Romania > Superliga",
+    "name": "Corvinul",
+    "rotowire_seen": []
+  },
+  "80MMdBdN": {
+    "aliases": [
+      "Platense"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Platense",
+    "rotowire_seen": []
+  },
+  "84yIDQMe": {
+    "aliases": [
+      "Nashville SC"
+    ],
+    "league": "USA > MLS",
+    "name": "Nashville SC",
     "rotowire_seen": []
   },
   "88HSzjDr": {
@@ -205,10 +763,50 @@
       "Mönchengladbach"
     ]
   },
+  "88Xgj1Y5": {
+    "aliases": [
+      "VfL Osnabruck"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "VfL Osnabruck",
+    "rotowire_seen": []
+  },
+  "8AHslu7F": {
+    "aliases": [
+      "Felgueiras"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Felgueiras",
+    "rotowire_seen": []
+  },
+  "8Au8eRom": {
+    "aliases": [
+      "Jong PSV"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Jong PSV",
+    "rotowire_seen": []
+  },
   "8C9JjMXu": {
     "aliases": [],
     "league": "Italy > Serie A",
     "name": "Atalanta",
+    "rotowire_seen": []
+  },
+  "8EyXqyoo": {
+    "aliases": [
+      "Lommel SK"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Lommel SK",
+    "rotowire_seen": []
+  },
+  "8G45bXRA": {
+    "aliases": [
+      "Instituto"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Instituto",
     "rotowire_seen": []
   },
   "8G5ufQTg": {
@@ -217,8 +815,32 @@
       "Dinamo Zagreb",
       "GNK Dinamo Zagreb"
     ],
-    "league": "Europe > Champions League",
-    "name": "Din. Zagreb (Cro)",
+    "league": "Croatia > HNL",
+    "name": "Din. Zagreb",
+    "rotowire_seen": []
+  },
+  "8GZDmdbB": {
+    "aliases": [
+      "Midtjylland"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Midtjylland",
+    "rotowire_seen": []
+  },
+  "8QEB2FFp": {
+    "aliases": [
+      "Dundee Utd"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Dundee Utd",
+    "rotowire_seen": []
+  },
+  "8SWdrMTR": {
+    "aliases": [
+      "Gwangju FC"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Gwangju FC",
     "rotowire_seen": []
   },
   "8Sa8HInO": {
@@ -233,10 +855,90 @@
     "name": "Ajax",
     "rotowire_seen": []
   },
+  "8WUSyF3F": {
+    "aliases": [
+      "Eldense"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Eldense",
+    "rotowire_seen": []
+  },
+  "8Y2m6ADe": {
+    "aliases": [
+      "Bochum"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Bochum",
+    "rotowire_seen": []
+  },
+  "8bSbHipn": {
+    "aliases": [
+      "Vitoria"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Vitoria",
+    "rotowire_seen": []
+  },
+  "8bcjFy6O": {
+    "aliases": [
+      "Rayo Vallecano"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Rayo Vallecano",
+    "rotowire_seen": []
+  },
+  "8btog05R": {
+    "aliases": [
+      "FC Cincinnati"
+    ],
+    "league": "USA > MLS",
+    "name": "FC Cincinnati",
+    "rotowire_seen": []
+  },
   "8d9NGt9H": {
     "aliases": [],
     "league": "Portugal > Liga Portugal",
     "name": "Moreirense",
+    "rotowire_seen": []
+  },
+  "8hiBr2eQ": {
+    "aliases": [
+      "Toluca"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Toluca",
+    "rotowire_seen": []
+  },
+  "8jQErKhN": {
+    "aliases": [
+      "Torreense"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Torreense",
+    "rotowire_seen": []
+  },
+  "8pvUZFhf": {
+    "aliases": [
+      "Celta Vigo"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Celta Vigo",
+    "rotowire_seen": []
+  },
+  "8tzeYeHp": {
+    "aliases": [
+      "Seoul"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Seoul",
+    "rotowire_seen": []
+  },
+  "8vAWQXNS": {
+    "aliases": [
+      "Rangers"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Rangers",
     "rotowire_seen": []
   },
   "8vndvXTk": {
@@ -245,12 +947,45 @@
     "name": "Eintracht Frankfurt",
     "rotowire_seen": []
   },
+  "8zCQQGg2": {
+    "aliases": [
+      "FC Tokyo"
+    ],
+    "league": "Japan > J1 League",
+    "name": "FC Tokyo",
+    "rotowire_seen": []
+  },
   "8zjySeoN": {
     "aliases": [
+      "Feyenoord",
       "Feyenoord Rotterdam"
     ],
-    "league": "Europe > Champions League",
+    "league": "Netherlands > Eredivisie",
     "name": "Feyenoord",
+    "rotowire_seen": []
+  },
+  "A144gewT": {
+    "aliases": [
+      "Gangwon"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Gangwon",
+    "rotowire_seen": []
+  },
+  "A332L1f5": {
+    "aliases": [
+      "Avellino"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Avellino",
+    "rotowire_seen": []
+  },
+  "A5gTQ7pG": {
+    "aliases": [
+      "Csikszereda M. Ciuc"
+    ],
+    "league": "Romania > Superliga",
+    "name": "Csikszereda M. Ciuc",
     "rotowire_seen": []
   },
   "ABBgitC3": {
@@ -260,15 +995,65 @@
     "rotowire_seen": []
   },
   "ANpZncAM": {
-    "aliases": [],
-    "league": "Europe > Champions League",
-    "name": "AEK",
+    "aliases": [
+      "AEK Athens"
+    ],
+    "league": "Greece > Super League",
+    "name": "AEK Athens",
+    "rotowire_seen": []
+  },
+  "AVOJAt4f": {
+    "aliases": [
+      "Atlas"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Atlas",
+    "rotowire_seen": []
+  },
+  "Aahkn5KI": {
+    "aliases": [
+      "Veres-Rivne"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Veres-Rivne",
+    "rotowire_seen": []
+  },
+  "AceEgPi5": {
+    "aliases": [
+      "Leiria"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Leiria",
+    "rotowire_seen": []
+  },
+  "AmdbMiWq": {
+    "aliases": [
+      "Aberdeen"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Aberdeen",
+    "rotowire_seen": []
+  },
+  "Amzaty2s": {
+    "aliases": [
+      "Belgrano"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Belgrano",
     "rotowire_seen": []
   },
   "AovF1Mia": {
     "aliases": [],
     "league": "England > Premier League",
     "name": "Crystal Palace",
+    "rotowire_seen": []
+  },
+  "AsIgIB3d": {
+    "aliases": [
+      "Al-Faisaly"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al-Faisaly",
     "rotowire_seen": []
   },
   "Aw0qTPat": {
@@ -283,15 +1068,65 @@
     "name": "Juventus",
     "rotowire_seen": []
   },
+  "C09N1Ikd": {
+    "aliases": [
+      "Zlin"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Zlin",
+    "rotowire_seen": []
+  },
+  "C8IHSxPk": {
+    "aliases": [
+      "Urawa Reds"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Urawa Reds",
+    "rotowire_seen": []
+  },
+  "CCQGbik8": {
+    "aliases": [
+      "Greuther Furth"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Greuther Furth",
+    "rotowire_seen": []
+  },
+  "CGT7Kq4j": {
+    "aliases": [
+      "Orgryte"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Orgryte",
+    "rotowire_seen": []
+  },
   "CIEe04GT": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Le Havre",
     "rotowire_seen": []
   },
+  "CM8ySpMH": {
+    "aliases": [
+      "Jablonec"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Jablonec",
+    "rotowire_seen": []
+  },
+  "COCe5tXi": {
+    "aliases": [
+      "Zurich"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Zurich",
+    "rotowire_seen": []
+  },
   "CQeaytrD": {
-    "aliases": [],
-    "league": "",
+    "aliases": [
+      "Valencia"
+    ],
+    "league": "Spain > LaLiga",
     "name": "Valencia",
     "rotowire_seen": [
       "Valencia"
@@ -303,10 +1138,50 @@
     "name": "Gil Vicente",
     "rotowire_seen": []
   },
+  "CURGfJWt": {
+    "aliases": [
+      "Sporting Kansas City"
+    ],
+    "league": "USA > MLS",
+    "name": "Sporting Kansas City",
+    "rotowire_seen": []
+  },
+  "CUSC1dab": {
+    "aliases": [
+      "Machida"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Machida",
+    "rotowire_seen": []
+  },
   "CUoNY9xc": {
     "aliases": [],
     "league": "Norway > Eliteserien",
     "name": "Start",
+    "rotowire_seen": []
+  },
+  "CUwhFbWG": {
+    "aliases": [
+      "Luzern"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Luzern",
+    "rotowire_seen": []
+  },
+  "CWuejruc": {
+    "aliases": [
+      "Cordoba"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Cordoba",
+    "rotowire_seen": []
+  },
+  "CWwBJ6PA": {
+    "aliases": [
+      "Lok. Zagreb"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Lok. Zagreb",
     "rotowire_seen": []
   },
   "CjYs7BO9": {
@@ -317,11 +1192,12 @@
   },
   "CjhkPw0k": {
     "aliases": [
+      "PSG",
       "Paris SG",
-      "Paris Saint-Germain",
-      "Paris Saint Germain"
+      "Paris Saint Germain",
+      "Paris Saint-Germain"
     ],
-    "league": "Europe > Champions League",
+    "league": "France > Ligue 1",
     "name": "PSG",
     "rotowire_seen": []
   },
@@ -331,10 +1207,42 @@
     "name": "Brest",
     "rotowire_seen": []
   },
+  "CrJbN1Pa": {
+    "aliases": [
+      "Farul Constanta"
+    ],
+    "league": "Romania > Superliga",
+    "name": "Farul Constanta",
+    "rotowire_seen": []
+  },
   "CrO7xXpJ": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Kairat Almaty (Kaz)",
+    "rotowire_seen": []
+  },
+  "E1EFmhVh": {
+    "aliases": [
+      "Gremio"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Gremio",
+    "rotowire_seen": []
+  },
+  "E1Oxemse": {
+    "aliases": [
+      "Slask Wroclaw"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Slask Wroclaw",
+    "rotowire_seen": []
+  },
+  "E1wDrLsJ": {
+    "aliases": [
+      "Laval"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Laval",
     "rotowire_seen": []
   },
   "E5OOzgs4": {
@@ -343,11 +1251,69 @@
     "name": "Levski (Bul)",
     "rotowire_seen": []
   },
+  "EB3q7jbk": {
+    "aliases": [
+      "Karlsruher SC"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Karlsruher SC",
+    "rotowire_seen": []
+  },
+  "EBPEFrRQ": {
+    "aliases": [
+      "Santos Laguna"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Santos Laguna",
+    "rotowire_seen": []
+  },
   "EDjXSyWG": {
     "aliases": [],
     "league": "Netherlands > Eredivisie",
     "name": "Heerenveen",
     "rotowire_seen": []
+  },
+  "EFRnJdkr": {
+    "aliases": [
+      "Rizespor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Rizespor",
+    "rotowire_seen": []
+  },
+  "EHdgkFvm": {
+    "aliases": [
+      "Amedspor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Amedspor",
+    "rotowire_seen": []
+  },
+  "ELVAW0WQ": {
+    "aliases": [
+      "Brommapojkarna"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Brommapojkarna",
+    "rotowire_seen": []
+  },
+  "ENJqToLP": {
+    "aliases": [
+      "Slaven Belupo"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Slaven Belupo",
+    "rotowire_seen": []
+  },
+  "EPngUvhk": {
+    "aliases": [
+      "Atlanta Utd"
+    ],
+    "league": "USA > MLS",
+    "name": "Atlanta Utd",
+    "rotowire_seen": [
+      "Atlanta United"
+    ]
   },
   "ER0NeOOp": {
     "aliases": [],
@@ -355,13 +1321,47 @@
     "name": "Le Mans",
     "rotowire_seen": []
   },
+  "ER0XiGC0": {
+    "aliases": [
+      "Altach"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Altach",
+    "rotowire_seen": []
+  },
   "ETdxjU8a": {
-    "aliases": [],
-    "league": "",
+    "aliases": [
+      "Osasuna"
+    ],
+    "league": "Spain > LaLiga",
     "name": "Osasuna",
     "rotowire_seen": [
       "Osasuna"
     ]
+  },
+  "EV9L3kU4": {
+    "aliases": [
+      "Fluminense"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Fluminense",
+    "rotowire_seen": []
+  },
+  "EVEwgyOM": {
+    "aliases": [
+      "Ulsan HD"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Ulsan HD",
+    "rotowire_seen": []
+  },
+  "EVqSBe2f": {
+    "aliases": [
+      "River Plate"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "River Plate",
+    "rotowire_seen": []
   },
   "EXAD1YZP": {
     "aliases": [
@@ -373,6 +1373,38 @@
     "name": "H. Beer Sheva (Isr)",
     "rotowire_seen": []
   },
+  "EXuxl1xP": {
+    "aliases": [
+      "Granada CF"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Granada CF",
+    "rotowire_seen": []
+  },
+  "Eg51aDC4": {
+    "aliases": [
+      "Ind. Rivadavia"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Ind. Rivadavia",
+    "rotowire_seen": []
+  },
+  "Eu4qrEcB": {
+    "aliases": [
+      "Aldosivi"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Aldosivi",
+    "rotowire_seen": []
+  },
+  "EuGkBf33": {
+    "aliases": [
+      "San Diego FC"
+    ],
+    "league": "USA > MLS",
+    "name": "San Diego FC",
+    "rotowire_seen": []
+  },
   "EuakNmc1": {
     "aliases": [],
     "league": "Germany > Bundesliga",
@@ -380,6 +1412,14 @@
     "rotowire_seen": [
       "FSV Mainz 05"
     ]
+  },
+  "Eyf00syR": {
+    "aliases": [
+      "Montpellier"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Montpellier",
+    "rotowire_seen": []
   },
   "G2Op923t": {
     "aliases": [
@@ -390,16 +1430,64 @@
     "name": "SC Paderborn",
     "rotowire_seen": []
   },
+  "G6Ih9GOj": {
+    "aliases": [
+      "Vaduz"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Vaduz",
+    "rotowire_seen": []
+  },
+  "G8FL0ShI": {
+    "aliases": [
+      "Levante"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Levante",
+    "rotowire_seen": []
+  },
   "G8LlPCOi": {
     "aliases": [],
     "league": "Norway > Eliteserien",
     "name": "Rosenborg",
     "rotowire_seen": []
   },
+  "G8PFBMll": {
+    "aliases": [
+      "Cruz Azul"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Cruz Azul",
+    "rotowire_seen": []
+  },
   "G8lYsMgU": {
     "aliases": [],
     "league": "Italy > Serie A",
     "name": "Lecce",
+    "rotowire_seen": []
+  },
+  "GAUEFGvM": {
+    "aliases": [
+      "Atromitos"
+    ],
+    "league": "Greece > Super League",
+    "name": "Atromitos",
+    "rotowire_seen": []
+  },
+  "GIb40wNM": {
+    "aliases": [
+      "Banfield"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Banfield",
+    "rotowire_seen": []
+  },
+  "GOPqBIRK": {
+    "aliases": [
+      "Genclerbirligi"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Genclerbirligi",
     "rotowire_seen": []
   },
   "GOvB22xg": {
@@ -409,6 +1497,14 @@
     ],
     "league": "England > Premier League",
     "name": "Coventry City",
+    "rotowire_seen": []
+  },
+  "GQPCyIeG": {
+    "aliases": [
+      "Celta Vigo B"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Celta Vigo B",
     "rotowire_seen": []
   },
   "GSLWiAPe": {
@@ -421,11 +1517,76 @@
     "name": "Omonia (Cyp)",
     "rotowire_seen": []
   },
+  "Gdfv0Zsh": {
+    "aliases": [
+      "Defensa y Justicia"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Defensa y Justicia",
+    "rotowire_seen": []
+  },
+  "GjY1JjUS": {
+    "aliases": [
+      "FC Botosani"
+    ],
+    "league": "Romania > Superliga",
+    "name": "FC Botosani",
+    "rotowire_seen": []
+  },
+  "GliRsh4P": {
+    "aliases": [
+      "Mito"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Mito",
+    "rotowire_seen": []
+  },
+  "GncWwxTm": {
+    "aliases": [
+      "Jong Ajax"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Jong Ajax",
+    "rotowire_seen": []
+  },
+  "GnizyMB7": {
+    "aliases": [
+      "Catanzaro"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Catanzaro",
+    "rotowire_seen": []
+  },
+  "GrRgeTHo": {
+    "aliases": [
+      "Academico Viseu"
+    ],
+    "league": "Portugal > Liga Portugal",
+    "name": "Academico Viseu",
+    "rotowire_seen": []
+  },
+  "Gv2kjDpN": {
+    "aliases": [
+      "FCSB"
+    ],
+    "league": "Romania > Superliga",
+    "name": "FCSB",
+    "rotowire_seen": []
+  },
+  "Gzqmz0ya": {
+    "aliases": [
+      "Al Shabab"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Shabab",
+    "rotowire_seen": []
+  },
   "IBmris38": {
     "aliases": [
+      "Lens",
       "RC Lens"
     ],
-    "league": "Europe > Champions League",
+    "league": "France > Ligue 1",
     "name": "Lens",
     "rotowire_seen": []
   },
@@ -435,6 +1596,86 @@
     "name": "Kristiansund",
     "rotowire_seen": []
   },
+  "IDmErJCR": {
+    "aliases": [
+      "Besiktas"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Besiktas",
+    "rotowire_seen": []
+  },
+  "IDsPIcMA": {
+    "aliases": [
+      "Sepsi Sf. Gheorghe"
+    ],
+    "league": "Romania > Superliga",
+    "name": "Sepsi Sf. Gheorghe",
+    "rotowire_seen": []
+  },
+  "IHaUjgT1": {
+    "aliases": [
+      "Lugano"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Lugano",
+    "rotowire_seen": []
+  },
+  "IHv6nz80": {
+    "aliases": [
+      "Tenerife"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Tenerife",
+    "rotowire_seen": []
+  },
+  "IL4RHuFr": {
+    "aliases": [
+      "Boulogne"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Boulogne",
+    "rotowire_seen": []
+  },
+  "ILyJuN3g": {
+    "aliases": [
+      "St. Pauli"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "St. Pauli",
+    "rotowire_seen": []
+  },
+  "IP5zl0cJ": {
+    "aliases": [
+      "Ath Bilbao"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Ath Bilbao",
+    "rotowire_seen": []
+  },
+  "IRuMRua1": {
+    "aliases": [
+      "Clermont"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Clermont",
+    "rotowire_seen": []
+  },
+  "ITkIKZ7q": {
+    "aliases": [
+      "Gaziantep"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Gaziantep",
+    "rotowire_seen": []
+  },
+  "IXnm9vwh": {
+    "aliases": [
+      "Cercle Brugge KSV"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Cercle Brugge KSV",
+    "rotowire_seen": []
+  },
   "IXyr4UxA": {
     "aliases": [],
     "league": "Norway > Eliteserien",
@@ -442,9 +1683,35 @@
     "rotowire_seen": []
   },
   "IZPeUwtM": {
-    "aliases": [],
-    "league": "Portugal > Liga Portugal",
+    "aliases": [
+      "AFS"
+    ],
+    "league": "Portugal > Liga Portugal 2",
     "name": "AFS",
+    "rotowire_seen": []
+  },
+  "IaoBca9i": {
+    "aliases": [
+      "Gimcheon Sangmu"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Gimcheon Sangmu",
+    "rotowire_seen": []
+  },
+  "IcN8oPcJ": {
+    "aliases": [
+      "Alanyaspor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Alanyaspor",
+    "rotowire_seen": []
+  },
+  "IeT6JBE3": {
+    "aliases": [
+      "Austin FC"
+    ],
+    "league": "USA > MLS",
+    "name": "Austin FC",
     "rotowire_seen": []
   },
   "Ig1f1fy3": {
@@ -453,20 +1720,117 @@
     "name": "Werder Bremen",
     "rotowire_seen": []
   },
+  "ImhQf1z6": {
+    "aliases": [
+      "Wieczysta Krakow"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Wieczysta Krakow",
+    "rotowire_seen": []
+  },
+  "IoLk2VlL": {
+    "aliases": [
+      "Motor Lublin"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Motor Lublin",
+    "rotowire_seen": []
+  },
+  "IsK0b0aI": {
+    "aliases": [
+      "Almere City"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Almere City",
+    "rotowire_seen": []
+  },
   "Iw7eKK25": {
     "aliases": [
+      "FC Internazionale",
+      "Inter",
       "Inter Milan",
-      "Internazionale",
-      "FC Internazionale"
+      "Internazionale"
     ],
-    "league": "Europe > Champions League",
+    "league": "Italy > Serie A",
     "name": "Inter",
+    "rotowire_seen": []
+  },
+  "Iy4albIC": {
+    "aliases": [
+      "Tigres UANL"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Tigres UANL",
+    "rotowire_seen": []
+  },
+  "IyRQC2vM": {
+    "aliases": [
+      "Las Palmas"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Las Palmas",
+    "rotowire_seen": []
+  },
+  "K0H6jm7P": {
+    "aliases": [
+      "RAAL La Louviere"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "RAAL La Louviere",
+    "rotowire_seen": []
+  },
+  "K2dlua5N": {
+    "aliases": [
+      "Vancouver Whitecaps"
+    ],
+    "league": "USA > MLS",
+    "name": "Vancouver Whitecaps",
+    "rotowire_seen": []
+  },
+  "K2sDXbFE": {
+    "aliases": [
+      "Gimnasia Mendoza"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Gimnasia Mendoza",
+    "rotowire_seen": []
+  },
+  "K4AgRmS1": {
+    "aliases": [
+      "GKS Katowice"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "GKS Katowice",
     "rotowire_seen": []
   },
   "K4YaWRyM": {
     "aliases": [],
     "league": "Norway > Eliteserien",
     "name": "KFUM Oslo",
+    "rotowire_seen": []
+  },
+  "K6kUepBs": {
+    "aliases": [
+      "Legia"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Legia",
+    "rotowire_seen": []
+  },
+  "KGO4pUqO": {
+    "aliases": [
+      "Coritiba"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Coritiba",
+    "rotowire_seen": []
+  },
+  "KIIIipI5": {
+    "aliases": [
+      "Pohang"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Pohang",
     "rotowire_seen": []
   },
   "KIN6lmnH": {
@@ -484,6 +1848,46 @@
     "name": "Sparta Rotterdam",
     "rotowire_seen": []
   },
+  "KKfzlNbq": {
+    "aliases": [
+      "Sporting CP B"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Sporting CP B",
+    "rotowire_seen": []
+  },
+  "KMRQ5buc": {
+    "aliases": [
+      "Asteras Tripolis"
+    ],
+    "league": "Greece > Super League",
+    "name": "Asteras Tripolis",
+    "rotowire_seen": []
+  },
+  "KQ6kGfyc": {
+    "aliases": [
+      "Sarmiento Junin"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Sarmiento Junin",
+    "rotowire_seen": []
+  },
+  "KUzfp5N3": {
+    "aliases": [
+      "Cremonese"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Cremonese",
+    "rotowire_seen": []
+  },
+  "KWixEVWi": {
+    "aliases": [
+      "Heidenheim"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Heidenheim",
+    "rotowire_seen": []
+  },
   "KYcp5BgH": {
     "aliases": [],
     "league": "Norway > Eliteserien",
@@ -499,17 +1903,50 @@
     "name": "RB Leipzig",
     "rotowire_seen": []
   },
+  "KbwIFIoN": {
+    "aliases": [
+      "Sion"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Sion",
+    "rotowire_seen": []
+  },
   "KluSTr9s": {
     "aliases": [],
     "league": "England > Premier League",
     "name": "Everton",
     "rotowire_seen": []
   },
+  "KpqpxWko": {
+    "aliases": [
+      "Atl. Tucuman"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Atl. Tucuman",
+    "rotowire_seen": []
+  },
+  "Kry6HxA9": {
+    "aliases": [
+      "PAOK"
+    ],
+    "league": "Greece > Super League",
+    "name": "PAOK",
+    "rotowire_seen": []
+  },
+  "KvXSf2A6": {
+    "aliases": [
+      "Cracovia"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Cracovia",
+    "rotowire_seen": []
+  },
   "M9UEHJWi": {
     "aliases": [
+      "PSV",
       "PSV Eindhoven"
     ],
-    "league": "Europe > Champions League",
+    "league": "Netherlands > Eredivisie",
     "name": "PSV",
     "rotowire_seen": []
   },
@@ -519,17 +1956,35 @@
     "name": "Groningen",
     "rotowire_seen": []
   },
+  "MBn63swN": {
+    "aliases": [
+      "Modena"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Modena",
+    "rotowire_seen": []
+  },
   "MLmY2yB1": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Toulouse",
     "rotowire_seen": []
   },
+  "MNEDyOlF": {
+    "aliases": [
+      "Slovacko"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Slovacko",
+    "rotowire_seen": []
+  },
   "MTLr36WA": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Auxerre",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "AJ Auxerre"
+    ]
   },
   "MZFZnvX4": {
     "aliases": [],
@@ -537,12 +1992,37 @@
     "name": "Torino",
     "rotowire_seen": []
   },
+  "Meknfpi2": {
+    "aliases": [
+      "Al Fayha"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Fayha",
+    "rotowire_seen": []
+  },
+  "MgkzUx7T": {
+    "aliases": [
+      "Gent"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Gent",
+    "rotowire_seen": []
+  },
+  "Mi0rXQg7": {
+    "aliases": [
+      "Leganes"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Leganes",
+    "rotowire_seen": []
+  },
   "MipWYeKQ": {
     "aliases": [
+      "LASK",
       "LASK Linz",
       "Linzer ASK"
     ],
-    "league": "Europe > Champions League",
+    "league": "Austria > Bundesliga",
     "name": "LASK",
     "rotowire_seen": []
   },
@@ -552,15 +2032,47 @@
     "name": "Venezia",
     "rotowire_seen": []
   },
+  "MmsYDc03": {
+    "aliases": [
+      "Trabzonspor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Trabzonspor",
+    "rotowire_seen": []
+  },
+  "Mmsc26yL": {
+    "aliases": [
+      "Halmstad"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Halmstad",
+    "rotowire_seen": []
+  },
+  "Mqs1WbFK": {
+    "aliases": [
+      "Al Kholood"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Kholood",
+    "rotowire_seen": []
+  },
   "MsbmracL": {
     "aliases": [
+      "FB",
       "Fenerbahce",
       "Fenerbahce Istanbul",
-      "Fenerbahçe",
-      "FB"
+      "Fenerbahçe"
     ],
-    "league": "Europe > Champions League",
-    "name": "Fenerbahce (Tur)",
+    "league": "Turkey > Super Lig",
+    "name": "Fenerbahce",
+    "rotowire_seen": []
+  },
+  "MyEKFJxd": {
+    "aliases": [
+      "Amarante"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Amarante",
     "rotowire_seen": []
   },
   "O4ORhR6N": {
@@ -569,24 +2081,88 @@
     "name": "Bissen (Lux)",
     "rotowire_seen": []
   },
+  "O6hjfSXE": {
+    "aliases": [
+      "DC United"
+    ],
+    "league": "USA > MLS",
+    "name": "DC United",
+    "rotowire_seen": []
+  },
+  "O6ucWgAa": {
+    "aliases": [
+      "Andorra"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Andorra",
+    "rotowire_seen": []
+  },
+  "OEsEpExD": {
+    "aliases": [
+      "Eibar"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Eibar",
+    "rotowire_seen": []
+  },
+  "OIDqIbjd": {
+    "aliases": [
+      "Al Fateh"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Fateh",
+    "rotowire_seen": []
+  },
   "OOXnKGbO": {
     "aliases": [
-      "Aarhus",
+      "AGF",
       "AGF Aarhus",
-      "AGF"
+      "Aarhus"
     ],
-    "league": "Europe > Champions League",
-    "name": "Aarhus (Den)",
+    "league": "Denmark > Superliga",
+    "name": "Aarhus",
+    "rotowire_seen": []
+  },
+  "OYSN90J0": {
+    "aliases": [
+      "Atl. San Luis"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Atl. San Luis",
+    "rotowire_seen": []
+  },
+  "OfzUZGy6": {
+    "aliases": [
+      "Kolos Kovalivka"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Kolos Kovalivka",
+    "rotowire_seen": []
+  },
+  "OhapHPm9": {
+    "aliases": [
+      "Racing Club"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Racing Club",
+    "rotowire_seen": []
+  },
+  "Olvehxrl": {
+    "aliases": [
+      "Salzburg"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Salzburg",
     "rotowire_seen": []
   },
   "OpNH7Ouf": {
     "aliases": [
+      "KKS Lech Poznan",
       "Lech",
-      "Lech Poznan",
-      "KKS Lech Poznan"
+      "Lech Poznan"
     ],
-    "league": "Europe > Champions League",
-    "name": "Lech (Pol)",
+    "league": "Poland > Ekstraklasa",
+    "name": "Lech Poznan",
     "rotowire_seen": []
   },
   "OtpNdwrc": {
@@ -597,10 +2173,34 @@
       "AFC Bournemouth"
     ]
   },
+  "Ov2LFx62": {
+    "aliases": [
+      "Servette"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Servette",
+    "rotowire_seen": []
+  },
   "Q3A3IbXH": {
     "aliases": [],
     "league": "Italy > Serie A",
     "name": "Fiorentina",
+    "rotowire_seen": []
+  },
+  "Q51ZzMS6": {
+    "aliases": [
+      "Dep. A Coruna"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Dep. A Coruna",
+    "rotowire_seen": []
+  },
+  "QBGfQbSe": {
+    "aliases": [
+      "Corinthians"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Corinthians",
     "rotowire_seen": []
   },
   "QBbt6ivB": {
@@ -615,6 +2215,22 @@
     "name": "Sassuolo",
     "rotowire_seen": []
   },
+  "QDfKl36E": {
+    "aliases": [
+      "Guingamp"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Guingamp",
+    "rotowire_seen": []
+  },
+  "QDiPqBNj": {
+    "aliases": [
+      "UTA Arad"
+    ],
+    "league": "Romania > Superliga",
+    "name": "UTA Arad",
+    "rotowire_seen": []
+  },
   "QFHt9Zgs": {
     "aliases": [],
     "league": "Portugal > Liga Portugal",
@@ -627,17 +2243,37 @@
       "Celtic FC",
       "Celtic Glasgow"
     ],
-    "league": "Europe > Champions League",
-    "name": "Celtic (Sco)",
+    "league": "Scotland > Premiership",
+    "name": "Celtic",
     "rotowire_seen": []
   },
   "QFfPdh1J": {
-    "aliases": [],
-    "league": "",
+    "aliases": [
+      "Espanyol"
+    ],
+    "league": "Spain > LaLiga",
     "name": "Espanyol",
     "rotowire_seen": [
       "Espanyol"
     ]
+  },
+  "QJF7WTFB": {
+    "aliases": [
+      "Charlotte"
+    ],
+    "league": "USA > MLS",
+    "name": "Charlotte",
+    "rotowire_seen": [
+      "Charlotte FC"
+    ]
+  },
+  "QRK4aI4P": {
+    "aliases": [
+      "Anyang"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Anyang",
+    "rotowire_seen": []
   },
   "QRaWdwQf": {
     "aliases": [
@@ -647,28 +2283,112 @@
     "name": "Slovan Bratislava",
     "rotowire_seen": []
   },
+  "QRyYgO7J": {
+    "aliases": [
+      "Cambuur"
+    ],
+    "league": "Netherlands > Eredivisie",
+    "name": "Cambuur",
+    "rotowire_seen": []
+  },
+  "QT16qrtK": {
+    "aliases": [
+      "Pachuca"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Pachuca",
+    "rotowire_seen": []
+  },
+  "QaqfE8WE": {
+    "aliases": [
+      "Beveren"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Beveren",
+    "rotowire_seen": []
+  },
+  "QgP0oAUH": {
+    "aliases": [
+      "Sao Paulo"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Sao Paulo",
+    "rotowire_seen": []
+  },
+  "QmsyAjWh": {
+    "aliases": [
+      "Al Ittihad"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Ittihad",
+    "rotowire_seen": []
+  },
+  "QoZYVU3E": {
+    "aliases": [
+      "Wisla Plock"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Wisla Plock",
+    "rotowire_seen": []
+  },
+  "QqLCC3il": {
+    "aliases": [
+      "Braunschweig"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Braunschweig",
+    "rotowire_seen": []
+  },
+  "QuxS0ahA": {
+    "aliases": [
+      "Argentinos Jrs"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Argentinos Jrs",
+    "rotowire_seen": []
+  },
+  "QyHHzdwl": {
+    "aliases": [
+      "Castellon"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Castellon",
+    "rotowire_seen": []
+  },
   "S0WZMUNG": {
     "aliases": [
       "Glimt",
       "Bodø/Glimt",
       "Bodoe/Glimt",
-      "FK Bodø/Glimt"
+      "FK Bodø/Glimt",
+      "Bodo/Glimt"
     ],
-    "league": "Europe > Champions League",
+    "league": "Norway > Eliteserien",
     "name": "Bodo/Glimt",
     "rotowire_seen": []
   },
   "S0XtXM1E": {
-    "aliases": [],
-    "league": "Europe > Champions League",
-    "name": "Mjallby (Swe)",
+    "aliases": [
+      "Mjallby"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Mjallby",
+    "rotowire_seen": []
+  },
+  "S0hPB9rA": {
+    "aliases": [
+      "Darmstadt"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Darmstadt",
     "rotowire_seen": []
   },
   "S2NmScGp": {
     "aliases": [
+      "FC Porto",
       "Porto"
     ],
-    "league": "Europe > Champions League",
+    "league": "Portugal > Liga Portugal",
     "name": "FC Porto",
     "rotowire_seen": []
   },
@@ -679,6 +2399,14 @@
     ],
     "league": "England > Premier League",
     "name": "Hull City",
+    "rotowire_seen": []
+  },
+  "S8MBgwuo": {
+    "aliases": [
+      "Basel"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Basel",
     "rotowire_seen": []
   },
   "SAlF91iL": {
@@ -693,21 +2421,70 @@
     "name": "Cagliari",
     "rotowire_seen": []
   },
+  "SENMmweG": {
+    "aliases": [
+      "Panathinaikos"
+    ],
+    "league": "Greece > Super League",
+    "name": "Panathinaikos",
+    "rotowire_seen": []
+  },
   "SKbpVP5K": {
     "aliases": [
-      "FC Barcelona",
-      "Barca"
+      "Barca",
+      "Barcelona",
+      "FC Barcelona"
     ],
-    "league": "Europe > Champions League",
+    "league": "Spain > LaLiga",
     "name": "Barcelona",
     "rotowire_seen": [
       "B Munich"
     ]
   },
+  "SOrkawEs": {
+    "aliases": [
+      "Neom SC"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Neom SC",
+    "rotowire_seen": []
+  },
+  "SQGBcMU5": {
+    "aliases": [
+      "Helmond"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Helmond",
+    "rotowire_seen": []
+  },
+  "SQOrbYim": {
+    "aliases": [
+      "Rakow"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Rakow",
+    "rotowire_seen": []
+  },
+  "SQsg3nME": {
+    "aliases": [
+      "Hammarby"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Hammarby",
+    "rotowire_seen": []
+  },
   "SblU3Hee": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Marseille",
+    "rotowire_seen": []
+  },
+  "SdMQZTB5": {
+    "aliases": [
+      "Avispa Fukuoka"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Avispa Fukuoka",
     "rotowire_seen": []
   },
   "SpbURe4O": {
@@ -716,10 +2493,100 @@
     "name": "Celje (Slo)",
     "rotowire_seen": []
   },
+  "Spbrn1Te": {
+    "aliases": [
+      "Benfica B"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Benfica B",
+    "rotowire_seen": []
+  },
+  "Stafar0g": {
+    "aliases": [
+      "FC Emmen"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "FC Emmen",
+    "rotowire_seen": []
+  },
+  "SvR5syYq": {
+    "aliases": [
+      "Aris"
+    ],
+    "league": "Greece > Super League",
+    "name": "Aris",
+    "rotowire_seen": []
+  },
+  "SzYzw34K": {
+    "aliases": [
+      "Oviedo"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Oviedo",
+    "rotowire_seen": []
+  },
+  "Szrwix67": {
+    "aliases": [
+      "Philadelphia Union"
+    ],
+    "league": "USA > MLS",
+    "name": "Philadelphia Union",
+    "rotowire_seen": []
+  },
+  "U3ebh62R": {
+    "aliases": [
+      "Los Angeles Galaxy"
+    ],
+    "league": "USA > MLS",
+    "name": "Los Angeles Galaxy",
+    "rotowire_seen": []
+  },
+  "UB73mIXI": {
+    "aliases": [
+      "UNAM Pumas"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "UNAM Pumas",
+    "rotowire_seen": []
+  },
   "UDg08Ohm": {
     "aliases": [],
     "league": "England > Premier League",
     "name": "Tottenham",
+    "rotowire_seen": [
+      "Tottenham Hotspur"
+    ]
+  },
+  "UJOGLItN": {
+    "aliases": [
+      "Real Sociedad B"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Real Sociedad B",
+    "rotowire_seen": []
+  },
+  "ULK83EjM": {
+    "aliases": [
+      "St Johnstone"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "St Johnstone",
+    "rotowire_seen": []
+  },
+  "ULVIb27i": {
+    "aliases": [
+      "KV Mechelen"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "KV Mechelen",
+    "rotowire_seen": []
+  },
+  "UNA6IKFC": {
+    "aliases": [
+      "Venlo"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Venlo",
     "rotowire_seen": []
   },
   "UPrP2SMS": {
@@ -734,10 +2601,98 @@
     "name": "Lazio",
     "rotowire_seen": []
   },
+  "URqHJiim": {
+    "aliases": [
+      "Al Diriyah"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Diriyah",
+    "rotowire_seen": []
+  },
+  "UVatI5Y2": {
+    "aliases": [
+      "Independiente"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Independiente",
+    "rotowire_seen": []
+  },
+  "UanWW9fq": {
+    "aliases": [
+      "Al Khaleej"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Khaleej",
+    "rotowire_seen": []
+  },
+  "UeD7XtzM": {
+    "aliases": [
+      "Bahia"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Bahia",
+    "rotowire_seen": []
+  },
+  "UgPj1p1N": {
+    "aliases": [
+      "Grenoble"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Grenoble",
+    "rotowire_seen": []
+  },
+  "UirAofN6": {
+    "aliases": [
+      "Albacete"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Albacete",
+    "rotowire_seen": []
+  },
   "UkzXzc1n": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "ML Vitebsk (Blr)",
+    "rotowire_seen": []
+  },
+  "Um9YwPQ0": {
+    "aliases": [
+      "Pogon Szczecin"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Pogon Szczecin",
+    "rotowire_seen": []
+  },
+  "UoAxb1Tq": {
+    "aliases": [
+      "Athletico-PR"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Athletico-PR",
+    "rotowire_seen": []
+  },
+  "UovQtopk": {
+    "aliases": [
+      "Goteborg"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Goteborg",
+    "rotowire_seen": []
+  },
+  "Us6gkXaT": {
+    "aliases": [
+      "U. Cluj"
+    ],
+    "league": "Romania > Superliga",
+    "name": "U. Cluj",
+    "rotowire_seen": []
+  },
+  "UsCR8gFd": {
+    "aliases": [
+      "Velez Sarsfield"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Velez Sarsfield",
     "rotowire_seen": []
   },
   "UsushcZr": {
@@ -754,6 +2709,14 @@
     "name": "Sutjeska (Mne)",
     "rotowire_seen": []
   },
+  "UwAwNo2E": {
+    "aliases": [
+      "Chicago Fire"
+    ],
+    "league": "USA > MLS",
+    "name": "Chicago Fire",
+    "rotowire_seen": []
+  },
   "W00wmLO0": {
     "aliases": [
       "Aston Villa",
@@ -763,12 +2726,45 @@
     "name": "Aston Villa",
     "rotowire_seen": []
   },
+  "W02MZDnp": {
+    "aliases": [
+      "Sudtirol"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Sudtirol",
+    "rotowire_seen": []
+  },
+  "W0X2VHyL": {
+    "aliases": [
+      "FC Kharkiv"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "FC Kharkiv",
+    "rotowire_seen": []
+  },
+  "W0ealpQl": {
+    "aliases": [
+      "Real Salt Lake"
+    ],
+    "league": "USA > MLS",
+    "name": "Real Salt Lake",
+    "rotowire_seen": []
+  },
+  "W6u0d7B3": {
+    "aliases": [
+      "Hacken"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Hacken",
+    "rotowire_seen": []
+  },
   "W8mj7MDD": {
     "aliases": [
-      "Real Madrid CF",
-      "RMA"
+      "RMA",
+      "Real Madrid",
+      "Real Madrid CF"
     ],
-    "league": "Europe > Champions League",
+    "league": "Spain > LaLiga",
     "name": "Real Madrid",
     "rotowire_seen": []
   },
@@ -778,10 +2774,74 @@
     "name": "FC Koln",
     "rotowire_seen": []
   },
+  "WIOwwITb": {
+    "aliases": [
+      "Horsens"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Horsens",
+    "rotowire_seen": []
+  },
+  "WIPDJ0hb": {
+    "aliases": [
+      "Charleroi"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Charleroi",
+    "rotowire_seen": []
+  },
+  "WIoSeFi4": {
+    "aliases": [
+      "FC Voluntari"
+    ],
+    "league": "Romania > Superliga",
+    "name": "FC Voluntari",
+    "rotowire_seen": []
+  },
   "WSzc94ws": {
     "aliases": [],
     "league": "England > Premier League",
     "name": "Sunderland",
+    "rotowire_seen": []
+  },
+  "WUaDzzzG": {
+    "aliases": [
+      "Livyi Bereg"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Livyi Bereg",
+    "rotowire_seen": []
+  },
+  "Wd10iFbk": {
+    "aliases": [
+      "Lausanne"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Lausanne",
+    "rotowire_seen": []
+  },
+  "WjJkJilj": {
+    "aliases": [
+      "Al Taawon"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Taawon",
+    "rotowire_seen": []
+  },
+  "WjxY29qB": {
+    "aliases": [
+      "Flamengo RJ"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Flamengo RJ",
+    "rotowire_seen": []
+  },
+  "WnmFp9Kg": {
+    "aliases": [
+      "Gorica"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Gorica",
     "rotowire_seen": []
   },
   "Wtn9Stg0": {
@@ -793,10 +2853,106 @@
     "name": "Manchester City",
     "rotowire_seen": []
   },
+  "Wv0GNPrm": {
+    "aliases": [
+      "Varazdin"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Varazdin",
+    "rotowire_seen": []
+  },
+  "WvuRTpSq": {
+    "aliases": [
+      "Bucheon FC 1995"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Bucheon FC 1995",
+    "rotowire_seen": []
+  },
+  "Y5TaMKY6": {
+    "aliases": [
+      "Guadalajara Chivas"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Guadalajara Chivas",
+    "rotowire_seen": []
+  },
+  "Y9yh1J7G": {
+    "aliases": [
+      "Lanus"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Lanus",
+    "rotowire_seen": []
+  },
+  "YFCpigVG": {
+    "aliases": [
+      "FC Rapid Bucuresti"
+    ],
+    "league": "Romania > Superliga",
+    "name": "FC Rapid Bucuresti",
+    "rotowire_seen": []
+  },
+  "YFuz2RLm": {
+    "aliases": [
+      "Magdeburg"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Magdeburg",
+    "rotowire_seen": []
+  },
   "YH8HX5iP": {
     "aliases": [],
     "league": "Netherlands > Eredivisie",
     "name": "Sittard",
+    "rotowire_seen": []
+  },
+  "YJaj0Opm": {
+    "aliases": [
+      "Eindhoven FC"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Eindhoven FC",
+    "rotowire_seen": []
+  },
+  "YL2QybFe": {
+    "aliases": [
+      "St Etienne"
+    ],
+    "league": "France > Ligue 2",
+    "name": "St Etienne",
+    "rotowire_seen": []
+  },
+  "YPQnAtpC": {
+    "aliases": [
+      "Maastricht"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Maastricht",
+    "rotowire_seen": []
+  },
+  "YXDi6MHo": {
+    "aliases": [
+      "Young Boys"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "Young Boys",
+    "rotowire_seen": []
+  },
+  "YZFeqj3D": {
+    "aliases": [
+      "Al Hazem"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Hazem",
+    "rotowire_seen": []
+  },
+  "Ya23C2Zs": {
+    "aliases": [
+      "Monterrey"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Monterrey",
     "rotowire_seen": []
   },
   "YagoQJpq": {
@@ -805,16 +2961,56 @@
     "name": "Nice",
     "rotowire_seen": []
   },
+  "YazuCbCE": {
+    "aliases": [
+      "Konyaspor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Konyaspor",
+    "rotowire_seen": []
+  },
   "YmQyLBJf": {
     "aliases": [],
     "league": "Portugal > Liga Portugal",
     "name": "Santa Clara",
     "rotowire_seen": []
   },
+  "YouAGdPF": {
+    "aliases": [
+      "Levadiakos"
+    ],
+    "league": "Greece > Super League",
+    "name": "Levadiakos",
+    "rotowire_seen": []
+  },
   "Yq1P1sCB": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Tre Fiori (San)",
+    "rotowire_seen": []
+  },
+  "YqP5NmC1": {
+    "aliases": [
+      "Basaksehir"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Basaksehir",
+    "rotowire_seen": []
+  },
+  "Ys4YYBPn": {
+    "aliases": [
+      "FK Pardubice"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "FK Pardubice",
+    "rotowire_seen": []
+  },
+  "YuW7ZfMM": {
+    "aliases": [
+      "Motherwell"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Motherwell",
     "rotowire_seen": []
   },
   "b5j3Rktc": {
@@ -824,9 +3020,19 @@
     "rotowire_seen": []
   },
   "bB3JbZpA": {
-    "aliases": [],
-    "league": "Netherlands > Eredivisie",
+    "aliases": [
+      "Heracles"
+    ],
+    "league": "Netherlands > Eerste Divisie",
     "name": "Heracles",
+    "rotowire_seen": []
+  },
+  "bF5XL0H9": {
+    "aliases": [
+      "Kawasaki Frontale"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Kawasaki Frontale",
     "rotowire_seen": []
   },
   "bHbMply6": {
@@ -835,19 +3041,92 @@
     "name": "Lincoln (Gib)",
     "rotowire_seen": []
   },
+  "bJewAOTf": {
+    "aliases": [
+      "GAIS"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "GAIS",
+    "rotowire_seen": []
+  },
+  "bN0dYbAh": {
+    "aliases": [
+      "Obolon"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Obolon",
+    "rotowire_seen": []
+  },
   "bPdl4V8N": {
     "aliases": [],
     "league": "Norway > Eliteserien",
     "name": "Fredrikstad",
     "rotowire_seen": []
   },
+  "bTObIPJB": {
+    "aliases": [
+      "OFI Crete"
+    ],
+    "league": "Greece > Super League",
+    "name": "OFI Crete",
+    "rotowire_seen": []
+  },
   "bXAgOWwb": {
     "aliases": [
       "Viking FK",
-      "Viking Stavanger"
+      "Viking Stavanger",
+      "Viking"
     ],
-    "league": "Europe > Champions League",
+    "league": "Norway > Eliteserien",
     "name": "Viking",
+    "rotowire_seen": []
+  },
+  "baN9J93D": {
+    "aliases": [
+      "Vizela"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Vizela",
+    "rotowire_seen": []
+  },
+  "bcsfIr0i": {
+    "aliases": [
+      "Grazer AK"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Grazer AK",
+    "rotowire_seen": []
+  },
+  "beCr775U": {
+    "aliases": [
+      "Bukovyna"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Bukovyna",
+    "rotowire_seen": []
+  },
+  "bkDdeAvA": {
+    "aliases": [
+      "Talleres Cordoba"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Talleres Cordoba",
+    "rotowire_seen": []
+  },
+  "bkxMEx1T": {
+    "aliases": [
+      "St. Gallen"
+    ],
+    "league": "Switzerland > Super League",
+    "name": "St. Gallen",
+    "rotowire_seen": []
+  },
+  "bm8usLzB": {
+    "aliases": [
+      "Portland Timbers"
+    ],
+    "league": "USA > MLS",
+    "name": "Portland Timbers",
     "rotowire_seen": []
   },
   "bsd9fGaK": {
@@ -855,8 +3134,8 @@
       "Univ. Craiova",
       "Universitatea Craiova"
     ],
-    "league": "Europe > Champions League",
-    "name": "Univ. Craiova (Rou)",
+    "league": "Romania > Superliga",
+    "name": "Univ. Craiova",
     "rotowire_seen": []
   },
   "bwWOjXUP": {
@@ -871,10 +3150,50 @@
     "name": "Genoa",
     "rotowire_seen": []
   },
+  "d2EjBxMM": {
+    "aliases": [
+      "St. Truiden"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "St. Truiden",
+    "rotowire_seen": []
+  },
   "d2nnj1IE": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Rennes",
+    "rotowire_seen": []
+  },
+  "dIvQQaE7": {
+    "aliases": [
+      "Dijon"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Dijon",
+    "rotowire_seen": []
+  },
+  "dOlaIG4l": {
+    "aliases": [
+      "Kasimpasa"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Kasimpasa",
+    "rotowire_seen": []
+  },
+  "dboeiWOt": {
+    "aliases": [
+      "Getafe"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Getafe",
+    "rotowire_seen": []
+  },
+  "dfNCCCzS": {
+    "aliases": [
+      "Hannover"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Hannover",
     "rotowire_seen": []
   },
   "dhOKTHGA": {
@@ -889,10 +3208,58 @@
     "name": "Iberia 1999 (Geo)",
     "rotowire_seen": []
   },
+  "dhnNlCE9": {
+    "aliases": [
+      "Petrolul"
+    ],
+    "league": "Romania > Superliga",
+    "name": "Petrolul",
+    "rotowire_seen": []
+  },
+  "dnIrsS0A": {
+    "aliases": [
+      "Nancy"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Nancy",
+    "rotowire_seen": []
+  },
   "dpUer7ht": {
     "aliases": [],
     "league": "Portugal > Liga Portugal",
     "name": "Braga",
+    "rotowire_seen": []
+  },
+  "drA4fSL4": {
+    "aliases": [
+      "Sigma Olomouc"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Sigma Olomouc",
+    "rotowire_seen": []
+  },
+  "f3sGNX3j": {
+    "aliases": [
+      "Polissya Zhytomyr"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Polissya Zhytomyr",
+    "rotowire_seen": []
+  },
+  "f5Fnxcx4": {
+    "aliases": [
+      "Hibernian"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Hibernian",
+    "rotowire_seen": []
+  },
+  "fBe1n304": {
+    "aliases": [
+      "Tirol"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Tirol",
     "rotowire_seen": []
   },
   "fJqfm7CG": {
@@ -910,6 +3277,14 @@
     "name": "Sabah Baku",
     "rotowire_seen": []
   },
+  "fT0n14Vt": {
+    "aliases": [
+      "Dordrecht"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Dordrecht",
+    "rotowire_seen": []
+  },
   "fTVNku3I": {
     "aliases": [],
     "league": "Germany > Bundesliga",
@@ -917,6 +3292,22 @@
     "rotowire_seen": [
       "FC Augsburg"
     ]
+  },
+  "fX7MRdvd": {
+    "aliases": [
+      "Sanfrecce Hiroshima"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Sanfrecce Hiroshima",
+    "rotowire_seen": []
+  },
+  "fZS33RAH": {
+    "aliases": [
+      "Kyoto"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Kyoto",
+    "rotowire_seen": []
   },
   "fiEQZ7C7": {
     "aliases": [],
@@ -926,15 +3317,49 @@
       "SC Freiburg"
     ]
   },
+  "fqJAznPc": {
+    "aliases": [
+      "Queretaro"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Queretaro",
+    "rotowire_seen": []
+  },
   "fsfAHubD": {
     "aliases": [],
     "league": "France > Ligue 1",
     "name": "Troyes",
     "rotowire_seen": []
   },
+  "fsn6KO1s": {
+    "aliases": [
+      "Epitsentr"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Epitsentr",
+    "rotowire_seen": []
+  },
+  "fuXqHnxa": {
+    "aliases": [
+      "Bohemians"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Bohemians",
+    "rotowire_seen": []
+  },
+  "h2QDTB2A": {
+    "aliases": [
+      "Kifisia"
+    ],
+    "league": "Greece > Super League",
+    "name": "Kifisia",
+    "rotowire_seen": []
+  },
   "h8oAv4Ts": {
-    "aliases": [],
-    "league": "",
+    "aliases": [
+      "Sevilla"
+    ],
+    "league": "Spain > LaLiga",
     "name": "Sevilla",
     "rotowire_seen": [
       "Sevilla"
@@ -949,16 +3374,72 @@
     "name": "Arsenal",
     "rotowire_seen": []
   },
+  "hCg2iHl4": {
+    "aliases": [
+      "Istra 1961"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Istra 1961",
+    "rotowire_seen": []
+  },
+  "hEbtKvnM": {
+    "aliases": [
+      "Kashiwa Reysol"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Kashiwa Reysol",
+    "rotowire_seen": []
+  },
+  "hG4fg4z3": {
+    "aliases": [
+      "Carrarese"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Carrarese",
+    "rotowire_seen": []
+  },
   "hG8POBb8": {
     "aliases": [],
     "league": "Netherlands > Eredivisie",
     "name": "G.A. Eagles",
     "rotowire_seen": []
   },
+  "hGLC5Bah": {
+    "aliases": [
+      "Atletico-MG"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Atletico-MG",
+    "rotowire_seen": []
+  },
   "hKIRewt8": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Floriana (Mlt)",
+    "rotowire_seen": []
+  },
+  "hKSfjtsQ": {
+    "aliases": [
+      "Juve Stabia"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Juve Stabia",
+    "rotowire_seen": []
+  },
+  "hMn9FTbH": {
+    "aliases": [
+      "Palmeiras"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Palmeiras",
+    "rotowire_seen": []
+  },
+  "hMrWAFH0": {
+    "aliases": [
+      "Boca Juniors"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Boca Juniors",
     "rotowire_seen": []
   },
   "hQAtP9Sl": {
@@ -969,21 +3450,93 @@
       "1899 Hoffenheim"
     ]
   },
+  "hSPZwbEh": {
+    "aliases": [
+      "FC Copenhagen"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "FC Copenhagen",
+    "rotowire_seen": []
+  },
+  "hUuJfYbb": {
+    "aliases": [
+      "Entella"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Entella",
+    "rotowire_seen": []
+  },
+  "hW08cP6J": {
+    "aliases": [
+      "Barracas Central"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Barracas Central",
+    "rotowire_seen": []
+  },
+  "hYaM5Gqp": {
+    "aliases": [
+      "Westerlo"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Westerlo",
+    "rotowire_seen": []
+  },
+  "hd6UOqvB": {
+    "aliases": [
+      "Ascoli"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Ascoli",
+    "rotowire_seen": []
+  },
   "hdKpCN4d": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Vikingur Reykjavik (Ice)",
     "rotowire_seen": []
   },
+  "hdWjLJUJ": {
+    "aliases": [
+      "Cadiz CF"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Cadiz CF",
+    "rotowire_seen": []
+  },
+  "hfvQIzKf": {
+    "aliases": [
+      "Kocaelispor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Kocaelispor",
+    "rotowire_seen": []
+  },
+  "hjIyrgaj": {
+    "aliases": [
+      "Dundee FC"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Dundee FC",
+    "rotowire_seen": []
+  },
+  "hl74HAcF": {
+    "aliases": [
+      "V-Varen Nagasaki"
+    ],
+    "league": "Japan > J1 League",
+    "name": "V-Varen Nagasaki",
+    "rotowire_seen": []
+  },
   "hnzvnHPS": {
     "aliases": [
+      "OSFP",
       "Olympiacos",
       "Olympiacos FC",
-      "Olympiacos Piraeus",
-      "OSFP"
+      "Olympiacos Piraeus"
     ],
-    "league": "Europe > Champions League",
-    "name": "Olympiacos (Gre)",
+    "league": "Greece > Super League",
+    "name": "Olympiacos Piraeus",
     "rotowire_seen": []
   },
   "hrYABE5k": {
@@ -999,17 +3552,75 @@
     "rotowire_seen": []
   },
   "hxt57t2q": {
-    "aliases": [],
-    "league": "",
+    "aliases": [
+      "Alaves"
+    ],
+    "league": "Spain > LaLiga",
     "name": "Alaves",
     "rotowire_seen": [
       "Deportivo Alaves"
     ]
   },
+  "hxxcePl9": {
+    "aliases": [
+      "Al Hilal"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Hilal",
+    "rotowire_seen": []
+  },
   "j9PptHXf": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Klaksvik (Fai)",
+    "rotowire_seen": []
+  },
+  "j9Wy32w4": {
+    "aliases": [
+      "FK Zorya Luhansk"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "FK Zorya Luhansk",
+    "rotowire_seen": []
+  },
+  "j9cigLCr": {
+    "aliases": [
+      "CF Montreal"
+    ],
+    "league": "USA > MLS",
+    "name": "CF Montreal",
+    "rotowire_seen": []
+  },
+  "jNvak2f3": {
+    "aliases": [
+      "Real Sociedad"
+    ],
+    "league": "Spain > LaLiga",
+    "name": "Real Sociedad",
+    "rotowire_seen": []
+  },
+  "jPDfAdyT": {
+    "aliases": [
+      "Waregem"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Waregem",
+    "rotowire_seen": []
+  },
+  "jPojkLXK": {
+    "aliases": [
+      "Sochaux"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Sochaux",
+    "rotowire_seen": []
+  },
+  "jPr7ndS8": {
+    "aliases": [
+      "Leixoes"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Leixoes",
     "rotowire_seen": []
   },
   "jPzXLi4l": {
@@ -1018,14 +3629,39 @@
     "name": "Rio Ave",
     "rotowire_seen": []
   },
+  "jX8ezy7G": {
+    "aliases": [
+      "Kilmarnock"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Kilmarnock",
+    "rotowire_seen": []
+  },
+  "jXzWoWa5": {
+    "aliases": [
+      "Botafogo RJ"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Botafogo RJ",
+    "rotowire_seen": []
+  },
   "jaarqpLQ": {
     "aliases": [
+      "Atl. Madrid",
+      "Atletico",
       "Atletico Madrid",
-      "Atlético de Madrid",
-      "Atletico"
+      "Atlético de Madrid"
     ],
-    "league": "Europe > Champions League",
+    "league": "Spain > LaLiga",
     "name": "Atl. Madrid",
+    "rotowire_seen": []
+  },
+  "jcQV3XP6": {
+    "aliases": [
+      "Chapecoense-SC"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Chapecoense-SC",
     "rotowire_seen": []
   },
   "jgNAYRGi": {
@@ -1034,16 +3670,112 @@
     "name": "Lorient",
     "rotowire_seen": []
   },
+  "jiDN9Zaj": {
+    "aliases": [
+      "Gimnasia L.P."
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Gimnasia L.P.",
+    "rotowire_seen": []
+  },
+  "jmBZNRn8": {
+    "aliases": [
+      "Colorado Rapids"
+    ],
+    "league": "USA > MLS",
+    "name": "Colorado Rapids",
+    "rotowire_seen": []
+  },
+  "ju1xJoJd": {
+    "aliases": [
+      "San Lorenzo"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "San Lorenzo",
+    "rotowire_seen": []
+  },
+  "jwKvKhGa": {
+    "aliases": [
+      "Bragantino"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Bragantino",
+    "rotowire_seen": []
+  },
+  "l0iuHPBQ": {
+    "aliases": [
+      "Club Leon"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Club Leon",
+    "rotowire_seen": []
+  },
   "l2DXxTjh": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Riga FC (Lat)",
     "rotowire_seen": []
   },
+  "l4h4ixdK": {
+    "aliases": [
+      "Ch. Odesa"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Ch. Odesa",
+    "rotowire_seen": []
+  },
+  "l6Iu2w06": {
+    "aliases": [
+      "Al Riyadh"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Riyadh",
+    "rotowire_seen": []
+  },
+  "l8oLwJhB": {
+    "aliases": [
+      "Vasteras SK"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Vasteras SK",
+    "rotowire_seen": []
+  },
+  "lAgLCkT3": {
+    "aliases": [
+      "Den Haag"
+    ],
+    "league": "Netherlands > Eredivisie",
+    "name": "Den Haag",
+    "rotowire_seen": []
+  },
+  "lGALDDtR": {
+    "aliases": [
+      "Penafiel"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Penafiel",
+    "rotowire_seen": []
+  },
   "lGMtZWUH": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "TNS (Wal)",
+    "rotowire_seen": []
+  },
+  "lI6ddlih": {
+    "aliases": [
+      "Ostrava"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Ostrava",
+    "rotowire_seen": []
+  },
+  "lIDaZJTc": {
+    "aliases": [
+      "Jagiellonia"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Jagiellonia",
     "rotowire_seen": []
   },
   "lId4TMwf": {
@@ -1056,19 +3788,126 @@
     "name": "Liverpool",
     "rotowire_seen": []
   },
+  "lKIgIV5b": {
+    "aliases": [
+      "Jong AZ"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Jong AZ",
+    "rotowire_seen": []
+  },
   "lUatW5jE": {
     "aliases": [
+      "Villarreal",
       "Villarreal CF",
       "Yellow Submarine"
     ],
-    "league": "Europe > Champions League",
+    "league": "Spain > LaLiga",
     "name": "Villarreal",
     "rotowire_seen": []
   },
+  "llpcIYF2": {
+    "aliases": [
+      "Estudiantes Rio Cuarto"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Estudiantes Rio Cuarto",
+    "rotowire_seen": []
+  },
+  "lnEqnhJf": {
+    "aliases": [
+      "Abha"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Abha",
+    "rotowire_seen": []
+  },
+  "lnS2YNhJ": {
+    "aliases": [
+      "Sabadell"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Sabadell",
+    "rotowire_seen": []
+  },
+  "lr2YMkTK": {
+    "aliases": [
+      "Union de Santa Fe"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Union de Santa Fe",
+    "rotowire_seen": []
+  },
+  "lvM1vra5": {
+    "aliases": [
+      "Waalwijk"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Waalwijk",
+    "rotowire_seen": []
+  },
+  "lvnOzIkE": {
+    "aliases": [
+      "Austria Vienna"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Austria Vienna",
+    "rotowire_seen": []
+  },
+  "lzqk4S68": {
+    "aliases": [
+      "AIK"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "AIK",
+    "rotowire_seen": []
+  },
+  "n38Nktmn": {
+    "aliases": [
+      "Palermo"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Palermo",
+    "rotowire_seen": []
+  },
+  "n3QdnjFB": {
+    "aliases": [
+      "Santos"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Santos",
+    "rotowire_seen": []
+  },
+  "nDZbFBqG": {
+    "aliases": [
+      "Volos"
+    ],
+    "league": "Greece > Super League",
+    "name": "Volos",
+    "rotowire_seen": []
+  },
+  "nF2Vy2D0": {
+    "aliases": [
+      "Almeria"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Almeria",
+    "rotowire_seen": []
+  },
   "nFFgCnVo": {
-    "aliases": [],
-    "league": "Portugal > Liga Portugal",
+    "aliases": [
+      "Tondela"
+    ],
+    "league": "Portugal > Liga Portugal 2",
     "name": "Tondela",
+    "rotowire_seen": []
+  },
+  "nHDF1ZUj": {
+    "aliases": [
+      "Falkirk"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "Falkirk",
     "rotowire_seen": []
   },
   "nJQmYp1B": {
@@ -1079,6 +3918,14 @@
     "name": "VfB Stuttgart",
     "rotowire_seen": []
   },
+  "nJbCGx2U": {
+    "aliases": [
+      "Sampdoria"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Sampdoria",
+    "rotowire_seen": []
+  },
   "nLBbqJDS": {
     "aliases": [],
     "league": "Europe > Champions League",
@@ -1086,15 +3933,33 @@
     "rotowire_seen": []
   },
   "nLNrHc14": {
-    "aliases": [],
-    "league": "Netherlands > Eredivisie",
+    "aliases": [
+      "NAC Breda"
+    ],
+    "league": "Netherlands > Eerste Divisie",
     "name": "NAC Breda",
+    "rotowire_seen": []
+  },
+  "nNNpcUSL": {
+    "aliases": [
+      "Girona"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Girona",
     "rotowire_seen": []
   },
   "nNlLsRUr": {
     "aliases": [],
     "league": "Netherlands > Eredivisie",
     "name": "Excelsior",
+    "rotowire_seen": []
+  },
+  "nNpqXMwH": {
+    "aliases": [
+      "Dyn. Kyiv"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Dyn. Kyiv",
     "rotowire_seen": []
   },
   "nP1i5US1": {
@@ -1114,9 +3979,11 @@
     "rotowire_seen": []
   },
   "nRluRF0T": {
-    "aliases": [],
-    "league": "Europe > Champions League",
-    "name": "Nijmegen (Ned)",
+    "aliases": [
+      "Nijmegen"
+    ],
+    "league": "Netherlands > Eredivisie",
+    "name": "Nijmegen",
     "rotowire_seen": []
   },
   "nVp0wiqd": {
@@ -1131,12 +3998,30 @@
     "rotowire_seen": []
   },
   "nVpEwOrl": {
-    "aliases": [],
-    "league": "",
+    "aliases": [
+      "Racing Santander"
+    ],
+    "league": "Spain > LaLiga",
     "name": "Racing Santander",
     "rotowire_seen": [
       "Racing Santander"
     ]
+  },
+  "naL1J006": {
+    "aliases": [
+      "De Graafschap"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "De Graafschap",
+    "rotowire_seen": []
+  },
+  "naWckLmC": {
+    "aliases": [
+      "Kaiserslautern"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Kaiserslautern",
+    "rotowire_seen": []
   },
   "ncRzHK14": {
     "aliases": [
@@ -1149,10 +4034,74 @@
     "name": "Red Star (Srb)",
     "rotowire_seen": []
   },
+  "ncrXAWGn": {
+    "aliases": [
+      "Al Ettifaq"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Ettifaq",
+    "rotowire_seen": []
+  },
+  "nkwO1uw4": {
+    "aliases": [
+      "Tigre"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Tigre",
+    "rotowire_seen": []
+  },
+  "nmVantfF": {
+    "aliases": [
+      "Kudrivka"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Kudrivka",
+    "rotowire_seen": []
+  },
+  "noguvetP": {
+    "aliases": [
+      "Maritimo"
+    ],
+    "league": "Portugal > Liga Portugal",
+    "name": "Maritimo",
+    "rotowire_seen": []
+  },
+  "nuNVeQkr": {
+    "aliases": [
+      "Club Tijuana"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Club Tijuana",
+    "rotowire_seen": []
+  },
+  "nw32pOQD": {
+    "aliases": [
+      "Necaxa"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Necaxa",
+    "rotowire_seen": []
+  },
+  "nwkTahLL": {
+    "aliases": [
+      "Wolfsburg"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Wolfsburg",
+    "rotowire_seen": []
+  },
   "nyrL8gfh": {
     "aliases": [],
     "league": "Norway > Eliteserien",
     "name": "Aalesund",
+    "rotowire_seen": []
+  },
+  "p2SkCHXs": {
+    "aliases": [
+      "Estudiantes L.P."
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Estudiantes L.P.",
     "rotowire_seen": []
   },
   "p6QXMgOj": {
@@ -1167,10 +4116,50 @@
     "name": "Newcastle",
     "rotowire_seen": []
   },
+  "pErwvM3s": {
+    "aliases": [
+      "Atlante"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Atlante",
+    "rotowire_seen": []
+  },
+  "pO5ijKm0": {
+    "aliases": [
+      "Puebla"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Puebla",
+    "rotowire_seen": []
+  },
+  "pQ8rarA7": {
+    "aliases": [
+      "Columbus Crew"
+    ],
+    "league": "USA > MLS",
+    "name": "Columbus Crew",
+    "rotowire_seen": []
+  },
+  "pQ8ryEe7": {
+    "aliases": [
+      "Mirassol"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Mirassol",
+    "rotowire_seen": []
+  },
   "pQYVZyD2": {
     "aliases": [],
     "league": "Portugal > Liga Portugal",
     "name": "Vitoria Guimaraes",
+    "rotowire_seen": []
+  },
+  "pSc6z7bf": {
+    "aliases": [
+      "Samsunspor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Samsunspor",
     "rotowire_seen": []
   },
   "pWGUPhrD": {
@@ -1182,9 +4171,10 @@
   "pfDZL71o": {
     "aliases": [
       "LOSC Lille",
+      "Lille",
       "Lille OSC"
     ],
-    "league": "Europe > Champions League",
+    "league": "France > Ligue 1",
     "name": "Lille",
     "rotowire_seen": []
   },
@@ -1200,10 +4190,42 @@
     "name": "Valerenga",
     "rotowire_seen": []
   },
+  "plvm35Pu": {
+    "aliases": [
+      "L.R. Vicenza"
+    ],
+    "league": "Italy > Serie B",
+    "name": "L.R. Vicenza",
+    "rotowire_seen": []
+  },
+  "pp38UXK8": {
+    "aliases": [
+      "Arminia Bielefeld"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "Arminia Bielefeld",
+    "rotowire_seen": []
+  },
   "pp5f19Wp": {
     "aliases": [],
     "league": "Norway > Eliteserien",
     "name": "HamKam",
+    "rotowire_seen": []
+  },
+  "pp78XcbA": {
+    "aliases": [
+      "Korona Kielce"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Korona Kielce",
+    "rotowire_seen": []
+  },
+  "ppNYGTQb": {
+    "aliases": [
+      "Verdy"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Verdy",
     "rotowire_seen": []
   },
   "ppjDR086": {
@@ -1215,6 +4237,14 @@
     ],
     "league": "England > Premier League",
     "name": "Manchester United",
+    "rotowire_seen": []
+  },
+  "prJ1QuXA": {
+    "aliases": [
+      "Incheon"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Incheon",
     "rotowire_seen": []
   },
   "pzHW4oaE": {
@@ -1229,10 +4259,98 @@
     "name": "Zwolle",
     "rotowire_seen": []
   },
+  "r3jWUIiN": {
+    "aliases": [
+      "Genk"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Genk",
+    "rotowire_seen": []
+  },
+  "r5DdTIZC": {
+    "aliases": [
+      "Arezzo"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Arezzo",
+    "rotowire_seen": []
+  },
+  "r9XWmtLq": {
+    "aliases": [
+      "Teplice"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Teplice",
+    "rotowire_seen": []
+  },
+  "rBgMi3MH": {
+    "aliases": [
+      "Dinamo Bucuresti"
+    ],
+    "league": "Romania > Superliga",
+    "name": "Dinamo Bucuresti",
+    "rotowire_seen": []
+  },
+  "rBi9iqU7": {
+    "aliases": [
+      "Elfsborg"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Elfsborg",
+    "rotowire_seen": []
+  },
+  "rJJl6Vtt": {
+    "aliases": [
+      "Cerezo Osaka"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Cerezo Osaka",
+    "rotowire_seen": []
+  },
+  "rJVAIaHo": {
+    "aliases": [
+      "Verona"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Verona",
+    "rotowire_seen": []
+  },
+  "rNOIW3uC": {
+    "aliases": [
+      "Widzew Lodz"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Widzew Lodz",
+    "rotowire_seen": []
+  },
+  "rVpPxw8H": {
+    "aliases": [
+      "Antwerp"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Antwerp",
+    "rotowire_seen": []
+  },
   "rXw8YKDE": {
     "aliases": [],
     "league": "Italy > Serie A",
     "name": "Udinese",
+    "rotowire_seen": []
+  },
+  "rZhSxrse": {
+    "aliases": [
+      "Benevento"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Benevento",
+    "rotowire_seen": []
+  },
+  "rejcUFSs": {
+    "aliases": [
+      "SK Rapid"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "SK Rapid",
     "rotowire_seen": []
   },
   "rgTHIK74": {
@@ -1240,18 +4358,27 @@
       "Brugge",
       "Club Brugge KV"
     ],
-    "league": "Europe > Champions League",
-    "name": "Club Brugge",
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Club Brugge KV",
     "rotowire_seen": []
   },
   "riaqqurF": {
     "aliases": [
-      "Galatasaray Istanbul",
       "GS",
-      "Gala"
+      "Gala",
+      "Galatasaray",
+      "Galatasaray Istanbul"
     ],
-    "league": "Europe > Champions League",
+    "league": "Turkey > Super Lig",
     "name": "Galatasaray",
+    "rotowire_seen": []
+  },
+  "rkrUu5ae": {
+    "aliases": [
+      "Kalmar"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Kalmar",
     "rotowire_seen": []
   },
   "roaMksQg": {
@@ -1260,10 +4387,100 @@
     "name": "Alverca",
     "rotowire_seen": []
   },
+  "roasMsOT": {
+    "aliases": [
+      "Pisa"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Pisa",
+    "rotowire_seen": []
+  },
+  "rob20Q2Q": {
+    "aliases": [
+      "Wisla"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Wisla",
+    "rotowire_seen": []
+  },
+  "rsHkUNCo": {
+    "aliases": [
+      "Orlando City"
+    ],
+    "league": "USA > MLS",
+    "name": "Orlando City",
+    "rotowire_seen": [
+      "Orlando City SC"
+    ]
+  },
+  "tAAobNse": {
+    "aliases": [
+      "Dunkerque"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Dunkerque",
+    "rotowire_seen": []
+  },
+  "tAVXZEyT": {
+    "aliases": [
+      "St. Mirren"
+    ],
+    "league": "Scotland > Premiership",
+    "name": "St. Mirren",
+    "rotowire_seen": []
+  },
+  "tCBNq3le": {
+    "aliases": [
+      "Karpaty Lviv"
+    ],
+    "league": "Ukraine > Premier League",
+    "name": "Karpaty Lviv",
+    "rotowire_seen": []
+  },
+  "tItR6sEf": {
+    "aliases": [
+      "Reims"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Reims",
+    "rotowire_seen": []
+  },
+  "tSCiHj0I": {
+    "aliases": [
+      "Internacional"
+    ],
+    "league": "Brazil > Serie A Betano",
+    "name": "Internacional",
+    "rotowire_seen": []
+  },
+  "tUXLozTN": {
+    "aliases": [
+      "Odense"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Odense",
+    "rotowire_seen": []
+  },
   "tUxUbLR2": {
     "aliases": [],
     "league": "England > Premier League",
     "name": "Leeds",
+    "rotowire_seen": []
+  },
+  "tYNTdpar": {
+    "aliases": [
+      "Malmo FF"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Malmo FF",
+    "rotowire_seen": []
+  },
+  "thZLLx6g": {
+    "aliases": [
+      "Lusitania FC"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Lusitania FC",
     "rotowire_seen": []
   },
   "thqhB2MB": {
@@ -1275,22 +4492,71 @@
     "name": "Ipswich Town",
     "rotowire_seen": []
   },
+  "tjPFkxq5": {
+    "aliases": [
+      "Lyngby"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Lyngby",
+    "rotowire_seen": []
+  },
+  "tlYOere0": {
+    "aliases": [
+      "Zaglebie"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Zaglebie",
+    "rotowire_seen": []
+  },
   "tljXuHBC": {
     "aliases": [
       "Sporting CP",
-      "Sporting Lisbon",
-      "Sporting Clube de Portugal"
+      "Sporting Clube de Portugal",
+      "Sporting Lisbon"
     ],
-    "league": "Europe > Champions League",
-    "name": "Sporting",
+    "league": "Portugal > Liga Portugal",
+    "name": "Sporting CP",
+    "rotowire_seen": []
+  },
+  "tr3oe8I8": {
+    "aliases": [
+      "New England Revolution"
+    ],
+    "league": "USA > MLS",
+    "name": "New England Revolution",
     "rotowire_seen": []
   },
   "ttyLthOA": {
     "aliases": [
+      "Como",
       "Como 1907"
     ],
-    "league": "Europe > Champions League",
+    "league": "Italy > Serie A",
     "name": "Como",
+    "rotowire_seen": []
+  },
+  "tvQZtrTd": {
+    "aliases": [
+      "Al Qadsiah"
+    ],
+    "league": "Saudi Arabia > Saudi Professional League",
+    "name": "Al Qadsiah",
+    "rotowire_seen": []
+  },
+  "txUJt9AR": {
+    "aliases": [
+      "Los Angeles FC"
+    ],
+    "league": "USA > MLS",
+    "name": "Los Angeles FC",
+    "rotowire_seen": []
+  },
+  "v99EsEjo": {
+    "aliases": [
+      "Viborg"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Viborg",
     "rotowire_seen": []
   },
   "v9k3aY5F": {
@@ -1299,21 +4565,175 @@
     "name": "Hamburger SV",
     "rotowire_seen": []
   },
+  "vDpqgnYn": {
+    "aliases": [
+      "Okayama"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Okayama",
+    "rotowire_seen": []
+  },
+  "vFXjbHms": {
+    "aliases": [
+      "Hradec Kralove"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Hradec Kralove",
+    "rotowire_seen": []
+  },
+  "vFZJewv4": {
+    "aliases": [
+      "Jeju SK"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Jeju SK",
+    "rotowire_seen": []
+  },
   "vJbTeCGP": {
     "aliases": [
+      "Betis",
       "Real Betis",
       "Real Betis Balompie"
     ],
-    "league": "Europe > Champions League",
+    "league": "Spain > LaLiga",
     "name": "Betis",
+    "rotowire_seen": []
+  },
+  "vNt65kUG": {
+    "aliases": [
+      "FC Porto B"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "FC Porto B",
+    "rotowire_seen": []
+  },
+  "vPgupwAd": {
+    "aliases": [
+      "Shimizu S-Pulse"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Shimizu S-Pulse",
+    "rotowire_seen": []
+  },
+  "vTxTEFi6": {
+    "aliases": [
+      "Burgos CF"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Burgos CF",
+    "rotowire_seen": []
+  },
+  "vXr8fotG": {
+    "aliases": [
+      "Sirius"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Sirius",
+    "rotowire_seen": []
+  },
+  "vZraQYnO": {
+    "aliases": [
+      "New York City"
+    ],
+    "league": "USA > MLS",
+    "name": "New York City",
+    "rotowire_seen": []
+  },
+  "ve2oT9ck": {
+    "aliases": [
+      "Piast Gliwice"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Piast Gliwice",
+    "rotowire_seen": []
+  },
+  "veuetnGG": {
+    "aliases": [
+      "Nantes"
+    ],
+    "league": "France > Ligue 2",
+    "name": "Nantes",
     "rotowire_seen": []
   },
   "viXGgnyB": {
     "aliases": [
-      "SK Slavia Praha"
+      "SK Slavia Praha",
+      "Slavia Prague"
     ],
-    "league": "Europe > Champions League",
+    "league": "Czech Republic > Chance Liga",
     "name": "Slavia Prague",
+    "rotowire_seen": []
+  },
+  "vslqAKNo": {
+    "aliases": [
+      "Anderlecht"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "Anderlecht",
+    "rotowire_seen": []
+  },
+  "vsnvCI6G": {
+    "aliases": [
+      "St. Liege"
+    ],
+    "league": "Belgium > Jupiler Pro League",
+    "name": "St. Liege",
+    "rotowire_seen": []
+  },
+  "vuU6Cfjq": {
+    "aliases": [
+      "Academica"
+    ],
+    "league": "Portugal > Liga Portugal 2",
+    "name": "Academica",
+    "rotowire_seen": []
+  },
+  "vyrswtJm": {
+    "aliases": [
+      "Club America"
+    ],
+    "league": "Mexico > Liga MX",
+    "name": "Club America",
+    "rotowire_seen": []
+  },
+  "x05z14ue": {
+    "aliases": [
+      "San Jose Earthquakes"
+    ],
+    "league": "USA > MLS",
+    "name": "San Jose Earthquakes",
+    "rotowire_seen": []
+  },
+  "x0NnnfrU": {
+    "aliases": [
+      "Randers FC"
+    ],
+    "league": "Denmark > Superliga",
+    "name": "Randers FC",
+    "rotowire_seen": []
+  },
+  "x0hNfcgA": {
+    "aliases": [
+      "Jeonbuk"
+    ],
+    "league": "South Korea > K League 1",
+    "name": "Jeonbuk",
+    "rotowire_seen": []
+  },
+  "xKbLXKij": {
+    "aliases": [
+      "Wolfsberger AC"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Wolfsberger AC",
+    "rotowire_seen": []
+  },
+  "xQZ3CpVE": {
+    "aliases": [
+      "Erzurumspor"
+    ],
+    "league": "Turkey > Super Lig",
+    "name": "Erzurumspor",
     "rotowire_seen": []
   },
   "xYWBZlwN": {
@@ -1328,10 +4748,50 @@
     "name": "Brentford",
     "rotowire_seen": []
   },
+  "xd3lGq3F": {
+    "aliases": [
+      "Huracan"
+    ],
+    "league": "Argentina > Liga Profesional",
+    "name": "Huracan",
+    "rotowire_seen": []
+  },
+  "xdFA0eGc": {
+    "aliases": [
+      "Vitesse"
+    ],
+    "league": "Netherlands > Eerste Divisie",
+    "name": "Vitesse",
+    "rotowire_seen": []
+  },
+  "xddf1qfh": {
+    "aliases": [
+      "Cesena"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Cesena",
+    "rotowire_seen": []
+  },
   "xlT9cL89": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Ararat-Armenia (Arm)",
+    "rotowire_seen": []
+  },
+  "xpWAk3h6": {
+    "aliases": [
+      "Ceuta"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Ceuta",
+    "rotowire_seen": []
+  },
+  "z7WK5Pwb": {
+    "aliases": [
+      "Mantova"
+    ],
+    "league": "Italy > Serie B",
+    "name": "Mantova",
     "rotowire_seen": []
   },
   "zBkyuyRI": {
@@ -1340,28 +4800,125 @@
     "name": "Benfica",
     "rotowire_seen": []
   },
+  "zD5nYhAT": {
+    "aliases": [
+      "Radomiak Radom"
+    ],
+    "league": "Poland > Ekstraklasa",
+    "name": "Radomiak Radom",
+    "rotowire_seen": []
+  },
+  "zHLktbZ1": {
+    "aliases": [
+      "Artis Brno"
+    ],
+    "league": "Czech Republic > Chance Liga",
+    "name": "Artis Brno",
+    "rotowire_seen": []
+  },
+  "zL1YsOi1": {
+    "aliases": [
+      "SG Dynamo Dresden"
+    ],
+    "league": "Germany > 2. Bundesliga",
+    "name": "SG Dynamo Dresden",
+    "rotowire_seen": []
+  },
   "zLFV5ykn": {
     "aliases": [],
     "league": "Europe > Champions League",
     "name": "Flora (Est)",
     "rotowire_seen": []
   },
+  "zLQAGOBK": {
+    "aliases": [
+      "Gamba Osaka"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Gamba Osaka",
+    "rotowire_seen": []
+  },
+  "zNLhJb1S": {
+    "aliases": [
+      "Chiba"
+    ],
+    "league": "Japan > J1 League",
+    "name": "Chiba",
+    "rotowire_seen": []
+  },
+  "zNSwBuue": {
+    "aliases": [
+      "Degerfors"
+    ],
+    "league": "Sweden > Allsvenskan",
+    "name": "Degerfors",
+    "rotowire_seen": []
+  },
+  "zV5YmQAr": {
+    "aliases": [
+      "New York Red Bulls"
+    ],
+    "league": "USA > MLS",
+    "name": "New York Red Bulls",
+    "rotowire_seen": []
+  },
   "zVqqL0ma": {
     "aliases": [
-      "Roma",
-      "Associazione Sportiva Roma"
+      "AS Roma",
+      "Associazione Sportiva Roma",
+      "Roma"
     ],
-    "league": "Europe > Champions League",
+    "league": "Italy > Serie A",
     "name": "AS Roma",
+    "rotowire_seen": []
+  },
+  "zXFxsw2a": {
+    "aliases": [
+      "Minnesota United"
+    ],
+    "league": "USA > MLS",
+    "name": "Minnesota United",
+    "rotowire_seen": []
+  },
+  "zXKuUR5J": {
+    "aliases": [
+      "Rijeka"
+    ],
+    "league": "Croatia > HNL",
+    "name": "Rijeka",
+    "rotowire_seen": []
+  },
+  "zcDa6MTF": {
+    "aliases": [
+      "Hartberg"
+    ],
+    "league": "Austria > Bundesliga",
+    "name": "Hartberg",
+    "rotowire_seen": []
+  },
+  "zkpajjvm": {
+    "aliases": [
+      "Valladolid"
+    ],
+    "league": "Spain > LaLiga2",
+    "name": "Valladolid",
+    "rotowire_seen": []
+  },
+  "zsdfgnmL": {
+    "aliases": [
+      "Toronto FC"
+    ],
+    "league": "USA > MLS",
+    "name": "Toronto FC",
     "rotowire_seen": []
   },
   "zsktjfsD": {
     "aliases": [
-      "Sturm Graz",
-      "SK Sturm Graz"
+      "SK Sturm Graz",
+      "Sturm Graz"
     ],
-    "league": "Europe > Champions League",
-    "name": "Sturm Graz (Aut)",
+    "league": "Austria > Bundesliga",
+    "name": "Sturm Graz",
     "rotowire_seen": []
   }
 }
