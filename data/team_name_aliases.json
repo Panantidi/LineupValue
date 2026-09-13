@@ -210,7 +210,9 @@
     "aliases": [],
     "league": "England > Premier League",
     "name": "Brighton",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "Brighton & Hove Albion"
+    ]
   },
   "2akflumR": {
     "aliases": [
@@ -713,7 +715,9 @@
     ],
     "league": "Germany > Bundesliga",
     "name": "SV Elversberg",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "SV 07 Elversberg"
+    ]
   },
   "6oCa40nb": {
     "aliases": [
@@ -2203,7 +2207,8 @@
   },
   "Q51ZzMS6": {
     "aliases": [
-      "Dep. A Coruna"
+      "Dep. A Coruna",
+      "Deportivo"
     ],
     "league": "Spain > LaLiga",
     "name": "Dep. A Coruna",
