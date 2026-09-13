@@ -92,6 +92,8 @@ STATUS_KEYWORDS = [
 
 # Boilerplate paragraphs to strip from body (author bios, link lists)
 BOILERPLATE_PARAS = (
+    "Posibles alineaciones ",
+    "Posibles alineaciones",
     "Jugadores lesionados",
     "Jugadores sancionados",
     "Jugadores apercibidos",
@@ -173,6 +175,23 @@ def text_only(html_str):
     return s
 
 
+def is_team_level(h1, body_paras):
+    """Return True if the article is about the team (convocatoria, training
+    session, descanso) rather than a specific player. We treat these as
+    noise: the user only wants per-player status news.
+    """
+    # Pattern-based: any forbidden pattern in h1
+    for pat in _TEAM_LEVEL_H1_PATTERNS:
+        if pat.search(h1):
+            return True
+    # H1 starts with a team name (e.g. "Osasuna cita...", "Racing retoma...")
+    head = h1.lstrip(" ,.").lower()
+    for tok in _TEAM_LEVEL_H1_TEAM_TOKENS:
+        if head.startswith(tok.lower()):
+            return True
+    return False
+
+
 def detect_status(h1, entradilla):
     """Walk STATUS_KEYWORDS over h1+entradilla, return (emoji, label) or None."""
     blob = f"{h1}  {entradilla}"
@@ -201,6 +220,40 @@ def extract_player_name(h1):
     if m:
         return m.group(1).strip()
     return s.split(" ", 1)[0] if s else ""
+
+
+# Phrases / patterns that mark an article as TEAM-level (not about one player).
+# The article is team-level if its h1 (or the first sentence of the body)
+# is about the squad as a whole.
+_TEAM_LEVEL_H1_PATTERNS = [
+    re.compile(r"\bconvocator", re.I),     # "Osasuna cita a 23 jugadores..."
+    re.compile(r"\bconvoca\b", re.I),
+    re.compile(r"\b23 jugadores\b", re.I),
+    re.compile(r"\b\d+\s+convocad", re.I),
+    re.compile(r"\blista\s+de\s+convocad", re.I),
+    re.compile(r"\bprepara(?:n|r|ción)?\b", re.I),  # "prepara la cita", "se prepara"
+    re.compile(r"\bdescansan?\b", re.I),    # "El Athletic descansa con Guruzeta..."
+    re.compile(r"\bultima\s+sesi[oó]n\b", re.I),   # "Barcelona completa la última sesión"
+    re.compile(r"\bsesi[oó]n\s+prev", re.I),
+    re.compile(r"\bretoman?\s+los?\s+entren", re.I),
+    re.compile(r"\bretoma\s+el\s+trabajo\b", re.I),
+    re.compile(r"\bplan\s+de\s+trabajo\b", re.I),
+    re.compile(r"\bviaja(?:n|r)?\b", re.I),  # team travels
+    re.compile(r"\bposibles\s+alineaciones\b", re.I),  # bookmark/title suffix
+    re.compile(r"\bparte\s+m[eé]dico\s+oficial\s+de\b", re.I),  # generic
+]
+_TEAM_LEVEL_H1_TEAM_TOKENS = (
+    "El Barcelona", "El Madrid", "El Atlético", "El Athletic",
+    "El Sevilla", "El Valencia", "El Mallorca", "El Getafe", "El Celta",
+    "El Málaga", "El Betis", "El Rayo", "El Espanyol", "El Alavés",
+    "El Girona", "El Villarreal", "El Las Palmas", "El Osasuna",
+    "Real Madrid", "Barcelona", "Atlético", "Sevilla", "Racing",
+    "Athletic", "Mallorca", "Girona", "Villarreal", "Celta",
+    "Rayo", "Osasuna",
+)
+# Boilerplate lines that follow a real article body. We treat them as
+# non-body so the trim happens correctly.
+BOILERPLATE_BOOKMARK = "Posibles alineaciones"
 
 
 def parse_index(html_str):
@@ -246,24 +299,19 @@ def html_escape(s):
 
 
 def build_message(h1, entradilla, body_paras, player, status_emoji, status_label, url):
-    # Header: <emoji> <Player>  — <StatusLabel>
+    """Compose the Telegram message. No "Read More" line — the channel
+    reader gets the full content right here (h1, entradilla, body)."""
     header = f"{status_emoji} {html_escape(player)}  — {status_label}"
     parts = [header, "", html_escape(h1)]
     if entradilla:
         parts.append("")
         parts.append(html_escape(entradilla))
-    # Body
     if body_paras:
         parts.append("")
         for p in body_paras[:MAX_BODY_PARAS]:
             parts.append(html_escape(p))
-    # Read More link
-    parts.append("")
-    parts.append(f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>')
     text = "\n".join(parts)
-    # Telegram hard cap is 4096; trim body if needed
     if len(text) > 4000:
-        # drop trailing body paragraphs until it fits
         while len(text) > 3800 and body_paras:
             body_paras.pop()
             parts = [header, "", html_escape(h1)]
@@ -274,8 +322,6 @@ def build_message(h1, entradilla, body_paras, player, status_emoji, status_label
                 parts.append("")
                 for p in body_paras[:MAX_BODY_PARAS]:
                     parts.append(html_escape(p))
-            parts.append("")
-            parts.append(f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>')
             text = "\n".join(parts)
     return text
 
@@ -311,11 +357,9 @@ def process_once(state):
     accepted = 0
     skipped_dup = 0
     skipped_no_status = 0
+    skipped_team = 0
     skipped_icon = 0
 
-    # On the first run we DO send the current status articles (full
-    # backfill, so the channel is populated). After that, only new ones.
-    # We don't suppress the dump because the channel is empty otherwise.
     is_first_run = not seen
 
     for item in parse_index(html_str):
@@ -333,6 +377,15 @@ def process_once(state):
             log(f"  fetch article failed for {item['url']}: {e}")
             continue
         art = parse_article(art_html)
+
+        # Per-player filter: drop team-level articles (convocatoria,
+        # training session, descanso, etc.). They are still marked as
+        # seen so we don't re-evaluate them on every cycle.
+        if is_team_level(art["h1"], art["body_paras"]):
+            skipped_team += 1
+            seen.add(item["url"])
+            continue
+
         status = detect_status(art["h1"], art["entradilla"])
         if not status:
             skipped_no_status += 1
@@ -356,8 +409,8 @@ def process_once(state):
     save_state(state)
     log(
         f"  cycle: skipped_icon={skipped_icon}  accepted={accepted}  "
-        f"skipped_dup={skipped_dup}  skipped_no_status={skipped_no_status}  "
-        f"sent={sent}  state_size={len(seen)}"
+        f"skipped_dup={skipped_dup}  skipped_team={skipped_team}  "
+        f"skipped_no_status={skipped_no_status}  sent={sent}  state_size={len(seen)}"
     )
     return sent
 
