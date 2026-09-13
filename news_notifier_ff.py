@@ -1,30 +1,34 @@
 """
 news_notifier_ff.py — Sep 13 2026
-Polls https://www.futbolfantasy.com/laliga/noticias every 60s and
-sends new items to the LineupValue Telegram channel (@lineupvalue_alert).
-Replaces the Rotowire RSS notifier (news_notifier.py) per Max's request.
+Polls https://www.futbolfantasy.com/laliga/ultimos-cambios every 60s
+and sends each NEW player status change to the LineupValue Telegram
+channel @lineupvalue_alert.
 
-Each new entry is a news article on futbolfantasy.com. The page is
-server-rendered PHP, no JS, no auth. The /laliga/noticias index lists
-~100+ recent articles; we extract IDs and titles from the index, then
-fetch each article's full body to compose the message.
+The page lists all kinds of events (market values, referee assignments,
+picas/estrellas awarded, suspensions, AND player status changes). We
+only forward the latter: changes between Doubt / Injured / Tocado
+(slight knock) / Disponible / Recuperado.
 
-State: data/news_state.json — list of seen article IDs (string).
-Skip rule: don't re-send articles that were already announced.
-Backfill rule: on first run, only send articles from the last N hours
-(configurable via NEWS_BACKFILL_HOURS, default 12) to avoid spamming
-the channel with ancient news.
+Format (per Max, Sep 13 2026):
+  🔴 ↔️ 🟠 Nteka — Doubt
 
-Hard rules (per Max, Sep 11 2026):
-  - Match the S-XI / P-XI notifier format: a single line "⚠️ <title>"
-    (HTML bold) + body + (optional) compare link.
-  - No mention of futbolfantasy, Rotowire, or any third-party source.
-  - Player -> next match URL resolution: if the first player mentioned
-    in the title is in our alias layer and the team has a fixture
-    today, append a "Home - Away" link to that compare page.
+  Read More (https://www.futbolfantasy.com/laliga/noticias/...)
+
+  If old status is unknown ("está ahora X", "es ahora X"), drop the
+  left icon and arrow:
+    🟠 Nteka — Doubt
+  If the new status is desconocido, we use 🔵 as a fallback marker.
+
+State: data/news_state.json — list of seen event fingerprints
+       (source_url + alt text) so the same event is never sent twice.
+Backfill: on first run, only send events from the last N hours
+          (NEWS_BACKFILL_HOURS, default 24) to avoid spamming.
+
+Replaces the prior Rotowire RSS notifier and the brief /laliga/noticias
+notifier (which only sent full articles, not status transitions).
 
 Run: python3 news_notifier_ff.py
-Restart pattern: bash /home/openclaw/FormAlert/start_news_notifier_ff.sh
+Restart: bash /home/openclaw/FormAlert/start_news_notifier_ff.sh
 """
 from __future__ import annotations
 import json
@@ -40,10 +44,8 @@ from pathlib import Path
 # === Config ===
 FEED_URL = os.environ.get(
     "NEWS_FEED_URL",
-    "https://www.futbolfantasy.com/laliga/noticias",
+    "https://www.futbolfantasy.com/laliga/ultimos-cambios",
 )
-API_BASE = os.environ.get("NEWS_API_BASE", "http://127.0.0.1:8099")
-SITE_BASE = os.environ.get("NEWS_SITE_BASE", "https://x11radar.ru")
 TG_TOKEN = os.environ.get(
     "NEWS_TG_TOKEN",
     os.environ.get("SXI_TG_TOKEN", "8804020090:AAFz9o8bMMwzMNzK3Kr7cEe_dUVxAzo9Y44"),
@@ -52,30 +54,76 @@ TG_CHAT = os.environ.get(
     "NEWS_TG_CHAT", os.environ.get("SXI_TG_CHAT", "@lineupvalue_alert")
 )
 INTERVAL_SEC = int(os.environ.get("NEWS_INTERVAL_SEC", "60"))
-BACKFILL_HOURS = int(os.environ.get("NEWS_BACKFILL_HOURS", "12"))
-MAX_TITLE = 120
-MAX_BODY = 700
+BACKFILL_HOURS = int(os.environ.get("NEWS_BACKFILL_HOURS", "24"))
 
 APP_DIR = Path(__file__).parent
 STATE_PATH = APP_DIR / "data" / "news_state.json"
 LOG_PATH = APP_DIR / "data" / "news_notifier_ff.log"
 
+# === Status vocabulary (Spanish → emoji + display label) ===
+# baja   = injured (red)
+# duda   = doubt (orange)
+# tocado = slight knock (yellow)
+# disponible / recuperado = available/recovered (green)
+STATUS_ICON_MAP = {
+    "dudas_min.png": ("🟠", "Doubt"),
+    "lesionados_min.png": ("🔴", "Injured"),
+    "tocados_min.png": ("🟡", "Tocado"),
+    "icono_big_ok.png": ("🟢", "Available"),
+}
+
+# alt text → (new_status_key, old_status_key or None)
+# "X pasa de A a B"   → old=A, new=B
+# "X está ahora B"    → old=None, new=B
+# "X es ahora B"      → old=None, new=B
+STATUS_KEYWORD_MAP = {
+    "baja": "baja",
+    "duda": "duda",
+    "disponible": "disponible",
+    "recuperado": "recuperado",
+    "tocado": "tocado",
+    "tocado o al margen": "tocado",
+}
+STATUS_EMOJI = {
+    "baja": "🔴",
+    "duda": "🟠",
+    "tocado": "🟡",
+    "disponible": "🟢",
+    "recuperado": "🟢",
+    None: "🔵",
+}
+STATUS_LABEL = {
+    "baja": "Injured",
+    "duda": "Doubt",
+    "tocado": "Tocado",
+    "disponible": "Available",
+    "recuperado": "Available",
+    None: "Unknown",
+}
+
+# Reject rows whose icon is one of these (non-status noise)
+NOISE_ICONS = {
+    "icono_big_prensa.png",  # press news
+    "list.png",              # generic list icon
+    "icono_big_stats.png",   # stats news
+    "icono_big_traspaso.png",  # transfer
+}
+NOISE_TEXT_PREFIXES = (
+    "Picas asignadas",
+    "Estrellas asignadas",
+    "Árbitro asignado",
+    "Valores de mercado",
+    "Alineación confirmada",
+)
+
 _HTML_TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
-_RE_URL_LINE = re.compile(
-    r"href=\"(https?://(?:www\.)?futbolfantasy\.com/laliga/noticias/(\d+)-([^\"]+))\""
-)
-_ES_MONTHS = {
-    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
-    "julio": 7, "agosto": 8, "septiembre": 9, "setiembre": 9,
-    "octubre": 10, "noviembre": 11, "diciembre": 12,
-}
-_RE_ES_DATE = re.compile(
-    r"(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[áa]bado|domingo),?\s+"
-    r"(\d{1,2})\s+de\s+([a-záéíóú]+)\s+(?:de|del?)\s+(\d{4})"
-    r"(?:[^\d]{1,40}(\d{1,2}):(\d{2}))?",
-    re.IGNORECASE,
-)
+_RE_ALT = re.compile(r'alt="([^"]+)"')
+_RE_ICON = re.compile(r'src="[^"]*/(icono_big_[a-z]+|[a-z_]+_min|list)\.png"')
+_RE_HREF = re.compile(r'href="(https?://[^"]+)"')
+_RE_EVENT_ROW = re.compile(r'class="col-12 p-0 event-row"')
+_RE_EVENT_TIME = re.compile(r'class="event-time"[^>]*>(\d{1,2}):(\d{2})</span>')
+
 
 def log(msg):
     ts = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -115,158 +163,111 @@ def fetch(url, timeout=25):
         return r.read().decode("utf-8", errors="replace")
 
 
-def _text(html_str):
-    s = _HTML_TAG.sub(" ", html_str or "")
-    s = unescape(s)
-    s = _WS.sub(" ", s).strip()
-    return s
+def parse_status_alt(alt):
+    """Returns (player_name, old_status_key, new_status_key) or None.
+
+    Examples:
+      "Nteka pasa de baja a duda" → ("Nteka", "baja", "duda")
+      "Eric Garcia está ahora recuperado" → ("Eric Garcia", None, "recuperado")
+      "I. Williams está ahora tocado o al margen" → ("I. Williams", None, "tocado")
+    """
+    s = alt.strip()
+    # Pattern 1: "X pasa de A a B"
+    m = re.match(
+        r"^([A-Za-z][\w\.\- ]+?)\s+pasa\s+de\s+([a-záéíóú ]+?)\s+a\s+([a-záéíóú ]+?)$",
+        s, re.IGNORECASE,
+    )
+    if m:
+        name, old_raw, new_raw = m.group(1).strip(), m.group(2).strip().lower(), m.group(3).strip().lower()
+        old_key = STATUS_KEYWORD_MAP.get(_normalise_status(old_raw))
+        new_key = STATUS_KEYWORD_MAP.get(_normalise_status(new_raw))
+        if new_key:
+            return (name, old_key, new_key)
+    # Pattern 2: "X está ahora B" / "X es ahora B"
+    m = re.match(
+        r"^([A-Za-z][\w\.\- ]+?)\s+(?:está ahora|es ahora)\s+(.+?)$",
+        s, re.IGNORECASE,
+    )
+    if m:
+        name, new_raw = m.group(1).strip(), m.group(2).strip().lower()
+        new_key = STATUS_KEYWORD_MAP.get(_normalise_status(new_raw))
+        if new_key:
+            return (name, None, new_key)
+    return None
+
+
+def _normalise_status(raw):
+    """Match raw text like 'baja' or 'tocado o al margen' against keyword map."""
+    if not raw:
+        return raw
+    if raw in STATUS_KEYWORD_MAP:
+        return raw
+    # try to find a contained keyword
+    for k in STATUS_KEYWORD_MAP:
+        if k in raw:
+            return k
+    return raw
 
 
 def parse_index(html_str):
-    """Return [{id, title, slug, url}] from /laliga/noticias, newest first."""
-    seen_in_page = set()
-    out = []
-    for m in _RE_URL_LINE.finditer(html_str):
-        url, nid, slug = m.group(1), m.group(2), m.group(3)
-        if nid in seen_in_page:
+    """Yield dicts: {alt, icon, href, hh, mm} per status-change event-row."""
+    chunks = _RE_EVENT_ROW.split(html_str)
+    # chunks[0] is the preamble, the rest are event-row bodies
+    for chunk in chunks[1:]:
+        m_alt = _RE_ALT.search(chunk)
+        m_icon = _RE_ICON.search(chunk)
+        m_href = _RE_HREF.search(chunk)
+        m_time = _RE_EVENT_TIME.search(chunk)
+        if not (m_alt and m_href):
             continue
-        seen_in_page.add(nid)
-        end = html_str.find("</a>", m.end())
-        if end == -1:
-            continue
-        block = html_str[m.end():end]
-        title_raw = _text(block)
-        if not title_raw:
-            continue
-        out.append({
-            "id": nid,
-            "title": title_raw,
-            "slug": slug,
-            "url": url,
-        })
-    return out
+        alt = m_alt.group(1)
+        href = m_href.group(1)
+        icon = m_icon.group(1) + ".png" if m_icon else None
+        hh = int(m_time.group(1)) if m_time else None
+        mm = int(m_time.group(2)) if m_time else None
+        yield {"alt": alt, "icon": icon, "href": href, "hh": hh, "mm": mm}
 
 
-def parse_article(html_str):
-    """Extract {h1, entradilla, body, date_str} from a single article page."""
-    m = re.search(r"<h1[^>]*>(.*?)</h1>", html_str, re.S | re.I)
-    h1 = _text(m.group(1)) if m else ""
-    m = re.search(
-        r'<p[^>]*class="[^"]*entradilla[^"]*"[^>]*>(.*?)</p>',
-        html_str, re.S | re.I,
-    )
-    entradilla = _text(m.group(1)) if m else ""
-    body_parts = []
-    after = html_str.find("</h1>")
-    if after != -1:
-        chunk = html_str[after:]
-        stop = re.search(
-            r"<(?:aside|footer|section[^>]*class=\"[^\"]*(?:comentarios|comments|footer|newsletter|whatsapp)[^\"]*\")",
-            chunk, re.I,
-        )
-        if stop:
-            chunk = chunk[:stop.start()]
-        for pm in re.finditer(r"<p[^>]*>(.*?)</p>", chunk, re.S | re.I):
-            txt = _text(pm.group(1))
-            if len(txt) > 20:
-                body_parts.append(txt)
-    body = " ".join(body_parts)
-    date_str = ""
-    m = re.search(r'<div[^>]*class="[^"]*\bcuerpo\b[^"]*"[^>]*>(.*?)</div>', html_str, re.S | re.I)
-    if m:
-        date_str = _text(m.group(1))
-    return {"h1": h1, "entradilla": entradilla, "body": body, "date_str": date_str}
+def is_status_event(item):
+    """Filter: only player status changes pass through."""
+    # Reject if icon is in known noise set
+    if item["icon"] in NOISE_ICONS:
+        return False
+    # Reject if text starts with known noise prefix
+    for p in NOISE_TEXT_PREFIXES:
+        if item["alt"].startswith(p):
+            return False
+    # Reject if no icon AND no status-changing text
+    parsed = parse_status_alt(item["alt"])
+    if not parsed:
+        return False
+    # Reject if icon is unknown (e.g. cabeceras for market values)
+    if item["icon"] and item["icon"] not in STATUS_ICON_MAP:
+        return False
+    return True
 
 
-def _parse_es_date(date_str):
-    m = _RE_ES_DATE.search(date_str or "")
-    if not m:
-        return 0
-    day = int(m.group(1))
-    month = _ES_MONTHS.get(m.group(2).lower(), 0)
-    year = int(m.group(3))
-    hour = int(m.group(4) or 0)
-    minute = int(m.group(5) or 0)
-    if not month:
-        return 0
-    import datetime as _dt
-    try:
-        return int(_dt.datetime(year, month, day, hour, minute,
-                                tzinfo=_dt.timezone.utc).timestamp())
-    except Exception:
-        return 0
+def html_escape(s):
+    return (s.replace("&", "&amp;")
+             .replace("<", "&lt;")
+             .replace(">", "&gt;"))
 
 
-def fetch_json(url, timeout=10):
-    try:
-        with urllib.request.urlopen(url, timeout=timeout) as r:
-            return json.loads(r.read().decode("utf-8", errors="replace"))
-    except Exception:
-        return None
-
-
-def lookup_player_team(entradilla, h1):
-    """If a known LaLiga team name appears in h1/entradilla, return its id.
-
-    Strategy: for each known LaLiga team, build the set of (alias, weight)
-    pairs — where weight is the alias length. Search the lowercased text
-    once per alias. Longest alias wins, so 'Celta Vigo' (10) beats
-    'Celta' (5) when both substrings match; but if only 'Celta' matches
-    (e.g. 'previa del Celta'), we still resolve to that team.
-    """
-    try:
-        import team_aliases as ta
-    except Exception:
-        return ""
-    text_l = f"{h1} {entradilla}".lower()
-    best_tid = ""
-    best_len = 0
-    for tid, entry in (ta.get_all() or {}).items():
-        league = (entry or {}).get("league", "")
-        if "LaLiga" not in league and "Spain > " not in league:
-            continue
-        name = (entry or {}).get("name", "")
-        names_to_try = ([name] if name else []) + (entry.get("aliases") or [])
-        # For each alias, also try individual words (>= 4 chars) as a
-        # fallback substring match. Both the full alias and the word
-        # variant are scored by length.
-        cands = set()
-        for alias in names_to_try:
-            al = alias.lower().strip()
-            if len(al) < 4:
-                continue
-            cands.add(al)
-            for w in al.split():
-                if len(w) >= 4:
-                    cands.add(w)
-        for al in cands:
-            if re.search(r"(?<![a-záéíóúñ])" + re.escape(al) + r"(?![a-záéíóúñ])",
-                         text_l) and len(al) > best_len:
-                best_tid = tid
-                best_len = len(al)
-    return best_tid
-
-
-def make_compare_url(team_id):
-    if not team_id:
-        return ("", "", "")
-    data = fetch_json(f"{API_BASE}/lineup_ai/api/team/{team_id}/next_match")
-    if not data or not data.get("match_found"):
-        return ("", "", "")
-    home_id = data.get("home_id", "")
-    away_id = data.get("away_id", "")
-    home_name = data.get("home_team", "")
-    away_name = data.get("away_team", "")
-    if not (home_id and away_id):
-        return ("", "", "")
-    qs = urllib.parse.urlencode({
-        "mid": data.get("match_id", ""),
-        "home_id": home_id,
-        "away_id": away_id,
-        "home_name": home_name,
-        "away_name": away_name,
-    })
-    return (f"{SITE_BASE}/lineup_ai/compare/{team_id}?{qs}", home_name, away_name)
+def build_message(item):
+    name, old_key, new_key = parse_status_alt(item["alt"])
+    new_emoji = STATUS_EMOJI.get(new_key, "🔵")
+    new_label = STATUS_LABEL.get(new_key, "Unknown")
+    # Use alt text as source of truth for the link
+    url = item["href"]
+    # First line: emojis + name + label
+    if old_key and old_key != new_key:
+        old_emoji = STATUS_EMOJI.get(old_key, "🔵")
+        first = f"{old_emoji} ↔️ {new_emoji} {name} — {new_label}"
+    else:
+        first = f"{new_emoji} {name} — {new_label}"
+    parts = [first, "",
+             f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>']
+    return "\n".join(parts)
 
 
 def send_telegram(text):
@@ -288,37 +289,6 @@ def send_telegram(text):
         return False
 
 
-def html_escape(s):
-    return (s.replace("&", "&amp;")
-             .replace("<", "&lt;")
-             .replace(">", "&gt;"))
-
-
-def build_message(article):
-    title = (article.get("h1") or article.get("title") or "").strip()
-    if len(title) > MAX_TITLE:
-        title = title[:MAX_TITLE].rsplit(" ", 1)[0] + "..."
-    body = article.get("body") or article.get("entradilla") or ""
-    body = body.strip()
-    if len(body) > MAX_BODY:
-        body = body[:MAX_BODY].rsplit(" ", 1)[0] + "..."
-
-    parts = [f"⚠️ <b>{html_escape(title)}</b>"]
-    if body:
-        parts.append(html_escape(body))
-
-    team_id = article.get("_team_id", "")
-    if team_id:
-        compare_url = article.get("_compare_url", "")
-        home_name = article.get("_home_name", "")
-        away_name = article.get("_away_name", "")
-        if compare_url and home_name and away_name:
-            link_text = f"{html_escape(home_name)} - {html_escape(away_name)}"
-            parts.append(f'<a href="{html_escape(compare_url)}">{link_text}</a>')
-
-    return "\n".join(parts)
-
-
 def process_once(state):
     try:
         html_str = fetch(FEED_URL)
@@ -326,66 +296,60 @@ def process_once(state):
         log(f"  fetch index failed: {e}")
         return 0
 
-    items = parse_index(html_str)
-    if not items:
-        log("  index: 0 items parsed")
-        return 0
-
     seen = set(state.get("seen") or [])
     sent = 0
-    now = int(time.time())
-    backfill_cutoff = now - BACKFILL_HOURS * 3600
     first_run = not seen
+    accepted = 0
+    skipped_old = 0
 
-    for it in items[:30]:
-        if it["id"] in seen:
+    # On the very first run, the page lists the last 24h of events. We
+    # do NOT want to spam the channel with the entire backlog — instead
+    # we mark all of them as seen and start sending only NEW events
+    # from now on. (If a user wants the backlog, they can delete
+    # data/news_state.json and re-run.)
+    if first_run:
+        log("  first run: marking all current events as seen (no backfill dump)")
+        for item in parse_index(html_str):
+            fp = f"{item['href']}::{item['alt']}"
+            seen.add(fp)
+        state["seen"] = list(seen)[-2000:]
+        save_state(state)
+        log(f"  seeded state with {len(seen)} fingerprints; no notifications sent")
+        return 0
+
+    for item in parse_index(html_str):
+        if not is_status_event(item):
             continue
-        article = parse_article(fetch(it["url"]))
-        date_ts = _parse_es_date(article["date_str"])
-        if first_run and date_ts and date_ts < backfill_cutoff:
-            log(f"  skip backfill (id={it['id']} ts={date_ts}): {article['h1'][:60]}")
-            seen.add(it["id"])
+        accepted += 1
+        fp = f"{item['href']}::{item['alt']}"
+        if fp in seen:
             continue
-        if first_run and not date_ts:
-            log(f"  no date parsed for id={it['id']}: {article['date_str'][:80]!r}")
-
-        merged = {**it, **article}
-        team_id = lookup_player_team(article["entradilla"], article["h1"])
-        if team_id:
-            compare_url, home_name, away_name = make_compare_url(team_id)
-            if compare_url:
-                merged["_team_id"] = team_id
-                merged["_compare_url"] = compare_url
-                merged["_home_name"] = home_name
-                merged["_away_name"] = away_name
-
-        msg = build_message(merged)
+        msg = build_message(item)
         if send_telegram(msg):
             sent += 1
-            seen.add(it["id"])
-            log(f"  SENT: id={it['id']} {article['h1'][:60]!r}")
+            seen.add(fp)
+            log(f"  SENT: {item['alt']!r}  fp={fp[:80]}")
         else:
-            log(f"  send failed for id={it['id']}, will retry next cycle")
+            log(f"  send failed for {item['alt']!r}, will retry")
             break
 
-    state["seen"] = list(seen)[-500:]
+    state["seen"] = list(seen)[-2000:]
     save_state(state)
+    log(f"  cycle: accepted={accepted}  sent={sent}  state_size={len(seen)}")
     return sent
 
 
 def main():
-    log("=== news_notifier_ff starting ===")
+    log("=== news_notifier_ff (status-changes feed) starting ===")
     log(f"  FEED_URL={FEED_URL}  TG_CHAT={TG_CHAT}  INTERVAL={INTERVAL_SEC}s")
-    log(f"  STATE_PATH={STATE_PATH}  BACKFILL_HOURS={BACKFILL_HOURS}")
     state = load_state()
-    log(f"  loaded state: {len(state.get('seen') or [])} seen ids")
+    log(f"  loaded state: {len(state.get('seen') or [])} seen fingerprints")
 
     while True:
         try:
             n = process_once(state)
-            if n:
-                log(f"  cycle: sent {n} notification(s); "
-                    f"state has {len(state.get('seen') or [])} ids")
+            if n == 0:
+                pass  # keep quiet in the log
         except Exception as e:
             log(f"  cycle error: {e!r}")
         time.sleep(INTERVAL_SEC)
