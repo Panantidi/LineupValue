@@ -81,9 +81,13 @@ STATUS_ICONS = {
 }
 
 # Status keywords (Spanish) → (emoji, English label)
+# Mapping per Max, Sep 13 2026: "Tocado" should display as "Doubt"
+# (i.e. a slight knock / adductor trouble is treated the same as a doubt,
+#  shown with the orange Doubt emoji). The only orange keyword remains
+# "duda"; "tocado" and "molestias" are also rendered as Doubt.
 STATUS_KEYWORDS = [
     (re.compile(r"\bbaja\b|\blesionad[oa]\b|\blesión\b|\brotura\b|\brotura fibrilar\b", re.I), "🔴", "Injured"),
-    (re.compile(r"\btocad[oa]\b|\bmolestias\b|\baductor\b|\bpruebas m[eé]dicas\b", re.I), "🟡", "Tocado"),
+    (re.compile(r"\btocad[oa]\b|\bmolestias\b|\baductor\b|\bpruebas m[eé]dicas\b", re.I), "🟠", "Doubt"),
     (re.compile(r"\bduda\b|\bdudas\b", re.I), "🟠", "Doubt"),
     (re.compile(r"\bsancionad[oa]\b|\bexpulsad[oa]\b|\bsanci[oó]n\b", re.I), "🔴", "Suspended"),
     (re.compile(r"\brecuperad[oa]\b|\balta (?:m[eé]dica|hospitalaria)\b|\bvuelve\b|\bviaja\b", re.I), "🟢", "Available"),
