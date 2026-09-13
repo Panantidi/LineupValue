@@ -359,10 +359,12 @@ def build_message(item):
                 home_id = next_match.get("home_id", "")
                 away_id = next_match.get("away_id", "")
                 match_id = next_match.get("match_id", "")
-                url = _npi.make_compare_url(
+                url = _npi.make_compare_url_html(
                     home_id, away_id, home, away, match_id)
-                # Show full URL in parens per Max's spec
-                match_line = f"{home} - {away} ({url})"
+                # Per Max (Sep 11 2026 v2): the match text itself is
+                # the link, the URL is not shown. Telegram HTML
+                # parse_mode renders <a href="..."> as clickable text.
+                match_line = f'<a href="{url}">{home} - {away}</a>'
 
     if match_line:
         parts.append("")

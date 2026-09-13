@@ -299,7 +299,13 @@ def extract_player_from_title(title):
 
 
 def make_compare_url(home_id, away_id, home_name, away_name, match_id):
-    """Build the /lineup_ai/compare/{team_id}?... URL the user wants."""
+    """Build the /lineup_ai/compare/{team_id}?... URL the user wants.
+
+    Returns the raw URL (for use in plain text). Use
+    `make_compare_url_html(...)` when embedding inside Telegram HTML
+    parse_mode — the html version has `&` escaped to `&amp;` so the
+    URL doesn't break the surrounding <a href="..."> tag.
+    """
     import urllib.parse
     params = {
         "mid": match_id,
@@ -308,7 +314,15 @@ def make_compare_url(home_id, away_id, home_name, away_name, match_id):
         "home_name": home_name,
         "away_name": away_name,
     }
-    # team_id in the URL is the home team (consistent with SXI/PXI)
     base = os.environ.get("NEWS_SITE_BASE", "https://x11radar.ru")
     return (f"{base}/lineup_ai/compare/{home_id}?"
             + urllib.parse.urlencode(params, quote_via=urllib.parse.quote))
+
+
+def make_compare_url_html(home_id, away_id, home_name, away_name, match_id):
+    """HTML-escaped version of make_compare_url() for use in Telegram
+    parse_mode=HTML. `&` becomes `&amp;` so it doesn't break the
+    surrounding <a> tag.
+    """
+    return make_compare_url(home_id, away_id, home_name, away_name, match_id)\
+        .replace("&", "&amp;")
