@@ -49,7 +49,6 @@ TG_CHAT = os.environ.get(
     "NEWS_TG_CHAT", os.environ.get("SXI_TG_CHAT", "@lineupvalue_alert")
 )
 INTERVAL_SEC = int(os.environ.get("NEWS_TWEETS_INTERVAL_SEC", "60"))
-HASHTAG = "#Tweets"
 
 APP_DIR = Path(__file__).parent
 STATE_PATH = APP_DIR / "data" / "news_state_tweets.json"
@@ -105,27 +104,21 @@ def text_only(html_str):
 
 
 def build_message(tweet):
-    """Compose a Telegram HTML message for a single tweet.
+    """Return the tweet content as a plain Telegram HTML string.
 
-    Layout:
-      🐦 <source_username>
-
-      <tweet text>
-
-      <a href="<url>">Read More (<url>)</a>
-      #Tweets
+    We do not wrap the tweet in any header, footer, or hashtag — the
+    channel reader gets the text exactly as it is, and a trailing
+    "Read More (<url>)" link if the URL is present.
     """
-    author = tweet.get("source_username") or ""
     text = text_only(tweet.get("text") or "")
     url = tweet.get("url") or ""
-    header = f"🐦 {html_escape(author) if author else 'Twitter'}"
-    parts = [header, ""]
+    parts = []
     if text:
         parts.append(html_escape(text))
     if url:
-        parts.append("")
+        if parts:
+            parts.append("")
         parts.append(f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>')
-    parts.append(HASHTAG)
     return "\n".join(parts)
 
 
@@ -153,7 +146,7 @@ def send_telegram_photo(photo_url, caption, tweet_url):
     # Use sendPhoto; caption is plain text (no HTML) to keep it under 1024 chars
     caption_text = caption
     if tweet_url:
-        caption_text = (caption_text + f"\n\n{tweet_url}\n{HASHTAG}").strip()
+        caption_text = (caption_text + f"\n\n{tweet_url}").strip()
     if len(caption_text) > 1024:
         caption_text = caption_text[:1020] + "…"
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
