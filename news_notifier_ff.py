@@ -1,31 +1,41 @@
 """
 news_notifier_ff.py — Sep 13 2026
-Polls https://www.futbolfantasy.com/laliga/ultimos-cambios every 60s
-and sends each NEW player status change to the LineupValue Telegram
+Polls https://www.futbolfantasy.com/laliga/noticias every 60s and
+forwards new player status articles to the LineupValue Telegram
 channel @lineupvalue_alert.
 
-The page lists all kinds of events (market values, referee assignments,
-picas/estrellas awarded, suspensions, AND player status changes). We
-only forward the latter: changes between Doubt / Injured / Tocado
-(slight knock) / Disponible / Recuperado.
+We watch the article icon in the index:
+  - icono_big_lesion.png       -> травма / medical report  (send)
+  - icono_big_nodisponible.png -> недоступен / sanción     (send)
+  - list.png                   -> вне заявки (выходы/возвраты) (send)
+  - entreno.png                -> тренировка (статусы игроков) (send)
+  - descanso.png               -> день отдыха (send)
+  - everything else            -> not a status news (skip)
+
+The article page is then fetched, h1 + entradilla + body are extracted
+and sent to Telegram as one message per article. The first paragraph
+of body that is pure boilerplate (e.g. "Jugadores lesionados de LaLiga",
+"CEO y administrador de FutbolFantasy.com") is filtered out.
 
 Format (per Max, Sep 13 2026):
-  🔴 ↔️ 🟠 Nteka — Doubt
+  EMOJI <PlayerName>  — <StatusLabel>
 
-  Read More (https://www.futbolfantasy.com/laliga/noticias/...)
+  <H1>
 
-  If old status is unknown ("está ahora X", "es ahora X"), drop the
-  left icon and arrow:
-    🟠 Nteka — Doubt
-  If the new status is desconocido, we use 🔵 as a fallback marker.
+  <Entradilla>
 
-State: data/news_state.json — list of seen event fingerprints
-       (source_url + alt text) so the same event is never sent twice.
-Backfill: on first run, only send events from the last N hours
-          (NEWS_BACKFILL_HOURS, default 24) to avoid spamming.
+  <body paragraph 1>
 
-Replaces the prior Rotowire RSS notifier and the brief /laliga/noticias
-notifier (which only sent full articles, not status transitions).
+  <body paragraph 2>
+  ...
+  <Read More (full URL)>
+
+State: data/news_state.json — list of seen article URLs (no backfill
+dump: on first run we DO send every status-article that's currently
+on the index so the channel is fully populated).
+
+Replaces the prior /ultimos-cambios poller (which only sent the
+single-line event-row without the article body).
 
 Run: python3 news_notifier_ff.py
 Restart: bash /home/openclaw/FormAlert/start_news_notifier_ff.sh
@@ -44,7 +54,7 @@ from pathlib import Path
 # === Config ===
 FEED_URL = os.environ.get(
     "NEWS_FEED_URL",
-    "https://www.futbolfantasy.com/laliga/ultimos-cambios",
+    "https://www.futbolfantasy.com/laliga/noticias",
 )
 TG_TOKEN = os.environ.get(
     "NEWS_TG_TOKEN",
@@ -54,75 +64,66 @@ TG_CHAT = os.environ.get(
     "NEWS_TG_CHAT", os.environ.get("SXI_TG_CHAT", "@lineupvalue_alert")
 )
 INTERVAL_SEC = int(os.environ.get("NEWS_INTERVAL_SEC", "60"))
-BACKFILL_HOURS = int(os.environ.get("NEWS_BACKFILL_HOURS", "24"))
+MAX_BODY_PARAS = int(os.environ.get("NEWS_MAX_BODY_PARAS", "4"))
+MAX_BODY_CHARS = int(os.environ.get("NEWS_MAX_BODY_CHARS", "700"))
 
 APP_DIR = Path(__file__).parent
 STATE_PATH = APP_DIR / "data" / "news_state.json"
 LOG_PATH = APP_DIR / "data" / "news_notifier_ff.log"
 
-# === Status vocabulary (Spanish → emoji + display label) ===
-# baja   = injured (red)
-# duda   = doubt (orange)
-# tocado = slight knock (yellow)
-# disponible / recuperado = available/recovered (green)
-STATUS_ICON_MAP = {
-    "dudas_min.png": ("🟠", "Doubt"),
-    "lesionados_min.png": ("🔴", "Injured"),
-    "tocados_min.png": ("🟡", "Tocado"),
-    "icono_big_ok.png": ("🟢", "Available"),
+# Icons we forward
+STATUS_ICONS = {
+    "icono_big_lesion",
+    "icono_big_nodisponible",
+    "list",
+    "entreno",
+    "descanso",
 }
 
-# alt text → (new_status_key, old_status_key or None)
-# "X pasa de A a B"   → old=A, new=B
-# "X está ahora B"    → old=None, new=B
-# "X es ahora B"      → old=None, new=B
-STATUS_KEYWORD_MAP = {
-    "baja": "baja",
-    "duda": "duda",
-    "disponible": "disponible",
-    "recuperado": "recuperado",
-    "tocado": "tocado",
-    "tocado o al margen": "tocado",
-}
-STATUS_EMOJI = {
-    "baja": "🔴",
-    "duda": "🟠",
-    "tocado": "🟡",
-    "disponible": "🟢",
-    "recuperado": "🟢",
-    None: "🔵",
-}
-STATUS_LABEL = {
-    "baja": "Injured",
-    "duda": "Doubt",
-    "tocado": "Tocado",
-    "disponible": "Available",
-    "recuperado": "Available",
-    None: "Unknown",
-}
+# Status keywords (Spanish) → (emoji, English label)
+STATUS_KEYWORDS = [
+    (re.compile(r"\bbaja\b|\blesionad[oa]\b|\blesión\b|\brotura\b|\brotura fibrilar\b", re.I), "🔴", "Injured"),
+    (re.compile(r"\btocad[oa]\b|\bmolestias\b|\baductor\b|\bpruebas m[eé]dicas\b", re.I), "🟡", "Tocado"),
+    (re.compile(r"\bduda\b|\bdudas\b", re.I), "🟠", "Doubt"),
+    (re.compile(r"\bsancionad[oa]\b|\bexpulsad[oa]\b|\bsanci[oó]n\b", re.I), "🔴", "Suspended"),
+    (re.compile(r"\brecuperad[oa]\b|\balta (?:m[eé]dica|hospitalaria)\b|\bvuelve\b|\bviaja\b", re.I), "🟢", "Available"),
+    (re.compile(r"\bdisponible\b", re.I), "🟢", "Available"),
+]
 
-# Reject rows whose icon is one of these (non-status noise)
-NOISE_ICONS = {
-    "icono_big_prensa.png",  # press news
-    "list.png",              # generic list icon
-    "icono_big_stats.png",   # stats news
-    "icono_big_traspaso.png",  # transfer
-}
-NOISE_TEXT_PREFIXES = (
-    "Picas asignadas",
-    "Estrellas asignadas",
-    "Árbitro asignado",
-    "Valores de mercado",
-    "Alineación confirmada",
+# Boilerplate paragraphs to strip from body (author bios, link lists)
+BOILERPLATE_PARAS = (
+    "Jugadores lesionados",
+    "Jugadores sancionados",
+    "Jugadores apercibidos",
+    "Jugadores en duda",
+    "Jugadores tocados",
+    "CEO y administrador",
+    "Programador informático",
+    "Redactor jefe",
+    "CEO y redactor",
+    "Redactor y community",
+    "Analista fantasy",
+    "CEO de FutbolFantasy",
+    "Fundador de FutbolFantasy",
+    "Si te ha gustado",
+    "Apuesta en tu casa",
+    "Publicación autorizada",
+    "Apuestas de fútbol",
 )
 
 _HTML_TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
-_RE_ALT = re.compile(r'alt="([^"]+)"')
-_RE_ICON = re.compile(r'src="[^"]*/(icono_big_[a-z]+|[a-z_]+_min|list)\.png"')
-_RE_HREF = re.compile(r'href="(https?://[^"]+)"')
-_RE_EVENT_ROW = re.compile(r'class="col-12 p-0 event-row"')
-_RE_EVENT_TIME = re.compile(r'class="event-time"[^>]*>(\d{1,2}):(\d{2})</span>')
+_RE_INDEX_ARTICLE = re.compile(
+    r'<div class="date">([^<]+)</div>\s*'
+    r'<img class="icon" src="[^"]*/tiponoticia/([a-z_]+)\.png"[^>]*/?>'
+    r'\s*<a class="link" href="(https?://[^"]+)">([^<]+)</a>',
+    re.S,
+)
+_RE_H1 = re.compile(r"<h1[^>]*>(.*?)</h1>", re.S | re.I)
+_RE_ENTRADILLA = re.compile(
+    r'<p[^>]*class="[^"]*entradilla[^"]*"[^>]*>(.*?)</p>', re.S | re.I
+)
+_RE_PARA = re.compile(r"<p[^>]*>(.*?)</p>", re.S | re.I)
 
 
 def log(msg):
@@ -163,88 +164,79 @@ def fetch(url, timeout=25):
         return r.read().decode("utf-8", errors="replace")
 
 
-def parse_status_alt(alt):
-    """Returns (player_name, old_status_key, new_status_key) or None.
+def text_only(html_str):
+    if not html_str:
+        return ""
+    s = _HTML_TAG.sub(" ", html_str)
+    s = unescape(s)
+    s = _WS.sub(" ", s).strip()
+    return s
 
-    Examples:
-      "Nteka pasa de baja a duda" → ("Nteka", "baja", "duda")
-      "Eric Garcia está ahora recuperado" → ("Eric Garcia", None, "recuperado")
-      "I. Williams está ahora tocado o al margen" → ("I. Williams", None, "tocado")
-    """
-    s = alt.strip()
-    # Pattern 1: "X pasa de A a B"
-    m = re.match(
-        r"^([A-Za-z][\w\.\- ]+?)\s+pasa\s+de\s+([a-záéíóú ]+?)\s+a\s+([a-záéíóú ]+?)$",
-        s, re.IGNORECASE,
-    )
-    if m:
-        name, old_raw, new_raw = m.group(1).strip(), m.group(2).strip().lower(), m.group(3).strip().lower()
-        old_key = STATUS_KEYWORD_MAP.get(_normalise_status(old_raw))
-        new_key = STATUS_KEYWORD_MAP.get(_normalise_status(new_raw))
-        if new_key:
-            return (name, old_key, new_key)
-    # Pattern 2: "X está ahora B" / "X es ahora B"
-    m = re.match(
-        r"^([A-Za-z][\w\.\- ]+?)\s+(?:está ahora|es ahora)\s+(.+?)$",
-        s, re.IGNORECASE,
-    )
-    if m:
-        name, new_raw = m.group(1).strip(), m.group(2).strip().lower()
-        new_key = STATUS_KEYWORD_MAP.get(_normalise_status(new_raw))
-        if new_key:
-            return (name, None, new_key)
+
+def detect_status(h1, entradilla):
+    """Walk STATUS_KEYWORDS over h1+entradilla, return (emoji, label) or None."""
+    blob = f"{h1}  {entradilla}"
+    for pat, emoji, label in STATUS_KEYWORDS:
+        if pat.search(blob):
+            return emoji, label
     return None
 
 
-def _normalise_status(raw):
-    """Match raw text like 'baja' or 'tocado o al margen' against keyword map."""
-    if not raw:
-        return raw
-    if raw in STATUS_KEYWORD_MAP:
-        return raw
-    # try to find a contained keyword
-    for k in STATUS_KEYWORD_MAP:
-        if k in raw:
-            return k
-    return raw
+def extract_player_name(h1):
+    """Heuristic: title is 'Name ... status word ...' — first word(s) before
+    the first verb-ish token is the player name. E.g.:
+      'Aspas termina el partido del Málaga tocado del aductor' -> 'Aspas'
+      'Aitor Mañas recibe el alta hospitalaria'                -> 'Aitor Mañas'
+      'Dotor, baja de última hora por un virus'                -> 'Dotor'
+    """
+    s = h1.strip()
+    # Strip leading "Sanción para X", "Lesión de X", "Baja de X" prefixes
+    s = re.sub(
+        r"^(?:sanción para|lesión de|baja de|parte m[eé]dico de|el(?:/la)?)\s+",
+        "", s, flags=re.I,
+    ).strip(" ,.")
+    # Take everything up to the first verb-ish word
+    m = re.match(
+        r"^([A-ZÁÉÍÓÚÑ][\w\.\-]+(?:\s+[A-ZÁÉÍÓÚÑ][\w\.\-]+)?)", s)
+    if m:
+        return m.group(1).strip()
+    return s.split(" ", 1)[0] if s else ""
 
 
 def parse_index(html_str):
-    """Yield dicts: {alt, icon, href, hh, mm} per status-change event-row."""
-    chunks = _RE_EVENT_ROW.split(html_str)
-    # chunks[0] is the preamble, the rest are event-row bodies
-    for chunk in chunks[1:]:
-        m_alt = _RE_ALT.search(chunk)
-        m_icon = _RE_ICON.search(chunk)
-        m_href = _RE_HREF.search(chunk)
-        m_time = _RE_EVENT_TIME.search(chunk)
-        if not (m_alt and m_href):
-            continue
-        alt = m_alt.group(1)
-        href = m_href.group(1)
-        icon = m_icon.group(1) + ".png" if m_icon else None
-        hh = int(m_time.group(1)) if m_time else None
-        mm = int(m_time.group(2)) if m_time else None
-        yield {"alt": alt, "icon": icon, "href": href, "hh": hh, "mm": mm}
+    """Yield dicts: {date, icon, url, title} for every article on /laliga/noticias."""
+    for m in _RE_INDEX_ARTICLE.finditer(html_str):
+        d, icon, url, title = m.group(1).strip(), m.group(2), m.group(3), m.group(4).strip()
+        yield {"date": d, "icon": icon, "url": url, "title": text_only(title)}
 
 
-def is_status_event(item):
-    """Filter: only player status changes pass through."""
-    # Reject if icon is in known noise set
-    if item["icon"] in NOISE_ICONS:
-        return False
-    # Reject if text starts with known noise prefix
-    for p in NOISE_TEXT_PREFIXES:
-        if item["alt"].startswith(p):
-            return False
-    # Reject if no icon AND no status-changing text
-    parsed = parse_status_alt(item["alt"])
-    if not parsed:
-        return False
-    # Reject if icon is unknown (e.g. cabeceras for market values)
-    if item["icon"] and item["icon"] not in STATUS_ICON_MAP:
-        return False
-    return True
+def parse_article(html_str):
+    """Return {h1, entradilla, body_paras} where body_paras is a list[str]."""
+    m = _RE_H1.search(html_str)
+    h1 = text_only(m.group(1)) if m else ""
+    m = _RE_ENTRADILLA.search(html_str)
+    entradilla = text_only(m.group(1)) if m else ""
+    paras = []
+    after = html_str.find("</h1>")
+    if after != -1:
+        chunk = html_str[after:]
+        stop = re.search(
+            r"<(?:aside|footer|section[^>]*class=\"[^\"]*(?:comentarios|comments|footer|newsletter|whatsapp|compartir|newsletter)[^\"]*\")",
+            chunk, re.I,
+        )
+        if stop:
+            chunk = chunk[:stop.start()]
+        for pm in _RE_PARA.finditer(chunk):
+            t = text_only(pm.group(1))
+            if len(t) <= 20:
+                continue
+            if any(t.startswith(b) for b in BOILERPLATE_PARAS):
+                continue
+            # Avoid duplicating the entradilla
+            if t == entradilla:
+                continue
+            paras.append(t)
+    return {"h1": h1, "entradilla": entradilla, "body_paras": paras}
 
 
 def html_escape(s):
@@ -253,21 +245,39 @@ def html_escape(s):
              .replace(">", "&gt;"))
 
 
-def build_message(item):
-    name, old_key, new_key = parse_status_alt(item["alt"])
-    new_emoji = STATUS_EMOJI.get(new_key, "🔵")
-    new_label = STATUS_LABEL.get(new_key, "Unknown")
-    # Use alt text as source of truth for the link
-    url = item["href"]
-    # First line: emojis + name + label
-    if old_key and old_key != new_key:
-        old_emoji = STATUS_EMOJI.get(old_key, "🔵")
-        first = f"{old_emoji} ↔️ {new_emoji} {name} — {new_label}"
-    else:
-        first = f"{new_emoji} {name} — {new_label}"
-    parts = [first, "",
-             f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>']
-    return "\n".join(parts)
+def build_message(h1, entradilla, body_paras, player, status_emoji, status_label, url):
+    # Header: <emoji> <Player>  — <StatusLabel>
+    header = f"{status_emoji} {html_escape(player)}  — {status_label}"
+    parts = [header, "", html_escape(h1)]
+    if entradilla:
+        parts.append("")
+        parts.append(html_escape(entradilla))
+    # Body
+    if body_paras:
+        parts.append("")
+        for p in body_paras[:MAX_BODY_PARAS]:
+            parts.append(html_escape(p))
+    # Read More link
+    parts.append("")
+    parts.append(f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>')
+    text = "\n".join(parts)
+    # Telegram hard cap is 4096; trim body if needed
+    if len(text) > 4000:
+        # drop trailing body paragraphs until it fits
+        while len(text) > 3800 and body_paras:
+            body_paras.pop()
+            parts = [header, "", html_escape(h1)]
+            if entradilla:
+                parts.append("")
+                parts.append(html_escape(entradilla))
+            if body_paras:
+                parts.append("")
+                for p in body_paras[:MAX_BODY_PARAS]:
+                    parts.append(html_escape(p))
+            parts.append("")
+            parts.append(f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>')
+            text = "\n".join(parts)
+    return text
 
 
 def send_telegram(text):
@@ -298,58 +308,71 @@ def process_once(state):
 
     seen = set(state.get("seen") or [])
     sent = 0
-    first_run = not seen
     accepted = 0
-    skipped_old = 0
+    skipped_dup = 0
+    skipped_no_status = 0
+    skipped_icon = 0
 
-    # On the very first run, the page lists the last 24h of events. We
-    # do NOT want to spam the channel with the entire backlog — instead
-    # we mark all of them as seen and start sending only NEW events
-    # from now on. (If a user wants the backlog, they can delete
-    # data/news_state.json and re-run.)
-    if first_run:
-        log("  first run: marking all current events as seen (no backfill dump)")
-        for item in parse_index(html_str):
-            fp = f"{item['href']}::{item['alt']}"
-            seen.add(fp)
-        state["seen"] = list(seen)[-2000:]
-        save_state(state)
-        log(f"  seeded state with {len(seen)} fingerprints; no notifications sent")
-        return 0
+    # On the first run we DO send the current status articles (full
+    # backfill, so the channel is populated). After that, only new ones.
+    # We don't suppress the dump because the channel is empty otherwise.
+    is_first_run = not seen
 
     for item in parse_index(html_str):
-        if not is_status_event(item):
+        if item["icon"] not in STATUS_ICONS:
+            skipped_icon += 1
             continue
         accepted += 1
-        fp = f"{item['href']}::{item['alt']}"
-        if fp in seen:
+        if item["url"] in seen:
+            skipped_dup += 1
             continue
-        msg = build_message(item)
+
+        try:
+            art_html = fetch(item["url"])
+        except Exception as e:
+            log(f"  fetch article failed for {item['url']}: {e}")
+            continue
+        art = parse_article(art_html)
+        status = detect_status(art["h1"], art["entradilla"])
+        if not status:
+            skipped_no_status += 1
+            seen.add(item["url"])
+            continue
+        emoji, label = status
+        player = extract_player_name(art["h1"])
+        msg = build_message(
+            art["h1"], art["entradilla"], art["body_paras"],
+            player, emoji, label, item["url"],
+        )
         if send_telegram(msg):
             sent += 1
-            seen.add(fp)
-            log(f"  SENT: {item['alt']!r}  fp={fp[:80]}")
+            seen.add(item["url"])
+            log(f"  SENT: {art['h1'][:80]!r}  status={emoji}{label}")
         else:
-            log(f"  send failed for {item['alt']!r}, will retry")
+            log(f"  send failed for {item['url']}, will retry")
             break
 
     state["seen"] = list(seen)[-2000:]
     save_state(state)
-    log(f"  cycle: accepted={accepted}  sent={sent}  state_size={len(seen)}")
+    log(
+        f"  cycle: skipped_icon={skipped_icon}  accepted={accepted}  "
+        f"skipped_dup={skipped_dup}  skipped_no_status={skipped_no_status}  "
+        f"sent={sent}  state_size={len(seen)}"
+    )
     return sent
 
 
 def main():
-    log("=== news_notifier_ff (status-changes feed) starting ===")
+    log("=== news_notifier_ff (article feed) starting ===")
     log(f"  FEED_URL={FEED_URL}  TG_CHAT={TG_CHAT}  INTERVAL={INTERVAL_SEC}s")
     state = load_state()
-    log(f"  loaded state: {len(state.get('seen') or [])} seen fingerprints")
+    log(f"  loaded state: {len(state.get('seen') or [])} seen urls")
 
     while True:
         try:
             n = process_once(state)
             if n == 0:
-                pass  # keep quiet in the log
+                pass
         except Exception as e:
             log(f"  cycle error: {e!r}")
         time.sleep(INTERVAL_SEC)
