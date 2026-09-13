@@ -94,6 +94,15 @@ STATUS_KEYWORDS = [
     (re.compile(r"\bdisponible\b", re.I), "🟢", "Available"),
 ]
 
+# When the icon is itself a strong signal (lesion / nodisponible) but the
+# h1 doesn't carry one of the keywords above (e.g. "Un golpe en la nariz
+# provocó el cambio de Gerard Martín en el descanso"), we use this
+# icon-based fallback so the article still reaches the channel.
+ICON_FALLBACK_STATUS = {
+    "icono_big_lesion": ("🔴", "Injured"),
+    "icono_big_nodisponible": ("🔴", "Suspended"),
+}
+
 # Boilerplate paragraphs to strip from body (author bios, link lists)
 BOILERPLATE_PARAS = (
     "Posibles alineaciones ",
@@ -196,34 +205,106 @@ def is_team_level(h1, body_paras):
     return False
 
 
-def detect_status(h1, entradilla):
-    """Walk STATUS_KEYWORDS over h1+entradilla, return (emoji, label) or None."""
+def detect_status(h1, entradilla, icon=""):
+    """Walk STATUS_KEYWORDS over h1+entradilla, return (emoji, label) or None.
+    Falls back to ICON_FALLBACK_STATUS[icon] when no keyword matches but
+    the index icon clearly says "injury" or "suspended"."""
     blob = f"{h1}  {entradilla}"
     for pat, emoji, label in STATUS_KEYWORDS:
         if pat.search(blob):
             return emoji, label
+    if icon and icon in ICON_FALLBACK_STATUS:
+        return ICON_FALLBACK_STATUS[icon]
     return None
 
 
-def extract_player_name(h1):
-    """Heuristic: title is 'Name ... status word ...' — first word(s) before
-    the first verb-ish token is the player name. E.g.:
-      'Aspas termina el partido del Málaga tocado del aductor' -> 'Aspas'
-      'Aitor Mañas recibe el alta hospitalaria'                -> 'Aitor Mañas'
-      'Dotor, baja de última hora por un virus'                -> 'Dotor'
+def extract_player_name(h1, entradilla=""):
+    """Pull a player name out of an article h1 (and falling back to the
+    entradilla if the h1 has nothing useful).
+
+    Heuristics, in order of trust:
+      1. After "de <Name>" / "del <Name>" / "con <Name>" / "el <Name>"
+         when the captured name looks like a personal name (Title Case,
+         not in TEAM_BLACKLIST).
+      2. After a comma — "Dotor, baja de última hora" -> "Dotor".
+      3. The first 1-2 Title Case tokens at the start of the h1
+         (the common "Aspas termina...", "Aitor Mañas recibe..." style).
     """
-    s = h1.strip()
-    # Strip leading "Sanción para X", "Lesión de X", "Baja de X" prefixes
+    s = (h1 or "").strip()
     s = re.sub(
-        r"^(?:sanción para|lesión de|baja de|parte m[eé]dico de|el(?:/la)?)\s+",
+        r"^(?:sanción para|lesión de|baja de|parte m[eé]dico de|el(?:/la)?|los?)\s+",
         "", s, flags=re.I,
     ).strip(" ,.")
-    # Take everything up to the first verb-ish word
-    m = re.match(
-        r"^([A-ZÁÉÍÓÚÑ][\w\.\-]+(?:\s+[A-ZÁÉÍÓÚÑ][\w\.\-]+)?)", s)
+
+    title_tokens = re.compile(
+        r"\b[A-ZÀÁÉÍÓÚÑ][a-zàáéíóúñ]+"
+        r"(?:\s+[A-ZÀÁÉÍÓÚÑ][a-zàáéíóúñ]+)?"
+    )
+
+    # 1) Look for a name after `de / del / con / en / a`
+    # We want the LAST occurrence in the h1 (it's usually closer to
+    # the subject than the lead-in nouns).
+    candidates = []
+    for m in re.finditer(
+        r"\b(?:de|del|con|por|tras)\s+"
+        r"([A-ZÀÁÉÍÓÚÑ][\wàáéíóúñ]+(?:\s+[A-ZÀÁÉÍÓÚÑ][\wàáéíóúñ]+)?)",
+        s,
+    ):
+        name = m.group(1)
+        if name.lower() in TEAM_BLACKLIST:
+            continue
+        candidates.append((m.start(), name))
+    if candidates:
+        # Pick the LAST one in the h1 (closer to the player mention)
+        candidates.sort(key=lambda c: c[0])
+        return candidates[-1][1].strip()
+
+    # 2) Before a comma — "Dotor, baja de última hora"
+    if "," in s:
+        head = s.split(",", 1)[0].strip()
+        m = re.match(
+            r"^([A-ZÀÁÉÍÓÚÑ][\wàáéíóúñ]+(?:\s+[A-ZÀÁÉÍÓÚÑ][\wàáéíóúñ]+)?)",
+            head,
+        )
+        if m:
+            return m.group(1).strip()
+
+    # 3) First 1-2 Title Case tokens
+    m = title_tokens.match(s)
     if m:
-        return m.group(1).strip()
+        name = m.group(0)
+        if name.lower() not in TEAM_BLACKLIST:
+            return name
+
+    # 4) Entradilla fallback — search for "<Name>," or "<Name> <verb>"
+    e = (entradilla or "").strip()
+    if e:
+        m = re.match(
+            r"^([A-ZÀÁÉÍÓÚÑ][\wàáéíóúñ]+(?:\s+[A-ZÀÁÉÍÓÚÑ][\wàáéíóúñ]+)?)",
+            e,
+        )
+        if m:
+            name = m.group(1)
+            if name.lower() not in TEAM_BLACKLIST:
+                return name
+
     return s.split(" ", 1)[0] if s else ""
+
+
+# Common team tokens that should never be treated as a player name.
+TEAM_BLACKLIST = {
+    "alavés", "alaves", "athletic", "atlético", "atletico", "barcelona",
+    "betis", "celta", "deportivo", "elche", "espanyol", "getafe", "girona",
+    "las palmas", "leganés", "leganes", "levante", "mallorca", "osasuna",
+    "rayo", "real madrid", "real sociedad", "real betis", "sevilla",
+    "valencia", "valladolid", "villarreal", "eibar", "málaga", "malaga",
+    "racing", "sporting", "huesca", "tenerife", "albacete", "andorra",
+    "burgos", "castellón", "castellon", "córdoba", "cordoba", "elche",
+    "ferrol", "ibiza", "lugo", "miranda", "mirandés", "mirandes",
+    "ponferradina", "zaragoza", "amorebieta", "logroñés", "logrones",
+    "numancia", "osasuna", "spain", "españa", "andalucia", "madrid",
+    "fútbol", "futbol", "estadio", "club", "afición", "aficion",
+}
 
 
 # Phrases / patterns that mark an article as TEAM-level (not about one player).
@@ -390,13 +471,13 @@ def process_once(state):
             seen.add(item["url"])
             continue
 
-        status = detect_status(art["h1"], art["entradilla"])
+        status = detect_status(art["h1"], art["entradilla"], item["icon"])
         if not status:
             skipped_no_status += 1
             seen.add(item["url"])
             continue
         emoji, label = status
-        player = extract_player_name(art["h1"])
+        player = extract_player_name(art["h1"], art["entradilla"])
         msg = build_message(
             art["h1"], art["entradilla"], art["body_paras"],
             player, emoji, label, item["url"],
