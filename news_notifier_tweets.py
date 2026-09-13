@@ -1,23 +1,12 @@
 """
 news_notifier_tweets.py — Sep 13 2026
 Polls the local FormAlert /lineup_ai/api/recent_tweets endpoint every
-60s and forwards new context-relevant tweets to the LineupValue Telegram
-channel @lineupvalue_alert.
+60s and forwards each new tweet to the LineupValue Telegram channel
+@lineupvalue_alert as a single, separate message — verbatim, no
+wrapping, no splitting, no Read More link.
 
-The endpoint returns tweets that have already been filtered by the
-FormAlert pipeline (keyword + blacklist + AI relevance + dedup), so we
-do not filter again — we just forward.
-
-Format mirrors the LaLiga / EPL / Bundesliga feeds:
-
-  🐦 @FabrizioRomano
-
-  <tweet text>
-
-  <a href="https://x.com/i/web/status/<id>">Read More (URL)</a>
-
-If the tweet has an image, we attach it via the Telegram sendPhoto
-API call (single attachment, caption = tweet text).
+The endpoint already filters by keyword / blacklist / AI relevance /
+dedup, so we forward every new tweet without re-filtering.
 
 State: data/news_state_tweets.json — {tweet_id: epoch_seen}.
 On the first run, current tweets are marked as seen (no backfill dump)
@@ -55,7 +44,6 @@ STATE_PATH = APP_DIR / "data" / "news_state_tweets.json"
 LOG_PATH = APP_DIR / "data" / "news_notifier_tweets.log"
 
 _HTML_TAG = re.compile(r"<[^>]+>")
-_WS = re.compile(r"\s+")
 
 
 def log(msg):
@@ -95,31 +83,18 @@ def html_escape(s):
              .replace(">", "&gt;"))
 
 
-def text_only(html_str):
-    if not html_str:
+def normalize_text(text):
+    """Collapse runs of whitespace inside a line but keep newlines so the
+    tweet text stays readable in the channel exactly as published."""
+    if not text:
         return ""
-    s = _HTML_TAG.sub(" ", html_str)
-    s = _WS.sub(" ", s).strip()
-    return s
-
-
-def build_message(tweet):
-    """Return the tweet content as a plain Telegram HTML string.
-
-    We do not wrap the tweet in any header, footer, or hashtag — the
-    channel reader gets the text exactly as it is, and a trailing
-    "Read More (<url>)" link if the URL is present.
-    """
-    text = text_only(tweet.get("text") or "")
-    url = tweet.get("url") or ""
-    parts = []
-    if text:
-        parts.append(html_escape(text))
-    if url:
-        if parts:
-            parts.append("")
-        parts.append(f'<a href="{html_escape(url)}">Read More ({html_escape(url)})</a>')
-    return "\n".join(parts)
+    from html import unescape
+    s = _HTML_TAG.sub(" ", text)
+    s = unescape(s)
+    # Collapse horizontal whitespace, keep newlines
+    s = re.sub(r"[^\S\n]+", " ", s)
+    s = "\n".join(line.strip() for line in s.splitlines())
+    return s.strip()
 
 
 def send_telegram_text(text):
@@ -127,7 +102,6 @@ def send_telegram_text(text):
     params = {
         "chat_id": TG_CHAT,
         "text": text,
-        "parse_mode": "HTML",
         "disable_web_page_preview": "true",
     }
     data = urllib.parse.urlencode(params, quote_via=urllib.parse.quote).encode("utf-8")
@@ -138,31 +112,6 @@ def send_telegram_text(text):
         return '"ok":true' in body
     except Exception as e:
         log(f"  telegram send failed: {e}")
-        return False
-
-
-def send_telegram_photo(photo_url, caption, tweet_url):
-    """Send a single photo with caption that contains a Read More link."""
-    # Use sendPhoto; caption is plain text (no HTML) to keep it under 1024 chars
-    caption_text = caption
-    if tweet_url:
-        caption_text = (caption_text + f"\n\n{tweet_url}").strip()
-    if len(caption_text) > 1024:
-        caption_text = caption_text[:1020] + "…"
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
-    params = {
-        "chat_id": TG_CHAT,
-        "photo": photo_url,
-        "caption": caption_text,
-    }
-    data = urllib.parse.urlencode(params, quote_via=urllib.parse.quote).encode("utf-8")
-    req = urllib.request.Request(url, data=data, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            body = r.read().decode("utf-8", errors="replace")
-        return '"ok":true' in body
-    except Exception as e:
-        log(f"  telegram photo send failed: {e}")
         return False
 
 
@@ -192,24 +141,16 @@ def process_once(state):
         tid = t.get("tweet_id")
         if not tid or tid in seen:
             continue
-        # Build and send
-        author = t.get("source_username") or ""
-        text = text_only(t.get("text") or "")
-        url = t.get("url") or ""
-        media_url = t.get("media_url") or ""
-        media_type = t.get("media_type") or ""
-
-        if media_url and media_type in ("photo", ""):
-            # Send as photo with caption (no HTML formatting)
-            caption = f"🐦 {author}\n\n{text}" if author else text
-            ok = send_telegram_photo(media_url, caption, url)
-        else:
-            msg = build_message(t)
-            ok = send_telegram_text(msg)
+        # Forward the tweet verbatim as a single Telegram message.
+        text = normalize_text(t.get("text") or "")
+        if not text:
+            seen[tid] = int(time.time())
+            continue
+        ok = send_telegram_text(text)
         if ok:
             sent += 1
             seen[tid] = int(time.time())
-            log(f"  SENT tid={tid} author={author!r} text={text[:80]!r}")
+            log(f"  SENT tid={tid} text={text[:80]!r}")
         else:
             log(f"  send failed for tid={tid}, will retry")
             break
