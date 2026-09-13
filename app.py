@@ -3975,11 +3975,59 @@ async def test_rotowire_fran(team_id: str, league: str = "fran"):
                     pass
             return _name_eq(lv_team_name, _rw_name)
 
+        # Sep 12 2026 - disambig "Manchester City" vs "Manchester
+        # United" (and any other cross-fuzzy pair) by resolving
+        # BOTH sides against the full league probe, not just our
+        # single team. With a one-team probe, both sides fuzzy-hit
+        # Wtn9Stg0 and the matcher picks the wrong side. With the
+        # full league probe, rh="Manchester United" resolves to
+        # ppjDR086 and ra="Manchester City" resolves to Wtn9Stg0,
+        # so the right side is unambiguous.
+        try:
+            import team_aliases as _ta
+            import json as _json_leagues
+            with open("/home/openclaw/FormAlert/leagues_data.json", "r", encoding="utf-8") as _lf:
+                _leagues_all = _json_leagues.load(_lf)
+            _ta_entry = (_ta.get_all() or {}).get(team_id) or {}
+            _ta_league = _ta_entry.get("league", "")
+            if " > " in _ta_league:
+                _country, _lname = _ta_league.split(" > ", 1)
+                _league_teams = (_leagues_all.get(_country, {}) or {}).get(_lname, [])
+            else:
+                _league_teams = []
+            _full_probe = [{"id": t.get("id",""), "name": t.get("name","")} for t in _league_teams]
+        except Exception:
+            _full_probe = _probe_teams
+        if not _full_probe:
+            _full_probe = _probe_teams
+
+        if _rlv_alias is not None:
+            try:
+                _rh_res = _rlv_alias(rh, _full_probe, auto_learn=False)
+            except Exception:
+                _rh_res = None
+            try:
+                _ra_res = _rlv_alias(ra, _full_probe, auto_learn=False)
+            except Exception:
+                _ra_res = None
+        else:
+            _rh_res = None
+            _ra_res = None
+        _rh_id = (_rh_res or {}).get("id")
+        _ra_id = (_ra_res or {}).get("id")
         side = None
-        if _lv_side_matches(rh):
+        if _rh_id == team_id and _ra_id != team_id:
             side = "home"
-        elif _lv_side_matches(ra):
+        elif _ra_id == team_id and _rh_id != team_id:
             side = "away"
+        # Fallback: only one side matched the LV team in the original
+        # (more permissive) check, the other resolved to a different
+        # id. Trust the original _lv_side_matches result.
+        if not side:
+            if _lv_side_matches(rh) and not _lv_side_matches(ra):
+                side = "home"
+            elif _lv_side_matches(ra) and not _lv_side_matches(rh):
+                side = "away"
         if not side:
             continue
 
