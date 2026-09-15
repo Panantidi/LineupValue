@@ -1352,18 +1352,20 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             margin-top: 4px;
         }}
         /* Right-side X/Twitter feed sidebar (Team mode).
-           Sep 16 2026: width 360px. height 1500px so all 20
-           tweet-cards fit inside without needing a chunky scrollbar
-           (was 1200 which clipped the last 2-3 posts). 1500 matches
-           .saved-matches-panel so the two right panels share the
-           same top and bottom edges and never visually overlap.
-           right: 285px keeps it left of the .saved-matches-panel. */
+           Sep 16 2026: width 360px. height 1300px — fits inside
+           the body 100vh viewport (top:64px + 1300px = 1364px,
+           which sits comfortably above a 1366x768 laptop screen
+           height). User reported that the previous 1500px value
+           pushed the bottom of the sidebar below the viewport
+           and that the sidebar could visually nudge against
+           the header edge under scroll/zoom. 1300px keeps the
+           whole sidebar inside the viewport at all times. */
         .tweets-sidebar {{
             position: fixed;
             top: 64px;
             right: 285px;
             width: 360px;
-            height: 1500px;
+            height: 1300px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
