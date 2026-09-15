@@ -944,6 +944,19 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin: 0;
             background: #f5f5f5;
+            /* Sep 16 2026: pin body to viewport and turn it into a
+               vertical flex column. Combined with .page-content
+               flex:1 + overflow-y:auto below, this means the page
+               never scrolls on window — only the .page-content
+               inner column scrolls. The right-side fixed panels
+               (tweets-sidebar, saved-matches-panel) and the
+               .header now sit OUTSIDE the scrolling area, so they
+               stay pinned to the viewport exactly like the
+               compare-container in Match mode. */
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }}
         .header {{
             background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
@@ -1261,6 +1274,22 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
 
         .page-content {{
+            /* Sep 16 2026: this is the only thing that scrolls. The
+               body above is pinned (overflow:hidden, height:100vh,
+               flex column) so the .header stays put at the top of
+               the viewport and the right-side fixed panels
+               (tweets-sidebar, saved-matches-panel) stay pinned to
+               their right:285px / right:12px positions without ever
+               drifting. The inner flex row still lays out
+               team-nav-sidebar + main + builder-lineup-host as
+               before. flex:1 1 0 + min-height:0 is the standard
+               flex-column child sizing — without min-height:0 the
+               child refuses to shrink below its content height and
+               overflow-y:auto never engages. */
+            flex: 1 1 0;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             gap: 12px;
             align-items: flex-start;
