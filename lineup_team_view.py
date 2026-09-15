@@ -1323,15 +1323,21 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             margin-top: 4px;
         }}
         /* Right-side X/Twitter feed sidebar (Team mode).
-           Sep 16 2026: width 360px (was 400), height 1272px (matches
-           .saved-matches-panel in Match mode for visual parity).
-           right: 285px keeps it left of the .saved-matches-panel. */
+           Sep 16 2026: width 360px (was 400), height 1200px (was 1272).
+           User reported: when scrolling inside .tweets-sidebar-list, the
+           last tweet-card is visually overlapped by .saved-matches-panel
+           (which is also height:1272px and starts at the same top:64px).
+           Reducing .tweets-sidebar height to 1200px (= 1272 - 72) gives
+           a 72px bottom margin that keeps the two panels visually
+           separate regardless of how the user scrolls. Both panels
+           remain position:fixed so they don't move with the page scroll
+           either. */
         .tweets-sidebar {{
             position: fixed;
             top: 64px;
             right: 285px;
             width: 360px;
-            height: 1272px;
+            height: 1200px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
