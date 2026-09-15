@@ -1323,21 +1323,18 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             margin-top: 4px;
         }}
         /* Right-side X/Twitter feed sidebar (Team mode).
-           Sep 16 2026: width 360px. height 1200px (set earlier as
-           1272 - 72 so the two right panels do not overlap).
-           Sep 16 2026 v2: with the new thin 6px scrollbar and
-           compressed tweet-card margins, all 20 posts now fit
-           without any clipping at the bottom — see CSS edits to
-           .tweets-sidebar-list (padding 6/8/0/8, scrollbar-width
-           thin, ::-webkit-scrollbar width 6px) and .tweet-card
-           (margin-bottom 6px, :last-child margin-bottom 0).
+           Sep 16 2026: width 360px. height 1500px so all 20
+           tweet-cards fit inside without needing a chunky scrollbar
+           (was 1200 which clipped the last 2-3 posts). 1500 matches
+           .saved-matches-panel so the two right panels share the
+           same top and bottom edges and never visually overlap.
            right: 285px keeps it left of the .saved-matches-panel. */
         .tweets-sidebar {{
             position: fixed;
             top: 64px;
             right: 285px;
             width: 360px;
-            height: 1200px;
+            height: 1500px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -1372,12 +1369,24 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             padding: 8px 8px 4px 8px;
             z-index: 40;
             font-size: 13px;
-            /* Sep 16 2026: force a new containing block so that even
-               if some ancestor gains transform/filter/will-change
-               in the future, .saved-matches-panel still pins to the
-               viewport and never scrolls with the page. */
-            transform: translateZ(0);
-            will-change: transform;
+            /* Sep 16 2026: strict non-scroll-with-page behavior under
+               ALL viewport conditions, including Ctrl+ / Ctrl- zoom
+               where browsers sometimes re-evaluate position:fixed:
+                 - contain: layout style paint isolates the element so
+                   no ancestor's transform/filter/will-change can ever
+                   turn this into a positioning context for it.
+                 - No transform: translateZ(0) — that was creating a
+                   containing block for descendants, which is fine, but
+                   in some Chromium versions under zoom it triggered a
+                   repaint that made the panel feel like it was moving
+                   with the page. We don't need it now that the panel
+                   sits as a direct child of <body> and no ancestor has
+                   transform/filter.
+                 - overscroll-behavior: contain stops scroll chaining
+                   so a wheel event inside the panel scrolls the panel
+                   only — never the page. */
+            contain: layout style paint;
+            overscroll-behavior: contain;
         }}
         body.embed-mode .saved-matches-panel {{ display: none !important; }}
         /* Sep 16 2026: hidden class — toggled by toggleSection when
