@@ -1487,7 +1487,14 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         .tweets-sidebar-list {{
             overflow-y: auto;
             overflow-x: hidden;
-            flex: 1;
+            flex: 1 1 0;
+            /* Sep 16 2026: min-height:0 lets the flex item shrink below
+               its content height so overflow-y:auto can actually scroll
+               when the tweet list is longer than the available 1272px
+               minus the header. Without this, the default min-height:auto
+               forces the list to expand beyond the parent and the last
+               tweet-card ends up clipped (or unreachable via scroll). */
+            min-height: 0;
             padding: 8px;
         }}
         .tweet-card {{
