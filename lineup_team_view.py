@@ -1323,15 +1323,15 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             margin-top: 4px;
         }}
         /* Right-side X/Twitter feed sidebar (Team mode).
-           Sep 16 2026: width 360px (was 400), height 1200px (was 1272).
-           User reported: when scrolling inside .tweets-sidebar-list, the
-           last tweet-card is visually overlapped by .saved-matches-panel
-           (which is also height:1272px and starts at the same top:64px).
-           Reducing .tweets-sidebar height to 1200px (= 1272 - 72) gives
-           a 72px bottom margin that keeps the two panels visually
-           separate regardless of how the user scrolls. Both panels
-           remain position:fixed so they don't move with the page scroll
-           either. */
+           Sep 16 2026: width 360px. height 1200px (set earlier as
+           1272 - 72 so the two right panels do not overlap).
+           Sep 16 2026 v2: with the new thin 6px scrollbar and
+           compressed tweet-card margins, all 20 posts now fit
+           without any clipping at the bottom — see CSS edits to
+           .tweets-sidebar-list (padding 6/8/0/8, scrollbar-width
+           thin, ::-webkit-scrollbar width 6px) and .tweet-card
+           (margin-bottom 6px, :last-child margin-bottom 0).
+           right: 285px keeps it left of the .saved-matches-panel. */
         .tweets-sidebar {{
             position: fixed;
             top: 64px;
@@ -1508,17 +1508,36 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                forces the list to expand beyond the parent and the last
                tweet-card ends up clipped (or unreachable via scroll). */
             min-height: 0;
-            padding: 8px;
+            padding: 6px 8px 0 8px;
+            /* Sep 16 2026: thin scrollbar so the user can see more of
+               each tweet-card without horizontal real estate lost to
+               a chunky default 17px native scrollbar. Native styling
+               on Firefox + WebKit; auto-hide on idle, show on hover. */
+            scrollbar-width: thin;
+            scrollbar-color: #c5cad6 transparent;
         }}
+        .tweets-sidebar-list::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+        .tweets-sidebar-list::-webkit-scrollbar-track {{ background: transparent; }}
+        .tweets-sidebar-list::-webkit-scrollbar-thumb {{
+            background: #c5cad6;
+            border-radius: 3px;
+        }}
+        .tweets-sidebar-list::-webkit-scrollbar-thumb:hover {{ background: #9aa1b1; }}
         .tweet-card {{
             border: 1px solid #e5e7eb;
             border-radius: 6px;
             padding: 8px 10px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             background: #fff;
             font-size: 12px;
             line-height: 1.4;
         }}
+        /* Sep 16 2026: drop the trailing margin on the last tweet-card
+           so the very bottom of the list is not a half-clipped 6px gap.
+           The :last-child selector targets the actual rendered last
+           item, not just the last .tweet-card in source order, so it
+           still applies after live events get appended at render time. */
+        .tweets-sidebar-list > .tweet-card:last-child {{ margin-bottom: 0; }}
         .tweet-card:hover {{ background: #f8f9fc; }}
         .tweet-source {{
             font-weight: 600;
