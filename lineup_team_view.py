@@ -1323,15 +1323,15 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             margin-top: 4px;
         }}
         /* Right-side X/Twitter feed sidebar (Team mode).
-           Sep 16 2026: shifted left by 285px so that the new
-           .saved-matches-panel (253px wide + 12px gap + 20px margin)
-           can sit to the right of it. */
+           Sep 16 2026: width 360px (was 400), height 1272px (matches
+           .saved-matches-panel in Match mode for visual parity).
+           right: 285px keeps it left of the .saved-matches-panel. */
         .tweets-sidebar {{
             position: fixed;
             top: 64px;
             right: 285px;
-            width: 400px;
-            max-height: 790px;
+            width: 360px;
+            height: 1272px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
