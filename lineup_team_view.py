@@ -1369,23 +1369,25 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             padding: 8px 8px 4px 8px;
             z-index: 40;
             font-size: 13px;
-            /* Sep 16 2026: strict non-scroll-with-page behavior under
-               ALL viewport conditions, including Ctrl+ / Ctrl- zoom
-               where browsers sometimes re-evaluate position:fixed:
-                 - contain: layout style paint isolates the element so
-                   no ancestor's transform/filter/will-change can ever
-                   turn this into a positioning context for it.
-                 - No transform: translateZ(0) — that was creating a
-                   containing block for descendants, which is fine, but
-                   in some Chromium versions under zoom it triggered a
-                   repaint that made the panel feel like it was moving
-                   with the page. We don't need it now that the panel
-                   sits as a direct child of <body> and no ancestor has
-                   transform/filter.
-                 - overscroll-behavior: contain stops scroll chaining
-                   so a wheel event inside the panel scrolls the panel
-                   only — never the page. */
-            contain: layout style paint;
+        /* Sep 16 2026: strict non-scroll-with-page behavior under
+           ALL viewport conditions, including Ctrl+ / Ctrl- zoom
+           where browsers sometimes re-evaluate position:fixed:
+             - No transform: translateZ(0) — in some Chromium versions
+               under zoom it triggered a repaint that made the panel
+               feel like it was moving with the page.
+             - No contain: layout style paint — same reason; contain
+               can interfere with how Chromium recomputes fixed-
+               positioned descendants under zoom. We don't need it
+               because the panel sits as a direct child of <body>
+               and no ancestor has transform/filter.
+             - overscroll-behavior: contain stops scroll chaining
+               so a wheel event inside the panel scrolls the panel
+               only — never the page.
+             - The actual "stays put under zoom" guarantee comes
+               from the JS handler in <script> that watches
+               window.addEventListener('resize', ...) and re-asserts
+               inline top/right values whenever the viewport
+               changes (including zoom-induced resize). */
             overscroll-behavior: contain;
         }}
         body.embed-mode .saved-matches-panel {{ display: none !important; }}
@@ -6974,6 +6976,41 @@ if (notFound.length > 0) {{
     }}
     window.addEventListener('scroll', syncHeight, {{ passive: true }});
     window.addEventListener('resize', syncHeight);
+
+    // Sep 16 2026: keep .saved-matches-panel strictly pinned to the
+    // viewport under ALL viewport-changing conditions, including
+    // browser zoom (Ctrl+ / Ctrl-) where Chromium re-evaluates
+    // position:fixed in ways that can let the panel drift. We
+    // re-assert the inline top/right values whenever the visual
+    // viewport resizes, so even if the browser recomputes
+    // something, our inline styles win on the next frame.
+    (function pinSavedMatchesPanel() {{
+        var panel = document.getElementById('saved-matches-panel');
+        if (!panel) return;
+        function repin() {{
+            // Skip when the panel is hidden via toggleSection (Build
+            // Lineup active) — no need to spend layout cycles, and
+            // re-asserting top/right while hidden is harmless anyway.
+            if (panel.classList.contains('hidden')) return;
+            panel.style.top = '64px';
+            panel.style.right = '12px';
+        }}
+        // Repin on every visual-viewport change. visualViewport fires
+        // for browser zoom AND for mobile pinch-zoom AND for on-screen
+        // keyboard resize — covers everything that could let the
+        // panel drift. window.resize is a fallback for browsers that
+        // don't fire visualViewport. window.scroll is a safety net
+        // for the rare case where a parent layout reflows while the
+        // user scrolls and nudges the panel.
+        if (window.visualViewport) {{
+            window.visualViewport.addEventListener('resize', repin);
+        }}
+        window.addEventListener('resize', repin);
+        window.addEventListener('scroll', repin, {{ passive: true }});
+        // Also repin once on load to neutralize any zoom that was
+        // already applied when the page first rendered.
+        repin();
+    }})();
 
     var observer = new MutationObserver(applyBuilderVisibility);
     var target = document.getElementById('builder-lineup-host');
