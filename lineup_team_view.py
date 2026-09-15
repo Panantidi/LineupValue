@@ -1353,15 +1353,16 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         /* Sep 16 2026: saved-matches-panel — Match-style container that
            wraps the duplicate my-squads list. Same visual contract as
            compare_template.html (.saved-matches-panel), positioned to
-           the right of .tweets-sidebar. Fixed height 1272px matches
-           compare_template.html exactly; top:64px keeps it below the
+           the right of .tweets-sidebar. height: 1500px per user request
+           (was 1272px to match Match mode, now 1500px to give more room
+           for the saved-matches list). top:64px keeps it below the
            page header. */
         .saved-matches-panel {{
             position: fixed !important;
             top: 64px !important;
             right: 12px !important;
             width: 253px !important;
-            height: 1272px !important;
+            height: 1500px !important;
             background: #fff;
             border: 1px solid #e6e9f2;
             border-radius: 8px;
