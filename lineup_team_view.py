@@ -1367,6 +1367,10 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             font-size: 13px;
         }}
         body.embed-mode .saved-matches-panel {{ display: none !important; }}
+        /* Sep 16 2026: hidden class — toggled by toggleSection when
+           🧩 Build Lineup opens (overlaps with the wide builder
+           layout), restored when Build Lineup closes. */
+        .saved-matches-panel.hidden {{ display: none !important; }}
         .saved-matches-panel .sm-header {{
             display: flex;
             align-items: center;
@@ -2356,7 +2360,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
-            <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
+            <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this, null, ['tweets-sidebar', 'saved-matches-panel'])">🧩 Build Lineup</button>
             <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
         </div>
     </div>
@@ -2731,7 +2735,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 
     <script>
         var _tooltipTimer = null;
-        function toggleSection(hostId, btn, extraHosts) {{
+        function toggleSection(hostId, btn, extraHosts, hideOnShow) {{
             var host = document.getElementById(hostId);
             if (!host) return;
             var isVisible = host.style.display !== 'none';
@@ -2751,6 +2755,19 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     extra = [extraHosts];
                 }}
             }}
+            // Sep 16 2026: hideOnShow — when primary becomes visible, hide
+            // these panels (they would overlap the wide builder layout);
+            // when primary becomes hidden, restore them. Used by 🧩 Build
+            // Lineup to hide .tweets-sidebar and .saved-matches-panel
+            // while the builder is open.
+            var hidePanels = [];
+            if (hideOnShow) {{
+                if (Array.isArray(hideOnShow)) {{
+                    hidePanels = hideOnShow;
+                }} else {{
+                    hidePanels = [hideOnShow];
+                }}
+            }}
             if (!isVisible) {{
                 host.style.display = 'block';
                 if (btn) btn.classList.add('active');
@@ -2759,6 +2776,11 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     var h = document.getElementById(hid);
                     if (h) h.style.display = 'block';
                 }});
+                // Hide hidePanels
+                hidePanels.forEach(function(pid) {{
+                    var p = document.getElementById(pid);
+                    if (p) p.classList.add('hidden');
+                }});
             }} else {{
                 host.style.display = 'none';
                 if (btn) btn.classList.remove('active');
@@ -2766,6 +2788,11 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 extra.forEach(function(hid) {{
                     var h = document.getElementById(hid);
                     if (h) h.style.display = 'none';
+                }});
+                // Restore hidePanels
+                hidePanels.forEach(function(pid) {{
+                    var p = document.getElementById(pid);
+                    if (p) p.classList.remove('hidden');
                 }});
             }}
             // 🏗️ Builder Lineup — keep .main-layout in row whenever builder-lineup-host is visible,
