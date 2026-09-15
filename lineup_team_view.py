@@ -1525,11 +1525,22 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             scrollbar-width: thin;
             scrollbar-color: #c5cad6 transparent;
         }}
-        .tweets-sidebar-list::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+        /* Sep 16 2026: 8px-wide vertical scrollbar with a FIXED
+           20px thumb height (not min-height — the user explicitly
+           wants the thumb to always be exactly 20px tall regardless
+           of how much content overflows the panel). The thumb is
+           no longer proportional to (visible / total) — it's just
+           a small 20px handle that the user can click and drag.
+           Track stays transparent so the panel looks clean. */
+        .tweets-sidebar-list::-webkit-scrollbar {{
+            width: 8px;
+            height: 8px;
+        }}
         .tweets-sidebar-list::-webkit-scrollbar-track {{ background: transparent; }}
         .tweets-sidebar-list::-webkit-scrollbar-thumb {{
             background: #c5cad6;
-            border-radius: 3px;
+            border-radius: 4px;
+            height: 20px;
         }}
         .tweets-sidebar-list::-webkit-scrollbar-thumb:hover {{ background: #9aa1b1; }}
         .tweet-card {{
