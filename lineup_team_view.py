@@ -6979,21 +6979,38 @@ if (notFound.length > 0) {{
 
     // Sep 16 2026: keep .saved-matches-panel strictly pinned to the
     // viewport under ALL viewport-changing conditions, including
-    // browser zoom (Ctrl+ / Ctrl-) where Chromium re-evaluates
-    // position:fixed in ways that can let the panel drift. We
-    // re-assert the inline top/right values whenever the visual
-    // viewport resizes, so even if the browser recomputes
-    // something, our inline styles win on the next frame.
+    // browser zoom (Ctrl+ / Ctrl-) where Chromium re-evaluate position:fixed.
+    // We re-assert inline top/right values whenever the visual
+    // viewport resizes, so even if the browser recomputes something,
+    // our inline styles win on the next frame.
+    //
+    // Note: the CSS rules are `top: 64px !important`, so a plain
+    // `panel.style.top = '64px'` would NOT override them (an inline
+    // non-important value loses to a stylesheet !important value).
+    // We use `setProperty(name, value, 'important')` so the inline
+    // value is itself !important — and inline !important beats
+    // stylesheet !important in the cascade. That is what actually
+    // forces the panel back into place on every event.
     (function pinSavedMatchesPanel() {{
         var panel = document.getElementById('saved-matches-panel');
         if (!panel) return;
         function repin() {{
             // Skip when the panel is hidden via toggleSection (Build
-            // Lineup active) — no need to spend layout cycles, and
-            // re-asserting top/right while hidden is harmless anyway.
+            // Lineup active) — no need to spend layout cycles.
             if (panel.classList.contains('hidden')) return;
-            panel.style.top = '64px';
-            panel.style.right = '12px';
+            // Use setProperty with 'important' priority so we beat
+            // the stylesheet !important rules. Also re-assert position
+            // and the explicit width/height so a future stylesheet edit
+            // cannot silently unfix the panel.
+            panel.style.setProperty('position', 'fixed', 'important');
+            panel.style.setProperty('top', '64px', 'important');
+            panel.style.setProperty('right', '12px', 'important');
+            panel.style.setProperty('width', '253px', 'important');
+            panel.style.setProperty('height', '1500px', 'important');
+            panel.style.setProperty('z-index', '40', 'important');
+            panel.style.setProperty('left', 'auto', 'important');
+            panel.style.setProperty('bottom', 'auto', 'important');
+            panel.style.setProperty('transform', 'none', 'important');
         }}
         // Repin on every visual-viewport change. visualViewport fires
         // for browser zoom AND for mobile pinch-zoom AND for on-screen
@@ -7004,9 +7021,48 @@ if (notFound.length > 0) {{
         // user scrolls and nudges the panel.
         if (window.visualViewport) {{
             window.visualViewport.addEventListener('resize', repin);
+            window.visualViewport.addEventListener('scroll', repin);
         }}
         window.addEventListener('resize', repin);
         window.addEventListener('scroll', repin, {{ passive: true }});
+        // Watch the panel for any attribute changes that could
+        // disturb its position (e.g. a future stylesheet edit, a
+        // third-party script, an embed wrapper that sets inline
+        // styles). Repin whenever anything changes.
+        if (window.MutationObserver) {{
+            new MutationObserver(repin).observe(panel, {{
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            }});
+        }}
+        // Polling fallback: every 200ms check getBoundingClientRect
+        // and repin if the panel has drifted more than 2px from the
+        // expected top:64px right:12px. This catches the rare case
+        // where a parent reflow under zoom nudges the panel without
+        // firing any of the events above.
+        setInterval(function() {{
+            if (panel.classList.contains('hidden')) return;
+            var rect = panel.getBoundingClientRect();
+            // viewport top is rect.top for a position:fixed element
+            // whose top:0 reference is the viewport.
+            if (Math.abs(rect.top - 64) > 2 || Math.abs(rect.right - (window.innerWidth - 12)) > 2) {{
+                repin();
+            }}
+        }}, 200);
+        // requestAnimationFrame fallback: check on every frame so
+        // even browser-internal reflows (no JS event) get caught.
+        // The check is a single getBoundingClientRect + 2 cheap
+        // comparisons, so it costs <0.1ms per frame.
+        function rafLoop() {{
+            if (!panel.classList.contains('hidden')) {{
+                var r2 = panel.getBoundingClientRect();
+                if (Math.abs(r2.top - 64) > 1 || Math.abs(r2.right - (window.innerWidth - 12)) > 1) {{
+                    repin();
+                }}
+            }}
+            requestAnimationFrame(rafLoop);
+        }}
+        requestAnimationFrame(rafLoop);
         // Also repin once on load to neutralize any zoom that was
         // already applied when the page first rendered.
         repin();
