@@ -1322,11 +1322,14 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             margin-bottom: 2px;
             margin-top: 4px;
         }}
-        /* Right-side X/Twitter feed sidebar (Team mode). */
+        /* Right-side X/Twitter feed sidebar (Team mode).
+           Sep 16 2026: shifted left by 285px so that the new
+           .saved-matches-panel (253px wide + 12px gap + 20px margin)
+           can sit to the right of it. */
         .tweets-sidebar {{
             position: fixed;
             top: 64px;
-            right: 12px;
+            right: 285px;
             width: 400px;
             max-height: 790px;
             background: white;
@@ -1341,6 +1344,123 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         }}
         body.embed-mode .tweets-sidebar {{ display: none !important; }}
         .tweets-sidebar.hidden {{ display: none !important; }}
+        /* Sep 16 2026: saved-matches-panel — Match-style container that
+           wraps the duplicate my-squads list. Same visual contract as
+           compare_template.html (.saved-matches-panel), positioned to
+           the right of .tweets-sidebar. */
+        .saved-matches-panel {{
+            position: fixed;
+            top: 64px;
+            right: 12px;
+            width: 253px;
+            max-height: 790px;
+            background: #fff;
+            border: 1px solid #e6e9f2;
+            border-radius: 8px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 8px 4px 8px;
+            z-index: 40;
+            font-size: 13px;
+        }}
+        body.embed-mode .saved-matches-panel {{ display: none !important; }}
+        .saved-matches-panel .sm-header {{
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 4px 8px 4px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e6e9f2;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f2937;
+        }}
+        .saved-matches-panel .sm-header-icon {{
+            font-size: 14px;
+            line-height: 1;
+        }}
+        /* Sep 16 2026: Match-mode rules copied from compare_template.html
+           so the right-side saved-matches-panel renders identically
+           (date separators, .sm-item rows, star + delete buttons,
+           team-name typography, meta line, empty / error states). */
+        .saved-matches-panel .sm-date-sep {{
+            font-size: 11px;
+            font-weight: 700;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid #e6e9f2;
+            padding: 8px 2px 4px 2px;
+            margin: 0 0 4px 0;
+        }}
+        .saved-matches-panel .sm-item {{
+            position: relative;
+            padding: 4px 26px 6px 26px;
+            margin-bottom: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1.3;
+        }}
+        .saved-matches-panel .sm-item:hover {{ background: #f4f6fb; }}
+        .saved-matches-panel .sm-item.active {{ background: #eef2ff; }}
+        .saved-matches-panel .sm-star {{
+            position: absolute;
+            left: 2px;
+            top: 5px;
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            line-height: 24px;
+            text-align: center;
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            font-size: 20px;
+            font-family: inherit;
+            color: #c8c8c8;
+            transition: color 0.1s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }}
+        .saved-matches-panel .sm-star:hover {{ color: #f5b301; }}
+        .saved-matches-panel .sm-star[aria-pressed="true"] {{ color: #f5b301; }}
+        .saved-matches-panel .sm-team-home {{ font-weight: 400; color: #444; }}
+        .saved-matches-panel .sm-team-away {{ font-weight: 400; color: #444; }}
+        .saved-matches-panel .sm-del {{
+            position: absolute;
+            right: 2px;
+            top: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #dc3545;
+            font-size: 13px;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }}
+        .saved-matches-panel .sm-meta {{
+            font-size: 10px;
+            color: #888;
+            text-align: right;
+            margin-top: 2px;
+        }}
+        .saved-matches-panel .sm-empty {{
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            padding: 24px 8px;
+        }}
+        .saved-matches-panel .sm-error {{
+            color: #dc3545;
+            font-size: 12px;
+            text-align: center;
+            padding: 16px 8px;
+        }}
         .tweets-sidebar-header {{
             padding: 10px 12px;
             border-bottom: 1px solid #e5e7eb;
@@ -3757,6 +3877,9 @@ if (notFound.length > 0) {{
         function returnToLiveTeam() {{ window.location.href = window.location.pathname; }}
 
         function renderMySquads(items) {{
+            // Sep 16 2026 reverted: only the left my-squads-sidebar
+            // renders the saved-squads list. The right-side
+            // .saved-matches-panel is for saved MATCHES, not squads.
             const list = document.getElementById('my-squads-list');
             if (!list) return;
             if (!items || !items.length) {{ list.innerHTML = '<div class="snapshot-empty-list">No saved squads yet.</div>'; return; }}
@@ -4058,6 +4181,10 @@ if (notFound.length > 0) {{
 
 
         async function saveTeamState() {{
+            // Sep 16 2026 reverted: only the left my-squads-sidebar
+            // has a Save button now. The right-side .saved-matches-panel
+            // shows saved MATCHES (favorites), not squad snapshots, so
+            // it doesn't need a Save button.
             const btn = document.getElementById('save-btn');
             const msg = document.getElementById('save-message');
             const savedAt = new Date();
@@ -4073,6 +4200,147 @@ if (notFound.length > 0) {{
             }} catch (e) {{
                 msg.style.color = '#dc3545'; msg.textContent = '❌ ' + e.message;
             }} finally {{ btn.disabled = false; }}
+        }}
+
+        // ============================================================
+        // Sep 16 2026: Match-style saved-matches-panel in Team mode
+        // ============================================================
+        // Renders the user's saved match favorites (from
+        // /api/match-favorites) inside the right-side
+        // .saved-matches-panel. Visually identical to
+        // compare_template.html — same .sm-item rows, .sm-date-sep
+        // groups, ☆/★ favorite toggle, ❌ delete button, click-to-
+        // navigate. No currentMid in Team mode (no match selected),
+        // so the .active highlight is never set. Stars + deletes +
+        // click still work the same way.
+
+        async function loadSavedMatches() {{
+            try {{
+                const r = await fetch('/api/match-favorites', {{ credentials: 'include' }});
+                const data = await r.json();
+                const matches = data.favorites || [];
+                renderSavedMatchesPanel(matches, null);
+            }} catch (e) {{
+                console.error('loadSavedMatches error', e);
+                const panel = document.getElementById('saved-matches-panel');
+                if (panel) panel.innerHTML = '<div class="sm-empty">Failed to load saved matches.</div>';
+            }}
+        }}
+
+        function renderSavedMatchesPanel(matches, currentMid) {{
+            const panel = document.getElementById('saved-matches-panel');
+            if (!panel) return;
+            if (!matches || !matches.length) {{
+                panel.innerHTML = '<div class="sm-empty">No saved matches yet.</div>';
+                return;
+            }}
+            const pad = n => n.toString().padStart(2, '0');
+            const esc = s => String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const getFav = (mid) => {{
+                try {{ return localStorage.getItem('smFav:' + mid) === '1'; }} catch (e) {{ return false; }}
+            }};
+            const dateForGroup = m => {{
+                if (m.match_date && /^\d{{4}}-\d{{2}}-\d{{2}}/.test(m.match_date)) {{
+                    const d = new Date(m.match_date + 'T00:00:00');
+                    if (!isNaN(d.getTime())) return d;
+                }}
+                return m.created_at ? new Date(m.created_at) : new Date();
+            }};
+            const groups = new Map();
+            matches.forEach(m => {{
+                const dt = dateForGroup(m);
+                if (isNaN(dt.getTime())) return;
+                const key = `${{pad(dt.getDate())}}.${{pad(dt.getMonth() + 1)}}.${{String(dt.getFullYear()).slice(-2)}}`;
+                if (!groups.has(key)) groups.set(key, {{ date: dt, items: [] }});
+                groups.get(key).items.push(m);
+            }});
+            const sortedGroups = Array.from(groups.values())
+                .sort((a, b) => a.date - b.date);
+            sortedGroups.forEach(g => {{
+                g.items.sort((a, b) => {{
+                    const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+                    const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+                    return db - da;
+                }});
+            }});
+            const html = sortedGroups.map(g => {{
+                const dateLabel = esc(`${{pad(g.date.getDate())}}.${{pad(g.date.getMonth() + 1)}}.${{String(g.date.getFullYear()).slice(-2)}}`);
+                const items = g.items.map(m => {{
+                    const pathTeamId = m.home_id || m.away_id || '';
+                    const dt = m.created_at ? new Date(m.created_at) : new Date();
+                    const updated = `${{pad(dt.getDate())}}.${{pad(dt.getMonth() + 1)}} ${{pad(dt.getHours())}}:${{pad(dt.getMinutes())}}`;
+                    const isCurrent = m.match_id === currentMid;
+                    const home = esc(m.home_name || '?');
+                    const away = esc(m.away_name || '?');
+                    const matchIdAttr = esc(m.match_id);
+                    const fav = getFav(m.match_id);
+                    const starBtn = `<button type="button" class="sm-star" data-sm-fav-mid="${{matchIdAttr}}" aria-pressed="${{fav ? 'true' : 'false'}}" title="${{fav ? 'Unfavorite' : 'Favorite'}} this match" aria-label="${{fav ? 'Unfavorite' : 'Favorite'}}">${{fav ? '★' : '☆'}}</button>`;
+                    if (!pathTeamId) {{
+                        return `<div class="sm-item${{isCurrent ? ' active' : ''}}" style="opacity:0.6;cursor:default;" title="This match is missing team identifiers. Re-save to enable navigation.">${{starBtn}}<div class="sm-team-home">${{home}}</div><div class="sm-team-away">${{away}}</div><div class="sm-meta">update: ${{esc(updated)}}</div></div>`;
+                    }}
+                    const url = `/lineup_ai/compare/${{encodeURIComponent(pathTeamId)}}?mid=${{encodeURIComponent(m.match_id)}}&home_id=${{encodeURIComponent(m.home_id || '')}}&away_id=${{encodeURIComponent(m.away_id || '')}}&home_name=${{encodeURIComponent(m.home_name || '')}}&away_name=${{encodeURIComponent(m.away_name || '')}}`;
+                    const urlAttr = esc(url);
+                    return `<div class="sm-item${{isCurrent ? ' active' : ''}}" data-sm-url="${{urlAttr}}" data-sm-mid="${{matchIdAttr}}">${{starBtn}}<div class="sm-team-home">${{home}}</div><div class="sm-team-away">${{away}}</div><div class="sm-meta">update: ${{esc(updated)}}</div><button type="button" class="sm-del" data-sm-del-mid="${{matchIdAttr}}" title="Delete">❌</button></div>`;
+                }}).join('');
+                return `<div class="sm-date-sep">${{dateLabel}}</div>${{items}}`;
+            }}).join('');
+            panel.innerHTML = html;
+        }}
+
+        window.deleteSavedMatch = async function(matchId, ev) {{
+            if (ev) ev.preventDefault();
+            if (!confirm('Remove this match from saved?')) return;
+            try {{
+                const r = await fetch('/api/match-favorites/' + encodeURIComponent(matchId), {{method: 'DELETE'}});
+                const data = await r.json();
+                if (data.success) {{ await loadSavedMatches(); }}
+            }} catch (e) {{
+                console.error('deleteSavedMatch error', e);
+            }}
+        }};
+
+        // Event delegation for the right-side Saved Matches panel.
+        document.addEventListener('click', function(ev) {{
+            const starBtn = ev.target.closest('.sm-star');
+            if (starBtn) {{
+                ev.stopPropagation();
+                ev.preventDefault();
+                const mid = starBtn.getAttribute('data-sm-fav-mid');
+                if (!mid) return;
+                let next = false;
+                try {{
+                    const cur = localStorage.getItem('smFav:' + mid) === '1';
+                    next = !cur;
+                    localStorage.setItem('smFav:' + mid, next ? '1' : '0');
+                }} catch (e) {{ /* localStorage may be unavailable */ }}
+                starBtn.textContent = next ? '★' : '☆';
+                starBtn.setAttribute('aria-pressed', next ? 'true' : 'false');
+                starBtn.setAttribute('title', next ? 'Unfavorite this match' : 'Favorite this match');
+                starBtn.setAttribute('aria-label', next ? 'Unfavorite' : 'Favorite');
+                return;
+            }}
+            const delBtn = ev.target.closest('.sm-del');
+            if (delBtn) {{
+                ev.stopPropagation();
+                ev.preventDefault();
+                const mid = delBtn.getAttribute('data-sm-del-mid');
+                if (mid) window.deleteSavedMatch(mid, ev);
+                return;
+            }}
+            const item = ev.target.closest('.sm-item');
+            if (!item) return;
+            const url = item.getAttribute('data-sm-url');
+            if (!url) return;
+            window.location.href = url;
+        }});
+
+        // Initial load — handle both already-loaded and not-yet cases
+        if (document.readyState === 'loading') {{
+            document.addEventListener('DOMContentLoaded', loadSavedMatches);
+        }} else {{
+            loadSavedMatches();
         }}
 
         async function loadSavedState() {{
@@ -6235,6 +6503,23 @@ if (notFound.length > 0) {{
             <div class="tweet-empty">Loading news...</div>
         </div>
     </aside>
+
+    <!-- Sep 16 2026: Match-style saved-matches-panel sitting to the right
+         of .tweets-sidebar. Same visual contract + same data source as
+         compare_template.html — list of match favorites from
+         /api/match-favorites. The left my-squads-sidebar (in
+         .page-content) is UNCHANGED and continues to show saved squad
+         snapshots for the current team. This right-side block shows
+         the user's saved MATCHES (favorites) across all teams. -->
+    <div class="saved-matches-panel" id="saved-matches-panel" aria-label="Saved matches">
+        <div class="sm-header">
+            <span class="sm-header-icon">⭐</span>
+            <span>Saved Matches</span>
+        </div>
+        <div class="sm-list" id="saved-matches-list">
+            <div class="sm-empty">No saved matches yet.</div>
+        </div>
+    </div>
 
 <script>
 (function() {{
