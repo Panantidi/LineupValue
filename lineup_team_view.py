@@ -6761,7 +6761,7 @@ if (notFound.length > 0) {{
             // Fetch BOTH the team-specific tweets AND the global recent tweets,
             // then merge them. Recent tweets that match the current team
             // (player name or keyword) are highlighted first.
-            var teamP = fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=10').then(function(r) {{
+            var teamP = fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=20').then(function(r) {{
                 console.log('[tweets-sidebar] team_tweets response', r.status);
                 if (!r.ok) return {{ tweets: [] }};
                 return r.json();
@@ -6894,6 +6894,15 @@ if (notFound.length > 0) {{
                 var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
                 return tb - ta;
             }});
+
+            // Sep 16 2026: cap the rendered list at 20 posts. Team-specific
+            // tweets are already fetched with limit=20, recent_tweets with
+            // limit=10, plus live events. Sort puts newest first, then
+            // we trim so the sidebar shows the 20 newest items only.
+            // Server-side cache (tweets_cache table) and per-team
+            // news_notifier_tweets cleanup paths are NOT touched here —
+            // they run independently of what the browser renders.
+            merged = merged.slice(0, 20);
 
             render(merged);
         }} catch (e) {{
