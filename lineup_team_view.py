@@ -1357,11 +1357,11 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
            compare_template.html exactly; top:64px keeps it below the
            page header. */
         .saved-matches-panel {{
-            position: fixed;
-            top: 64px;
-            right: 12px;
-            width: 253px;
-            height: 1272px;
+            position: fixed !important;
+            top: 64px !important;
+            right: 12px !important;
+            width: 253px !important;
+            height: 1272px !important;
             background: #fff;
             border: 1px solid #e6e9f2;
             border-radius: 8px;
@@ -1371,6 +1371,12 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             padding: 8px 8px 4px 8px;
             z-index: 40;
             font-size: 13px;
+            /* Sep 16 2026: force a new containing block so that even
+               if some ancestor gains transform/filter/will-change
+               in the future, .saved-matches-panel still pins to the
+               viewport and never scrolls with the page. */
+            transform: translateZ(0);
+            will-change: transform;
         }}
         body.embed-mode .saved-matches-panel {{ display: none !important; }}
         /* Sep 16 2026: hidden class — toggled by toggleSection when
