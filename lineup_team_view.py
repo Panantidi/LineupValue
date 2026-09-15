@@ -2321,23 +2321,6 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         <div id="my-squads-list"><div class="snapshot-empty-list">No saved squads yet.</div></div>
     </aside>
 
-    <!-- Sep 16 2026: duplicate of my-squads-sidebar (saved-matches-panel).
-         Same sizes / styling / behavior. Save-button click updates BOTH
-         panels (single source of truth). Unique ids everywhere so the JS
-         that targets #save-btn / #save-message / #my-squads-list by id
-         still finds the primary panel; renderMySquads() also writes to
-         #my-squads-list-2 so the duplicate shows the same data. -->
-    <aside class="my-squads-sidebar" id="my-squads-sidebar-2">
-        <div class="actions-bar" style="margin:0 0 10px 0;align-items:flex-start;flex-direction:column;gap:6px;">
-            <button type="button" class="action-btn save-btn" id="save-btn-2" onclick="saveTeamState()">💾 Save</button>
-            <span class="cache-badge" style="color:{cache_badge_color};">{cache_badge_text}</span>
-            <span id="save-message-2"></span>
-        </div>
-        <div class="my-squads-title">My Squads</div>
-        <div class="my-squads-help">Saved snapshots are independent from future team data updates.</div>
-        <div id="my-squads-list-2"><div class="snapshot-empty-list">No saved squads yet.</div></div>
-    </aside>
-
     <!-- Comparison Tables (toggled by ⚖️ Compare Lineups, appears below my-squads-sidebar, mutually exclusive with info-bar-squad-host) -->
     <div id="comparison-table-host" style="display:none;">
     <div id="comparison-table" style="display:flex;flex-direction:column;gap:8px;">
@@ -3774,24 +3757,16 @@ if (notFound.length > 0) {{
         function returnToLiveTeam() {{ window.location.href = window.location.pathname; }}
 
         function renderMySquads(items) {{
-            // Sep 16 2026: write to BOTH #my-squads-list and
-            // #my-squads-list-2 (duplicate panel). Same source list.
-            const lists = [
-                document.getElementById('my-squads-list'),
-                document.getElementById('my-squads-list-2'),
-            ].filter(Boolean);
-            if (!lists.length) return;
-            const empty = '<div class="snapshot-empty-list">No saved squads yet.</div>';
-            const html = !items || !items.length
-                ? empty
-                : items.map(item => '<div class="snapshot-list-item" data-snapshot-id="' + item.id + '">' +
-                    '<div class="snapshot-list-name">' + item.name + '</div>' +
-                    '<div class="snapshot-list-actions">' +
-                    '<button type="button" onclick="openSnapshot(event,' + item.id + ')">Open</button>' +
-                    '<button type="button" onclick="renameSnapshot(event,' + item.id + ')">Rename</button>' +
-                    '<button type="button" class="snapshot-delete" onclick="deleteSnapshot(event,' + item.id + ')">Delete</button>' +
-                    '</div></div>').join('');
-            for (const l of lists) l.innerHTML = html;
+            const list = document.getElementById('my-squads-list');
+            if (!list) return;
+            if (!items || !items.length) {{ list.innerHTML = '<div class="snapshot-empty-list">No saved squads yet.</div>'; return; }}
+            list.innerHTML = items.map(item => '<div class="snapshot-list-item" data-snapshot-id="' + item.id + '">' +
+                '<div class="snapshot-list-name">' + item.name + '</div>' +
+                '<div class="snapshot-list-actions">' +
+                '<button type="button" onclick="openSnapshot(event,' + item.id + ')">Open</button>' +
+                '<button type="button" onclick="renameSnapshot(event,' + item.id + ')">Rename</button>' +
+                '<button type="button" class="snapshot-delete" onclick="deleteSnapshot(event,' + item.id + ')">Delete</button>' +
+                '</div></div>').join('');
         }}
 
         async function loadSnapshotsList() {{
@@ -4083,32 +4058,21 @@ if (notFound.length > 0) {{
 
 
         async function saveTeamState() {{
-            // Sep 16 2026: BOTH save buttons (primary + duplicate panel)
-            // share state. Whichever button was clicked drives the
-            // disabled flag, but BOTH #save-message spans show the
-            // status text in sync.
-            const buttons = [
-                document.getElementById('save-btn'),
-                document.getElementById('save-btn-2'),
-            ].filter(Boolean);
-            const msgs = [
-                document.getElementById('save-message'),
-                document.getElementById('save-message-2'),
-            ].filter(Boolean);
+            const btn = document.getElementById('save-btn');
+            const msg = document.getElementById('save-message');
             const savedAt = new Date();
             const payload = collectTeamState();
             payload.name = snapshotName(savedAt);
-            for (const b of buttons) b.disabled = true;
-            for (const m of msgs) {{ m.style.color = '#667eea'; m.textContent = 'Saving snapshot...'; }}
+            btn.disabled = true; msg.style.color = '#667eea'; msg.textContent = 'Saving snapshot...';
             try {{
                 const res = await fetch('/lineup_ai/snapshots/' + encodeURIComponent(TEAM_ID), {{method:'POST', headers:{{'Content-Type':'application/json'}}, body: JSON.stringify(payload)}});
                 const json = await res.json();
                 if (!res.ok || !json.ok) throw new Error(json.error || 'save failed');
-                for (const m of msgs) {{ m.style.color = '#17843f'; m.textContent = '✅ Snapshot saved'; }}
+                msg.style.color = '#17843f'; msg.textContent = '✅ Snapshot saved';
                 await loadSnapshotsList();
             }} catch (e) {{
-                for (const m of msgs) {{ m.style.color = '#dc3545'; m.textContent = '❌ ' + e.message; }}
-            }} finally {{ for (const b of buttons) b.disabled = false; }}
+                msg.style.color = '#dc3545'; msg.textContent = '❌ ' + e.message;
+            }} finally {{ btn.disabled = false; }}
         }}
 
         async function loadSavedState() {{
