@@ -49,6 +49,7 @@ Env: SXI_TG_TOKEN, SXI_TG_CHAT, SXI_INTERVAL_SEC, SXI_API_BASE,
 from __future__ import annotations
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -134,6 +135,93 @@ def load_state() -> dict:
     except Exception as e:
         log(f"WARN: state load failed: {e}; starting empty")
         return {}
+
+
+# Sep 16 2026: P-XI state path. pxi_notifier.py writes its own state
+# here with the same schema (home_sent, away_sent, home_team, away_team,
+# kickoff_ts) but with a different match_id format ("{league}-...?")
+# that we cannot join on. We instead match by (home_team, away_team,
+# kickoff_ts window). This is how the pre-v2.5 S-XI logic used the
+# P-XI state — the user explicitly asked to restore that contract.
+PXI_STATE_PATH = Path("/home/openclaw/FormAlert/data/pxi_state.json")
+_pxi_state_cache: dict | None = None
+_pxi_state_loaded_at: float = 0.0
+_PXI_STATE_TTL = 30  # refresh every 30s — same as our cycle interval
+
+
+def _load_pxi_state() -> dict:
+    """Lazy-load + cache pxi_state.json. Returned dict is keyed by
+    match_id; each entry is a normal P-XI state record (home_sent,
+    away_sent, home_team, away_team, kickoff_ts, ...).
+
+    S-XI does NOT mutate this — P-XI owns it. S-XI only reads."""
+    global _pxi_state_cache, _pxi_state_loaded_at
+    now = time.time()
+    if _pxi_state_cache is not None and (now - _pxi_state_loaded_at) < _PXI_STATE_TTL:
+        return _pxi_state_cache
+    if not PXI_STATE_PATH.exists():
+        _pxi_state_cache = {}
+        _pxi_state_loaded_at = now
+        return _pxi_state_cache
+    try:
+        with PXI_STATE_PATH.open("r", encoding="utf-8") as f:
+            _pxi_state_cache = json.load(f)
+    except Exception as e:
+        log(f"  [pxi-state] load failed: {e}; treating as empty")
+        _pxi_state_cache = {}
+    _pxi_state_loaded_at = now
+    return _pxi_state_cache
+
+
+def _norm_team(name: str) -> str:
+    """Normalize a team name for fuzzy matching against P-XI state.
+
+    Lowercase, strip punctuation/whitespace. Handles "Man United" /
+    "Manchester United" style variation only minimally — the user
+    explicitly accepted that as the v1 contract."""
+    if not name:
+        return ""
+    s = re.sub(r"[^a-z0-9]+", " ", name.lower()).strip()
+    return s
+
+
+def _pxi_predicted(slot: dict, league_key: str, pxi_state: dict,
+                   window_sec: int = 300) -> bool:
+    """Return True iff a P-XI record exists for this slot.
+
+    Match criteria (all of):
+      1. League key matches: P-XI state keys are "{league_key}-...".
+      2. Normalized home/away team names match (both directions
+         accepted in case P-XI reversed home/away).
+      3. |kickoff_ts - slot.kickoff_ts| <= window_sec (5 min default —
+         enough to absorb kickoff-time rounding differences between
+         P-XI and rotowire, tight enough to avoid false matches
+         between replays/return fixtures of the same teams).
+    """
+    if not pxi_state or not slot.get("kickoff_ts"):
+        return False
+    h = _norm_team(slot.get("home_team", ""))
+    a = _norm_team(slot.get("away_team", ""))
+    if not h or not a:
+        return False
+    ko = int(slot["kickoff_ts"])
+    for mid, rec in pxi_state.items():
+        if not mid.startswith(f"{league_key}-"):
+            continue
+        if not isinstance(rec, dict):
+            continue
+        if not (rec.get("home_sent") or rec.get("away_sent")):
+            # P-XI record exists but nothing was ever sent for it.
+            # Treat as "no P-XI" so S-XI also skips.
+            continue
+        ko2 = int(rec.get("kickoff_ts") or 0)
+        if abs(ko2 - ko) > window_sec:
+            continue
+        h2 = _norm_team(rec.get("home_team", ""))
+        a2 = _norm_team(rec.get("away_team", ""))
+        if (h == h2 and a == a2) or (h == a2 and a == h2):
+            return True
+    return False
 
 
 def save_state(state: dict) -> None:
@@ -447,6 +535,13 @@ def process_league(league_key: str, league_cfg: dict, state: dict) -> int:
         return 0
 
     sent = 0
+    # Sep 16 2026: pre-load P-XI state once per cycle. We need it to
+    # enforce the "S-XI only matches for matches where P-XI was
+    # already sent" rule the user asked to restore. The endpoint
+    # already filters to T±75min; this P-XI filter is the second
+    # half of the original S-XI contract.
+    pxi_state = _load_pxi_state()
+    pxi_skipped = 0
     for slot in merged:
         # Skip matches kicked off >2h ago (no point notifying late).
         if slot.get("kickoff_ts") and slot["kickoff_ts"] < now - 2 * 3600:
@@ -461,7 +556,21 @@ def process_league(league_key: str, league_cfg: dict, state: dict) -> int:
         prev = state.get(mid, {})
         if prev.get("home_sent") and prev.get("away_sent"):
             continue
+        # Sep 16 2026: skip if P-XI was not yet sent for this match.
+        # Restored from the pre-v2.5 S-XI contract. S-XI is the
+        # "confirmation" of the lineup — it is only useful if the user
+        # has already seen the P-XI prediction. Matches with no P-XI
+        # record (or a P-XI record where neither side was sent) are
+        # silently dropped here and logged below.
+        if not _pxi_predicted(slot, league_key, pxi_state):
+            pxi_skipped += 1
+            log(f"  [{league_key}] skip {slot.get('home_team')} vs "
+                f"{slot.get('away_team')} (no P-XI sent yet)")
+            continue
         sent += _process_match(league_key, league_cfg, slot, state, now)
+    if pxi_skipped:
+        log(f"  [{league_key}] pxi-skipped {pxi_skipped} match(es) "
+            f"with confirmed S-XI but no prior P-XI")
     return sent
 
 
