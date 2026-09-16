@@ -1373,7 +1373,19 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             display: flex;
             flex-direction: column;
             font-size: 13px;
-            overflow: hidden;
+            /* Sep 16 2026: was 'overflow: hidden' — changed to
+               'overflow: clip' so the panel can never leak its
+               children past its box. 'hidden' creates a scroll
+               container (and accepts overscroll-affinity), which
+               means a tall inner .tweets-sidebar-list could in
+               theory allow its content to render outside the
+               panel during certain Chromium compositing paths
+               (notably under zoom). 'overflow: clip' on both axes
+               disables scrolling AND clipping-bleed entirely, so
+               the panel's contents are strictly contained inside
+               its 1300px box and cannot overlap the .header above
+               or any other element below. */
+            overflow: clip;
             transition: opacity 0.2s ease;
         }}
         body.embed-mode .tweets-sidebar {{ display: none !important; }}
