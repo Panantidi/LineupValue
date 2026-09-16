@@ -3941,6 +3941,11 @@ if (notFound.length > 0) {{
         // the generic "View on X ↗" — matches the team name shown in
         // parentheses in each post header.
         const TEAM_NAME = "{team_name}";
+        // Sep 16 2026: SITE_BASE is the public origin we link to
+        // when we need an absolute URL for a team page (e.g. the
+        // "View team ↗" link on each tweet card). Defaults to the
+        // current origin so embed/iframe setups don't break.
+        const SITE_BASE = (typeof window !== 'undefined' && window.location && window.location.origin) || '';
         const CACHE_AGE_SECONDS = {cache_age_seconds if cache_age_seconds else 'null'};
         const CACHE_TTL_SECONDS = 3600; // 1 hour
         const TOTAL_GOALS = {total_goals};
@@ -6757,6 +6762,121 @@ if (notFound.length > 0) {{
         }} catch (e) {{ return ''; }}
     }}
 
+    // Sep 16 2026: team-name index for the tweets-sidebar link.
+    // Each tweet card has a footer link that — per user request —
+    // must point to the team mentioned in the post's parentheses
+    // (e.g. for "🟥 90 min — Omar El Hilali (Espanyol)" the link
+    // should target the Espanyol team page, not the page the
+    // user is currently browsing). The index maps a normalised
+    // team name to its LV team_id so we can build the URL
+    // /lineup_ai/{team_id}.
+    //
+    // Source: /lineup_ai/data.json (the same leagues_data.json
+    // the rest of the project uses). Loaded once on first call
+    // and cached on the window object for the lifetime of the
+    // page so the 790KB JSON file is fetched at most once.
+    // Normalise a team name for matching: lower-case, strip
+    // diacritics, collapse whitespace, drop trailing FC/CF/SC
+    // suffixes that vary between sources. This lets "Atletico
+    // Madrid" (no accent, tweet) match "Atlético Madrid" (with
+    // accent, LV data) and "Manchester City" match "Manchester
+    // City FC".
+    function _normTeamName(s) {{
+        if (!s) return '';
+        var x = String(s).toLowerCase().trim();
+        // strip diacritics via NFD decomposition + combining-mark
+        // removal. Works in all browsers we target.
+        try {{
+            x = x.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        }} catch (e) {{ /* ignore */ }}
+        // collapse whitespace
+        x = x.replace(/\\s+/g, ' ');
+        // drop common club suffixes that vary across sources
+        x = x.replace(/\\b(fc|cf|sc|afc|cfc|ssc|as|rc)\\b\\.?$/, '').trim();
+        return x;
+    }}
+    var _teamNameIndex = null;
+    var _teamNameIndexLoading = null;  // promise of in-flight load
+    function _ensureTeamNameIndex() {{
+        if (_teamNameIndex) return Promise.resolve(_teamNameIndex);
+        if (_teamNameIndexLoading) return _teamNameIndexLoading;
+        _teamNameIndexLoading = fetch('/lineup_ai/data.json', {{ credentials: 'same-origin' }})
+            .then(function(r) {{ return r.ok ? r.json() : {{}}; }})
+            .then(function(data) {{
+                // data shape is a 3-level object: country name
+                // -> league name -> array of teams. Each team
+                // object has at least id and name. We flatten it
+                // to a single Map keyed by normalised team name.
+                var idx = {{}};
+                for (var country in data) {{
+                    if (!data.hasOwnProperty(country)) continue;
+                    var leagues = data[country];
+                    if (!leagues || typeof leagues !== 'object') continue;
+                    for (var league in leagues) {{
+                        if (!leagues.hasOwnProperty(league)) continue;
+                        var teams = leagues[league];
+                        if (!Array.isArray(teams)) continue;
+                        for (var i = 0; i < teams.length; i++) {{
+                            var t = teams[i];
+                            if (!t || !t.id || !t.name) continue;
+                            // Key by normalised name. First match
+                            // wins (same logic as the previous
+                            // version). Diacritic stripping in
+                            // _normTeamName handles Atletico vs
+                            // Atlético style variations.
+                            var k = _normTeamName(t.name);
+                            if (k && !idx[k]) {{
+                                idx[k] = {{ id: t.id, name: t.name }};
+                            }}
+                        }}
+                    }}
+                }}
+                _teamNameIndex = idx;
+                return idx;
+            }})
+            .catch(function() {{
+                // On any failure, return an empty index so render
+                // can still produce a useful fallback (the original
+                // tweet URL).
+                _teamNameIndex = {{}};
+                return _teamNameIndex;
+            }});
+        return _teamNameIndexLoading;
+    }}
+    // Extract team names from parentheses in a tweet text. Returns
+    // an array of objects with name/start/end fields, in source
+    // order. We only consider non-empty parenthesised groups.
+    function _extractParenTeams(text) {{
+        if (!text) return [];
+        var out = [];
+        var re = /\(([^()]+)\)/g;
+        var m;
+        while ((m = re.exec(text)) !== null) {{
+            var inner = (m[1] || '').trim();
+            if (inner) out.push({{ name: inner, start: m.index, end: m.index + m[0].length }});
+        }}
+        return out;
+    }}
+    // Resolve the FIRST parenthesised team name that exists in the
+    // LV team index. Returns an object with original name + LV id
+    // + canonical LV name, or null. Normalisation (diacritics,
+    // case, FC/CF suffix) is applied on both sides so "Atletico
+    // Madrid" in a tweet matches "Atlético Madrid" in LV data.
+    function _resolveFirstParenTeam(teams, idx) {{
+        if (!teams || !idx) return null;
+        for (var i = 0; i < teams.length; i++) {{
+            var k = _normTeamName(teams[i].name);
+            if (k && idx[k]) {{
+                return {{
+                    name: idx[k].name,
+                    team_id: idx[k].id,
+                    source_name: teams[i].name
+                }};
+            }}
+        }}
+        return null;
+    }}
+
     function render(tweets) {{
         if (!tweets || tweets.length === 0) {{
             LIST.innerHTML = '<div class="tweet-empty">No news for this team yet.</div>';
@@ -6765,6 +6885,14 @@ if (notFound.length > 0) {{
         }}
         COUNT_EL.textContent = tweets.length;
         var readIds = getReadTweetIds();
+        // Make sure the team-name index is loaded before we render
+        // so the first paint already has the link resolved. If the
+        // fetch is still in flight when render fires, the helpers
+        // below fall back to the tweet URL while the request
+        // completes; on the next render pass (which happens on
+        // every fetchTweets cycle) the index is hot and links are
+        // real.
+        _ensureTeamNameIndex();
         var html = '';
         for (var i = 0; i < tweets.length; i++) {{
             var t = tweets[i];
@@ -6788,21 +6916,40 @@ if (notFound.length > 0) {{
             var tid = escapeHtml(t.tweet_id || '');
             var isRead = tid && readIds[tid] ? ' read' : '';
             var extraClass = t.is_live_event ? ' live-event' : '';
-            // Sep 16 2026: replace the generic "View on X ↗" with
-            // the current team's name (e.g. "Manchester City ↗") so
-            // the link text matches the team the user is browsing.
-            // TEAM_NAME is the human-readable name of the page
-            // (e.g. "Manchester City"), set in the page header
-            // from {team_name} on the server. Falls back to the
-            // previous label if the const was somehow not set
-            // (e.g. older cached page).
-            var viewLabel = (typeof TEAM_NAME !== 'undefined' && TEAM_NAME)
-                ? escapeHtml(TEAM_NAME) + ' ↗'
-                : 'View on X ↗';
+            // Sep 16 2026: per-tweet footer link. The link target
+            // is the team mentioned in the post's parentheses
+            // (e.g. for "Omar El Hilali (Espanyol)" the link
+            // points to the Espanyol team page, NOT to the team
+            // the user is currently browsing). If the parenthesised
+            // name doesn't resolve to any LV team, we fall back to
+            // the original tweet URL with the parenthesised team
+            // name as the visible label. If even the parentheses
+            // parse yields nothing, we fall back to the previous
+            // behaviour (TEAM_NAME / "View on X ↗").
+            var parenTeams = _extractParenTeams(t.text);
+            var resolved = _resolveFirstParenTeam(parenTeams, _teamNameIndex);
+            var viewLabel;
+            var viewHref;
+            if (resolved) {{
+                viewLabel = escapeHtml(resolved.name) + ' ↗';
+                viewHref = (SITE_BASE || '') + '/lineup_ai/' + encodeURIComponent(resolved.team_id);
+            }} else if (parenTeams.length > 0) {{
+                // Parentheses parsed but no LV match — link to
+                // the tweet itself but show the team name so the
+                // user at least sees what team the post is about.
+                viewLabel = escapeHtml(parenTeams[0].name) + ' ↗';
+                viewHref = url;
+            }} else if (typeof TEAM_NAME !== 'undefined' && TEAM_NAME) {{
+                viewLabel = escapeHtml(TEAM_NAME) + ' ↗';
+                viewHref = url;
+            }} else {{
+                viewLabel = 'View on X ↗';
+                viewHref = url;
+            }}
             html += '<div class="tweet-card' + extraClass + isRead + '" data-tweet-id="' + tid + '">'
                 + '<div class="tweet-source">' + user + '</div>'
                 + '<div class="tweet-text">' + highlighted + '</div>'
-                + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">' + viewLabel + '</a></div>'
+                + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + viewHref + '" target="_blank" rel="noopener">' + viewLabel + '</a></div>'
                 + '</div>';
         }}
         LIST.innerHTML = html;
