@@ -958,6 +958,23 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             display: flex;
             flex-direction: column;
         }}
+        /* Sep 16 2026: lock the html element too. body overflow:hidden
+           alone is NOT enough to stop window scroll in most browsers
+           — the html element is the actual root scroll container, and
+           body inherits the scroll behaviour from html. Without this,
+           the user-reported "tweets-sidebar slides down when I scroll
+           the page" can still happen on some Chromium versions:
+           window scrolls, body clips, but position:fixed descendants
+           of body are anchored to the visual viewport — when the
+           visual viewport's height changes (which is what scroll does
+           to it), the fixed panels re-anchor and appear to slide.
+           Locking html here makes the visual viewport the only thing
+           that can move, and we already proved that position:fixed
+           stays pinned to it under every other event we tested. */
+        html {{
+            height: 100vh;
+            overflow: hidden;
+        }}
         .header {{
             background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
             color: white;
@@ -1361,11 +1378,11 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
            the header edge under scroll/zoom. 1300px keeps the
            whole sidebar inside the viewport at all times. */
         .tweets-sidebar {{
-            position: fixed;
-            top: 64px;
-            right: 285px;
-            width: 360px;
-            height: 1300px;
+            position: fixed !important;
+            top: 64px !important;
+            right: 285px !important;
+            width: 360px !important;
+            height: 1300px !important;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -7108,6 +7125,64 @@ if (notFound.length > 0) {{
         requestAnimationFrame(rafLoop);
         // Also repin once on load to neutralize any zoom that was
         // already applied when the page first rendered.
+        repin();
+    }})();
+
+    // Sep 16 2026: same belt-and-suspenders pin for .tweets-sidebar.
+    // User reported it still drifted under scroll even after the
+    // body-viewport-locked layout (commit 5258ae6) and the
+    // overflow:clip fix (925057e). Same fix recipe as
+    // pinSavedMatchesPanel: re-assert inline !important
+    // position/top/right/width/height on every visualViewport
+    // resize/scroll, window resize/scroll, DOM mutation, and a
+    // 200ms polling check of getBoundingClientRect plus a per-frame
+    // requestAnimationFrame check. This makes it physically
+    // impossible for the panel to leave the viewport under any
+    // browser event we know of.
+    (function pinTweetsSidebar() {{
+        var sb = document.getElementById('tweets-sidebar');
+        if (!sb) return;
+        function repin() {{
+            if (sb.classList.contains('hidden')) return;
+            sb.style.setProperty('position', 'fixed', 'important');
+            sb.style.setProperty('top', '64px', 'important');
+            sb.style.setProperty('right', '285px', 'important');
+            sb.style.setProperty('width', '360px', 'important');
+            sb.style.setProperty('height', '1300px', 'important');
+            sb.style.setProperty('z-index', '40', 'important');
+            sb.style.setProperty('left', 'auto', 'important');
+            sb.style.setProperty('bottom', 'auto', 'important');
+            sb.style.setProperty('transform', 'none', 'important');
+        }}
+        if (window.visualViewport) {{
+            window.visualViewport.addEventListener('resize', repin);
+            window.visualViewport.addEventListener('scroll', repin);
+        }}
+        window.addEventListener('resize', repin);
+        window.addEventListener('scroll', repin, {{ passive: true }});
+        if (window.MutationObserver) {{
+            new MutationObserver(repin).observe(sb, {{
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            }});
+        }}
+        setInterval(function() {{
+            if (sb.classList.contains('hidden')) return;
+            var r = sb.getBoundingClientRect();
+            if (Math.abs(r.top - 64) > 2 || Math.abs(r.right - (window.innerWidth - 285)) > 2) {{
+                repin();
+            }}
+        }}, 200);
+        function rafLoop() {{
+            if (!sb.classList.contains('hidden')) {{
+                var r2 = sb.getBoundingClientRect();
+                if (Math.abs(r2.top - 64) > 1 || Math.abs(r2.right - (window.innerWidth - 285)) > 1) {{
+                    repin();
+                }}
+            }}
+            requestAnimationFrame(rafLoop);
+        }}
+        requestAnimationFrame(rafLoop);
         repin();
     }})();
 
