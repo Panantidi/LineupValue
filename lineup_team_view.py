@@ -3934,6 +3934,13 @@ if (notFound.length > 0) {{
         const TRANSFER_OUT_STATUSES = ['Left the team'];
 
         const TEAM_ID = "{team_id}";
+        // Sep 16 2026: TEAM_NAME is the human-readable name of the
+        // team the user is currently viewing (e.g. "Manchester City").
+        // The tweets-sidebar now uses it to label the "View on X ↗"
+        // link, so the link reads as "Manchester City ↗" instead of
+        // the generic "View on X ↗" — matches the team name shown in
+        // parentheses in each post header.
+        const TEAM_NAME = "{team_name}";
         const CACHE_AGE_SECONDS = {cache_age_seconds if cache_age_seconds else 'null'};
         const CACHE_TTL_SECONDS = 3600; // 1 hour
         const TOTAL_GOALS = {total_goals};
@@ -6781,10 +6788,21 @@ if (notFound.length > 0) {{
             var tid = escapeHtml(t.tweet_id || '');
             var isRead = tid && readIds[tid] ? ' read' : '';
             var extraClass = t.is_live_event ? ' live-event' : '';
+            // Sep 16 2026: replace the generic "View on X ↗" with
+            // the current team's name (e.g. "Manchester City ↗") so
+            // the link text matches the team the user is browsing.
+            // TEAM_NAME is the human-readable name of the page
+            // (e.g. "Manchester City"), set in the page header
+            // from {team_name} on the server. Falls back to the
+            // previous label if the const was somehow not set
+            // (e.g. older cached page).
+            var viewLabel = (typeof TEAM_NAME !== 'undefined' && TEAM_NAME)
+                ? escapeHtml(TEAM_NAME) + ' ↗'
+                : 'View on X ↗';
             html += '<div class="tweet-card' + extraClass + isRead + '" data-tweet-id="' + tid + '">'
                 + '<div class="tweet-source">' + user + '</div>'
                 + '<div class="tweet-text">' + highlighted + '</div>'
-                + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">View on X ↗</a></div>'
+                + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">' + viewLabel + '</a></div>'
                 + '</div>';
         }}
         LIST.innerHTML = html;
