@@ -5448,11 +5448,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE0246",
+        "id": "EDkSyUht",
         "name": "Bermuda",
         "slug": "bermuda",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKEFF54",
@@ -5497,11 +5496,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE1804",
+        "id": "t8VC3nNA",
         "name": "Chad",
         "slug": "chad",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKEEF5A",
@@ -5518,11 +5516,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKEC87C",
+        "id": "GlhxMpc9",
         "name": "Cuba",
         "slug": "cuba",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKE8E2A",
@@ -5539,11 +5536,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKEC28A",
+        "id": "8b5z2tKe",
         "name": "El Salvador",
         "slug": "el-salvador",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKE4E0B",
@@ -5567,11 +5563,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE27D7",
+        "id": "hW4TJi0B",
         "name": "Fiji",
         "slug": "fiji",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKEF3DB",
@@ -5581,11 +5576,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKEAA0B",
+        "id": "YVovjspA",
         "name": "Georgia",
         "slug": "georgia",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKE6124",
@@ -5602,18 +5596,16 @@
         "_placeholder": true
       },
       {
-        "id": "FAKEF276",
+        "id": "8KhCLQs3",
         "name": "Guatemala",
         "slug": "guatemala",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
-        "id": "FAKE1771",
+        "id": "0rJs9H8F",
         "name": "Guinea-Bissau",
         "slug": "guinea-bissau",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKEE633",
@@ -5623,11 +5615,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE228F",
+        "id": "fP8cJrsS",
         "name": "Honduras",
         "slug": "honduras",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKEF2C4",
@@ -5672,18 +5663,16 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE355D",
+        "id": "WC2jLpW4",
         "name": "Latvia",
         "slug": "latvia",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
-        "id": "FAKEFFC8",
+        "id": "2cnFSaNj",
         "name": "Luxembourg",
         "slug": "luxembourg",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKE21B5",
@@ -5749,11 +5738,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKEF2FC",
+        "id": "OjkU0PHe",
         "name": "Papua New Guinea",
         "slug": "papua-new-guinea",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKE128B",
@@ -5763,11 +5751,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKEB1C8",
+        "id": "vmwynzjq",
         "name": "Saint Kitts and Nevis",
         "slug": "saint-kitts-and-nevis",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKEDBD4",
@@ -5791,11 +5778,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE6975",
+        "id": "Wlrb53yT",
         "name": "San Marino",
         "slug": "san-marino",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKE2CAC",
@@ -5805,11 +5791,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE3BD9",
+        "id": "fF5OOS92",
         "name": "Solomon Islands",
         "slug": "solomon-islands",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       },
       {
         "id": "FAKE240B",
@@ -5868,11 +5853,10 @@
         "_placeholder": true
       },
       {
-        "id": "FAKE66A3",
+        "id": "ng4XIBFH",
         "name": "Vanuatu",
         "slug": "vanuatu",
-        "image_path": null,
-        "_placeholder": true
+        "image_path": null
       }
     ]
   },
