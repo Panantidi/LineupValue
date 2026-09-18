@@ -4137,7 +4137,9 @@
     "aliases": [],
     "league": "England > Premier League",
     "name": "Newcastle",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "Newcastle United"
+    ]
   },
   "pErwvM3s": {
     "aliases": [
@@ -4488,7 +4490,9 @@
     "aliases": [],
     "league": "England > Premier League",
     "name": "Leeds",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "Leeds United"
+    ]
   },
   "tYNTdpar": {
     "aliases": [
@@ -4662,7 +4666,9 @@
     ],
     "league": "USA > MLS",
     "name": "New York City",
-    "rotowire_seen": []
+    "rotowire_seen": [
+      "New York City FC"
+    ]
   },
   "ve2oT9ck": {
     "aliases": [
