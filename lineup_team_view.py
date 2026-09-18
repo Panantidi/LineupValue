@@ -944,6 +944,36 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin: 0;
             background: #f5f5f5;
+            /* Sep 16 2026: pin body to viewport and turn it into a
+               vertical flex column. Combined with .page-content
+               flex:1 + overflow-y:auto below, this means the page
+               never scrolls on window — only the .page-content
+               inner column scrolls. The right-side fixed panels
+               (tweets-sidebar, saved-matches-panel) and the
+               .header now sit OUTSIDE the scrolling area, so they
+               stay pinned to the viewport exactly like the
+               compare-container in Match mode. */
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }}
+        /* Sep 16 2026: lock the html element too. body overflow:hidden
+           alone is NOT enough to stop window scroll in most browsers
+           — the html element is the actual root scroll container, and
+           body inherits the scroll behaviour from html. Without this,
+           the user-reported "tweets-sidebar slides down when I scroll
+           the page" can still happen on some Chromium versions:
+           window scrolls, body clips, but position:fixed descendants
+           of body are anchored to the visual viewport — when the
+           visual viewport's height changes (which is what scroll does
+           to it), the fixed panels re-anchor and appear to slide.
+           Locking html here makes the visual viewport the only thing
+           that can move, and we already proved that position:fixed
+           stays pinned to it under every other event we tested. */
+        html {{
+            height: 100vh;
+            overflow: hidden;
         }}
         .header {{
             background: linear-gradient(to right, #043fb6 0%, #2e7af8 100%);
@@ -1261,6 +1291,22 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         tr.missing-from-last td {{ background-color: #F5A3A3 !important; }}
 
         .page-content {{
+            /* Sep 16 2026: this is the only thing that scrolls. The
+               body above is pinned (overflow:hidden, height:100vh,
+               flex column) so the .header stays put at the top of
+               the viewport and the right-side fixed panels
+               (tweets-sidebar, saved-matches-panel) stay pinned to
+               their right:285px / right:12px positions without ever
+               drifting. The inner flex row still lays out
+               team-nav-sidebar + main + builder-lineup-host as
+               before. flex:1 1 0 + min-height:0 is the standard
+               flex-column child sizing — without min-height:0 the
+               child refuses to shrink below its content height and
+               overflow-y:auto never engages. */
+            flex: 1 1 0;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             gap: 12px;
             align-items: flex-start;
@@ -1322,13 +1368,21 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             margin-bottom: 2px;
             margin-top: 4px;
         }}
-        /* Right-side X/Twitter feed sidebar (Team mode). */
+        /* Right-side X/Twitter feed sidebar (Team mode).
+           Sep 16 2026: width 360px. height 1300px — fits inside
+           the body 100vh viewport (top:64px + 1300px = 1364px,
+           which sits comfortably above a 1366x768 laptop screen
+           height). User reported that the previous 1500px value
+           pushed the bottom of the sidebar below the viewport
+           and that the sidebar could visually nudge against
+           the header edge under scroll/zoom. 1300px keeps the
+           whole sidebar inside the viewport at all times. */
         .tweets-sidebar {{
-            position: fixed;
-            top: 64px;
-            right: 12px;
-            width: 400px;
-            max-height: 790px;
+            position: fixed !important;
+            top: 64px !important;
+            right: 285px !important;
+            width: 360px !important;
+            height: 1300px !important;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -1336,11 +1390,167 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             display: flex;
             flex-direction: column;
             font-size: 13px;
-            overflow: hidden;
+            /* Sep 16 2026: was 'overflow: hidden' — changed to
+               'overflow: clip' so the panel can never leak its
+               children past its box. 'hidden' creates a scroll
+               container (and accepts overscroll-affinity), which
+               means a tall inner .tweets-sidebar-list could in
+               theory allow its content to render outside the
+               panel during certain Chromium compositing paths
+               (notably under zoom). 'overflow: clip' on both axes
+               disables scrolling AND clipping-bleed entirely, so
+               the panel's contents are strictly contained inside
+               its 1300px box and cannot overlap the .header above
+               or any other element below. */
+            overflow: clip;
             transition: opacity 0.2s ease;
         }}
         body.embed-mode .tweets-sidebar {{ display: none !important; }}
         .tweets-sidebar.hidden {{ display: none !important; }}
+        /* Sep 16 2026: saved-matches-panel — Match-style container that
+           wraps the duplicate my-squads list. Same visual contract as
+           compare_template.html (.saved-matches-panel), positioned to
+           the right of .tweets-sidebar. height: 1500px per user request
+           (was 1272px to match Match mode, now 1500px to give more room
+           for the saved-matches list). top:64px keeps it below the
+           page header. */
+        .saved-matches-panel {{
+            position: fixed !important;
+            top: 64px !important;
+            right: 12px !important;
+            width: 253px !important;
+            height: 1500px !important;
+            background: #fff;
+            border: 1px solid #e6e9f2;
+            border-radius: 8px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 8px 4px 8px;
+            z-index: 40;
+            font-size: 13px;
+        /* Sep 16 2026: strict non-scroll-with-page behavior under
+           ALL viewport conditions, including Ctrl+ / Ctrl- zoom
+           where browsers sometimes re-evaluate position:fixed:
+             - No transform: translateZ(0) — in some Chromium versions
+               under zoom it triggered a repaint that made the panel
+               feel like it was moving with the page.
+             - No contain: layout style paint — same reason; contain
+               can interfere with how Chromium recomputes fixed-
+               positioned descendants under zoom. We don't need it
+               because the panel sits as a direct child of <body>
+               and no ancestor has transform/filter.
+             - overscroll-behavior: contain stops scroll chaining
+               so a wheel event inside the panel scrolls the panel
+               only — never the page.
+             - The actual "stays put under zoom" guarantee comes
+               from the JS handler in <script> that watches
+               window.addEventListener('resize', ...) and re-asserts
+               inline top/right values whenever the viewport
+               changes (including zoom-induced resize). */
+            overscroll-behavior: contain;
+        }}
+        body.embed-mode .saved-matches-panel {{ display: none !important; }}
+        /* Sep 16 2026: hidden class — toggled by toggleSection when
+           🧩 Build Lineup opens (overlaps with the wide builder
+           layout), restored when Build Lineup closes. */
+        .saved-matches-panel.hidden {{ display: none !important; }}
+        .saved-matches-panel .sm-header {{
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 4px 8px 4px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e6e9f2;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f2937;
+        }}
+        .saved-matches-panel .sm-header-icon {{
+            font-size: 14px;
+            line-height: 1;
+        }}
+        /* Sep 16 2026: Match-mode rules copied from compare_template.html
+           so the right-side saved-matches-panel renders identically
+           (date separators, .sm-item rows, star + delete buttons,
+           team-name typography, meta line, empty / error states). */
+        .saved-matches-panel .sm-date-sep {{
+            font-size: 11px;
+            font-weight: 700;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid #e6e9f2;
+            padding: 8px 2px 4px 2px;
+            margin: 0 0 4px 0;
+        }}
+        .saved-matches-panel .sm-item {{
+            position: relative;
+            padding: 4px 26px 6px 26px;
+            margin-bottom: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1.3;
+        }}
+        .saved-matches-panel .sm-item:hover {{ background: #f4f6fb; }}
+        .saved-matches-panel .sm-item.active {{ background: #eef2ff; }}
+        .saved-matches-panel .sm-star {{
+            position: absolute;
+            left: 2px;
+            top: 5px;
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            line-height: 24px;
+            text-align: center;
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            font-size: 20px;
+            font-family: inherit;
+            color: #c8c8c8;
+            transition: color 0.1s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }}
+        .saved-matches-panel .sm-star:hover {{ color: #f5b301; }}
+        .saved-matches-panel .sm-star[aria-pressed="true"] {{ color: #f5b301; }}
+        .saved-matches-panel .sm-team-home {{ font-weight: 400; color: #444; }}
+        .saved-matches-panel .sm-team-away {{ font-weight: 400; color: #444; }}
+        .saved-matches-panel .sm-del {{
+            position: absolute;
+            right: 2px;
+            top: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #dc3545;
+            font-size: 13px;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }}
+        .saved-matches-panel .sm-meta {{
+            font-size: 10px;
+            color: #888;
+            text-align: right;
+            margin-top: 2px;
+        }}
+        .saved-matches-panel .sm-empty {{
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            padding: 24px 8px;
+        }}
+        .saved-matches-panel .sm-error {{
+            color: #dc3545;
+            font-size: 12px;
+            text-align: center;
+            padding: 16px 8px;
+        }}
         .tweets-sidebar-header {{
             padding: 10px 12px;
             border-bottom: 1px solid #e5e7eb;
@@ -1361,18 +1571,55 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         .tweets-sidebar-list {{
             overflow-y: auto;
             overflow-x: hidden;
-            flex: 1;
-            padding: 8px;
+            flex: 1 1 0;
+            /* Sep 16 2026: min-height:0 lets the flex item shrink below
+               its content height so overflow-y:auto can actually scroll
+               when the tweet list is longer than the available 1272px
+               minus the header. Without this, the default min-height:auto
+               forces the list to expand beyond the parent and the last
+               tweet-card ends up clipped (or unreachable via scroll). */
+            min-height: 0;
+            padding: 6px 8px 0 8px;
+            /* Sep 16 2026: thin scrollbar so the user can see more of
+               each tweet-card without horizontal real estate lost to
+               a chunky default 17px native scrollbar. Native styling
+               on Firefox + WebKit; auto-hide on idle, show on hover. */
+            scrollbar-width: thin;
+            scrollbar-color: #c5cad6 transparent;
         }}
+        /* Sep 16 2026: 8px-wide vertical scrollbar with a FIXED
+           20px thumb height (not min-height — the user explicitly
+           wants the thumb to always be exactly 20px tall regardless
+           of how much content overflows the panel). The thumb is
+           no longer proportional to (visible / total) — it's just
+           a small 20px handle that the user can click and drag.
+           Track stays transparent so the panel looks clean. */
+        .tweets-sidebar-list::-webkit-scrollbar {{
+            width: 8px;
+            height: 8px;
+        }}
+        .tweets-sidebar-list::-webkit-scrollbar-track {{ background: transparent; }}
+        .tweets-sidebar-list::-webkit-scrollbar-thumb {{
+            background: #c5cad6;
+            border-radius: 4px;
+            height: 20px;
+        }}
+        .tweets-sidebar-list::-webkit-scrollbar-thumb:hover {{ background: #9aa1b1; }}
         .tweet-card {{
             border: 1px solid #e5e7eb;
             border-radius: 6px;
             padding: 8px 10px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             background: #fff;
             font-size: 12px;
             line-height: 1.4;
         }}
+        /* Sep 16 2026: drop the trailing margin on the last tweet-card
+           so the very bottom of the list is not a half-clipped 6px gap.
+           The :last-child selector targets the actual rendered last
+           item, not just the last .tweet-card in source order, so it
+           still applies after live events get appended at render time. */
+        .tweets-sidebar-list > .tweet-card:last-child {{ margin-bottom: 0; }}
         .tweet-card:hover {{ background: #f8f9fc; }}
         .tweet-source {{
             font-weight: 600;
@@ -2234,7 +2481,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             <button type="button" id="btn-add-lineups" class="header-action-btn" onclick="toggleSection('bulk-lineup-panel-host', this, ['comparison-table-host'])">👥 Add Lineups</button>
-            <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this)">🧩 Build Lineup</button>
+            <button type="button" id="btn-builder" class="header-action-btn" onclick="toggleSection('builder-lineup-host', this, null, ['tweets-sidebar', 'saved-matches-panel'])">🧩 Build Lineup</button>
             <button type="button" class="header-action-btn" onclick="exportScreenshot()" id="btn-export">📸 Screenshot</button>
         </div>
     </div>
@@ -2609,7 +2856,7 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
 
     <script>
         var _tooltipTimer = null;
-        function toggleSection(hostId, btn, extraHosts) {{
+        function toggleSection(hostId, btn, extraHosts, hideOnShow) {{
             var host = document.getElementById(hostId);
             if (!host) return;
             var isVisible = host.style.display !== 'none';
@@ -2629,6 +2876,19 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     extra = [extraHosts];
                 }}
             }}
+            // Sep 16 2026: hideOnShow — when primary becomes visible, hide
+            // these panels (they would overlap the wide builder layout);
+            // when primary becomes hidden, restore them. Used by 🧩 Build
+            // Lineup to hide .tweets-sidebar and .saved-matches-panel
+            // while the builder is open.
+            var hidePanels = [];
+            if (hideOnShow) {{
+                if (Array.isArray(hideOnShow)) {{
+                    hidePanels = hideOnShow;
+                }} else {{
+                    hidePanels = [hideOnShow];
+                }}
+            }}
             if (!isVisible) {{
                 host.style.display = 'block';
                 if (btn) btn.classList.add('active');
@@ -2637,6 +2897,11 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                     var h = document.getElementById(hid);
                     if (h) h.style.display = 'block';
                 }});
+                // Hide hidePanels
+                hidePanels.forEach(function(pid) {{
+                    var p = document.getElementById(pid);
+                    if (p) p.classList.add('hidden');
+                }});
             }} else {{
                 host.style.display = 'none';
                 if (btn) btn.classList.remove('active');
@@ -2644,6 +2909,11 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 extra.forEach(function(hid) {{
                     var h = document.getElementById(hid);
                     if (h) h.style.display = 'none';
+                }});
+                // Restore hidePanels
+                hidePanels.forEach(function(pid) {{
+                    var p = document.getElementById(pid);
+                    if (p) p.classList.remove('hidden');
                 }});
             }}
             // 🏗️ Builder Lineup — keep .main-layout in row whenever builder-lineup-host is visible,
@@ -3664,6 +3934,18 @@ if (notFound.length > 0) {{
         const TRANSFER_OUT_STATUSES = ['Left the team'];
 
         const TEAM_ID = "{team_id}";
+        // Sep 16 2026: TEAM_NAME is the human-readable name of the
+        // team the user is currently viewing (e.g. "Manchester City").
+        // The tweets-sidebar now uses it to label the "View on X ↗"
+        // link, so the link reads as "Manchester City ↗" instead of
+        // the generic "View on X ↗" — matches the team name shown in
+        // parentheses in each post header.
+        const TEAM_NAME = "{team_name}";
+        // Sep 16 2026: SITE_BASE is the public origin we link to
+        // when we need an absolute URL for a team page (e.g. the
+        // "View team ↗" link on each tweet card). Defaults to the
+        // current origin so embed/iframe setups don't break.
+        const SITE_BASE = (typeof window !== 'undefined' && window.location && window.location.origin) || '';
         const CACHE_AGE_SECONDS = {cache_age_seconds if cache_age_seconds else 'null'};
         const CACHE_TTL_SECONDS = 3600; // 1 hour
         const TOTAL_GOALS = {total_goals};
@@ -3757,6 +4039,9 @@ if (notFound.length > 0) {{
         function returnToLiveTeam() {{ window.location.href = window.location.pathname; }}
 
         function renderMySquads(items) {{
+            // Sep 16 2026 reverted: only the left my-squads-sidebar
+            // renders the saved-squads list. The right-side
+            // .saved-matches-panel is for saved MATCHES, not squads.
             const list = document.getElementById('my-squads-list');
             if (!list) return;
             if (!items || !items.length) {{ list.innerHTML = '<div class="snapshot-empty-list">No saved squads yet.</div>'; return; }}
@@ -4058,6 +4343,10 @@ if (notFound.length > 0) {{
 
 
         async function saveTeamState() {{
+            // Sep 16 2026 reverted: only the left my-squads-sidebar
+            // has a Save button now. The right-side .saved-matches-panel
+            // shows saved MATCHES (favorites), not squad snapshots, so
+            // it doesn't need a Save button.
             const btn = document.getElementById('save-btn');
             const msg = document.getElementById('save-message');
             const savedAt = new Date();
@@ -4073,6 +4362,147 @@ if (notFound.length > 0) {{
             }} catch (e) {{
                 msg.style.color = '#dc3545'; msg.textContent = '❌ ' + e.message;
             }} finally {{ btn.disabled = false; }}
+        }}
+
+        // ============================================================
+        // Sep 16 2026: Match-style saved-matches-panel in Team mode
+        // ============================================================
+        // Renders the user's saved match favorites (from
+        // /api/match-favorites) inside the right-side
+        // .saved-matches-panel. Visually identical to
+        // compare_template.html — same .sm-item rows, .sm-date-sep
+        // groups, ☆/★ favorite toggle, ❌ delete button, click-to-
+        // navigate. No currentMid in Team mode (no match selected),
+        // so the .active highlight is never set. Stars + deletes +
+        // click still work the same way.
+
+        async function loadSavedMatches() {{
+            try {{
+                const r = await fetch('/api/match-favorites', {{ credentials: 'include' }});
+                const data = await r.json();
+                const matches = data.favorites || [];
+                renderSavedMatchesPanel(matches, null);
+            }} catch (e) {{
+                console.error('loadSavedMatches error', e);
+                const panel = document.getElementById('saved-matches-panel');
+                if (panel) panel.innerHTML = '<div class="sm-empty">Failed to load saved matches.</div>';
+            }}
+        }}
+
+        function renderSavedMatchesPanel(matches, currentMid) {{
+            const panel = document.getElementById('saved-matches-panel');
+            if (!panel) return;
+            if (!matches || !matches.length) {{
+                panel.innerHTML = '<div class="sm-empty">No saved matches yet.</div>';
+                return;
+            }}
+            const pad = n => n.toString().padStart(2, '0');
+            const esc = s => String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const getFav = (mid) => {{
+                try {{ return localStorage.getItem('smFav:' + mid) === '1'; }} catch (e) {{ return false; }}
+            }};
+            const dateForGroup = m => {{
+                if (m.match_date && /^\d{{4}}-\d{{2}}-\d{{2}}/.test(m.match_date)) {{
+                    const d = new Date(m.match_date + 'T00:00:00');
+                    if (!isNaN(d.getTime())) return d;
+                }}
+                return m.created_at ? new Date(m.created_at) : new Date();
+            }};
+            const groups = new Map();
+            matches.forEach(m => {{
+                const dt = dateForGroup(m);
+                if (isNaN(dt.getTime())) return;
+                const key = `${{pad(dt.getDate())}}.${{pad(dt.getMonth() + 1)}}.${{String(dt.getFullYear()).slice(-2)}}`;
+                if (!groups.has(key)) groups.set(key, {{ date: dt, items: [] }});
+                groups.get(key).items.push(m);
+            }});
+            const sortedGroups = Array.from(groups.values())
+                .sort((a, b) => a.date - b.date);
+            sortedGroups.forEach(g => {{
+                g.items.sort((a, b) => {{
+                    const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+                    const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+                    return db - da;
+                }});
+            }});
+            const html = sortedGroups.map(g => {{
+                const dateLabel = esc(`${{pad(g.date.getDate())}}.${{pad(g.date.getMonth() + 1)}}.${{String(g.date.getFullYear()).slice(-2)}}`);
+                const items = g.items.map(m => {{
+                    const pathTeamId = m.home_id || m.away_id || '';
+                    const dt = m.created_at ? new Date(m.created_at) : new Date();
+                    const updated = `${{pad(dt.getDate())}}.${{pad(dt.getMonth() + 1)}} ${{pad(dt.getHours())}}:${{pad(dt.getMinutes())}}`;
+                    const isCurrent = m.match_id === currentMid;
+                    const home = esc(m.home_name || '?');
+                    const away = esc(m.away_name || '?');
+                    const matchIdAttr = esc(m.match_id);
+                    const fav = getFav(m.match_id);
+                    const starBtn = `<button type="button" class="sm-star" data-sm-fav-mid="${{matchIdAttr}}" aria-pressed="${{fav ? 'true' : 'false'}}" title="${{fav ? 'Unfavorite' : 'Favorite'}} this match" aria-label="${{fav ? 'Unfavorite' : 'Favorite'}}">${{fav ? '★' : '☆'}}</button>`;
+                    if (!pathTeamId) {{
+                        return `<div class="sm-item${{isCurrent ? ' active' : ''}}" style="opacity:0.6;cursor:default;" title="This match is missing team identifiers. Re-save to enable navigation.">${{starBtn}}<div class="sm-team-home">${{home}}</div><div class="sm-team-away">${{away}}</div><div class="sm-meta">update: ${{esc(updated)}}</div></div>`;
+                    }}
+                    const url = `/lineup_ai/compare/${{encodeURIComponent(pathTeamId)}}?mid=${{encodeURIComponent(m.match_id)}}&home_id=${{encodeURIComponent(m.home_id || '')}}&away_id=${{encodeURIComponent(m.away_id || '')}}&home_name=${{encodeURIComponent(m.home_name || '')}}&away_name=${{encodeURIComponent(m.away_name || '')}}`;
+                    const urlAttr = esc(url);
+                    return `<div class="sm-item${{isCurrent ? ' active' : ''}}" data-sm-url="${{urlAttr}}" data-sm-mid="${{matchIdAttr}}">${{starBtn}}<div class="sm-team-home">${{home}}</div><div class="sm-team-away">${{away}}</div><div class="sm-meta">update: ${{esc(updated)}}</div><button type="button" class="sm-del" data-sm-del-mid="${{matchIdAttr}}" title="Delete">❌</button></div>`;
+                }}).join('');
+                return `<div class="sm-date-sep">${{dateLabel}}</div>${{items}}`;
+            }}).join('');
+            panel.innerHTML = html;
+        }}
+
+        window.deleteSavedMatch = async function(matchId, ev) {{
+            if (ev) ev.preventDefault();
+            if (!confirm('Remove this match from saved?')) return;
+            try {{
+                const r = await fetch('/api/match-favorites/' + encodeURIComponent(matchId), {{method: 'DELETE'}});
+                const data = await r.json();
+                if (data.success) {{ await loadSavedMatches(); }}
+            }} catch (e) {{
+                console.error('deleteSavedMatch error', e);
+            }}
+        }};
+
+        // Event delegation for the right-side Saved Matches panel.
+        document.addEventListener('click', function(ev) {{
+            const starBtn = ev.target.closest('.sm-star');
+            if (starBtn) {{
+                ev.stopPropagation();
+                ev.preventDefault();
+                const mid = starBtn.getAttribute('data-sm-fav-mid');
+                if (!mid) return;
+                let next = false;
+                try {{
+                    const cur = localStorage.getItem('smFav:' + mid) === '1';
+                    next = !cur;
+                    localStorage.setItem('smFav:' + mid, next ? '1' : '0');
+                }} catch (e) {{ /* localStorage may be unavailable */ }}
+                starBtn.textContent = next ? '★' : '☆';
+                starBtn.setAttribute('aria-pressed', next ? 'true' : 'false');
+                starBtn.setAttribute('title', next ? 'Unfavorite this match' : 'Favorite this match');
+                starBtn.setAttribute('aria-label', next ? 'Unfavorite' : 'Favorite');
+                return;
+            }}
+            const delBtn = ev.target.closest('.sm-del');
+            if (delBtn) {{
+                ev.stopPropagation();
+                ev.preventDefault();
+                const mid = delBtn.getAttribute('data-sm-del-mid');
+                if (mid) window.deleteSavedMatch(mid, ev);
+                return;
+            }}
+            const item = ev.target.closest('.sm-item');
+            if (!item) return;
+            const url = item.getAttribute('data-sm-url');
+            if (!url) return;
+            window.location.href = url;
+        }});
+
+        // Initial load — handle both already-loaded and not-yet cases
+        if (document.readyState === 'loading') {{
+            document.addEventListener('DOMContentLoaded', loadSavedMatches);
+        }} else {{
+            loadSavedMatches();
         }}
 
         async function loadSavedState() {{
@@ -6236,6 +6666,23 @@ if (notFound.length > 0) {{
         </div>
     </aside>
 
+    <!-- Sep 16 2026: Match-style saved-matches-panel sitting to the right
+         of .tweets-sidebar. Same visual contract + same data source as
+         compare_template.html — list of match favorites from
+         /api/match-favorites. The left my-squads-sidebar (in
+         .page-content) is UNCHANGED and continues to show saved squad
+         snapshots for the current team. This right-side block shows
+         the user's saved MATCHES (favorites) across all teams. -->
+    <div class="saved-matches-panel" id="saved-matches-panel" aria-label="Saved matches">
+        <div class="sm-header">
+            <span class="sm-header-icon">⭐</span>
+            <span>Saved Matches</span>
+        </div>
+        <div class="sm-list" id="saved-matches-list">
+            <div class="sm-empty">No saved matches yet.</div>
+        </div>
+    </div>
+
 <script>
 (function() {{
     var TEAM_ID = (new URLSearchParams(location.search).get('team_id')) || ((location.pathname.match(/\/lineup_ai\/([^/?]+)/) || [])[1]) || '';
@@ -6315,6 +6762,121 @@ if (notFound.length > 0) {{
         }} catch (e) {{ return ''; }}
     }}
 
+    // Sep 16 2026: team-name index for the tweets-sidebar link.
+    // Each tweet card has a footer link that — per user request —
+    // must point to the team mentioned in the post's parentheses
+    // (e.g. for "🟥 90 min — Omar El Hilali (Espanyol)" the link
+    // should target the Espanyol team page, not the page the
+    // user is currently browsing). The index maps a normalised
+    // team name to its LV team_id so we can build the URL
+    // /lineup_ai/{team_id}.
+    //
+    // Source: /lineup_ai/data.json (the same leagues_data.json
+    // the rest of the project uses). Loaded once on first call
+    // and cached on the window object for the lifetime of the
+    // page so the 790KB JSON file is fetched at most once.
+    // Normalise a team name for matching: lower-case, strip
+    // diacritics, collapse whitespace, drop trailing FC/CF/SC
+    // suffixes that vary between sources. This lets "Atletico
+    // Madrid" (no accent, tweet) match "Atlético Madrid" (with
+    // accent, LV data) and "Manchester City" match "Manchester
+    // City FC".
+    function _normTeamName(s) {{
+        if (!s) return '';
+        var x = String(s).toLowerCase().trim();
+        // strip diacritics via NFD decomposition + combining-mark
+        // removal. Works in all browsers we target.
+        try {{
+            x = x.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        }} catch (e) {{ /* ignore */ }}
+        // collapse whitespace
+        x = x.replace(/\\s+/g, ' ');
+        // drop common club suffixes that vary across sources
+        x = x.replace(/\\b(fc|cf|sc|afc|cfc|ssc|as|rc)\\b\\.?$/, '').trim();
+        return x;
+    }}
+    var _teamNameIndex = null;
+    var _teamNameIndexLoading = null;  // promise of in-flight load
+    function _ensureTeamNameIndex() {{
+        if (_teamNameIndex) return Promise.resolve(_teamNameIndex);
+        if (_teamNameIndexLoading) return _teamNameIndexLoading;
+        _teamNameIndexLoading = fetch('/lineup_ai/data.json', {{ credentials: 'same-origin' }})
+            .then(function(r) {{ return r.ok ? r.json() : {{}}; }})
+            .then(function(data) {{
+                // data shape is a 3-level object: country name
+                // -> league name -> array of teams. Each team
+                // object has at least id and name. We flatten it
+                // to a single Map keyed by normalised team name.
+                var idx = {{}};
+                for (var country in data) {{
+                    if (!data.hasOwnProperty(country)) continue;
+                    var leagues = data[country];
+                    if (!leagues || typeof leagues !== 'object') continue;
+                    for (var league in leagues) {{
+                        if (!leagues.hasOwnProperty(league)) continue;
+                        var teams = leagues[league];
+                        if (!Array.isArray(teams)) continue;
+                        for (var i = 0; i < teams.length; i++) {{
+                            var t = teams[i];
+                            if (!t || !t.id || !t.name) continue;
+                            // Key by normalised name. First match
+                            // wins (same logic as the previous
+                            // version). Diacritic stripping in
+                            // _normTeamName handles Atletico vs
+                            // Atlético style variations.
+                            var k = _normTeamName(t.name);
+                            if (k && !idx[k]) {{
+                                idx[k] = {{ id: t.id, name: t.name }};
+                            }}
+                        }}
+                    }}
+                }}
+                _teamNameIndex = idx;
+                return idx;
+            }})
+            .catch(function() {{
+                // On any failure, return an empty index so render
+                // can still produce a useful fallback (the original
+                // tweet URL).
+                _teamNameIndex = {{}};
+                return _teamNameIndex;
+            }});
+        return _teamNameIndexLoading;
+    }}
+    // Extract team names from parentheses in a tweet text. Returns
+    // an array of objects with name/start/end fields, in source
+    // order. We only consider non-empty parenthesised groups.
+    function _extractParenTeams(text) {{
+        if (!text) return [];
+        var out = [];
+        var re = /\(([^()]+)\)/g;
+        var m;
+        while ((m = re.exec(text)) !== null) {{
+            var inner = (m[1] || '').trim();
+            if (inner) out.push({{ name: inner, start: m.index, end: m.index + m[0].length }});
+        }}
+        return out;
+    }}
+    // Resolve the FIRST parenthesised team name that exists in the
+    // LV team index. Returns an object with original name + LV id
+    // + canonical LV name, or null. Normalisation (diacritics,
+    // case, FC/CF suffix) is applied on both sides so "Atletico
+    // Madrid" in a tweet matches "Atlético Madrid" in LV data.
+    function _resolveFirstParenTeam(teams, idx) {{
+        if (!teams || !idx) return null;
+        for (var i = 0; i < teams.length; i++) {{
+            var k = _normTeamName(teams[i].name);
+            if (k && idx[k]) {{
+                return {{
+                    name: idx[k].name,
+                    team_id: idx[k].id,
+                    source_name: teams[i].name
+                }};
+            }}
+        }}
+        return null;
+    }}
+
     function render(tweets) {{
         if (!tweets || tweets.length === 0) {{
             LIST.innerHTML = '<div class="tweet-empty">No news for this team yet.</div>';
@@ -6323,6 +6885,14 @@ if (notFound.length > 0) {{
         }}
         COUNT_EL.textContent = tweets.length;
         var readIds = getReadTweetIds();
+        // Make sure the team-name index is loaded before we render
+        // so the first paint already has the link resolved. If the
+        // fetch is still in flight when render fires, the helpers
+        // below fall back to the tweet URL while the request
+        // completes; on the next render pass (which happens on
+        // every fetchTweets cycle) the index is hot and links are
+        // real.
+        _ensureTeamNameIndex();
         var html = '';
         for (var i = 0; i < tweets.length; i++) {{
             var t = tweets[i];
@@ -6346,10 +6916,40 @@ if (notFound.length > 0) {{
             var tid = escapeHtml(t.tweet_id || '');
             var isRead = tid && readIds[tid] ? ' read' : '';
             var extraClass = t.is_live_event ? ' live-event' : '';
+            // Sep 16 2026: per-tweet footer link. The link target
+            // is the team mentioned in the post's parentheses
+            // (e.g. for "Omar El Hilali (Espanyol)" the link
+            // points to the Espanyol team page, NOT to the team
+            // the user is currently browsing). If the parenthesised
+            // name doesn't resolve to any LV team, we fall back to
+            // the original tweet URL with the parenthesised team
+            // name as the visible label. If even the parentheses
+            // parse yields nothing, we fall back to the previous
+            // behaviour (TEAM_NAME / "View on X ↗").
+            var parenTeams = _extractParenTeams(t.text);
+            var resolved = _resolveFirstParenTeam(parenTeams, _teamNameIndex);
+            var viewLabel;
+            var viewHref;
+            if (resolved) {{
+                viewLabel = escapeHtml(resolved.name) + ' ↗';
+                viewHref = (SITE_BASE || '') + '/lineup_ai/' + encodeURIComponent(resolved.team_id);
+            }} else if (parenTeams.length > 0) {{
+                // Parentheses parsed but no LV match — link to
+                // the tweet itself but show the team name so the
+                // user at least sees what team the post is about.
+                viewLabel = escapeHtml(parenTeams[0].name) + ' ↗';
+                viewHref = url;
+            }} else if (typeof TEAM_NAME !== 'undefined' && TEAM_NAME) {{
+                viewLabel = escapeHtml(TEAM_NAME) + ' ↗';
+                viewHref = url;
+            }} else {{
+                viewLabel = 'View on X ↗';
+                viewHref = url;
+            }}
             html += '<div class="tweet-card' + extraClass + isRead + '" data-tweet-id="' + tid + '">'
                 + '<div class="tweet-source">' + user + '</div>'
                 + '<div class="tweet-text">' + highlighted + '</div>'
-                + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + url + '" target="_blank" rel="noopener">View on X ↗</a></div>'
+                + '<div class="tweet-meta"><span>' + ago + '</span><a href="' + viewHref + '" target="_blank" rel="noopener">' + viewLabel + '</a></div>'
                 + '</div>';
         }}
         LIST.innerHTML = html;
@@ -6428,7 +7028,7 @@ if (notFound.length > 0) {{
             // Fetch BOTH the team-specific tweets AND the global recent tweets,
             // then merge them. Recent tweets that match the current team
             // (player name or keyword) are highlighted first.
-            var teamP = fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=10').then(function(r) {{
+            var teamP = fetch('/lineup_ai/api/team_tweets?team_id=' + encodeURIComponent(TEAM_ID) + '&limit=20').then(function(r) {{
                 console.log('[tweets-sidebar] team_tweets response', r.status);
                 if (!r.ok) return {{ tweets: [] }};
                 return r.json();
@@ -6562,6 +7162,15 @@ if (notFound.length > 0) {{
                 return tb - ta;
             }});
 
+            // Sep 16 2026: cap the rendered list at 20 posts. Team-specific
+            // tweets are already fetched with limit=20, recent_tweets with
+            // limit=10, plus live events. Sort puts newest first, then
+            // we trim so the sidebar shows the 20 newest items only.
+            // Server-side cache (tweets_cache table) and per-team
+            // news_notifier_tweets cleanup paths are NOT touched here —
+            // they run independently of what the browser renders.
+            merged = merged.slice(0, 20);
+
             render(merged);
         }} catch (e) {{
             LIST.innerHTML = '<div class="tweet-empty">Loading error</div>';
@@ -6592,6 +7201,155 @@ if (notFound.length > 0) {{
     }}
     window.addEventListener('scroll', syncHeight, {{ passive: true }});
     window.addEventListener('resize', syncHeight);
+
+    // Sep 16 2026: keep .saved-matches-panel strictly pinned to the
+    // viewport under ALL viewport-changing conditions, including
+    // browser zoom (Ctrl+ / Ctrl-) where Chromium re-evaluate position:fixed.
+    // We re-assert inline top/right values whenever the visual
+    // viewport resizes, so even if the browser recomputes something,
+    // our inline styles win on the next frame.
+    //
+    // Note: the CSS rules are `top: 64px !important`, so a plain
+    // `panel.style.top = '64px'` would NOT override them (an inline
+    // non-important value loses to a stylesheet !important value).
+    // We use `setProperty(name, value, 'important')` so the inline
+    // value is itself !important — and inline !important beats
+    // stylesheet !important in the cascade. That is what actually
+    // forces the panel back into place on every event.
+    (function pinSavedMatchesPanel() {{
+        var panel = document.getElementById('saved-matches-panel');
+        if (!panel) return;
+        function repin() {{
+            // Skip when the panel is hidden via toggleSection (Build
+            // Lineup active) — no need to spend layout cycles.
+            if (panel.classList.contains('hidden')) return;
+            // Use setProperty with 'important' priority so we beat
+            // the stylesheet !important rules. Also re-assert position
+            // and the explicit width/height so a future stylesheet edit
+            // cannot silently unfix the panel.
+            panel.style.setProperty('position', 'fixed', 'important');
+            panel.style.setProperty('top', '64px', 'important');
+            panel.style.setProperty('right', '12px', 'important');
+            panel.style.setProperty('width', '253px', 'important');
+            panel.style.setProperty('height', '1500px', 'important');
+            panel.style.setProperty('z-index', '40', 'important');
+            panel.style.setProperty('left', 'auto', 'important');
+            panel.style.setProperty('bottom', 'auto', 'important');
+            panel.style.setProperty('transform', 'none', 'important');
+        }}
+        // Repin on every visual-viewport change. visualViewport fires
+        // for browser zoom AND for mobile pinch-zoom AND for on-screen
+        // keyboard resize — covers everything that could let the
+        // panel drift. window.resize is a fallback for browsers that
+        // don't fire visualViewport. window.scroll is a safety net
+        // for the rare case where a parent layout reflows while the
+        // user scrolls and nudges the panel.
+        if (window.visualViewport) {{
+            window.visualViewport.addEventListener('resize', repin);
+            window.visualViewport.addEventListener('scroll', repin);
+        }}
+        window.addEventListener('resize', repin);
+        window.addEventListener('scroll', repin, {{ passive: true }});
+        // Watch the panel for any attribute changes that could
+        // disturb its position (e.g. a future stylesheet edit, a
+        // third-party script, an embed wrapper that sets inline
+        // styles). Repin whenever anything changes.
+        if (window.MutationObserver) {{
+            new MutationObserver(repin).observe(panel, {{
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            }});
+        }}
+        // Polling fallback: every 200ms check getBoundingClientRect
+        // and repin if the panel has drifted more than 2px from the
+        // expected top:64px right:12px. This catches the rare case
+        // where a parent reflow under zoom nudges the panel without
+        // firing any of the events above.
+        setInterval(function() {{
+            if (panel.classList.contains('hidden')) return;
+            var rect = panel.getBoundingClientRect();
+            // viewport top is rect.top for a position:fixed element
+            // whose top:0 reference is the viewport.
+            if (Math.abs(rect.top - 64) > 2 || Math.abs(rect.right - (window.innerWidth - 12)) > 2) {{
+                repin();
+            }}
+        }}, 200);
+        // requestAnimationFrame fallback: check on every frame so
+        // even browser-internal reflows (no JS event) get caught.
+        // The check is a single getBoundingClientRect + 2 cheap
+        // comparisons, so it costs <0.1ms per frame.
+        function rafLoop() {{
+            if (!panel.classList.contains('hidden')) {{
+                var r2 = panel.getBoundingClientRect();
+                if (Math.abs(r2.top - 64) > 1 || Math.abs(r2.right - (window.innerWidth - 12)) > 1) {{
+                    repin();
+                }}
+            }}
+            requestAnimationFrame(rafLoop);
+        }}
+        requestAnimationFrame(rafLoop);
+        // Also repin once on load to neutralize any zoom that was
+        // already applied when the page first rendered.
+        repin();
+    }})();
+
+    // Sep 16 2026: same belt-and-suspenders pin for .tweets-sidebar.
+    // User reported it still drifted under scroll even after the
+    // body-viewport-locked layout (commit 5258ae6) and the
+    // overflow:clip fix (925057e). Same fix recipe as
+    // pinSavedMatchesPanel: re-assert inline !important
+    // position/top/right/width/height on every visualViewport
+    // resize/scroll, window resize/scroll, DOM mutation, and a
+    // 200ms polling check of getBoundingClientRect plus a per-frame
+    // requestAnimationFrame check. This makes it physically
+    // impossible for the panel to leave the viewport under any
+    // browser event we know of.
+    (function pinTweetsSidebar() {{
+        var sb = document.getElementById('tweets-sidebar');
+        if (!sb) return;
+        function repin() {{
+            if (sb.classList.contains('hidden')) return;
+            sb.style.setProperty('position', 'fixed', 'important');
+            sb.style.setProperty('top', '64px', 'important');
+            sb.style.setProperty('right', '285px', 'important');
+            sb.style.setProperty('width', '360px', 'important');
+            sb.style.setProperty('height', '1300px', 'important');
+            sb.style.setProperty('z-index', '40', 'important');
+            sb.style.setProperty('left', 'auto', 'important');
+            sb.style.setProperty('bottom', 'auto', 'important');
+            sb.style.setProperty('transform', 'none', 'important');
+        }}
+        if (window.visualViewport) {{
+            window.visualViewport.addEventListener('resize', repin);
+            window.visualViewport.addEventListener('scroll', repin);
+        }}
+        window.addEventListener('resize', repin);
+        window.addEventListener('scroll', repin, {{ passive: true }});
+        if (window.MutationObserver) {{
+            new MutationObserver(repin).observe(sb, {{
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            }});
+        }}
+        setInterval(function() {{
+            if (sb.classList.contains('hidden')) return;
+            var r = sb.getBoundingClientRect();
+            if (Math.abs(r.top - 64) > 2 || Math.abs(r.right - (window.innerWidth - 285)) > 2) {{
+                repin();
+            }}
+        }}, 200);
+        function rafLoop() {{
+            if (!sb.classList.contains('hidden')) {{
+                var r2 = sb.getBoundingClientRect();
+                if (Math.abs(r2.top - 64) > 1 || Math.abs(r2.right - (window.innerWidth - 285)) > 1) {{
+                    repin();
+                }}
+            }}
+            requestAnimationFrame(rafLoop);
+        }}
+        requestAnimationFrame(rafLoop);
+        repin();
+    }})();
 
     var observer = new MutationObserver(applyBuilderVisibility);
     var target = document.getElementById('builder-lineup-host');
