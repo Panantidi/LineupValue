@@ -76,6 +76,161 @@ _EMOJI_SOCCER = "\u26bd"  # soccer ball, appears in some match labels
 _EMOJI_RED = "\U0001F7E5"
 _EMOJI_SUB = "\U0001F501"
 
+# Suffixes that appear at the end of European club names and have to be
+# stripped before name-based lookup, otherwise "Atletico" and
+# "Atletico Madrid" don't collide. Mirrors the JS _normTeamName() that
+# the team-sidebar footer-link feature uses on lineup_team_view.py.
+_TEAM_SUFFIX_RE = re.compile(
+    r"\s*(?:FC|CF|SC|AFC|CFC|SSC|AS|RC|BC|CD|SAD|SL|SD)$",
+    re.IGNORECASE,
+)
+
+# Diacritic folding table for NFD-decompose + strip combining marks.
+def _fold_diacritics(s: str) -> str:
+    import unicodedata as _u
+    return "".join(c for c in _u.normalize("NFD", s) if _u.category(c) != "Mn")
+
+
+def _norm_team(s: str) -> str:
+    """Lowercase + strip non-alphanumeric + drop common European suffixes.
+
+    Matches the JS helper from lineup_team_view.py so behaviour stays
+    consistent between web sidebar and this Telegram channel."""
+    if not s:
+        return ""
+    folded = _fold_diacritics(s).lower().strip()
+    folded = _TEAM_SUFFIX_RE.sub("", folded).strip()
+    return re.sub(r"[^a-z0-9]", "", folded)
+
+
+# ----- team index -----------------------------------------------------------
+
+LV_BASE = os.environ.get("LV_BASE", "https://x11radar.ru")
+TEAMS_JSON_URL = f"{LV_BASE}/lineup_ai/data.json"
+TEAM_INDEX_PATH = os.path.join(APP_DIR, "data", "live_events_team_index.json")
+TEAM_ALIASES_PATH = os.path.join(APP_DIR, "data", "team_name_aliases.json")
+TEAM_INDEX_TTL = int(os.environ.get("TEAM_INDEX_TTL", "3600"))
+
+_team_index: dict[str, dict] = {}
+_team_index_loaded_at: float = 0.0
+
+
+def _flatten_teams(node, out):
+    """Recursively walk /lineup_ai/data.json which is a 3-level
+    Country -> League -> [team] structure and yield every team dict."""
+    if isinstance(node, dict):
+        for v in node.values():
+            _flatten_teams(v, out)
+    elif isinstance(node, list):
+        for v in node:
+            if isinstance(v, dict) and "id" in v and "name" in v:
+                out.append(v)
+            else:
+                _flatten_teams(v, out)
+
+
+def _load_alias_map() -> dict[str, dict]:
+    """Build {normalized_alias: {id, name}} from data/team_name_aliases.json.
+
+    Each entry in that file is keyed by LV team_id and carries
+    .aliases = [rotowire_seen + manual additions]. Used as fallback
+    after _flatten_teams() because LV does not contain LaLiga clubs
+    but the alias file does (e.g. Dinamo Zagreb -> '8G5ufQTg')."""
+    if not os.path.exists(TEAM_ALIASES_PATH):
+        return {}
+    try:
+        with open(TEAM_ALIASES_PATH, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except Exception as exc:
+        log(f"  alias file load failed: {type(exc).__name__}: {exc}")
+        return {}
+    out: dict[str, dict] = {}
+    for tid, info in data.items():
+        if not isinstance(info, dict):
+            continue
+        canonical_name = info.get("name") or ""
+        if not canonical_name:
+            continue
+        canonical = {"id": tid, "name": canonical_name}
+        # Index the canonical name AND every alias
+        out[_norm_team(canonical_name)] = canonical
+        for alias in info.get("aliases", []) or []:
+            if not alias:
+                continue
+            nk = _norm_team(alias)
+            if nk and nk not in out:
+                out[nk] = canonical
+    return out
+
+
+def _build_team_index() -> dict[str, dict]:
+    """Fetch /lineup_ai/data.json + team_name_aliases.json, build
+    {normalized_name: {id, name}}.
+
+    Cache to disk (TEAM_INDEX_PATH) and in memory (TEAM_INDEX_TTL seconds)
+    so we don't hammer LV on every poll cycle."""
+    global _team_index, _team_index_loaded_at
+    now = time.time()
+    if _team_index and (now - _team_index_loaded_at) < TEAM_INDEX_TTL:
+        return _team_index
+
+    teams_out: list[dict] = []
+    try:
+        with urllib.request.urlopen(TEAMS_JSON_URL, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+        _flatten_teams(data, teams_out)
+        index = {_norm_team(t["name"]): {"id": t["id"], "name": t["name"]}
+                 for t in teams_out if t.get("id") and t.get("name")}
+    except Exception as exc:
+        log(f"team index build failed: {type(exc).__name__}: {exc}")
+        # Fall back to disk cache if available.
+        if os.path.exists(TEAM_INDEX_PATH):
+            try:
+                with open(TEAM_INDEX_PATH, "r", encoding="utf-8") as fh:
+                    cached = json.load(fh)
+                teams_out = cached.get("teams") or []
+                index = {_norm_team(t["name"]): {"id": t["id"], "name": t["name"]}
+                         for t in teams_out if t.get("id") and t.get("name")}
+            except Exception as exc2:
+                log(f"  disk cache fallback also failed: {exc2}")
+                index = {}
+        else:
+            index = {}
+
+    # Augment with team_name_aliases.json so UEFA/CL clubs like
+    # "Dinamo Zagreb" / "Hapoel Beer Sheva" (not in leagues_data)
+    # can still resolve via their rotowire_seen aliases.
+    alias_index = _load_alias_map()
+    if alias_index:
+        for k, v in alias_index.items():
+            if k and k not in index:
+                index[k] = v
+        log(f"  team index: {len(alias_index)} alias entries merged")
+
+    _team_index = index
+    _team_index_loaded_at = now
+    try:
+        with open(TEAM_INDEX_PATH, "w", encoding="utf-8") as fh:
+            json.dump({"loaded_at": now, "teams": teams_out}, fh)
+    except Exception:
+        pass
+    log(f"  team index rebuilt: {len(index)} entries")
+    return index
+
+
+def _resolve_team(name: str) -> dict | None:
+    if not name:
+        return None
+    idx = _team_index or _build_team_index()
+    return idx.get(_norm_team(name))
+
+
+def _html_escape(s: str) -> str:
+    return (s.replace("&", "&amp;")
+             .replace("<", "&lt;")
+             .replace(">", "&gt;")
+             .replace('"', "&quot;"))
+
 
 def log(msg: str) -> None:
     ts = _dt.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -100,8 +255,14 @@ def strip_md(s: str) -> str:
     return s
 
 
-def fmt_event(ev: dict) -> str:
-    """Render one event as a single message ready for sendMessage."""
+def fmt_event(ev: dict) -> tuple[str, str]:
+    """Render one event as (plain_text, html_text).
+
+    Two flavours so callers can pick the right parse_mode without
+    re-running the formatter. The html variant wraps the parenthesised
+    team name in <a href> pointing at the LV team page (same approach
+    as the per-tweet footer link in lineup_team_view.py).
+    """
     et = ev.get("event_type") or ""
     label = strip_md(ev.get("match_label") or "")
     player = strip_md(ev.get("player") or "")
@@ -110,20 +271,25 @@ def fmt_event(ev: dict) -> str:
 
     if et == "red_card":
         icon = _EMOJI_RED
-        verb = "Red Card"
     elif et == "substitution":
         icon = _EMOJI_SUB
-        verb = "Sub"
     else:
         icon = "\u2022"
-        verb = et or "Event"
 
-    head = f"{icon} {minute} min — {player}"
+    head_plain = f"{icon} {minute} min \u2014 {player}"
+    head_html = head_plain
     if team:
-        head += f" ({team})"
+        head_plain += f" ({team})"
+        resolved = _resolve_team(team)
+        if resolved:
+            url = f"{LV_BASE}/lineup_ai/{resolved['id']}"
+            # Telegram HTML only accepts href="..." (double-quoted).
+            head_html += f' (<a href="{_html_escape(url)}">{_html_escape(team)}</a>)'
+        else:
+            head_html += f" ({_html_escape(team)})"
     if label:
-        return f"{label}\n{head}"
-    return head
+        return (f"{label}\n{head_plain}", f"{_html_escape(label)}\n{head_html}")
+    return (head_plain, head_html)
 
 
 # ----- feed ------------------------------------------------------------------
@@ -170,7 +336,10 @@ def save_state(state: dict) -> None:
 # ----- telegram --------------------------------------------------------------
 
 
-def send_telegram(text: str) -> bool:
+def send_telegram(text: str, parse_mode: str = "HTML") -> bool:
+    """sendMessage. parse_mode "HTML" enables <a href> rendering;
+    Telegram will reject messages with unbalanced tags so the caller
+    must pass pre-sanitised text."""
     if not TG_TOKEN or not TG_CHAT:
         log("telegram token or chat not configured; skipping send")
         return False
@@ -180,6 +349,8 @@ def send_telegram(text: str) -> bool:
         "text": text,
         "disable_web_page_preview": True,
     }
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
     try:
         data = urllib.parse.urlencode(payload).encode("utf-8")
         req = urllib.request.Request(url, data=data, method="POST")
@@ -187,7 +358,7 @@ def send_telegram(text: str) -> bool:
             body = resp.read().decode("utf-8", errors="replace")
         if '"ok":true' in body or '"ok": true' in body:
             return True
-        log(f"send returned non-ok body: {body[:160]}")
+        log(f"send returned non-ok body: {body[:200]}")
         return False
     except Exception as exc:
         log(f"send failed: {type(exc).__name__}: {exc}")
@@ -240,11 +411,18 @@ def main() -> None:
                     # Inside backfill window: still suppress on first run
                     seen[eid] = now
                     continue
-                # Live: render and send
-                text = fmt_event(ev)
-                if send_telegram(text):
+                # Live: render and send. Telegram's HTML parse_mode
+                # is strict — if any team or label contains an unbalanced
+                # tag, the message gets a 400 and we should fall back to
+                # plain text so we never silently drop an event.
+                plain_text, html_text = fmt_event(ev)
+                if send_telegram(html_text, parse_mode="HTML"):
                     seen[eid] = now
                     sent += 1
+                elif send_telegram(plain_text, parse_mode=""):
+                    seen[eid] = now
+                    sent += 1
+                    log(f"  sent {eid} as plain text (HTML parse failed)")
             if not initialized and events:
                 log(f"  first-run primed: {len(events)} events pre-marked as seen")
                 state["initialized"] = True
