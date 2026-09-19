@@ -259,9 +259,14 @@ def fmt_event(ev: dict) -> tuple[str, str]:
     """Render one event as (plain_text, html_text).
 
     Two flavours so callers can pick the right parse_mode without
-    re-running the formatter. The html variant wraps the parenthesised
-    team name in <a href> pointing at the LV team page (same approach
-    as the per-tweet footer link in lineup_team_view.py).
+    re-running the formatter. The HTML variant:
+      - wraps the parenthesised team in <a href> when resolvable
+      - adds a footer link on a new line, e.g. "Espanyol ↗",
+        matching the per-tweet footer pattern from
+        lineup_team_view.py (commit 4f9800e).
+
+    The plain-text variant renders the footer as "[Team ↗]" for
+    channels / clients that don't render HTML.
     """
     et = ev.get("event_type") or ""
     label = strip_md(ev.get("match_label") or "")
@@ -278,18 +283,30 @@ def fmt_event(ev: dict) -> tuple[str, str]:
 
     head_plain = f"{icon} {minute} min \u2014 {player}"
     head_html = head_plain
+    resolved = None
     if team:
-        head_plain += f" ({team})"
         resolved = _resolve_team(team)
+        head_plain += f" ({team})"
         if resolved:
             url = f"{LV_BASE}/lineup_ai/{resolved['id']}"
-            # Telegram HTML only accepts href="..." (double-quoted).
             head_html += f' (<a href="{_html_escape(url)}">{_html_escape(team)}</a>)'
         else:
             head_html += f" ({_html_escape(team)})"
+
+    # Build footer link (matches team-page tweet footer pattern).
+    footer_plain = ""
+    footer_html = ""
+    if resolved:
+        url = f"{LV_BASE}/lineup_ai/{resolved['id']}"
+        footer_plain = f"\n{team} \u2197"
+        footer_html = f'\n<a href="{_html_escape(url)}">{_html_escape(team)} \u2197</a>'
+
     if label:
-        return (f"{label}\n{head_plain}", f"{_html_escape(label)}\n{head_html}")
-    return (head_plain, head_html)
+        return (
+            f"{label}\n{head_plain}{footer_plain}",
+            f"{_html_escape(label)}\n{head_html}{footer_html}",
+        )
+    return (f"{head_plain}{footer_plain}", f"{head_html}{footer_html}")
 
 
 # ----- feed ------------------------------------------------------------------
