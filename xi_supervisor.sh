@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Sep 18 2026 v4 — Watchdog for pxi, sxi, news_tweets, news (main, epl,
-# ff, bund) notifiers.
+# Sep 19 2026 v5 — Watchdog for pxi, sxi, news_tweets, news (main, epl,
+# ff, bund), live_events notifiers.
 #
 # Three failure modes we have to handle:
 #   1. Process died (SIGKILL, unhandled exception, OOM-killer).
@@ -21,6 +21,7 @@
 #   news_epl       -> news_notifier_epl.py / news_notifier_epl.pid / news_notifier_epl.log
 #   news_ff        -> news_notifier_ff.py / news_notifier_ff.pid / news_notifier_ff.log
 #   news_bund      -> news_notifier_bund.py / news_notifier_bund.pid / news_notifier_bund.log
+#   live_events    -> live_events_notifier.py / live_events_notifier.pid / live_events_notifier.log
 #
 # Install (one-shot, on the server, as `openclaw`):
 #   crontab -e
@@ -74,6 +75,7 @@ TARGETS=(
     "news_ff|news_notifier_ff.py|news_notifier_ff.pid|news_notifier_ff.log|600"
     "news_bund|news_notifier_bund.py|news_notifier_bund.pid|news_notifier_bund.log|600"
     "news_tweets|news_notifier_tweets.py|news_notifier_tweets.pid|news_notifier_tweets.log|360"
+    "live_events|live_events_notifier.py|live_events_notifier.pid|live_events_notifier.log|180"
 )
 
 should_restart_target() {
