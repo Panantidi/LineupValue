@@ -2648,6 +2648,24 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                         <option value="start">🔴 S-XI</option>
                         <option value="squad">⚫️ List (all found)</option>
                     </select>
+                    <script>
+                    (function() {{
+                        // Sep 20 2026 — Predicted XI / Starting XI sidebar's
+                        // ▶ Open Match button now appends &bulk_mode=start to
+                        // its URL so that the bulk-lineup dropdown opens with
+                        // S-XI pre-selected (the natural choice when the user
+                        // has just chosen a match from the P-XI / S-XI list).
+                        // Unknown / missing values fall through to the
+                        // natural default (🔵 P-XI = "possible").
+                        try {{
+                            var bm = new URLSearchParams(location.search).get('bulk_mode');
+                            if (bm === 'start' || bm === 'possible' || bm === 'squad') {{
+                                var sel = document.getElementById('bulk-lineup-mode');
+                                if (sel) sel.value = bm;
+                            }}
+                        }} catch (e) {{ /* ignore: URLSearchParams not available */ }}
+                    }})();
+                    </script>
                     <button type="button" class="bl-action-btn" onclick="applyBulkLineup()">Go</button>
                     <div class="vision-lineup-row" style="margin-left:auto;">
                         <input type="file" id="vision-lineup-image" accept="image/*" aria-label="Vision lineup image" style="display:none;">
@@ -3105,7 +3123,8 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                         '&away_name=' + encodeURIComponent(m.away_team) +
                         '&rotowire_fran=1' +
                         '&rw_league=' + leagueKey +
-                        '&kickoff_ts=' + (m.kickoff_ts || 0);
+                        '&kickoff_ts=' + (m.kickoff_ts || 0) +
+                        '&bulk_mode=start';
                     openMatchBtn = '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;text-decoration:none;border:1px solid #60a5fa;padding:4px 10px;border-radius:5px;white-space:nowrap;">▶ Open Match</a>';
                 }}
                 const pxiHomeFull = (m.pxi_home_matched === 11 && m.pxi_home_total === 11);
@@ -3302,7 +3321,8 @@ if (notFound.length > 0) {{
                         '&away_name=' + encodeURIComponent(m.away_team) +
                         '&rotowire_fran=1' +
                         '&rw_league=' + leagueKey +
-                        '&kickoff_ts=' + (m.kickoff_ts || 0);
+                        '&kickoff_ts=' + (m.kickoff_ts || 0) +
+                        '&bulk_mode=start';
                     openMatchBtn = '<a href="' + openHref + '" target="_blank" rel="noopener" style="font-size:11px;color:#60a5fa;background:transparent;border:1px solid #1f2b40;padding:4px 9px;border-radius:5px;text-decoration:none;white-space:nowrap;font-weight:600;justify-self:end;" title="Open this match in Match mode with rotowire lineups applied">▶ Open Match</a>';
                 }} else {{
                     const missing = !m.home_matched ? m.home_team : m.away_team;
