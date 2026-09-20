@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Sep 19 2026 v5 — Watchdog for pxi, sxi, news_tweets, news (main, epl,
-# ff, bund), live_events notifiers.
+# Sep 20 2026 v6 — Watchdog for pxi, sxi, news (RSS main/epl/ff/bund),
+# live_events notifiers. Removed news_tweets (TG 401 + X API 402, tweets disabled).
+#
 #
 # Three failure modes we have to handle:
 #   1. Process died (SIGKILL, unhandled exception, OOM-killer).
@@ -16,7 +17,6 @@
 # Per-notifier file naming convention:
 #   pxi            -> pxi_notifier.py / pxi_notifier.pid / pxi_notifier.log
 #   sxi            -> sxi_notifier.py / sxi_notifier.pid / sxi_notifier.log
-#   news_tweets    -> news_notifier_tweets.py / news_notifier_tweets.pid / news_notifier_tweets.log
 #   news           -> news_notifier.py / news_notifier.pid / news_notifier.log (general)
 #   news_epl       -> news_notifier_epl.py / news_notifier_epl.pid / news_notifier_epl.log
 #   news_ff        -> news_notifier_ff.py / news_notifier_ff.pid / news_notifier_ff.log
@@ -74,7 +74,6 @@ TARGETS=(
     "news_epl|news_notifier_epl.py|news_notifier_epl.pid|news_notifier_epl.log|600"
     "news_ff|news_notifier_ff.py|news_notifier_ff.pid|news_notifier_ff.log|600"
     "news_bund|news_notifier_bund.py|news_notifier_bund.pid|news_notifier_bund.log|600"
-    "news_tweets|news_notifier_tweets.py|news_notifier_tweets.pid|news_notifier_tweets.log|360"
     "live_events|live_events_notifier.py|live_events_notifier.pid|live_events_notifier.log|180"
 )
 
