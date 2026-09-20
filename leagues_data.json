@@ -4893,7 +4893,7 @@
       {
         "id": "Gfyqk1aG",
         "name": "Republic of Ireland",
-        "slug": "republic-of-ireland",
+        "slug": "ireland",
         "image_path": null
       },
       {
@@ -5369,13 +5369,6 @@
         "name": "Sao Tome and Principe",
         "slug": "sao-tome-and-principe",
         "image_path": null
-      },
-      {
-        "id": "FAKEF212",
-        "name": "Afghanistan",
-        "slug": "afghanistan",
-        "image_path": null,
-        "_placeholder": true
       },
       {
         "id": "FAKECDAC",
