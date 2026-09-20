@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Sep 20 2026 v6 — Watchdog for pxi, sxi, news (RSS main/epl/ff/bund),
-# live_events notifiers. Removed news_tweets (TG 401 + X API 402, tweets disabled).
+# Sep 20 2026 v7 — Watchdog for pxi, sxi, news (RSS main/epl/ff/bund),
+# live_events notifiers. Removed news_tweets (TG 401 + X API 402, tweets
+# disabled). Added SXI_TG_TOKEN/SXI_TG_CHAT guard (v6 silently ran with
+# empty token when supervisor was started without env-prefix; notifiers
+# then 404'd every cycle for hours without any visible error).
 #
 #
 # Three failure modes we have to handle:
@@ -44,6 +47,22 @@ SUP_STALE_SEC="${SUP_STALE_SEC:-1800}"  # 30 min — supervisor itself
 # so they never appear in the script body.
 export SXI_TG_TOKEN="${SXI_TG_TOKEN:-}"
 export SXI_TG_CHAT="${SXI_TG_CHAT:-@lineupvalue_alert}"
+
+# Sep 20 2026: guard against empty token (e.g. supervisor
+# started manually without env-prefix, or cron line missing
+# the SXI_TG_TOKEN=... prefix). Without this check the
+# restarted notifier would inherit an empty token and every
+# send_telegram() call would 404 silently, dumping
+# `tg send EXC: HTTP Error 404` into the log every cycle
+# without any visible indication of the root cause.
+if [ -z "$SXI_TG_TOKEN" ]; then
+    log "FATAL: SXI_TG_TOKEN is empty; notifier cannot post. Add SXI_TG_TOKEN=... to the cron line."
+    exit 1
+fi
+if [ -z "$SXI_TG_CHAT" ]; then
+    log "FATAL: SXI_TG_CHAT is empty; notifier has nowhere to post."
+    exit 1
+fi
 
 stamp() { date -u +"%Y-%m-%d %H:%M:%S UTC"; }
 log() {
