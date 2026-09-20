@@ -447,6 +447,13 @@ def main() -> None:
                 save_state(state)
             elif sent:
                 log(f"  cycle: events={len(events)} sent={sent} state={len(seen)}")
+                # Persist the dedup map on every successful send so
+                # a process restart does not resend already-delivered
+                # events. Without this save_state call, the in-memory
+                # `seen` dict and the on-disk state diverge: after a
+                # restart every "seen" event would look new again and
+                # flood the TG channel with duplicates.
+                save_state(state)
         except Exception as exc:
             log(f"loop error: {type(exc).__name__}: {exc}")
         time.sleep(INTERVAL_SEC)
