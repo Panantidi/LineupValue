@@ -3547,7 +3547,8 @@ if (notFound.length > 0) {{
                     '&away_id=' + encodeURIComponent(awayId) +
                     '&home_name=' + encodeURIComponent(homeName) +
                     '&away_name=' + encodeURIComponent(awayName) +
-                    '&autopxi=1';
+                    '&autopxi=1' +
+                    '&bulk_mode=start';
                 // Aug 24 2026 — Max asked to drop the 🔍 Check
                 // Predicted XI button entirely. Predicted XI
                 // should rely solely on the T-18h auto-builder
