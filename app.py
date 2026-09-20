@@ -4755,7 +4755,7 @@ COUNTRY_ALIASES = {
 }
 
 @app.get("/lineup_ai/compare/{team_id}")
-async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id: str = "", home_name: str = "", away_name: str = "", kickoff_ts: int = 0):
+async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id: str = "", home_name: str = "", away_name: str = "", kickoff_ts: int = 0, bulk_mode: str = ""):
     """Render two full team views side-by-side for an upcoming match.
     All match data (home_id, away_id, names) is passed from the select page
     which already has it from the fixtures API — no Playwright needed here.
@@ -4764,6 +4764,14 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     still > 1 h away. We forward `kickoff_ts` from the autopxi URL into
     the iframe URLs (see the `{{kickoff_ts}}` replacement further down)
     so the team-mode iframe can decide whether the squad is stable.
+
+    Sep 20 2026 — Max asked that ▶ Open Match from 🎯 Predicted XI
+    pre-selects 🔴 S-XI in the bulk-lineup dropdown. We forward
+    `bulk_mode` (from the Open Match URL) into the iframe URLs so the
+    team-mode iframe can flip its dropdown to 'start' at load time.
+    Validated values: 'start', 'possible', 'squad'. Anything else
+    is forwarded verbatim so the iframe's client-side guard can
+    fall through to the natural default.
     """
     import os, json
 
@@ -5182,6 +5190,11 @@ async def lineup_compare(team_id: str, mid: str = "", home_id: str = "", away_id
     # loads fresh iframe content even if a browser/proxy cached an
     # earlier /lineup_ai/<team_id>?embed=1... response.
     result = result.replace("{{cache_bust}}", _safe(str(int(time.time()))))
+    # Sep 20 2026 — forward bulk_mode into both iframe URLs (see the
+    # {{bulk_mode}} placeholder next to embed=1 below). When empty the
+    # iframe just doesn't get the param and the natural default
+    # (🔵 P-XI = "possible") wins.
+    result = result.replace("{{bulk_mode}}", _safe(bulk_mode))
 
     # Aug 28 2026 — Max reported stale data when opening a match from
     # Predicted XI. Browsers (and any reverse proxy in front) must not
