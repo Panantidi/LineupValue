@@ -2208,6 +2208,17 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             .container {{
                 padding: 0 16px 16px 16px !important;
             }}
+            /* Fixed sidebars (.tweets-sidebar 360px + .saved-matches-panel
+               253px = 613px) take more than half the viewport on tablets and
+               overlap the .main-table. Hide them — they're a desktop-only
+               convenience. The buttons to summon them are still in the
+               header. The .team-nav-sidebar stays because it's inline in the
+               flex row, not fixed, and the (max-width: 768px) block handles
+               it there. */
+            .tweets-sidebar,
+            .saved-matches-panel {{
+                display: none !important;
+            }}
         }}
 
         /* ----- PHONES (<768px) ----- */
@@ -2221,12 +2232,13 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
             /* Header: title row stays inline (h1 + emblem), button rows
                become horizontally scrollable. Buttons are flex children
                of a single flex row inside .header, which we make
-               overflow-x: auto on phones. */
+               overflow-x: auto on phones. Tighter padding so the header
+               fits in ~64px instead of 102px on iPhone SE. */
             .header {{
                 flex-direction: column !important;
                 align-items: stretch !important;
-                padding: 10px 12px !important;
-                gap: 6px !important;
+                padding: 6px 10px !important;
+                gap: 4px !important;
             }}
             .header h1 {{
                 font-size: 17px !important;
@@ -2275,28 +2287,57 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 padding: 0 8px 12px 8px !important;
             }}
 
-            /* Main layout: stack side-by-side panels vertically */
+            /* Page content: stack columns vertically. .page-content is the
+               flex row that holds .team-nav-sidebar (240px) + .page-main
+               on desktop. Without this column override, the sidebar keeps
+               flex-shrink:0 and main gets pushed to 0 width on phones. */
+            .page-content {{
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                gap: 12px !important;
+            }}
+            .page-main {{
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                flex: 0 0 auto !important;
+            }}
+
+            /* Main layout: stack side-by-side panels vertically.
+               min-width:0 lets flex children shrink below their content's
+               intrinsic width — without it the 240px sidebar eats the row
+               and .main-table collapses to 0 width on phones. */
             .main-layout {{
                 display: flex !important;
                 flex-direction: column !important;
                 gap: 12px !important;
                 width: 100% !important;
+                min-width: 0 !important;
             }}
 
             /* Main table: scroll horizontally, keep player name column visible.
-               Many squad tables have 20+ columns; on 375px wide screen they
-               overflow. Wrap in scroll container with sticky first column. */
-            .table-container,
-            .main-table {{
+               min-width: 0 is REQUIRED — without it the table refuses to
+               shrink below its intrinsic (all-cols-laid-out) width and the
+               .table-container collapses to 0, hiding the table entirely. */
+            .table-container {{
                 width: 100% !important;
+                min-width: 0 !important;
                 max-width: 100vw !important;
                 overflow-x: auto !important;
                 -webkit-overflow-scrolling: touch !important;
                 display: block !important;
             }}
             .main-table {{
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100vw !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
                 font-size: 12px !important;
                 border-collapse: collapse !important;
+                display: table !important;
             }}
             .main-table th,
             .main-table td {{
@@ -2344,14 +2385,30 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                 max-width: 100% !important;
             }}
 
-            /* Sidebars: collapse, show as bottom drawer or hide */
+            /* Sidebars: collapse, show as bottom drawer or hide.
+               Drop flex-shrink:0 inherited from desktop — the 240px sidebar
+               otherwise refuses to shrink below its content width and pushes
+               the .main-table child off the row. */
             .my-squads-sidebar,
             .tweets-sidebar,
             .team-nav-sidebar {{
                 width: 100% !important;
                 max-width: 100% !important;
+                min-width: 0 !important;
+                flex-shrink: 1 !important;
                 position: static !important;
                 margin-top: 12px !important;
+                box-sizing: border-box !important;
+            }}
+            /* The right-side fixed panels (.tweets-sidebar at 360px and
+               .saved-matches-panel at 253px wide) overlap the main table
+               on phones because they are position:fixed to the viewport.
+               On tablet 768..1024 they still fit, so only hide < 768px. */
+            .tweets-sidebar {{
+                display: none !important;
+            }}
+            .saved-matches-panel {{
+                display: none !important;
             }}
             .tweets-sidebar.hidden {{
                 display: none !important;
@@ -2657,11 +2714,46 @@ def render_team_view(team_id: str, embed: str = "", _travel_opp: str = "") -> HT
                         // has just chosen a match from the P-XI / S-XI list).
                         // Unknown / missing values fall through to the
                         // natural default (🔵 P-XI = "possible").
+                        //
+                        // Sep 20 2026 v2 — Max reported that the dropdown
+                        // briefly showed S-XI but reverted to P-XI a couple
+                        // of seconds later, right after the squad's P-XI
+                        // markings finished ticking in (the
+                        // _applyPredictedXIIframe chain). The exact
+                        // code path that resets the dropdown isn't
+                        // observable from this script's vantage point,
+                        // but the symptom is consistent with a postMessage
+                        // handler reapplying some earlier cached value
+                        // or with an iframe-reload losing the URL param.
+                        // Workaround: watch the select for any value
+                        // change and, if it ever drifts away from the
+                        // URL-asserted mode within the first 8 s, snap
+                        // it back. After that window the user has had
+                        // time to interact and we stay out of their way.
                         try {{
                             var bm = new URLSearchParams(location.search).get('bulk_mode');
                             if (bm === 'start' || bm === 'possible' || bm === 'squad') {{
                                 var sel = document.getElementById('bulk-lineup-mode');
-                                if (sel) sel.value = bm;
+                                if (sel) {{
+                                    var _enforce = function() {{
+                                        try {{
+                                            if (sel.value !== bm) sel.value = bm;
+                                        }} catch (e) {{}}
+                                    }};
+                                    _enforce();
+                                    // The squad table / lineup ticks fire
+                                    // ~600-1500 ms after iframe load and
+                                    // we want the dropdown settled before
+                                    // the user clicks 👥 Add Lineups, so
+                                    // 8 s covers the worst observed drift.
+                                    var _start = Date.now();
+                                    var _tick = setInterval(function() {{
+                                        _enforce();
+                                        if (Date.now() - _start > 8000) {{
+                                            clearInterval(_tick);
+                                        }}
+                                    }}, 100);
+                                }}
                             }}
                         }} catch (e) {{ /* ignore: URLSearchParams not available */ }}
                     }})();
@@ -6677,7 +6769,7 @@ if (notFound.length > 0) {{
             </div>
         </div>
     </div>
-<aside class="tweets-sidebar" id="tweets-sidebar">
+<aside class="tweets-sidebar" id="tweets-sidebar" style="display:none">
         <div class="tweets-sidebar-header">
             <span>Latest News</span>
             <span class="tweets-count" id="tweets-count">0</span>
@@ -7044,6 +7136,8 @@ if (notFound.length > 0) {{
 
     async function fetchTweets() {{
         if (!TEAM_ID) return;
+        var _sb = document.getElementById('tweets-sidebar');
+        if (_sb && _sb.style.display === 'none') return; // sidebar hidden — skip polling
         try {{
             console.log('[tweets-sidebar] fetchTweets starting for team', TEAM_ID);
             // Fetch BOTH the team-specific tweets AND the global recent tweets,

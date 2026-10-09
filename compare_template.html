@@ -152,6 +152,42 @@ body {
     border: none;
 }
 
+/* ----- MOBILE (Sep 25 2026) ----- */
+@media (max-width: 1024px) {
+    /* Compare-mode iframes are 980px each (1960px + gap = 1990px min-content).
+       On a 375..1024 viewport this forces the user to swipe horizontally
+       across a 2273px container — unusable. Stack the two iframes vertically
+       at 100% viewport width. Each iframe's own internal Team-mode view
+       already handles mobile (the patches in lineup_team_view.py). */
+    .compare-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    .team-frame {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: 1400px !important; /* fixed per-iframe scroll viewport */
+    }
+    /* 🆚 H2H button was positioned absolutely at left:985px to sit in the
+       30px gap between the two iframes. On mobile the iframes are stacked
+       vertically — re-anchor the button to the top-right of the first
+       iframe so the user can still swap teams. */
+    .match-h2h-btn {
+        left: auto !important;
+        right: 12px !important;
+        top: 8px !important;
+    }
+}
+@media (max-width: 380px) {
+    .team-frame { height: 1200px !important; }
+}
+
 /* 🆚 H2H button: compact (36px) circle, sitting on the gap between the two iframes
    but NOT inside any header. Vertically aligned with the team-name h1. */
 .match-h2h-btn {
@@ -3172,7 +3208,8 @@ document.addEventListener('click', function(ev) {
 
     fetchTweets();
     // Aggressive polling for near-instant updates in Match mode.
-    setInterval(fetchTweets, 5000);
+    // Sidebar is hidden by default — skip polling while display:none.
+    setInterval(function() { if (SIDEBAR && SIDEBAR.style.display !== "none") fetchTweets(); }, 5000);
 
     function syncHeight() {
         if (!SIDEBAR) return;
