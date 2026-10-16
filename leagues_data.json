@@ -1520,6 +1520,18 @@
         "name": "Wrexham",
         "slug": "Wrexham",
         "image_path": "https://static.flashscore.com/res/image/data/xh7dXaf5-OxoAKHbA.png"
+      },
+      {
+        "id": "z3dmTMMO",
+        "name": "Burnley",
+        "slug": "burnley",
+        "image_path": "https://static.flashscore.com/res/image/data/xO3nES96-6PhTI7J6.png"
+      },
+      {
+        "id": "j3Azpf5d",
+        "name": "Wolves",
+        "slug": "wolves",
+        "image_path": "https://static.flashscore.com/res/image/data/MV7MiUmC-ABWS7fBq.png"
       }
     ],
     "League One": [
